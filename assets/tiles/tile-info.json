@@ -1,0 +1,16 @@
+{
+    "spritepath-base": "assets/tiles/",
+    "default": {
+        "walkable": true
+    },
+    "tiles": [
+        {
+            "name": "grass",
+            "sprite": "GrassTile.png",
+            "walkable": false
+        },
+        "sand : sand.png",
+        "water : GrassTile.png",
+        "grass : GrassTile.png"
+    ]
+}

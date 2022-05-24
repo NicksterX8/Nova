@@ -1,0 +1,5 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/melaniewilson/Faketorio'
+g++ -g -Wall -Wextra -std=c++11 -Wno-missing-field-initializers -Wno-unused-variable -Wno-unused-parameter -o main -L /usr/local/Cellar/sdl2_image/2.0.5/lib main.o Textures.o Items.o Components.o Tiles.o Entities.o GameState.o Log.o GameViewport.o Debug.o Metadata.o NC/NC.a SDL2_gfx/SDL2_gfx.a SDL_FontCache/SDL_FontCache.o NC/utils.o -lSDL2 -lSDL2_image -lSDL2_ttf
+make: Leaving directory `/Users/melaniewilson/Faketorio'
+ 

@@ -1,0 +1,403 @@
+make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+# GNU Make 3.81
+# Copyright (C) 2006  Free Software Foundation, Inc.
+# This is free software; see the source for copying conditions.
+# There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+# This program built for i386-apple-darwin11.3.0
+ 
+
+# Make data base, printed on Mon May 23 20:42:37 2022
+
+# Variables
+
+# automatic
+<D = $(patsubst %/,%,$(dir $<))
+# automatic
+?F = $(notdir $?)
+# environment
+VSCODE_LOG_NATIVE = false
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
+# makefile (from `Makefile', line 4)
+INCLUDES = -I /usr/local/Cellar/sdl2/2.0.16/include -I /usr/local/Cellar/sdl2_image/2.0.5/include
+# automatic
+@D = $(patsubst %/,%,$(dir $@))
+# automatic
+@F = $(notdir $@)
+# makefile
+CURDIR := /Users/melaniewilson/Faketorio
+# makefile
+SHELL = /bin/sh
+# environment
+VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
+# environment
+_ = /usr/bin/make
+# makefile (from `Makefile', line 2)
+CFLAGS = -g -Wall -Wextra -std=c++11 -Wno-missing-field-initializers -Wno-unused-variable -Wno-unused-parameter
+# makefile (from `Makefile', line 1)
+MAKEFILE_LIST :=  Makefile
+# makefile (from `Makefile', line 9)
+ARGS = 
+# makefile (from `Makefile', line 16)
+EMSC_OBJ_FILES = NC/NC.emsc.a SDL2_gfx/SDL2_gfx.emsc.a SDL_FontCache/SDL_FontCache.emsc.o
+# environment
+VSCODE_VERBOSE_LOGGING = true
+# environment
+__CFBundleIdentifier = com.microsoft.VSCode
+# environment
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/8g/jr6txvqx071cqhjlspzc8jdr0000gn/T/vscode-ipc-1edd0230-de42-4946-b060-87f856976df4.sock
+# makefile (from `Makefile', line 12)
+APP = main
+# environment
+VSCODE_CWD = /
+# makefile (from `Makefile', line 15)
+OBJ_FILES = main.o Textures.o Items.o Components.o Tiles.o Entities.o GameState.o Log.o GameViewport.o Debug.o Metadata.o NC/NC.a SDL2_gfx/SDL2_gfx.a SDL_FontCache/SDL_FontCache.o NC/utils.o
+# environment
+PATH = /Users/melaniewilson/emsdk:/Users/melaniewilson/emsdk/upstream/emscripten:/Users/melaniewilson/emsdk/node/14.18.2_64bit/bin:/Library/Frameworks/Python.framework/Versions/3.9/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/share/dotnet:~/.dotnet/tools:/Library/Apple/usr/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/Users/melaniewilson/.spicetify:/Users/melaniewilson/.dotnet/tools
+# environment
+LSCOLORS = Gxfxcxdxbxegedabagacad
+# environment
+EMSDK_NODE = /Users/melaniewilson/emsdk/node/14.18.2_64bit/bin/node
+# environment
+VSCODE_LOG_STACK = false
+# environment
+ELECTRON_RUN_AS_NODE = 1
+# default
+.FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
+# environment
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.uVE8KBua56/Listeners
+# automatic
+%F = $(notdir $%)
+# makefile (from `Makefile', line 11)
+MAINFILE = main.cpp
+# environment
+VSCODE_PIPE_LOGGING = true
+# environment
+PWD = /Users/melaniewilson/Faketorio
+# environment
+ORIGINAL_XDG_CURRENT_DESKTOP = undefined
+# environment
+EMSDK_PYTHON = /Users/melaniewilson/emsdk/python/3.9.2-1_64bit/bin/python3
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+# environment
+HOME = /Users/melaniewilson
+# default
+MAKEFILEPATH := /Applications/Xcode.app/Contents/Developer/Makefiles
+# environment
+VSCODE_CODE_CACHE_PATH = /Users/melaniewilson/Library/Application Support/Code/CachedData/c3511e6c69bb39013c4a4b7b9566ec1ca73fc4d5
+# environment
+LOGNAME = melaniewilson
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+# environment
+ZSH = /Users/melaniewilson/.oh-my-zsh
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# automatic
+^D = $(patsubst %/,%,$(dir $^))
+# environment
+XPC_FLAGS = 0x0
+# default
+MAKE = $(MAKE_COMMAND)
+# default
+MAKECMDGOALS := all
+# environment
+SHLVL = 1
+# makefile (from `Makefile', line 1)
+CC = g++
+# default
+MAKE_VERSION := 3.81
+# environment
+USER = melaniewilson
+# makefile
+.DEFAULT_GOAL := all
+# environment
+LESS = -R
+# automatic
+%D = $(patsubst %/,%,$(dir $%))
+# makefile (from `Makefile', line 6)
+LINKS = -L /usr/local/Cellar/sdl2_image/2.0.5/lib
+# default
+MAKE_COMMAND := /Applications/Xcode.app/Contents/Developer/usr/bin/make
+# default
+.VARIABLES := 
+# environment
+TMPDIR = /var/folders/8g/jr6txvqx071cqhjlspzc8jdr0000gn/T/
+# automatic
+*F = $(notdir $*)
+# environment
+VSCODE_IPC_HOOK = /Users/melaniewilson/Library/Application Support/Code/1.67.2-main.sock
+# makefile
+MAKEFLAGS = Rrqp
+# environment
+MFLAGS = -Rrqp
+# automatic
+*D = $(patsubst %/,%,$(dir $*))
+# environment
+XPC_SERVICE_NAME = application.com.microsoft.VSCode.25787451.25787457
+# automatic
++D = $(patsubst %/,%,$(dir $+))
+# automatic
++F = $(notdir $+)
+# environment
+__CF_USER_TEXT_ENCODING = 0x1F5:0x0:0x0
+# environment
+COMMAND_MODE = unix2003
+# default
+MAKEFILES := 
+# environment
+EM_CONFIG = /Users/melaniewilson/emsdk/.emscripten
+# automatic
+<F = $(notdir $<)
+# makefile (from `Makefile', line 7)
+LINK_FLAGS = -lSDL2 -lSDL2_image -lSDL2_ttf
+# environment
+PAGER = less
+# environment
+LC_ALL = C
+# automatic
+^F = $(notdir $^)
+# makefile (from `Makefile', line 13)
+SRC_FILES = $(MAINFILE) Items.cpp GameState.cpp Components.cpp Textures.cpp Tiles.cpp GameViewport.cpp Log.cpp Debug.cpp Metadata.cpp Entities.cpp
+# default
+SUFFIXES := 
+# default
+.INCLUDE_DIRS = /usr/local/include
+# environment
+MAKELEVEL := 0
+# environment
+LANG = C
+# environment
+EMSDK = /Users/melaniewilson/emsdk
+# environment
+VSCODE_PID = 46782
+# variable set hash-table stats:
+# Load=81/1024=8%, Rehash=0, Collisions=4/116=3%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# . (device 16777225, inode 25740264): 56 files, no impossibilities.
+
+# 56 files, no impossibilities in 1 directories.
+
+# Implicit Rules
+
+# No implicit rules.
+
+# Files
+
+# Not a target:
+Entities.cpp:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+all:
+#  Command-line target.
+#  Implicit rule search has not been done.
+#  Implicit/static pattern stem: `'
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# automatic
+# @ := all
+# automatic
+# % := 
+# automatic
+# * := 
+# automatic
+# + := 
+# automatic
+# | := 
+# automatic
+# < := 
+# automatic
+# ^ := 
+# automatic
+# ? := 
+# variable set hash-table stats:
+# Load=8/32=25%, Rehash=0, Collisions=3/16=19%
+#  commands to execute (from `Makefile', line 21):
+	$(CC) $(CFLAGS) -o $(APP) ${LINKS} $(OBJ_FILES) $(LINK_FLAGS)
+	
+
+web:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 41):
+	em++ -DBUILD_EMSCRIPTEN main.cpp $(EMSC_OBJ_FILES)  \
+	-o build/game.html \
+	$(INCLUDES) \
+	-I /usr/local/Cellar/emscripten/include \
+	-s LLD_REPORT_UNDEFINED $(LINK_FLAGS) \
+	--preload-file assets \
+	-Wall -g -lm -s \
+	USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2 -s SDL2_IMAGE_FORMATS='["jpg","png"]' \
+	--use-preload-plugins
+	
+
+sourceEMCC:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 39):
+	cd ~/emsdk && ./emsdk activate
+	
+
+# Not a target:
+.SUFFIXES:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2022-05-23 03:05:20
+#  File has been updated.
+#  Successfully updated.
+# variable set hash-table stats:
+# Load=0/32=0%, Rehash=0, Collisions=0/0=0%
+
+# Not a target:
+Items.cpp:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+Metadata.cpp:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+main.cpp:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+.c.o: main.cpp Items.cpp GameState.cpp Components.cpp Textures.cpp Tiles.cpp GameViewport.cpp Log.cpp Debug.cpp Metadata.cpp Entities.cpp
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 19):
+	$(CC) $(CFLAGS) $(INCLUDES) -c $^
+	
+
+# Not a target:
+Log.cpp:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+ 
+#  File has not been updated.
+
+# Not a target:
+GameState.cpp:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+clean:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 23):
+	rm -rf $(OBJ_FILES) $(APP)
+	rm build/game.html
+	rm build/game.js
+	rm build/game.wasm
+	
+
+# Not a target:
+GameViewport.cpp:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+main:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 30):
+	make deploy
+	
+
+# Not a target:
+Tiles.cpp:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+deploy:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 28):
+	make .c.o && make all && ./$(APP) $(ARGS)
+	
+
+# Not a target:
+Components.cpp:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+Textures.cpp:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+asm:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 36):
+	$(CC) -g -Wall -Wextra -S -Wa,-alh new.cpp > new.txt
+	
+
+# Not a target:
+Debug.cpp:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+buildNC:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  commands to execute (from `Makefile', line 33):
+	(cd NC && make all)
+	
+
+# files hash-table stats:
+# Load=23/1024=2%, Rehash=0, Collisions=0/48=0%
+# VPATH Search Paths
+
+# No `vpath' search paths.
+
+# No general (`VPATH' variable) search path.
+
+# # of strings in strcache: 1
+# # of strcache buffers: 1
+# strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
+# strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
+
+# Finished Make data base on Mon May 23 20:42:37 2022
+
+ 
