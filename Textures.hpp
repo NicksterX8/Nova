@@ -15,6 +15,7 @@ struct TextureStruct {
     SDL_Texture* player;
     SDL_Texture* tree;
     SDL_Texture* grenade;
+    SDL_Texture* chest;
     struct TileStruct {
         SDL_Texture* grass;
         SDL_Texture* sand;

@@ -2,7 +2,9 @@
 #define UPDATE_INCLUDED
 
 #include <vector>
+#include <random>
 #include <SDL2/SDL.h>
+#include <math.h>
 
 #include "SDL_FontCache/SDL_FontCache.h"
 #include "NC/SDLContext.h"
@@ -20,6 +22,8 @@
 #include "Debug.hpp"
 #include "Entity.hpp"
 #include "Log.hpp"
+
+std::default_random_engine randomGen;
 
 struct Context {
     SDLContext& sdlCtx;
@@ -71,6 +75,164 @@ GameViewport newGameViewport(int renderWidth, int renderHeight, float focusX, fl
     return newViewport;
 }
 
+void systemsUpdate(GameState* state) {
+    ECS* ecs = &state->ecs;
+    
+    state->ecs.iterateComponents<GrowthComponent>(
+    [](GrowthComponent* growth){
+        growth->growthValue += 1;
+    });
+
+    state->ecs.iterateEntities<PositionComponent, MotionComponent, ExplosiveComponent>(
+    [](ECS* ecs, Entity entity){
+        PositionComponent* position = ecs->Get<PositionComponent>(entity);
+        Vec2 target = ecs->Get<MotionComponent>(entity)->target;
+        Vec2 delta = {target.x - position->x, target.y - position->y};
+        Vec2 unit = delta.norm().scaled(ecs->Get<MotionComponent>(entity)->speed);
+
+        if (delta.length() < unit.length()) {
+            position->x = target.x;
+            position->y = target.y;
+
+            // EXPLODE
+            Entity explosion = ecs->New();
+            auto explosionComponent = *ecs->Get<ExplosiveComponent>(entity)->explosion;
+            ecs->Add<ExplosionComponent>(explosion, explosionComponent);
+            ecs->Add<PositionComponent>(explosion, PositionComponent(target));
+
+            float radius = explosionComponent.radius;
+
+            std::uniform_int_distribution<float> speedDist(0.2f, 1.0f);
+            std::uniform_int_distribution<float> angleDist(-10*M_PI, 10*M_PI);
+            std::uniform_int_distribution<float> distDist(-radius, radius);
+            std::uniform_int_distribution<float> sizeDist(0.6f, 1.2f);
+
+            // spawn particles
+            for (int i = 0; i < explosionComponent.particleCount; i++) {
+                
+                float speed = speedDist(randomGen);
+                float angle = angleDist(randomGen);
+                float dist = distDist(randomGen); 
+                float size = sizeDist(randomGen);
+
+                Vec2 particleTarget = {
+                    target.x + dist * cos(angle),
+                    target.y + dist * sin(angle)
+                };
+
+                Entity particle = Entities::Particle(
+                    ecs, 
+                    target,
+                    {size, size},
+                    RenderComponent(Textures.Tiles.sand, RenderLayer::Particles),
+                    MotionComponent(particleTarget, speed)
+                );
+            }
+
+            ecs->ScheduleRemove(entity);
+        } else {
+            position->x += unit.x;
+            position->y += unit.y;
+        }
+    });
+
+    state->ecs.iterateEntities(
+    [](Uint32 signature){
+        Uint32 need = componentSignature<PositionComponent, MotionComponent>();
+        Uint32 avoid = componentSignature<ExplosiveComponent>();
+
+        if (((signature & need) == need) && !(signature & avoid)) {
+            return true;
+        }
+        return false;
+    },
+    [](ECS* ecs, Entity entity){
+        PositionComponent* position = ecs->Get<PositionComponent>(entity);
+        Vec2 target = ecs->Get<MotionComponent>(entity)->target;
+        Vec2 delta = {target.x - position->x, target.y - position->y};
+        Vec2 unit = delta.norm().scaled(1);
+
+        if (delta.length() < unit.length()) {
+            position->x = target.x;
+            position->y = target.y;
+
+            ecs->RemoveComponents<MotionComponent>(entity);
+        } else {
+            position->x += unit.x;
+            position->y += unit.y;
+        }
+    });
+
+    ecs->iterateEntities<ExplosionComponent, PositionComponent>(
+    [](ECS* ecs, Entity entity){
+        ExplosionComponent* explosion = ecs->Get<ExplosionComponent>(entity);
+        float radius = explosion->radius;
+        //PositionComponent* positionComponent = ecs->Get<PositionComponent>(entity);
+        //Vec2 position = {positionComponent->x, positionComponent->y};
+        Vec2 position = *ecs->Get<PositionComponent>(entity);
+        
+        // search for entities to kill
+        ecs->iterateEntities<PositionComponent, HealthComponent>([position, radius, explosion](ECS* ecs, Entity affectedEntity){
+            Vec2 aPos = *ecs->Get<PositionComponent>(affectedEntity);
+            Vec2 delta = aPos - position;
+            float distanceSqrd = delta.x * delta.x + delta.y * delta.y;
+            
+            if (distanceSqrd < radius*radius) {
+                // entity is in range of explosion,
+                // reduce their health
+                ecs->Get<HealthComponent>(affectedEntity)->healthValue -= explosion->damage;
+            }
+        });
+        
+        explosion->life--;
+        if (explosion->life < 1) {
+            ecs->ScheduleRemove(entity);
+        }
+    });
+    
+    
+    state->ecs.iterateEntities<HealthComponent>(
+    [](ECS* ecs, Entity entity){
+        HealthComponent* health = ecs->Get<HealthComponent>(entity);
+        if (health->healthValue <= 0.0f) {
+            ecs->ScheduleRemove(entity);
+        }
+    });
+
+    ecs->iterateEntities([](Uint32 signature){
+        Uint32 need = componentSignature<GrowthComponent, InventoryComponent>();
+        if ((signature & need) == need) {
+            return true;
+        }
+        return false;
+    },
+    [](ECS* ecs, Entity entity){
+        GrowthComponent* growth = ecs->Get<GrowthComponent>(entity);
+        if (growth->growthValue > 100) {
+            growth->growthValue -= 100;
+            Inventory* inventory = &ecs->Get<InventoryComponent>(entity)->inventory;
+            inventory->addItemStack(ItemStack(Items::Wall));
+
+            // Log("Adding wall to inventory. Number of walls: %d", inventoryComponent->inventory.itemCount(Items::Wall));
+        }
+        
+    });
+    
+
+    ecs->iterateEntities<DyingComponent>(
+    [](ECS* ecs, Entity entity) {
+        int* timeToRemoval = &ecs->Get<DyingComponent>(entity)->timeToRemoval;
+        (*timeToRemoval)--;
+        if (*timeToRemoval < 1) {
+            ecs->ScheduleRemove(entity);
+        } 
+    });
+
+    // Log("num entities: %u", ecs->numLiveEntities());
+
+    ecs->DoScheduledRemoves();
+}
+
 // Main game loop
 int update(Context ctx) {
     Metadata.tick();
@@ -87,12 +249,11 @@ int update(Context ctx) {
 
     updateTilePixels(ctx.worldScale);
 
-    // handle events //
-    PlayerControls playerControls = PlayerControls(gameViewport); // player related event handler
- 
     // get user input state for this update
     SDL_PumpEvents();
     MouseState mouse = getMouseState();
+    // handle events //
+    PlayerControls playerControls = PlayerControls(gameViewport, mouse); // player related event handler
 
     SDL_Event event;
     while (SDL_PollEvent(&event) != 0) {
@@ -157,100 +318,7 @@ int update(Context ctx) {
     };
     //state->chunkmap.iterateChunkdata(callback);
 
-    ECS* ecs = &state->ecs;
-    state->ecs.iterateComponents<GrowthComponent>(
-    [](GrowthComponent* growth){
-        growth->growthValue += 0.1;
-    });
-
-    state->ecs.iterateEntities<PositionComponent, MotionComponent, ExplosiveComponent>(
-    [](ECS* ecs, Entity entity){
-        PositionComponent* position = ecs->Get<PositionComponent>(entity);
-        Vec2 target = ecs->Get<MotionComponent>(entity)->target;
-        Vec2 delta = {target.x - position->x, target.y - position->y};
-        Vec2 unit = delta.norm().scaled(ecs->Get<MotionComponent>(entity)->speed);
-
-        if (delta.length() < unit.length()) {
-            position->x = target.x;
-            position->y = target.y;
-
-            // EXPLODE
-            Entity explosion = ecs->New();
-            ecs->Add<ExplosionComponent>(explosion, *ecs->Get<ExplosiveComponent>(entity)->explosion);
-            ecs->Add<PositionComponent>(explosion, PositionComponent(target));
-
-            ecs->Remove(entity);
-        } else {
-            position->x += unit.x;
-            position->y += unit.y;
-        }
-    });
-
-    state->ecs.iterateEntities(
-    [](Uint32 signature){
-        Uint32 need = componentSignature<PositionComponent, MotionComponent>();
-        Uint32 avoid = componentSignature<ExplosiveComponent>();
-        if (((signature & need) == need) && !(signature & avoid)) {
-            return true;
-        }
-        return false;
-    },
-    [](ECS* ecs, Entity entity){
-        PositionComponent* position = ecs->Get<PositionComponent>(entity);
-        Vec2 target = ecs->Get<MotionComponent>(entity)->target;
-        Vec2 delta = {target.x - position->x, target.y - position->y};
-        Vec2 unit = delta.norm().scaled(1);
-
-        if (delta.length() < unit.length()) {
-            position->x = target.x;
-            position->y = target.y;
-
-            ecs->RemoveComponents<MotionComponent>(entity);
-        } else {
-            position->x += unit.x;
-            position->y += unit.y;
-        }
-    });
-
-    ecs->iterateEntities<ExplosionComponent, PositionComponent>(
-    [](ECS* ecs, Entity entity){
-        ExplosionComponent* explosion = ecs->Get<ExplosionComponent>(entity);
-        float radius = explosion->radius;
-        //PositionComponent* positionComponent = ecs->Get<PositionComponent>(entity);
-        //Vec2 position = {positionComponent->x, positionComponent->y};
-        Vec2 position = *ecs->Get<PositionComponent>(entity);
-        
-        ecs->iterateEntities<PositionComponent, HealthComponent>([position, radius, entity, explosion](ECS* ecs, Entity affectedEntity){
-            Vec2 aPos = *ecs->Get<PositionComponent>(affectedEntity);
-            Vec2 delta = aPos - position;
-            float distanceSqrd = delta.x * delta.x + delta.y * delta.y;
-            
-            if (distanceSqrd < radius*radius) {
-                // entity is in range of explosion,
-                // reduce their health
-                ecs->Get<HealthComponent>(affectedEntity)->healthValue -= explosion->damage;
-            }
-        });
-        
-        explosion->life--;
-        if (explosion->life < 1) {
-            ecs->Remove(entity);
-        }
-    });
-
-
-    int code = ecs->DoScheduledRemoves();
-    if (code) {
-        LogError("Failed to do scheduled removes. code: %d", code);
-    }
-    
-    state->ecs.iterateEntities<HealthComponent>(
-    [](ECS* ecs, Entity entity){
-        HealthComponent* health = ecs->Get<HealthComponent>(entity);
-        if (health->healthValue <= 0.0f) {
-            ecs->Remove(entity);
-        }
-    });
+    systemsUpdate(state);
 
     //Log("num Tiles accessed: %d", numTilesAccessed);
 

@@ -52,9 +52,10 @@ MouseState getMouseState() {
 
 class PlayerControls {
 const GameViewport gameViewport;
+const MouseState mouse;
 public:
-    PlayerControls(const GameViewport* viewport):
-    gameViewport(*viewport) {
+    PlayerControls(const GameViewport* viewport, MouseState mouse):
+    gameViewport(*viewport), mouse(mouse) {
         
     }
 
@@ -112,14 +113,6 @@ public:
     }
 
     void handleMouseMotion(const SDL_MouseMotionEvent& event, GameState* state) {
-        /*
-        int currentX = event.x * SDLPixelScale;
-        int currentY = event.y * SDLPixelScale;
-        int relX = event.xrel * SDLPixelScale;
-        int relY = event.yrel * SDLPixelScale;
-        int prevX = currentX - relX;
-        int prevY = currentY - relY;*/
-
         
     }
 
@@ -128,6 +121,7 @@ public:
         // on high DPI displays, so we scale it by the pixel scale to get actual pixels.
         SDL_Point mousePos = {(int)(event.x * SDLPixelScale), (int)(event.y * SDLPixelScale)};
         Vec2 worldPos = gameViewport.pixelToWorldPosition(mousePos.x, mousePos.y);
+        Tile* selectedTile = getTileAtPosition(state->chunkmap, worldPos);
         if (event.button == SDL_BUTTON_LEFT) {
             Log("mouse screen XY: %d,%d", mousePos.x, mousePos.y);
 
@@ -156,9 +150,12 @@ public:
 
                     // placeHeldItem(state, worldPos);
 
-                    Tile* selectedTile = getTileAtPosition(state->chunkmap, worldPos);
-                    Log("Removing entity at %d,%d", (int)floor(worldPos.x), (int)floor(worldPos.y));
-                    selectedTile->removeEntity(&state->ecs);
+                    Entity tileEntity;
+                    if (findTileEntityAtPosition(state, worldPos, &tileEntity)) {
+                        Log("Removing entity at %d,%d", (int)floor(worldPos.x), (int)floor(worldPos.y));
+                            selectedTile->removeEntity(&state->ecs);
+                    }
+                    
                 }
             }
 
@@ -168,13 +165,39 @@ public:
     }
 
     void handleKeydown(const SDL_KeyboardEvent& event, GameState* state) {
-        Entity grenade;
         switch (event.keysym.sym) {
             case 't':
                 Debug.settings.drawChunkBorders ^= 1;
                 break;
             case 'r':
+                Debug.settings.drawEntityRects ^= 1;
                 break;
+            case 'e': {
+                Vec2 mouseWorldPosition = gameViewport.pixelToWorldPosition(mouse.x, mouse.y);
+                Entity tileEntity;
+                if (findTileEntityAtPosition(state, mouseWorldPosition, &tileEntity)) {
+                    // does entity have inventory
+                    if (state->ecs.entityComponents(tileEntity.id) & componentSignature<InventoryComponent>()) {
+                        // then open inventory
+                        Inventory* inventory = &state->ecs.Get<InventoryComponent>(tileEntity)->inventory;
+                        // for now since I dont want to make GUI so just give the items in the inventory to the player
+                        for (int i = 0; i < inventory->size; i++) {
+                            int nAdded = state->player.inventory.addItemStack(inventory->items[i]);
+                            if (nAdded > 0)
+                                Log("nadded: %d", nAdded);
+                            inventory->items[i].reduceQuantity(nAdded);
+                        }
+                    }
+                }
+                break;}
+            case 'l': {
+                // do airstrike
+                for (int y = -100; y < 100; y += 5) {
+                    for (int x = -100; x < 100; x += 5) {
+                        Entity airstrike = Entities::Airstrike(&state->ecs, Vec2(x, y * 2), {3.0f, 3.0f}, Vec2(x, y));
+                    }
+                }
+                break;}
             default:
                 break;
         }
@@ -341,17 +364,17 @@ public:
 
         movePlayer(state, Vec2(movementX, movementY));
 
-        if (keyboardState[SDL_SCANCODE_R]) {
+        if (keyboardState[SDL_SCANCODE_C]) {
             
             state->player.throwGrenade(&state->ecs, aimingPosition);
         }
 
         if (keyboardState[SDL_SCANCODE_G]) {
             Tile* selectedTile = getTileAtPosition(state->chunkmap, aimingPosition);
-            if (selectedTile->entity == NULL_ENTITY) {
+            if (!state->ecs.EntityLives(selectedTile->entity)) {
                 Log("Adding entity at %d,%d", (int)floor(aimingPosition.x), (int)floor(aimingPosition.y));
-                Entity tree = Entities::Tree(&state->ecs, aimingPosition.vfloor() + Vec2(0.5f, 0.5f), {1, 1});
-                selectedTile->placeEntity(&state->ecs, tree);
+                Entity chest = Entities::Chest(&state->ecs, aimingPosition.vfloor(), 32, 1, 1);
+                selectedTile->placeEntity(&state->ecs, chest);
             }
             
         }

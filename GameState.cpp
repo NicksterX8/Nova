@@ -283,7 +283,7 @@ void GameState::init() {
         }
     }
 
-    for (int e = 0; e < 10000; e++) {
+    for (int e = 0; e < 5000; e++) {
         Vec2 pos = {(float)randomInt(-200, 200), (float)randomInt(-200, 200)};
         Entity entity = Entities::Tree(&ecs, pos, {randomInt(1, 5) + rand0to1(), randomInt(1, 5) + rand0to1()});
     }
@@ -456,4 +456,49 @@ void worldLineAlgorithm(Vec2 start, Vec2 end, std::function<int(IVec2)> callback
 
         iterations++;
     }
+}
+
+bool pointIsOnTileEntity(ECS* ecs, Entity tileEntity, IVec2 tilePosition, Vec2 point) {
+    // check if the click was actually on the entity.
+    bool clickedOnEntity = true;
+    // if the entity doesnt have size data, assume the click was on the entity I guess,
+    // since you cant do checks otherwise.
+    // Kind of undecided whether the player should be able to click on an entity with no size
+    auto size = ecs->Get<SizeComponent>(tileEntity);
+    if (size) {
+        // if there isn't a position component, assume the position is the top left corner of the tile
+        Vec2 position = Vec2(tilePosition.x, tilePosition.y);
+        auto positionComponent = ecs->Get<PositionComponent>(tileEntity);
+        if (positionComponent) {
+            position.x = positionComponent->x;
+            position.y = positionComponent->y;
+        }
+        
+        // now that we have position and size, do actual geometry check
+        clickedOnEntity = (
+            point.x > position.x && point.x < position.x + size->width &&
+            point.y > position.y && point.y < position.y + size->height);        
+    }
+
+    return clickedOnEntity;
+}
+
+bool findTileEntityAtPosition(GameState* state, Vec2 position, Entity* foundEntity) {
+    IVec2 tilePosition = position.floorToIVec();
+    Tile* selectedTile = getTileAtPosition(state->chunkmap, tilePosition);
+    if (selectedTile) {
+        Entity tileEntity = selectedTile->entity;
+        if (state->ecs.EntityLives(tileEntity)) {
+            if (pointIsOnTileEntity(&state->ecs, tileEntity, tilePosition, position)) {
+
+                if (foundEntity)
+                    *foundEntity = tileEntity;
+                return true;
+            }
+        }
+        
+    }
+
+    // no entity could be found at that position
+    return false;
 }

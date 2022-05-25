@@ -35,10 +35,9 @@ public:
     std::vector<Test> runAllTests() {
         std::vector<Test> failedTests;
         for (size_t i = 0; i < tests.size(); i++) {
-            int tempCategory = LogCategory;
             LogCategory = LOG_CATEGORY_TEST;
             int result = tests[i].testFunction();
-            LogCategory = tempCategory;
+            LogCategory = LOG_CATEGORY_MAIN;
             if (result) {
                 Log("Test failed! Name: \"%s\", Code: %d\n", tests[i].name.c_str(), result);
                 failedTests.push_back(tests[i]);
@@ -105,7 +104,7 @@ namespace Tests {
     class ECSTest {
     public:
         Uint32 entitySignature(ECS* ecs, Entity entity) {
-            return ecs->entityComponentFlags[entity];
+            return ecs->entityComponentFlags[entity.id];
         }
     } ECStest;
 
@@ -273,10 +272,10 @@ namespace Tests {
         }
 
         for (int i = 0; i < nEnts-2; i += 2) {
-            if (ecs.entityComponents(entities[i]) != 0) {
+            if (ecs.entityComponents(entities[i].id) != 0) {
                 fail |= 1;
             }
-            if (ecs.entityComponents(entities[i+1]) != componentSignature<RenderComponent, SizeComponent>()) {
+            if (ecs.entityComponents(entities[i+1].id) != componentSignature<RenderComponent, SizeComponent>()) {
                 fail |= 1;
             }
         }
@@ -295,13 +294,13 @@ namespace Tests {
         }
 
         for (int i = 0; i < nEnts-2; i += 2) {
-            if (ecs.entityComponents(entities[i+1]) != componentSignature<RenderComponent, SizeComponent>()) {
+            if (ecs.entityComponents(entities[i+1].id) != componentSignature<RenderComponent, SizeComponent>()) {
                 fail |= 1;
             }
         }
 
         for (int i = 0; i < 20; i++) {
-            if (ecs.entityComponents(entities2[i]) != componentSignature<NametagComponent, GrowthComponent>()) {
+            if (ecs.entityComponents(entities2[i].id) != componentSignature<NametagComponent, GrowthComponent>()) {
                 fail |= 1;
             }
         }

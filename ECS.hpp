@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <bitset>
 #include "Components.hpp"
 #include <functional>
 #include <vector>
@@ -15,12 +16,19 @@
 #define MAX_ENTITIES 50000
 #define NULL_ENTITY (MAX_ENTITIES-1)
 #define MAX_COMPONENTS 32
+#define NUM_COMPONENTS 14
 
-typedef Uint64 Entity;
+typedef Uint32 EntityID;
+typedef Uint32 EntityVersion;
+typedef std::bitset<NUM_COMPONENTS> ComponentFlags;
 
-struct Entity2 {
-    Uint32 id;
-    Uint32 version;
+struct Entity {
+    EntityID id;
+    EntityVersion version;
+
+    bool operator==(Entity rhs) {
+        return (id == rhs.id && version == rhs.version);
+    }
 };
 
 template<typename T>
@@ -50,12 +58,12 @@ template<class T>
 class ComponentPool {
     T* components = NULL; // array of components
     Uint32 size = 0; // how many used components exist in the components array
-    Uint32* entityComponentSet = NULL; // array indexable by entity to get the index of the component owned by that entity
+    Uint32* entityComponentSet = NULL; // array indexable by entity id to get the index of the component owned by that entity
     Uint32 entityComponentSetSize = 0;
 
     #define NULL_COMPONENTPOOL_INDEX UINT32_MAX
 
-    Entity* componentOwners = NULL;
+    EntityID* componentOwners = NULL;
 public:
     Uint32 reserved = 0; // number of reserved component memory spaces
 
@@ -66,7 +74,7 @@ public:
     ComponentPool(Uint32 startSize) {
         reserved = startSize;
         components = (T*)malloc(startSize * sizeof(T));
-        componentOwners = (Entity*)malloc(startSize * sizeof(Entity));
+        componentOwners = (EntityID*)malloc(startSize * sizeof(EntityID));
         entityComponentSet = (Uint32*)malloc(MAX_ENTITIES * sizeof(Uint32));
         for (Uint32 c = 0; c < MAX_ENTITIES; c++) {
             entityComponentSet[c] = NULL_COMPONENTPOOL_INDEX;
@@ -81,7 +89,7 @@ public:
         free(entityComponentSet);
     }
 
-    T* get(Entity entity) {
+    T* get(EntityID entity) {
         // this check is removed to increase performance
         
         if (entity > entityComponentSetSize) {
@@ -117,7 +125,7 @@ public:
         return &components[componentIndex];
     }
 
-    void add(Entity entity) {
+    void add(EntityID entity) {
         //Log("Adding component %d to entity %d", componentID<T>(), entity);
         if (size >= reserved) {
             // double in size every time it runs out of space
@@ -129,7 +137,7 @@ public:
         size++;
     }
 
-    int remove(Entity entity) {
+    int remove(EntityID entity) {
         if (entity == NULL_ENTITY) {
             LogError("Entity passed to ComponentPool::remove was NULL! component id: %d", componentID<T>());
             return -1;
@@ -142,7 +150,7 @@ public:
         }
 
         Uint32 lastComponentIndex = size-1;
-        Entity lastComponentOwner = componentOwners[lastComponentIndex];
+        EntityID lastComponentOwner = componentOwners[lastComponentIndex];
         if (lastComponentOwner == NULL_ENTITY) {
             LogError("Last component owner is NULL while removing entity %d!", entity);
             return -1;
@@ -190,11 +198,11 @@ private:
         }
         components = newComponents;
         
-        Entity* newOwners = (Entity*)realloc(componentOwners, newSize * sizeof(Entity));
+        EntityID* newOwners = (EntityID*)realloc(componentOwners, newSize * sizeof(EntityID));
         if (!newOwners) {
             //Log("Failed to realloc component pool owners");
-            newOwners = (Entity*)malloc(newSize * sizeof(Entity));
-            memcpy(newOwners, componentOwners, size * sizeof(Entity));
+            newOwners = (EntityID*)malloc(newSize * sizeof(EntityID));
+            memcpy(newOwners, componentOwners, size * sizeof(EntityID));
             free(componentOwners);
         }
         componentOwners = newOwners;
@@ -208,7 +216,6 @@ struct EntityData {
     Uint32 componentFlags;
     Entity entity;
 };
-
 
 namespace Tests {
     class ECSTest;
@@ -227,7 +234,7 @@ class ECS {
     std::vector<Entity> entitiesToBeRemoved;
 
     template<class T>
-    int pool_remove_sig(Entity entity, Uint32 signature) {
+    int pool_remove_sig(EntityID entity, Uint32 signature) {
         if (componentSignature<T>() & signature) {
             ComponentPool<T>* pool = getPool<T>();
             return pool->remove(entity);
@@ -236,13 +243,13 @@ class ECS {
     }
 
     template<class T>
-    int pool_remove_component(Entity entity) {
+    int pool_remove_component(EntityID entity) {
         ComponentPool<T>* pool = getPool<T>();
         return pool->remove(entity);
     }
 
     template<class... Components>
-    int removeEntityComponentsAll(Entity entity) {
+    int removeEntityComponentsAll(EntityID entity) {
         int codes[] = { 0, ( (void)0, pool_remove_sig<Components>(entity, entityComponentFlags[entity])) ... };
         int code = 0;
         for (size_t i = 0; i < sizeof(codes) / sizeof(int); i++) {
@@ -252,7 +259,7 @@ class ECS {
     }
 
     template<class... Components>
-    int removeEntityComponents(Entity entity) {
+    int removeEntityComponents(EntityID entity) {
         int codes[] = { 0, ( (void)0, pool_remove_component<Components>(entity)) ... };
         int code = 0;
         for (size_t i = 0; i < sizeof(codes) / sizeof(int); i++) {
@@ -262,7 +269,7 @@ class ECS {
     }
 
     template<class T>
-    void pool_add_sig(Entity entity, Uint32 signature) {
+    void pool_add_sig(EntityID entity, Uint32 signature) {
         if (componentSignature<T>() & signature) {
             ComponentPool<T>* pool = getPool<T>();
             pool->add(entity);
@@ -270,19 +277,19 @@ class ECS {
     }
 
     template<class... Components>
-    void addEntitySignature(Entity entity, Uint32 newComponents) {
+    void addEntitySignature(EntityID entity, Uint32 newComponents) {
         int dummy[] = { 0, ( (void)pool_add_sig<Components>(entity, newComponents), 0) ... };
         (void)dummy;
     }
 
     template<class T>
-    void pool_add_component(Entity entity) {
+    void pool_add_component(EntityID entity) {
         ComponentPool<T>* pool = getPool<T>();
         pool->add(entity);
     }
 
     template<class... Components>
-    void addEntityComponents(Entity entity) {
+    void addEntityComponents(EntityID entity) {
         int dummy[] = { 0, ( (void)pool_add_component<Components>(entity), 0) ... };
         (void)dummy;
     }
@@ -334,8 +341,10 @@ friend class Tests::ECSTest;
         newComponents<COMPONENTS>();
         // all entities are free be default
         for (Uint32 i = 0; i < MAX_ENTITIES; i++) {
-            freeEntities[(MAX_ENTITIES-1) - i] = i;
-            entities[i] = NULL_ENTITY;
+            Entity newEntity = {i, 0};
+            freeEntities[(MAX_ENTITIES-1) - i] = newEntity;
+
+            entities[i].id = NULL_ENTITY;
             indices[i] = NULL_ENTITY;
         }
 
@@ -350,81 +359,99 @@ friend class Tests::ECSTest;
     }
 
     bool EntityLives(Entity entity) {
-        return(indices[entity] != NULL_ENTITY);
+        if (entity.id != NULL_ENTITY) {
+            Uint32 index = indices[entity.id];
+            if (index != NULL_ENTITY) {
+                return (entities[index].version == entity.version);
+            }
+        }
+        
+        return false;
     }
 
     Entity New() {
         if (liveEntities < MAX_ENTITIES - 1 && freeEntities.size() > 0) {
             // get top entity from free entity stack
             Entity entity = freeEntities.back();
-            if (entity == NULL_ENTITY) {
-                LogError("Entity from freeEntities was NULL_ENTITY!");
+            if (entity.id == NULL_ENTITY) {
+                LogError("Entity from freeEntities was NULL! EntityID: %d", entity.id);
             }
             freeEntities.pop_back();
 
             // add free entity to end of entities array
             Uint32 index = liveEntities;
             entities[index] = entity;
-            indices[entity] = index; // update the indices array to tell where the entity is stored
-            entityComponentFlags[entity] = 0; // entity starts with no components
+            indices[entity.id] = index; // update the indices array to tell where the entity is stored
+            entityComponentFlags[entity.id] = 0; // entity starts with no components
             liveEntities++;
 
             return entity;
         }
-        LogError("Ran out of entity space in ECS! Live entities: %d, freeEntities size: %lu. Aborting with return 0.\n", liveEntities, freeEntities.size());
-        return 0;
+        LogError("Ran out of entity space in ECS! Live entities: %u, freeEntities size: %lu. Aborting with return NULL_ENTITY.\n", liveEntities, freeEntities.size());
+        return {NULL_ENTITY, 0};
     }
 
     template<class T> 
     T* Get(Entity entity) {
-        if (indices[entity] == NULL_ENTITY || entity == NULL_ENTITY) {
-            LogError("Attempted to get a component of a non-existent entity! Returning NULL. Entity: %u", entity);
+        if (!EntityLives(entity)) {
+            LogError("ECS::Get : Attempted to get a component of a non-living entity! Returning NULL. EntityID: %u. Version: %u", entity.id, entity.version);
             return NULL;
         }
-        if (componentSignature<T>() & entityComponentFlags[entity]) {
-            return (getPool<T>())->get(entity);
-        } else {
+        if (componentSignature<T>() & entityComponentFlags[entity.id]) {
+            return (getPool<T>())->get(entity.id);
+        }
+        else {
             LogError("Attempted to get a component of an entity that the entity does not have in its flags! Returning NULL.");
             return NULL;
         }
-        
     }
 
     template<class... Components>
-    void Add(Entity entity) {
+    int Add(Entity entity) {
+        if (!EntityLives(entity)) {
+            LogError("ECS::Add : Attempted to add a component to a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
+            return -1;
+        }
+
         Uint32 signature = componentSignature<Components...>();
-        entityComponentFlags[entity] |= signature;
-        addEntityComponents<Components...>(entity);
+        entityComponentFlags[entity.id] |= signature;
+        addEntityComponents<Components...>(entity.id);
+        return 0;
     }
 
     template<class T>
-    void Add(Entity entity, T startValue) {
-        // Log("Adding component %u with value to entity %u", componentID<T>(), entity);
-        entityComponentFlags[entity] |= componentSignature<T>();
-        addEntityComponents<T>(entity);
-        *Get<T>(entity) = startValue;
-    }
-
-    void Add(Entity entity, Uint32 signature) {
-        // Log("Adding signature %u to entity %u", signature, entity);
-        /*
-        if (liveEntities >= MAX_ENTITIES) {
-            LogError("Couldn't add entity %d, too many live entities exist: %d", entity, liveEntities);
+    int Add(Entity entity, T startValue) {
+        if (!EntityLives(entity)) {
+            LogError("ECS::Add : Attempted to add a component to a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
+            return -1;
         }
-        */
-        // just in case the same component is tried to be added twice
-        Uint32 newComponents = (signature ^ entityComponentFlags[entity]) & signature;
-        entityComponentFlags[entity] |= signature;
-        addEntitySignature<COMPONENTS>(entity, newComponents);
+
+        entityComponentFlags[entity.id] |= componentSignature<T>();
+        addEntityComponents<T>(entity.id);
+        *Get<T>(entity) = startValue;
+        return 0;
     }
 
-    int Remove(Entity entity) {
-        if (indices[entity] == NULL_ENTITY) {
-            LogError("Attempted to remove a NULL entity!");
+    int Add(Entity entity, Uint32 signature) {
+        if (!EntityLives(entity)) {
+            LogError("ECS::Add : Attempted to add a component to a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
             return -1;
         }
         
-        int code = removeEntityComponentsAll<COMPONENTS>(entity);
+        // just in case the same component is tried to be added twice
+        Uint32 newComponents = (signature ^ entityComponentFlags[entity.id]) & signature;
+        entityComponentFlags[entity.id] |= signature;
+        addEntitySignature<COMPONENTS>(entity.id, newComponents);
+        return 0;
+    }
+
+    int Remove(Entity entity) {
+        if (!EntityLives(entity)) {
+            LogError("ECS::Remove : Attempted to remove a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
+            return -1;
+        }
+        
+        int componentPoolReturnCode = removeEntityComponentsAll<COMPONENTS>(entity.id);
         // swap last entity with this entity for 100% entity packing in array
         Uint32 lastEntityIndex = liveEntities-1;
         Entity lastEntity = entities[lastEntityIndex];
@@ -432,31 +459,43 @@ friend class Tests::ECSTest;
             // I dont think it matters
         }
 
-        Uint32 entityIndex = indices[entity]; // the index of the entity being removed
+        Uint32 entityIndex = indices[entity.id]; // the index of the entity being removed
         // move last entity to removed entity position in array
         entities[entityIndex] = lastEntity;
         // tell indices where the (formerly) last entity now is
-        indices[lastEntity] = entityIndex;
+        indices[lastEntity.id] = entityIndex;
+
+        // Version goes up one everytime it's removed
+        entity.version += 1;
 
         freeEntities.push_back(entity);
         liveEntities--;
 
         // set now unused last entity position data to null
-        entities[liveEntities] = NULL_ENTITY;
-        indices[entity] = NULL_ENTITY;
-        entityComponentFlags[entity] = 0; // set this to 0 just in case
+        entities[liveEntities].id = NULL_ENTITY;
+        indices[entity.id] = NULL_ENTITY;
+        entityComponentFlags[entity.id] = 0; // set this to 0 just in case
+        return componentPoolReturnCode;
+    }
+
+    template<class... Components>
+    int RemoveComponents(Entity entity) {
+        if (!EntityLives(entity)) {
+            LogError("ECS::Remove : Attempted to remove a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
+            return -1;
+        }
+
+        int code = removeEntityComponents<Components...>(entity.id);
+        entityComponentFlags[entity.id] ^= (componentSignature<Components...>() & entityComponentFlags[entity.id]);
         return code;
     }
 
-    template<class T>
-    Uint32 componentPoolSize() {
-        return getPool<T>()->getSize();
-    }
-
-    Uint32 entityComponents(Entity entity) {
-        return entityComponentFlags[entity];
-    }
-
+    /*
+    * Scheduling removes isn't necessary at this time, but it might be needed in the future
+    * OK it is useful for actually plowing through components instead of stopping and removing entities,
+    * you can just schedule them to go all at once
+    */
+    
     void ScheduleRemove(Entity entity) {
         entitiesToBeRemoved.push_back(entity);
     }
@@ -467,31 +506,31 @@ friend class Tests::ECSTest;
         }
         int code = 0;
         for (Entity entity : entitiesToBeRemoved) {
-            //Log("doing scheduled remove of entity %u", entity);
-            
             code |= Remove(entity);
         }
 
         entitiesToBeRemoved.clear();
         return code;
-    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-
-    template<class... Components>
-    int RemoveComponents(Entity entity) {
-        int code = removeEntityComponents<Components...>(entity);
-        entityComponentFlags[entity] ^= (componentSignature<Components...>() & entityComponentFlags[entity]);
-        return code;
     }
 
+    template<class T>
+    Uint32 componentPoolSize() {
+        return getPool<T>()->getSize();
+    }
+
+    Uint32 entityComponents(EntityID entityID) {
+        return entityComponentFlags[entityID];
+    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+
     using EntityCallback = std::function<void(ECS*, Entity)>;
-    template<class... Components>
-    using ComponentCallback = std::function<void(Components...)>();
+    // template<class... Components>
+    // using ComponentCallback = std::function<void(Components...)>();
 
     void iterateEntities(std::function<bool(Uint32 signature)> query, EntityCallback callback) {
         // iterate in reverse to maybe make removing safeish??
         for (Uint32 e = 0; e < liveEntities; e++) {
             Entity entity = entities[e];
-            Uint32 signature = entityComponentFlags[entity];
+            Uint32 signature = entityComponentFlags[entity.id];
 
             if (query(signature)) {
                 callback(this, entity);  
@@ -514,7 +553,7 @@ friend class Tests::ECSTest;
     void iterateEntities(Uint32 componentSignature, EntityCallback callback) {
         for (Uint32 e = 0; e < liveEntities; e++) {
             // entity has all bits 1 that the signature has 1
-            if ((entityComponentFlags[entities[e]] & componentSignature) == componentSignature) {
+            if ((entityComponentFlags[entities[e].id] & componentSignature) == componentSignature) {
                 // entity has all components
                 callback(this, entities[e]);
             }
@@ -526,7 +565,7 @@ friend class Tests::ECSTest;
         Uint32 signature = componentSignature<C1>();
         for (Uint32 e = 0; e < liveEntities; e++) {
             Entity entity = entities[e];
-            if ((entityComponentFlags[entity] & signature) == signature) {
+            if ((entityComponentFlags[entity.id] & signature) == signature) {
                 // entity has the, do the thing
                 // NEED TO STATIC CAST BEFORE ACCESSING ARRAY!!!
                 C1* component = Get<C1>(entity);
@@ -540,7 +579,7 @@ friend class Tests::ECSTest;
         for (Uint32 e = 0; e < liveEntities; e++) {
             Entity entity = entities[e];
             // entity has all bits 1 that the signature has 1
-            if ((entityComponentFlags[entity] & signature) == signature) {
+            if ((entityComponentFlags[entity.id] & signature) == signature) {
                 // entity has both components, do the thing
                 // NEED TO STATIC CAST BEFORE ACCESSING ARRAY!!!
                 callback(Get<C1>(entity), Get<C2>(entity));
@@ -553,7 +592,7 @@ friend class Tests::ECSTest;
         for (Uint32 e = 0; e < liveEntities; e++) {
             Entity entity = entities[e];
             // entity has all bits 1 that the signature has 1
-            if ((entityComponentFlags[entity] & signature) == signature) {
+            if ((entityComponentFlags[entity.id] & signature) == signature) {
                 // entity has both components, do the thing
                 // NEED TO STATIC CAST BEFORE ACCESSING ARRAY!!!
                 callback(Get<C1>(entity), Get<C2>(entity), Get<C3>(entity));
@@ -563,10 +602,10 @@ friend class Tests::ECSTest;
     template<class C1, class C2, class C3, class C4>
     void iterateComponents(std::function<void(C1*, C2*, C3*, C4*)> callback) {
         constexpr Uint32 signature = componentSignature<C1, C2, C3, C4>();
-        for (Entity e = 0; e < liveEntities; e++) {
+        for (Uint32 e = 0; e < liveEntities; e++) {
             Entity entity = entities[e];
             // entity has all bits 1 that the signature has 1
-            if ((entityComponentFlags[entity] & signature) == signature) {
+            if ((entityComponentFlags[entity.id] & signature) == signature) {
                 // entity has both components, do the thing
                 callback(Get<C1>(entity), Get<C2>(entity), Get<C3>(entity), Get<C4>(entity));
             }

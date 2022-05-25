@@ -6,9 +6,8 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # PARTICULAR PURPOSE.
 
 # This program built for i386-apple-darwin11.3.0
- 
 
-# Make data base, printed on Mon May 23 20:42:37 2022
+# Make data base, printed on Wed May 25 01:22:33 2022
 
 # Variables
 
@@ -47,7 +46,7 @@ VSCODE_VERBOSE_LOGGING = true
 # environment
 __CFBundleIdentifier = com.microsoft.VSCode
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/8g/jr6txvqx071cqhjlspzc8jdr0000gn/T/vscode-ipc-1edd0230-de42-4946-b060-87f856976df4.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/8g/jr6txvqx071cqhjlspzc8jdr0000gn/T/vscode-ipc-0a02db13-7f0f-4249-b225-1cde7806e95a.sock
 # makefile (from `Makefile', line 12)
 APP = main
 # environment
@@ -91,7 +90,7 @@ VSCODE_CODE_CACHE_PATH = /Users/melaniewilson/Library/Application Support/Code/C
 # environment
 LOGNAME = melaniewilson
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
 ZSH = /Users/melaniewilson/.oh-my-zsh
 # environment
@@ -183,9 +182,9 @@ VSCODE_PID = 46782
 
 # Directories
 
-# . (device 16777225, inode 25740264): 56 files, no impossibilities.
+# . (device 16777225, inode 25740264): 58 files, no impossibilities.
 
-# 56 files, no impossibilities in 1 directories.
+# 58 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -290,6 +289,7 @@ main.cpp:
 #  Modification time never checked.
 #  File has not been updated.
 #  commands to execute (from `Makefile', line 19):
+ 
 	$(CC) $(CFLAGS) $(INCLUDES) -c $^
 	
 
@@ -303,7 +303,6 @@ Log.cpp:
 .DEFAULT:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
- 
 #  File has not been updated.
 
 # Not a target:
@@ -398,6 +397,6 @@ buildNC:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Finished Make data base on Mon May 23 20:42:37 2022
+# Finished Make data base on Wed May 25 01:22:33 2022
 
  

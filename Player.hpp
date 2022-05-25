@@ -28,9 +28,16 @@ struct Player {
 
     int grenadeThrowCooldown = 0;
 
-    Player() {}
+    Player() {
+        initItems();
+    }
     Player(float x, float y): x(x), y(y) {
+        initItems();
+    }
 
+    void initItems() {
+        inventory = Inventory(32);
+        heldItemStack = &inventory.items[0];
     }
 
     void shootSandGun(ECS* ecs, Vec2 aimingPosition) {
@@ -57,7 +64,7 @@ struct Player {
     void throwGrenade(ECS* ecs, Vec2 aimingPosition) {
         if (grenadeThrowCooldown <= 0) {
             Entity grenade = Entities::ThrownGrenade(ecs, {x, y}, aimingPosition);
-            grenadeThrowCooldown = 30;
+            grenadeThrowCooldown = 15;
         }
     }
 

@@ -356,8 +356,8 @@ namespace Draw {
         });
         */
         
-        //if (Metadata.ticks() % 20)
-        //    Log("rendered %d entities", nRenderedEntities);
+        if (Metadata.ticks() % 30 == 0)
+            Log("rendered %d entities", nRenderedEntities);
         
 
         if (Debug.settings.drawEntityIDs) {

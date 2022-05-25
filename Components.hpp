@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include "NC/cpp-vectors.hpp"
+#include "Items.hpp"
 
 extern Uint32 componentCount;
 
@@ -12,7 +13,7 @@ struct Component {};
     PositionComponent, SizeComponent, RenderComponent, \
     HealthComponent, GrowthComponent, CenteredRenderFlagComponent, \
     ExplosionComponent, NametagComponent, ExplosiveComponent, \
-    MotionComponent
+    InventoryComponent, MotionComponent, DyingComponent
 
 struct HealthComponent {
     float healthValue;
@@ -47,11 +48,13 @@ struct ExplosionComponent {
     float radius;
     float damage;
     float life;
+    int particleCount;
 
-    ExplosionComponent(float radius, float damage, float life);
+    ExplosionComponent(float radius, float damage, float life, int particleCount);
 };
 
 extern ExplosionComponent grenadeExplosion;
+extern ExplosionComponent airstrikeExplosion;
 
 struct ExplosiveComponent {
     ExplosionComponent* explosion;
@@ -69,6 +72,14 @@ struct MotionComponent {
     float speed;
 
     MotionComponent(Vec2 target, float speed);
+};
+
+struct InventoryComponent {
+    Inventory inventory;
+};
+
+struct DyingComponent {
+    int timeToRemoval;
 };
 
 #endif

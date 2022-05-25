@@ -12,17 +12,19 @@ TileTypeDataStruct TileTypeData[NUM_TILE_TYPES];
 
 Tile::Tile() {
     type = TileTypes::Empty;
-    entity = NULL_ENTITY;
+    entity.id = NULL_ENTITY;
 }
 Tile::Tile(TileType type): type(type) {
-    entity = NULL_ENTITY;
+    entity.id = NULL_ENTITY;
 }
 
 void Tile::removeEntity(ECS* ecs) {
     ecs->Remove(entity);
-    entity = NULL_ENTITY;
+    entity.id = NULL_ENTITY;
 }
 
 void Tile::placeEntity(ECS* ecs, Entity entity) {
-    this->entity = entity;
+    if (!ecs->EntityLives(this->entity)) {
+        this->entity = entity;
+    }
 }

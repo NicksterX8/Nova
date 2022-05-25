@@ -35,6 +35,7 @@ const float PLAYER_DIAMETER = 0.8f;
 namespace RenderLayer {
     enum Layers {
         Water,
+        Buildings,
         Particles,
         Trees,
         Player

@@ -116,4 +116,8 @@ IVec2* worldLine(Vec2 start, Vec2 end, int* lineSize);
 
 void worldLineAlgorithm(Vec2 start, Vec2 end, std::function<int(IVec2)> callback);
 
+bool pointIsOnTileEntity(ECS* ecs, Entity tileEntity, IVec2 tilePosition, Vec2 point);
+
+bool findTileEntityAtPosition(GameState* state, Vec2 position, Entity* foundEntity);
+
 #endif

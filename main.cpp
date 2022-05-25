@@ -32,6 +32,21 @@
 
 #define WINDOW_HIGH_DPI 1
 
+SDLContext initSDL() {
+    SDLSettings settings = DefaultSDLSettings;
+    settings.vsync = ENABLE_VSYNC;
+    settings.windowTitle = "Faketorio";
+    settings.windowIconPath = "assets/bad-factorio-logo.png";
+    if (WINDOW_HIGH_DPI) {
+        settings.allowHighDPI = true;
+    }
+    SDLContext sdlCtx = initSDLAndContext(&settings); // SDL Context
+
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+
+    return sdlCtx;
+}
+
 // load assets and stuff
 int load(SDL_Renderer *ren, float renderScale = 1.0f) {
     FreeSans = FC_CreateFont();
@@ -55,23 +70,10 @@ void setDebugSettings() {
 
     ds.drawChunkBorders = false;
     ds.drawChunkCoordinates = false;
-    ds.drawEntityRects = true;
+    ds.drawEntityRects = false;
     ds.drawEntityIDs = false;
 
     Debug.settings = ds;
-}
-
-SDLContext initSDL() {
-    SDLSettings settings = DefaultSDLSettings;
-    settings.vsync = ENABLE_VSYNC;
-    settings.windowTitle = "Faketorio";
-    settings.windowIconPath = "assets/bad-factorio-logo.png";
-    if (WINDOW_HIGH_DPI) {
-        settings.allowHighDPI = true;
-    }
-    SDLContext sdlCtx = initSDLAndContext(&settings); // SDL Context
-
-    return sdlCtx;
 }
 
 int main() {
@@ -88,16 +90,14 @@ int main() {
     int screenWidth,screenHeight;
     SDL_GetRendererOutputSize(sdlCtx.ren, &screenWidth, &screenHeight);
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-
     load(sdlCtx.ren, sdlCtx.scale);
     loadTileData();
     loadItemData();
 
 #ifdef DEBUG
     Tests::runAll();
-    Log("size of tile: %lu\n", sizeof(Tile));
-    Log("size of ECS: %lu\n", sizeof(ECS));
+    Log("size of tile: %lu", sizeof(Tile));
+    Log("size of ECS: %lu", sizeof(ECS));
 #endif
 
     LogCategory = LOG_CATEGORY_MAIN;

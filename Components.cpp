@@ -16,12 +16,13 @@ RenderComponent::RenderComponent(SDL_Texture* texture, int layer)
 
 }
 
-ExplosionComponent::ExplosionComponent(float radius, float damage, float life):
-radius(radius), damage(damage), life(life) {
+ExplosionComponent::ExplosionComponent(float radius, float damage, float life, int particleCount):
+radius(radius), damage(damage), life(life), particleCount(particleCount) {
     life = 0;
 }
 
-ExplosionComponent grenadeExplosion = ExplosionComponent(4, 35, 30);
+ExplosionComponent grenadeExplosion = ExplosionComponent(5, 100, 1, 50);
+ExplosionComponent airstrikeExplosion = ExplosionComponent(8, 200, 1, 30);
 
 ExplosiveComponent::ExplosiveComponent(ExplosionComponent* explosion):
 explosion(explosion) {
