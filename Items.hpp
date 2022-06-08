@@ -1,27 +1,33 @@
 #ifndef ITEMS_INCLUDED
 #define ITEMS_INCLUDED
 
+#include <functional>
 #include <SDL2/SDL.h>
 #include "Log.hpp"
 
 typedef Uint16 ItemID;
 typedef Uint32 ItemFlags;
-typedef Uint16 TileType;
 typedef Uint8 Item;
 
+// forward declare this
+typedef Uint16 TileType;
+
 // WARNING: KEEP THIS UPDATED!!!
-#define NUM_ITEMS 5 // Add one for the "none" item
+#define NUM_ITEMS 7 // Add one for the "none" item
 namespace Items {
     enum IDs {
         SpaceFloor = 1,
         Grass,
         Sand,
-        Wall
+        Wall,
+        Grenade,
+        SandGun
     };
 
     enum Flags {
         Placeable = 1,
-        Edible = 2
+        Edible = 2,
+        Usable = 4
     };
 
     struct PlaceableItem {
@@ -31,28 +37,35 @@ namespace Items {
     struct EdibleItem {
         float hungerValue;
     };
+
+    struct UseableItem {
+        
+    };
 }
 
 struct ItemTypeData {
     SDL_Texture* icon;
     ItemFlags flags;
-    int stackSize;
+    Uint32 stackSize;
 
     // flag data
     Items::PlaceableItem placeable;
     Items::EdibleItem edible;
+    Items::UseableItem usable;
 };
 extern ItemTypeData ItemData[NUM_ITEMS];
 
+const unsigned int INFINITE_ITEM_QUANTITY = (unsigned int)(-1);
+
 struct ItemStack {
     Item item;
-    int quantity;
+    Uint32 quantity;
 
     ItemStack();
     // construct an item stack with a quantity of 1
     ItemStack(Item item);
 
-    ItemStack(Item item, int quantity);
+    ItemStack(Item item, Uint32 quantity);
 
     /*
     * Reduce the quantity of an item stack, removing the items.
@@ -60,7 +73,7 @@ struct ItemStack {
     * This will be equal to the reduction parameter when the item stack quantity is >= reduction,
     * Otherwise is equal to the quantity of the item stack since you cannot remove more items than are there.
     */
-    int reduceQuantity(int reduction);
+    int reduceQuantity(Uint32 reduction);
 };
 
 #define MAX_INVENTORY_SIZE 64
@@ -92,6 +105,17 @@ struct Inventory {
         }
     }
 
+    ItemStack takeStack() {
+        for (int i = 0; i < size; i++) {
+            if (items[i].item) {
+                ItemStack ret = items[i];
+                items[i].item = 0;
+                return ret;
+            }
+        }
+        return ItemStack();
+    }
+
     /*
     * Add a stack of items to the inventory, stacking with the first available slot.
     * If the inventory is full, the stack will not be added and the return value will be 0,
@@ -100,44 +124,43 @@ struct Inventory {
     * to subtract from the quantity of the stack passed in.
     * @return The number of items of the stack that were added to the inventory.
     */
-    int addItemStack(ItemStack stack) {
-        int itemsAdded = 0;
+    Uint32 addItemStack(ItemStack stack) {
+        Uint32 itemsLeft = stack.quantity;
         // find first unused slot or first slot of same type and add it to that slot
-        for (int i = 0; i < size; i++) {
-            if (!items[i].item) {
-                // completely open slot, just copy the whole stack in.
-                items[i] = stack;
-                itemsAdded += stack.quantity;
-                // no more items left to add, break.
-                break;
+        for (int i = 0; i < size && itemsLeft > 0; i++) {
+            if (stack.quantity == INFINITE_ITEM_QUANTITY) {
+                if (!items[i].item) {
+                    items[i] = stack;
+                    return INFINITE_ITEM_QUANTITY;
+                }
+            }
+            // else need to use another slot
+            else if (!items[i].item) {
+                // add as many items as can fit based on the item's stack size and how many are in the stack
+                // if it weren't for the possibility of a stack of items having a quantity higher
+                // than the stack's stacksize it would work to just copy the stack straight into the inventory slot
+                items[i].item = stack.item;
+                Uint32 itemsToAdd = (ItemData[stack.item].stackSize < itemsLeft) ? 
+                                    ItemData[stack.item].stackSize : itemsLeft;
+                items[i].quantity = itemsToAdd;
+                itemsLeft -= itemsToAdd;
             }
             else if (items[i].item == stack.item) {
                 int room = ItemData[items[i].item].stackSize - items[i].quantity;
                 // if the slot is entirely full this will be <= 0
                 // get the minimum of how much items the slot can fit and how many items are in the stack that needs to be added
                 if (room > 0) {
-                    int itemsToAdd = stack.quantity;
-                    if (itemsToAdd > room) {
-                        itemsToAdd = room;
-                    }
+                    Uint32 itemsToAdd = (itemsLeft < (Uint32)room) ? itemsLeft : (Uint32)room;
                     // move as many items as can fit from the stack to the inventory
                     items[i].quantity += itemsToAdd;
-                    stack.quantity -= itemsToAdd;
-                    itemsAdded += itemsToAdd;
-                    if (stack.quantity == 0) {
-                        // could fit the remaining entire stack into one slot
-                        return itemsAdded;
-                    } else {
-                        // else need to use another slot because there isn't enough room to fit all the items in the stack
-                        continue;
-                    }
-                } else {
-                    // no room in this slot, continue on
+                    itemsLeft -= itemsToAdd;
+                    
                 }
+                // no room left in this slot, continue on
             }
         }
         // couldnt fit atleast some of the stack in the inventory
-        return itemsAdded;
+        return stack.quantity - itemsLeft;
     }
 
 
@@ -148,31 +171,26 @@ struct Inventory {
     * In order to not remove more items than should be possible, it's likely necessary to use the return value of this function.
     * @return The number of items of the stack that were removed from the inventory.
     */
-    int removeItemStack(ItemStack stack) {
-        int itemsRemoved = 0;
-        // find first unused slot or first slot of same type and add it to that slot
+    Uint32 removeItemStack(ItemStack stack) {
+        Uint32 itemsLeft = stack.quantity;
+        // go through slots of the same type as the stack and
+        // remove as many items as possible from that slot
         for (int i = 0; i < size; i++) {
             if (items[i].item == stack.item) {
-
                 // get the minimum of the two quanities, to not remove more than the stack said to,
-                // and not to remove more than are in the inventory slot
-                int itemsToRemove = (stack.quantity < items[i].quantity) ? stack.quantity : items[i].quantity;
-                stack.quantity -= itemsToRemove;
-                itemsRemoved += itemsToRemove;
-                // in theory the quantity should never be below 0, so it could just be ==, but use <= to be safe
-                if (stack.quantity <= 0) {
+                // and not to remove more than are in the slot
+                Uint32 itemsToRemove = (itemsLeft < items[i].quantity) ? itemsLeft : items[i].quantity;
+                itemsLeft -= itemsToRemove;
+                if (itemsLeft == 0) {
                     break;
                 }
             }
         }
-        // couldnt fit atleast some of the stack in the inventory
-        return itemsRemoved;
+        return stack.quantity - itemsLeft;
     }
 
-    
-
-    int itemCount(Item item) {
-        int count = 0;
+    Uint32 itemCount(Item item) {
+        Uint32 count = 0;
         for (int i = 0; i < size; i++) {
             if (items[i].item == item) {
                 count += items[i].quantity;

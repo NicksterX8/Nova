@@ -6,6 +6,7 @@
 #include "Textures.hpp"
 #include <SDL2/SDL.h>
 #include "Items.hpp"
+#include "Entities/Entity.hpp"
 
 extern float TilePixels;
 
@@ -50,9 +51,6 @@ struct Tile {
 
     Tile();
     Tile(TileType type);
-
-    void removeEntity(ECS* ecs);
-    void placeEntity(ECS* ecs, Entity entity);
 };
 
 #endif

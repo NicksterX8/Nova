@@ -1,39 +1,69 @@
-CC = g++
-CFLAGS = -g -Wall -Wextra -std=c++11 \
-	-Wno-missing-field-initializers -Wno-unused-variable -Wno-unused-parameter
+CXX := g++
+EXT := cpp
+
+CXXFLAGS := -g -Wall -Wextra -std=c++14 -MMD -MP \
+	-Wno-missing-field-initializers -Wno-unused-variable -Wno-unused-parameter -Wno-unused-private-field
+
+LIBS = SDL2_gfx/SDL2_gfx.a SDL_FontCache/SDL_FontCache.o NC/utils.o NC/vectors.o \
+	NC/SDLContext.o
+EMSC_LIBS = SDL2_gfx/SDL2_gfx.emsc.a SDL_FontCache/SDL_FontCache.emsc.o
+
 INCLUDES = -I /usr/local/Cellar/sdl2/2.0.16/include \
  -I /usr/local/Cellar/sdl2_image/2.0.5/include
-LINKS = -L /usr/local/Cellar/sdl2_image/2.0.5/lib
-LINK_FLAGS = -lSDL2 -lSDL2_image -lSDL2_ttf
+
+LINKS := -L /usr/local/Cellar/sdl2_image/2.0.5/lib
+LINK_FLAGS := -lSDL2 -lSDL2_image -lSDL2_ttf
 # -L /usr/local/Cellar/sdl2/2.0.16/lib makes a warning for some reason (not found)
 ARGS =
 
-MAINFILE = main.cpp
-APP = main
-SRC_FILES = $(MAINFILE) Items.cpp GameState.cpp Components.cpp Textures.cpp Tiles.cpp GameViewport.cpp Log.cpp Debug.cpp Metadata.cpp Entities.cpp
+MAINFILE := main.cpp
 
-OBJ_FILES = main.o Textures.o Items.o Components.o Tiles.o Entities.o GameState.o Log.o GameViewport.o Debug.o Metadata.o NC/NC.a SDL2_gfx/SDL2_gfx.a SDL_FontCache/SDL_FontCache.o NC/utils.o
-EMSC_OBJ_FILES = NC/NC.emsc.a SDL2_gfx/SDL2_gfx.emsc.a SDL_FontCache/SDL_FontCache.emsc.o
+FILES = main update Chunks Entities/EntityType PlayerControls GUI Items Entities/EntitySystemInterface Entities/EntityManager Entities/EntitySystem Entities/ECS \
+	Entities/Entities Entities/Entity Entities/Components Textures Tiles GameViewport \
+	Log Debug Metadata GameState Rendering/Drawing
 
-.c.o: $(SRC_FILES)
-	$(CC) $(CFLAGS) $(INCLUDES) -c $^
-all:
-	$(CC) $(CFLAGS) -o $(APP) ${LINKS} $(OBJ_FILES) $(LINK_FLAGS)
+SRC_FILES = $(FILES:=.$(EXT)) $(MAINFILE)
+OBJ_FILES = $(FILES:=.o)
+DEPEND_FILES = $(FILES:=.d)
+	
+EMSC_OBJ_FILES = $(FILES:=.emsc.o)
+
+APP := exe
+
+#.c.o: $(SRC_FILES)
+#	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $^
+
+#all: $(OBJ_FILES)
+#	$(CXX) $(CXXFLAGS) $(INCLUDES) $(LIBS) main.cpp -o $(APP) $(LINKS) $(OBJ_FILES) $(LINK_FLAGS)
+
+all: exe
+
+exe: $(OBJ_FILES)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(LIBS) $^ -o $@ $(LINKS) $(LINK_FLAGS)
+
+#do:
+#	rm -f Entities/EntityManager.o
+#	rm -f Entities/ECS.o
+#	rm -f Entities/ComponentPool.o
+
 clean:
 	rm -rf $(OBJ_FILES) $(APP)
-	rm build/game.html
-	rm build/game.js
-	rm build/game.wasm
-deploy: 
-	make .c.o && make all && ./$(APP) $(ARGS)
-$(APP):
-	make deploy
+	rm -f build/game.html
+	rm -f build/game.js
+	rm -f build/game.wasm
+
+-include ($(DEPEND_FILES))
+
+%.o: %.cpp Makefile
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+
+deploy:
+	cd "/Users/melaniewilson/Faketorio/ComponentMetadata/" && g++ -std=c++17 parse.cpp -o parse && "/Users/melaniewilson/Faketorio/ComponentMetadata/"parse
+	make
+	./exe
 
 buildNC:
 	(cd NC && make all)
-  
-asm:
-	$(CC) -g -Wall -Wextra -S -Wa,-alh new.cpp > new.txt
 
 sourceEMCC:
 	cd ~/emsdk && ./emsdk activate

@@ -8,14 +8,13 @@
             "name": "Launch main",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/main",
+            "program": "${workspaceFolder}/exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "lldb",
-            "justMyCode": false
+            "MIMode": "lldb"
         }
     ]
 }

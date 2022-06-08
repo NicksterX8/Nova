@@ -115,6 +115,16 @@ void loadItemData() {
             .tile = TileTypes::Wall
         }
     };
+    ItemData[Grenade] = {
+        .icon = Textures.grenade,
+        .flags = Usable,
+        .stackSize = 64
+    };
+    ItemData[SandGun] = {
+        .icon = Textures.Tiles.sand,
+        .flags = Usable,
+        .stackSize = 1
+    };
 }
 
 #endif

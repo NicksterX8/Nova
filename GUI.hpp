@@ -4,11 +4,12 @@
 #include <vector>
 #include <SDL2/SDL.h>
 #include "constants.hpp"
-#include "rendering.hpp"
+#include "Rendering/Drawing.hpp"
 #include "Player.hpp"
+#include "NC/SDLContext.h"
 
 namespace Draw {
-    void thickRect(SDL_Renderer* renderer, const SDL_FRect* rect, int thickness);
+    void itemStack(SDL_Renderer* renderer, float scale, ItemStack item, SDL_Rect* destination);
 }
 
 class Hotbar {
@@ -21,16 +22,31 @@ public:
     }
 
     SDL_FRect draw(SDL_Renderer* ren, float scale, SDL_Rect viewport, const Player* player) {
+        SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
+        if (!player->inventory()) {
+            return {0, 0, 0, 0};
+        }
         //SDL_RenderSetScale(ren, 1, 1);
+        float opacity = 0.5;
+        Uint8 alpha = opacity * 255;
         float width = viewport.w;
         float height = viewport.h;
-        float borderHeight = 80 * scale;
+
+        float maxSlotSize = 60 * scale;
         float borderSize = 3 * scale;
-        float maxWidth = (borderHeight - borderSize*2) * NUM_HOTBAR_SLOTS + borderSize*2;
+        float slotSize = maxSlotSize;
+        if (slotSize * NUM_HOTBAR_SLOTS > (width - borderSize * 2)) {
+            slotSize = (width - borderSize * 2) / NUM_HOTBAR_SLOTS;
+        }
+        float hotbarWidth = slotSize * NUM_HOTBAR_SLOTS;
+        float borderHeight = slotSize + borderSize*2;
+        
+        float maxWidth = (slotSize * NUM_HOTBAR_SLOTS) + borderSize*2;
         float borderWidth = width;
         if (borderWidth > maxWidth) {
             borderWidth = maxWidth;
         }
+
         float horizontalMargin = (width - borderWidth) / 2;
         SDL_FRect border = {
             horizontalMargin + viewport.x,
@@ -47,19 +63,11 @@ public:
             border.h - borderSize * 2
         };
         SDL_SetRenderDrawColor(ren, 60, 60, 60, 255);
-        SDL_RenderFillRectF(ren, &border);
-        SDL_SetRenderDrawColor(ren, 100, 100, 100, 255);
+        //SDL_RenderFillRectF(ren, &border);
+        Draw::thickRect(ren, &border, borderSize * scale);
+        SDL_SetRenderDrawColor(ren, 100, 100, 100, alpha);
         SDL_RenderFillRectF(ren, &inside);
-
         {
-            float hotbarSlotWidth = inside.w / NUM_HOTBAR_SLOTS;
-            float hotbarSlotHeight = inside.h;
-            // enforce square hotbar slots by getting minimum dimension
-            float slotSize = hotbarSlotWidth;
-            if (hotbarSlotHeight < hotbarSlotWidth) {
-                slotSize = hotbarSlotHeight;
-            }
-            float hotbarWidth = slotSize * NUM_HOTBAR_SLOTS;
             float hotbarHorizontalMargin = (inside.w - hotbarWidth);
             float hotbarVerticalMargin = (inside.h - slotSize);
             SDL_FRect hotbarSlot = {
@@ -72,12 +80,12 @@ public:
             for (int i = 0; i < NUM_HOTBAR_SLOTS; i++) {
                 slots[i] = hotbarSlot;
 
-                ItemStack item = player->inventory.items[i];
+                ItemStack item = player->inventory()->items[i];
 
                 // draw slot in hotbarSlot
-                SDL_SetRenderDrawColor(ren, 60, 60, 60, 255);
+                SDL_SetRenderDrawColor(ren, 60, 60, 60, alpha);
                 SDL_RenderFillRectF(ren, &hotbarSlot);
-                SDL_SetRenderDrawColor(ren, 30, 30, 30, 255);
+                SDL_SetRenderDrawColor(ren, 30, 30, 30, alpha);
                 Draw::thickRect(ren, &hotbarSlot, 2*scale);
                 float innerMargin = 2 * scale;
                 SDL_FRect innerSlot = {
@@ -91,8 +99,12 @@ public:
                     // icon
                     SDL_RenderCopyF(ren, ItemData[item.item].icon, NULL, &innerSlot);
                     // quantity count
-                    FC_DrawScale(FreeSans, ren, hotbarSlot.x + 3, hotbarSlot.y - 4, FC_MakeScale(scale/2.0f,scale/2.0f),
-                    "%d", item.quantity);
+                    // dont draw item count over items that can only ever have one count,
+                    // its pointless
+                    if (ItemData[item.item].stackSize != 1 && item.quantity != INFINITE_ITEM_QUANTITY) {
+                        FC_DrawScale(FreeSans, ren, hotbarSlot.x + 3, hotbarSlot.y - 4, FC_MakeScale(scale/2.0f,scale/2.0f),
+                        "%d", item.quantity);
+                    }
                 }
                 
                 // divide margin by 8, not 9 because there are 8 spaces between 9 slots, not 9.
@@ -107,11 +119,11 @@ public:
                 slotSize
             };
             SDL_SetRenderDrawColor(ren, 0, 255, 255, 155);
-            Draw::thickRect(ren, &selectedHotbarSlot, 2);
+            //Draw::thickRect(ren, &selectedHotbarSlot, 2);
         }
 
         //SDL_RenderSetScale(ren, 1, 1);
-
+        SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_NONE);
         return area();
     }
 };
@@ -119,11 +131,26 @@ public:
 struct GUI {
     Hotbar hotbar;
     std::vector<SDL_FRect> area;
+    ItemStack* heldItemStack;
 
     void draw(SDL_Renderer* ren, float scale, SDL_Rect viewport, const Player* player) {
         area.clear();
         SDL_FRect hotbarArea = hotbar.draw(ren, scale, viewport, player);
+        heldItemStack = player->heldItemStack;
+        if (heldItemStack && heldItemStack->item)
+            drawHeldItemStack(ren, scale, viewport);
         area.push_back(hotbarArea);
+    }
+
+    void drawHeldItemStack(SDL_Renderer* ren, float scale, SDL_Rect viewport) {
+        SDL_Point mousePosition = SDLGetMousePixelPosition();
+        SDL_Rect destination = {
+            mousePosition.x,
+            mousePosition.y,
+            (int)(60 * scale),
+            (int)(60 * scale)
+        };
+        Draw::itemStack(ren, scale, *heldItemStack, &destination);
     }
 
     bool pointInArea(SDL_Point point) const {

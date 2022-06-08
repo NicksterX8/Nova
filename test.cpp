@@ -1,44 +1,18 @@
-#include <vector>
 #include <iostream>
-#include <bitset>
-
-struct A {};
-
-struct S : A {
-    int a = 0;
-    int b;
-};
-
-template<std::size_t N>
-struct Flags {
-    Uint64 bits[N/64];
-
-    operator& {
-
-    }
-};
+#include "math.h"
+#include "stdlib.h"
+ 
+using namespace std;
 
 int main() {
-    S s = {
-        .a = 2,
-        .b = 3
-    };
+    float damage = INFINITY;
+    float health = INFINITY;
+    health -= damage;
+    if (!(health >= 0.0f)) {
+        health = 0.0f;
+    }
+    std::cout << "result: " << health << "\n";
 
-    std::vector<int> vec;
-    vec.push_back(0);
-    vec.push_back(1);
-    vec.push_back(2);
-
-    std::cout << "front: " << vec.front() << ", back: " << vec.back() << "\n";
-
-    vec.pop_back();
-
-    std::cout << "front: " << vec.front() << ", back: " << vec.back() << "\n";
-
-    std::bitset<128> bitset;
-    std::bitset<128> bitset2;
-    bitset |= 2;
-    std::bitset bitset3 = bitset & bitset2;
-
+    assert(1);
     return 0;
 }

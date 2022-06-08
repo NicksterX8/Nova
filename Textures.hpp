@@ -4,7 +4,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "SDL_FontCache/SDL_FontCache.h"
-#include "Entity.hpp"
 
 extern FC_Font *FreeSans;
 
@@ -16,6 +15,7 @@ struct TextureStruct {
     SDL_Texture* tree;
     SDL_Texture* grenade;
     SDL_Texture* chest;
+    SDL_Texture* inserter;
     struct TileStruct {
         SDL_Texture* grass;
         SDL_Texture* sand;

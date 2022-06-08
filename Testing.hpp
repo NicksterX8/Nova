@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include "Entity.hpp"
+#include "Entities/Entities.hpp"
 #include "Log.hpp"
 
 typedef int(*TestFunction)(void);
@@ -74,7 +74,7 @@ namespace Tests {
         Inventory inventory = Inventory(32);
         inventory.items[0] = ItemStack(Items::SpaceFloor, 2);
 
-        int stackSize = ItemData[Items::SpaceFloor].stackSize;
+        Uint32 stackSize = ItemData[Items::SpaceFloor].stackSize;
         ItemStack stack = ItemStack(Items::SpaceFloor, stackSize + 2);
         inventory.addItemStack(stack);
 
@@ -103,7 +103,7 @@ namespace Tests {
 
     class ECSTest {
     public:
-        Uint32 entitySignature(ECS* ecs, Entity entity) {
+        ComponentFlags entitySignature(ECS* ecs, Entity entity) {
             return ecs->entityComponentFlags[entity.id];
         }
     } ECStest;
@@ -155,7 +155,7 @@ namespace Tests {
 
         ECS ecs;
         Entity ent1 = ecs.New();
-        Uint32 signature = componentSignature<RenderComponent, SizeComponent>();
+        ComponentFlags signature = componentSignature<RenderComponent, SizeComponent>();
         ecs.Add(ent1, signature);
         ecs.Remove(ent1);
         ecs.RemoveComponents<SizeComponent>(ent1);
@@ -171,7 +171,7 @@ namespace Tests {
 
         ECS ecs;
         Entity ent1 = ecs.New();
-        Uint32 signature = componentSignature<RenderComponent, SizeComponent>();
+        ComponentFlags signature = componentSignature<RenderComponent, SizeComponent>();
         ecs.Add(ent1, signature);
         int code = ecs.RemoveComponents<MotionComponent>(ent1);
         fail |= (code == 0);
@@ -191,7 +191,7 @@ namespace Tests {
         for (int i = 0; i < 10; i++) {
             Entity ent1 = ecs.New();
             entities[i] = ent1;
-            Uint32 signature = componentSignature<RenderComponent, SizeComponent>();
+            ComponentFlags signature = componentSignature<RenderComponent, SizeComponent>();
         }
 
         fail |= (ecs.numLiveEntities() != 10);
@@ -216,7 +216,7 @@ namespace Tests {
         for (int i = 0; i < 10; i++) {
             Entity ent1 = ecs.New();
             entities[i] = ent1;
-            Uint32 signature = componentSignature<RenderComponent, SizeComponent>();
+            ComponentFlags signature = componentSignature<RenderComponent, SizeComponent>();
             ecs.Add(ent1, signature);
         }
 
@@ -247,7 +247,7 @@ namespace Tests {
         for (int i = 0; i < nEnts; i++) {
             Entity ent1 = ecs.New();
             entities[i] = ent1;
-            Uint32 signature;
+            ComponentFlags signature;
             if (i%2) {
                 signature = componentSignature<RenderComponent, SizeComponent>();
             } else {
@@ -310,6 +310,33 @@ namespace Tests {
         return fail;
     }
 
+    int ECS_component_flags() {
+        int fail = 0;
+
+        ECS ecs;
+        Entity ent1 = ecs.New();
+        ComponentFlags signature = componentSignature<RenderComponent, SizeComponent>();
+
+        fail |= (!(signature[2] && signature[1]));
+        fail |= ((signature[0] && signature[3]));
+
+        ComponentFlags signature2 = componentSignature<PositionComponent, RenderComponent>();
+
+        fail |= (signature2[0] != 1);
+
+        if ((signature & signature2) == signature) {
+            fail |= 1;
+        }
+
+        ComponentFlags signature3 = componentSignature<PositionComponent, RenderComponent, NametagComponent>();
+
+        if (!((signature3 & signature2) == signature2)) {
+            fail |= 1;
+        }
+
+        return fail;
+    }
+
     bool runAll() {
         Log("Running tests...\n");
 
@@ -326,6 +353,7 @@ namespace Tests {
         suite.test("ECS live entities count is accurate", ECS_num_live_entities);
         suite.test("ECS component pool component count is accurate", ECS_pool_component_count);
         suite.test("ECS removing entities 2", ECS_removing_entities_2);
+        suite.test("ECS component flags are correct", ECS_component_flags);
         
         std::vector<Test> failedTests = suite.runAllTests();
 

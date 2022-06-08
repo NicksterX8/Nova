@@ -1,0 +1,51 @@
+template<class C1>
+    void iterateComponents(std::function<void(C1*)> callback) {
+        ComponentFlags signature = componentSignature<C1>();
+        for (Uint32 e = 0; e < liveEntities; e++) {
+            Entity entity = entities[e];
+            if ((entityComponentFlags[entity.id] & signature) == signature) {
+                // entity has the, do the thing
+                // NEED TO STATIC CAST BEFORE ACCESSING ARRAY!!!
+                C1* component = Get<C1>(entity);
+                callback(component);
+            }
+        }
+    }
+    template<class C1, class C2>
+    void iterateComponents(std::function<void(C1*, C2*)> callback) {
+        ComponentFlags signature = componentSignature<C1, C2>();
+        for (Uint32 e = 0; e < liveEntities; e++) {
+            Entity entity = entities[e];
+            // entity has all bits 1 that the signature has 1
+            if ((entityComponentFlags[entity.id] & signature) == signature) {
+                // entity has both components, do the thing
+                // NEED TO STATIC CAST BEFORE ACCESSING ARRAY!!!
+                callback(Get<C1>(entity), Get<C2>(entity));
+            }
+        }
+    }
+    template<class C1, class C2, class C3>
+    void iterateComponents(std::function<void(C1*, C2*, C3*)> callback) {
+        ComponentFlags signature = componentSignature<C1, C2, C3>();
+        for (Uint32 e = 0; e < liveEntities; e++) {
+            Entity entity = entities[e];
+            // entity has all bits 1 that the signature has 1
+            if ((entityComponentFlags[entity.id] & signature) == signature) {
+                // entity has both components, do the thing
+                // NEED TO STATIC CAST BEFORE ACCESSING ARRAY!!!
+                callback(Get<C1>(entity), Get<C2>(entity), Get<C3>(entity));
+            }
+        }
+    }
+    template<class C1, class C2, class C3, class C4>
+    void iterateComponents(std::function<void(C1*, C2*, C3*, C4*)> callback) {
+        ComponentFlags signature = componentSignature<C1, C2, C3, C4>();
+        for (Uint32 e = 0; e < liveEntities; e++) {
+            Entity entity = entities[e];
+            // entity has all bits 1 that the signature has 1
+            if ((entityComponentFlags[entity.id] & signature) == signature) {
+                // entity has both components, do the thing
+                callback(Get<C1>(entity), Get<C2>(entity), Get<C3>(entity), Get<C4>(entity));
+            }
+        }
+    }

@@ -17,6 +17,7 @@
 #define Color SDL_Color
 
 #define NUM_HOTBAR_SLOTS 12
+#define PLAYER_INVENTORY_SIZE 32
 
 #define NUM_RENDER_LAYERS 16
 #define CHUNKSIZE 16
@@ -41,5 +42,7 @@ namespace RenderLayer {
         Player
     };
 }
+
+#define DEBUG 1
 
 #endif

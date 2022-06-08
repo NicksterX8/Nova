@@ -37,6 +37,7 @@ int TextureStruct::load(SDL_Renderer* renderer) {
     LOADIMG(grenade, "grenade.png")
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
     LOADIMG(chest, "chest.png");
+    LOADIMG(inserter, "inserter.png");
     code |= Tiles.load(renderer);
     return code;
 }
@@ -46,6 +47,7 @@ void TextureStruct::unload() {
     DELTEX(tree);
     DELTEX(grenade);
     DELTEX(chest);
+    DELTEX(inserter);
     Tiles.unload();
 }
 
