@@ -12,7 +12,15 @@ enum LogCategory {
 
 extern int LogCategory;
 
-void CustomLog(void *userdata, int category, SDL_LogPriority priority, const char *message);
+struct LogArguments {
+    bool useColorCodes = false;
+
+    LogArguments(bool useColorCodes) {
+        this->useColorCodes = useColorCodes;
+    }
+};
+
+void CustomLog(void *arguments, int category, SDL_LogPriority priority, const char *message);
 
 #define Log(fmt, ...) SDL_LogMessage(LogCategory, SDL_LOG_PRIORITY_INFO, fmt, ##__VA_ARGS__)
 #define LogError(fmt, ...) SDL_LogMessage(LogCategory, SDL_LOG_PRIORITY_ERROR, fmt, ##__VA_ARGS__)

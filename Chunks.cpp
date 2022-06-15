@@ -113,7 +113,7 @@ ChunkData* ChunkMap::getChunkData(IVec2 chunkPosition) const {
 }
 
 /*
-* Get a const chunk from the map.
+* Get a chunk from the map.
 * Returns NULL if the chunk couldn't be found.
 */
 Chunk* ChunkMap::getChunk(IVec2 chunkPosition) const {
@@ -186,7 +186,11 @@ ChunkData* ChunkMap::newEntry(IVec2 position) {
     return chunkData;
 }
 
-Tile* getTileAtPosition(ChunkMap& chunkmap, float x, float y) {
+IVec2 tileToChunkPosition(Vec2 position) {
+    return position.divided(CHUNKSIZE).floorToIVec();
+}
+
+Tile* getTileAtPosition(const ChunkMap& chunkmap, float x, float y) {
     int chunkX = (int)floor(x / CHUNKSIZE);
     int chunkY = (int)floor(y / CHUNKSIZE);
     Chunk* chunk = chunkmap.getChunk({chunkX, chunkY});
@@ -198,15 +202,15 @@ Tile* getTileAtPosition(ChunkMap& chunkmap, float x, float y) {
     return &(*chunk)[tileY][tileX];
 }
 
-Tile* getTileAtPosition(ChunkMap& chunkmap, Vec2 position) {
+Tile* getTileAtPosition(const ChunkMap& chunkmap, Vec2 position) {
     return getTileAtPosition(chunkmap, position.x, position.y);
 }
 
-Tile* getTileAtPosition(ChunkMap& chunkmap, int x, int y) {
+Tile* getTileAtPosition(const ChunkMap& chunkmap, int x, int y) {
     return getTileAtPosition(chunkmap, (float)x, (float)y);
 }
 
-Tile* getTileAtPosition(ChunkMap& chunkmap, IVec2 tilePos) {
+Tile* getTileAtPosition(const ChunkMap& chunkmap, IVec2 tilePos) {
     return getTileAtPosition(chunkmap, (float)tilePos.x, (float)tilePos.y);
 }
 

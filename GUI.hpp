@@ -144,11 +144,12 @@ struct GUI {
 
     void drawHeldItemStack(SDL_Renderer* ren, float scale, SDL_Rect viewport) {
         SDL_Point mousePosition = SDLGetMousePixelPosition();
+        int size = 60 * scale;
         SDL_Rect destination = {
-            mousePosition.x,
-            mousePosition.y,
-            (int)(60 * scale),
-            (int)(60 * scale)
+            mousePosition.x - size/2,
+            mousePosition.y - size/2,
+            size,
+            size
         };
         Draw::itemStack(ren, scale, *heldItemStack, &destination);
     }

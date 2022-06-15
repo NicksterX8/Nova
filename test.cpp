@@ -4,15 +4,12 @@
  
 using namespace std;
 
-int main() {
-    float damage = INFINITY;
-    float health = INFINITY;
-    health -= damage;
-    if (!(health >= 0.0f)) {
-        health = 0.0f;
-    }
-    std::cout << "result: " << health << "\n";
+class Type {};
 
-    assert(1);
+namespace Type {}
+
+int main() {
+    
+
     return 0;
 }

@@ -15,7 +15,7 @@
 #include "../Log.hpp"
 
 #include "Drawing.hpp"
-#include "../Entities/Systems/Rendering.hpp"
+#include "../EntitySystems/Rendering.hpp"
 
 SDL_Texture* screenTexture = NULL;
 
@@ -52,12 +52,12 @@ int drawWorld(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, 
             SDL_FRect destination = {
                 screenDst.x,
                 screenDst.y,
-                CHUNKPIXELS,
-                CHUNKPIXELS
+                TileWidth * CHUNKSIZE,
+                TileHeight * CHUNKSIZE
             };
             
             // When zoomed out far, simplify rendering for better performance and less distraction
-            if (TilePixels < 10.0f) {
+            if (TileWidth < 10.0f) {
                 Draw::simpleChunk(chunk, ren, destination);
             } else {
                 Draw::chunkExp(chunk, ren, scale, destination);
@@ -71,9 +71,18 @@ int drawWorld(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, 
         }
     }
 
-    state->ecs.System<RenderPositionSystem>()->Update(&state->ecs, gameViewport);
-    state->ecs.System<RenderSizeSystem>()->Update(&state->ecs, gameViewport);
-    state->ecs.System<RenderSystem>()->Update(&state->ecs, scale);
+    auto renderPositionSystem = state->ecs.System<RenderPositionSystem>();
+    renderPositionSystem->gameViewport = gameViewport;
+    renderPositionSystem->Update();
+
+    auto renderSizeSystem = state->ecs.System<RenderSizeSystem>();
+    renderSizeSystem->gameViewport = gameViewport;
+    renderSizeSystem->Update();
+
+    auto renderSystem = state->ecs.System<RenderSystem>();
+    renderSystem->scale = scale;
+    renderSystem->renderer = ren;
+    renderSystem->Update();
     
     //if (Metadata.ticks() % 30 == 0)
     //    Log("rendered %d entities", nRenderedEntities);
@@ -99,11 +108,41 @@ void highlightTargetedTile(SDL_Renderer* ren, float scale, const GameViewport* g
         SDL_FRect playerTileHover = {
             screenPos.x,
             screenPos.y,
-            TilePixels,
-            TilePixels
+            TileWidth,
+            TileHeight
         };
         SDL_SetRenderDrawColor(ren, 0, 255, 255, 255);
         Draw::thickRect(ren, &playerTileHover, round(scale * 2));
+    }      
+}
+
+void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, const GUI* gui, GameState* state, Vec2 playerTargetPos) {
+    Vec2 screenPos = gameViewport->worldToPixelPositionF(playerTargetPos.vfloor());
+        // only draw tile marker if mouse is actually on the world, not on the GUI
+    if (!gui->pointInArea({(int)screenPos.x, (int)screenPos.y})) {
+        forEachEntityInRange(&state->ecs, &state->chunkmap, playerTargetPos, M_SQRT2, [&](EntityType<PositionComponent> entity){
+            if (entity.Has<SizeComponent>()) {
+                Vec2 position = *state->ecs.Get<PositionComponent>(entity);
+                auto sizeComponent = state->ecs.Get<SizeComponent>(entity);
+                Vec2 size = {sizeComponent->width, sizeComponent->height};
+                if (
+                  playerTargetPos.x > position.x && playerTargetPos.x < position.x + size.x &&
+                  playerTargetPos.y > position.y && playerTargetPos.y < position.y + size.y) {
+                    // player is targeting this entity
+                    Vec2 destPos = gameViewport->worldToPixelPositionF(position);
+                    SDL_FRect entityRect = {
+                        destPos.x,
+                        destPos.y,
+                        size.x * TileWidth,
+                        size.y * TileHeight
+                    };
+                    SDL_SetRenderDrawColor(ren, 0, 255, 255, 255);
+                    Draw::thickRect(ren, &entityRect, round(scale * 2));
+                    return 1;
+                }
+            }
+            return 0;
+        });
     }      
 }
 
@@ -120,6 +159,7 @@ void render(SDL_Renderer *ren, float scale, GUI* gui, GameState* state, const Ga
     int numRenderedChunks = drawWorld(ren, scale, gameViewport, state);
     if (state->player.heldItemStack && ItemData[state->player.heldItemStack->item].flags & Items::Placeable)
         highlightTargetedTile(ren, scale, gameViewport, gui, playerTargetPos);
+    highlightTargetedEntity(ren, scale, gameViewport, gui, state, playerTargetPos);
     SDL_RenderSetClipRect(ren, NULL);
     
     gui->draw(ren, scale, gameViewport->display, &state->player);

@@ -23,8 +23,10 @@
 #define CHUNKSIZE 16
 
 #define DEFAULT_TILE_PIXEL_SIZE 30.0f
+#define TILE_PIXEL_VERTICAL_SCALE 1
 
-#define CHUNKPIXELS (TilePixels * CHUNKSIZE)
+#define CHUNK_PIXEL_WIDTH (TileWidth * CHUNKSIZE)
+#define CHUNK_PIXEL_HEIGHT (TileHeight * CHUNKSIZE)
 
 const float PLAYERSPEED = 0.3;
 
@@ -36,6 +38,7 @@ const float PLAYER_DIAMETER = 0.8f;
 namespace RenderLayer {
     enum Layers {
         Water,
+        Items,
         Buildings,
         Particles,
         Trees,

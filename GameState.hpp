@@ -15,7 +15,7 @@
 #include "Tiles.hpp"
 #include "Chunks.hpp"
 #include "Player.hpp"
-#include "Entities/ECS.hpp"
+#include "ECS/ECS.hpp"
 #include "GameViewport.hpp"
 
 struct GameState {
@@ -44,6 +44,6 @@ void removeEntityOnTile(ECS* ecs, Tile* tile);
 
 void placeEntityOnTile(ECS* ecs, Tile* tile, Entity entity);
 
-void useGrenade(GameState* state, Vec2 playerAim);
+void forEachEntityInRange(ECS* ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, std::function<int(EntityType<PositionComponent>)> callback);
 
 #endif

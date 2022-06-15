@@ -1,10 +1,9 @@
 #ifndef ENTITIES_INCLUDED
 #define ENTITIES_INCLUDED
 
-#include "ECS.hpp"
-#include "Components.hpp"
-#include "Entity.hpp"
-#include "EntityType.hpp"
+#include "../ECS/ECS.hpp"
+#include "../EntityComponents/Components.hpp"
+#include "../ECS/EntityType.hpp"
 #include "../Textures.hpp"
 
 // struct Entity : public _Entity {};
@@ -75,6 +74,19 @@ namespace Entities {
             Add<ImmortalEC>();
 
             TEST_ENTITY_COMPONENTS;
+        }
+    };
+
+    class ItemStack : public EntityType<
+        PositionComponent, SizeComponent, RenderComponent
+    >{
+    public:
+        ItemStack(ECS* ecs, Vec2 position, ::ItemStack item) {
+            *this = ecs->New().castType<ItemStack>();
+
+            Add<PositionComponent>(position);
+            Add<SizeComponent>({0.25f, 0.25f});
+            Add<RenderComponent>(RenderComponent(ItemData[item.item].icon, RenderLayer::Items));
         }
     };
 

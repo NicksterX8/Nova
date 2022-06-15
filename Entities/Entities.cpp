@@ -1,13 +1,10 @@
 #include "Entities.hpp"
-#include "ECS.hpp"
-#include "EntityManager.hpp"
-#include "Components.hpp"
+#include "../ECS/ECS.hpp"
+#include "../EntityComponents/Components.hpp"
 #include "../Tiles.hpp"
-#include "EntityType.hpp"
+#include "../ECS/EntityType.hpp"
 
 namespace Entities {
-    #define GET(entity, component) (ecs->Get<component>(entity))
-    #define _ADD(component) .Add<component>(ecs)
 
     ExplosionComponent grenadeExplosion = ExplosionComponent(4, 25, 1.0f, 60);
     ExplosionComponent airstrikeExplosion = ExplosionComponent(8, 10000, 1.0f, 30);

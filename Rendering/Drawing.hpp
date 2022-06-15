@@ -8,7 +8,7 @@
 namespace Draw {
     void thickRect(SDL_Renderer* renderer, const SDL_FRect* rect, int thickness);
 
-    void debugRect(SDL_Renderer* renderer, SDL_FRect* rect, float scale);
+    void debugRect(SDL_Renderer* renderer, const SDL_FRect* rect, float scale);
 
     void debugHLine(SDL_Renderer* renderer, float y, float x1, float x2, float scale);
 

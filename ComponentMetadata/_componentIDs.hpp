@@ -17,3 +17,4 @@ template<> constexpr unsigned int getID<FollowComponent>() { return 15; }
 template<> constexpr unsigned int getID<ImmortalEC>() { return 16; }
 template<> constexpr unsigned int getID<AngleMotionEC>() { return 17; }
 template<> constexpr unsigned int getID<ItemStackComponent>() { return 18; }
+template<> constexpr unsigned int getID<TransporterEC>() { return 19; }

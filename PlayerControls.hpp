@@ -12,7 +12,10 @@
 #include "NC/physics.h"
 #include "GUI.hpp"
 #include "Entities/Entities.hpp"
+#include "Entities/Methods.hpp"
 #include "Log.hpp"
+
+struct Context;
 
 struct MouseState {
     int x;
@@ -39,17 +42,97 @@ struct MouseState {
     }
 };
 
+struct KeyBinding {
+    char key;
+
+    virtual ~KeyBinding() = default;
+    virtual void updateKeyState(bool isDown, Context* param) {}
+};
+ 
+class FunctionKeyBinding : public KeyBinding {
+    std::function<void(Context*)> function;
+    bool keyWasDown;
+public:
+    FunctionKeyBinding(char key, std::function<void(Context*)> function) {
+        this->function = function;
+        this->key = key;
+        keyWasDown = false;
+    }
+
+    void updateKeyState(bool isDown, Context* param) {
+        if (!keyWasDown && isDown) {
+            function(param);
+        }
+        keyWasDown = isDown;
+    }
+};
+
+class ToggleKeyBinding : public KeyBinding {
+    bool* value;
+    bool keyWasDown;
+public:
+    ToggleKeyBinding(char key, bool* value): value(value) {
+        this->key = key;
+        keyWasDown = false;
+    }
+
+    void updateKeyState(bool isDown, Context* param) {
+        if (isDown) {
+            if (!keyWasDown) {
+                *value = !*value;
+            }
+        }
+        keyWasDown = isDown;
+    }
+};
+
+struct ClickKeyBinding : public KeyBinding {
+    bool* value;
+public:
+    ClickKeyBinding(char key, bool* value): value(value) {
+        this->key = key;
+    }
+
+    void updateKeyState(bool isDown, Context* param) {
+        *value = isDown && !*value;
+    }
+};
+
 MouseState getMouseState();
 
 class PlayerControls {
-const GameViewport gameViewport;
-const MouseState mouse;
+const GameViewport& gameViewport;
+MouseState mouse;
 Vec2 mouseWorldPos;
-const Uint8 * const keyboard;
+const Uint8* keyboardState;
+std::vector<KeyBinding*> keyBindings;
 public:
-    PlayerControls(const GameViewport* viewport, MouseState mouse, const Uint8 *keyboard):
-    gameViewport(*viewport), mouse(mouse), keyboard(keyboard) {
+    PlayerControls(const GameViewport& gameViewport): gameViewport(gameViewport) {
+        keyboardState = SDL_GetKeyboardState(NULL);
+    }
+
+    ~PlayerControls() {
+        for (auto keyBinding : keyBindings) {
+            delete keyBinding;
+        }
+    }
+
+    /* 
+    * Update the internal state of this class, like mouse position.
+    * Call near the beginning of the frame, before using any methods of this class,
+    * to prevent using outdated state.
+    */
+    void updateState() {
+        this->mouse = getMouseState();
         mouseWorldPos = gameViewport.pixelToWorldPosition(mouse.x, mouse.y);
+    }
+
+    void addKeyBinding(KeyBinding* keyBinding) {
+        keyBindings.push_back(keyBinding);
+    }
+
+    const MouseState& getMouse() {
+        return mouse;
     }
 
     bool pixelInWorld(int x, int y, const GUI* gui) {
@@ -119,7 +202,6 @@ public:
         bool clickInWorld = clickInDisplay && !clickOnGUI;
         Tile* selectedTile = getTileAtPosition(state->chunkmap, worldPos);
         if (event.button == SDL_BUTTON_LEFT) {
-            Log("mouse screen XY: %d,%d", mousePos.x, mousePos.y);
 
             // make sure mouse is within display viewport
             //if ((relativeMousePos.x >= 0 && relativeMousePos.x <= gameViewport.display.w) &&
@@ -162,8 +244,6 @@ public:
                         state->player.heldItemStack = NULL;
                     }
                     
-                    Log("Clicked world position: %f,%f", worldPos.x, worldPos.y);
-                    
                 }
             }
 
@@ -182,22 +262,11 @@ public:
                     }
                 }
             }
-            if (frame != Metadata.ticks()) {
-                frame = Metadata.ticks();
-            } else {
-                Log("two clicks in one frame!");
-            }
         }
     }
 
     void handleKeydown(const SDL_KeyboardEvent& event, GameState* state) {
         switch (event.keysym.sym) {
-            case 't':
-                Debug.settings.drawChunkBorders ^= 1;
-                break;
-            case 'u':
-                Debug.settings.drawEntityRects ^= 1;
-                break;
             case 'e': {
                 EntityType<> tileEntity;
                 if (findTileEntityAtPosition(state, mouseWorldPos, &tileEntity.toEntity())) {
@@ -214,17 +283,6 @@ public:
                                 inventory->items[i].reduceQuantity(nAdded);
                             }
                         }
-                    }
-                }
-                break;}
-            case 'q': {
-                state->player.releaseHeldItem();
-                break;}
-            case 'l': {
-                // do airstrikes row by row
-                for (int y = -100; y < 100; y += 5) {
-                    for (int x = -100; x < 100; x += 5) {
-                        Entities::Explosive airstrike = Entities::Airstrike(&state->ecs, Vec2(x, y * 2), {3.0f, 3.0f}, Vec2(x, y));
                     }
                 }
                 break;}
@@ -252,7 +310,7 @@ public:
                         float* rotation = &state->ecs.Get<RotationComponent>(tile->entity)->degrees;
                         auto rotatable = state->ecs.Get<RotatableComponent>(tile->entity);
                         // left shift switches direction
-                        if (keyboard[SDL_SCANCODE_LSHIFT]) {
+                        if (keyboardState[SDL_SCANCODE_LSHIFT]) {
                             *rotation -= rotatable->increment;
                         } else {
                             *rotation += rotatable->increment;
@@ -261,13 +319,18 @@ public:
                     }
                 }
                 break;}
-            case 'y': {
-                Entity enemy = Entities::Enemy(&state->ecs, mouseWorldPos, state->player.entity);
-            break;}
-
-            case 'b': {
+            case 'o': {
                 auto belt = Entities::TransportBelt(&state->ecs, mouseWorldPos.vfloor());
+                Entities::tryOccupyTile(belt, &state->chunkmap, &state->ecs);
             break;}
+            case 'z': {
+                ItemStack* heldItemStack = state->player.heldItemStack;
+                if (heldItemStack && heldItemStack->item && heldItemStack->quantity > 0) {
+                    ItemStack dropStack = ItemStack(heldItemStack->item, 1);
+                    heldItemStack->reduceQuantity(1);
+                    auto itemEntity = Entities::ItemStack(&state->ecs, mouseWorldPos, dropStack);
+                }
+            break;} 
             case SDLK_SPACE: {
                 break;}
             default:
@@ -296,122 +359,10 @@ public:
         Vec2 oldPlayerPos = state->player.getPosition();
         Vec2 newPlayerPos = oldPlayerPos + movement;
 
-        /*
-        Vec2 c = oldPlayerPos;
-        Vec2 d = movement.norm();
-        float r = PLAYER_DIAMETER / 2.0f;
-        Vec2 p1 = c + (Vec2){r, 0};
-        Vec2 p2 = c + (Vec2){0, r};
-        Vec2 r1 = p1 + movement;
-        Vec2 r2 = p2 + movement;
-
-        int minPlayerTileX = floor(fmin(oldPlayerPos.x, newPlayerPos.x)) - 1;
-        int maxPlayerTileX = floor(fmax(oldPlayerPos.x, newPlayerPos.x)) + 1;
-        int minPlayerTileY = floor(fmin(oldPlayerPos.y, newPlayerPos.y)) - 1;
-        int maxPlayerTileY = floor(fmax(oldPlayerPos.y, newPlayerPos.y)) + 1;
-
-        for (int ty = minPlayerTileY; ty < maxPlayerTileY; ty++) {
-            // horizontal line intersects circle
-            if (fabs(c.y - ty) > r) {
-
-            }
-        }
-        */
-
-       player->setPosition(newPlayerPos);
+        player->setPosition(newPlayerPos);
     }
-    /*
-    void movePlayer2(GameState* state, Vec2 movement) {
-        Player* player = &state->player;
-        Vec2 oldPlayerPos = {player->x, player->y};
-        Vec2 newPlayerPos = oldPlayerPos + movement;
 
-        Tile* tile = getTileAtPosition(state->chunkmap, newPlayerPos);
-        IVec2 tilePos = IVec2(floor(newPlayerPos.x), floor(newPlayerPos.y));
-
-        // int playerDirX = (oldPlayerPos.x > newPlayerPos.x) ? 1 : -1;
-        // int playerDirY = (oldPlayerPos.y > newPlayerPos.y) ? 1 : -1;
-        
-        Vec2 moveDirection = movement.norm();
-        Vec2 rotated90Direction = {moveDirection.y, -moveDirection.x}; // rotate 90 degrees (y, -x)
-        Vec2 circle1Edge1 = rotated90Direction.scaled(PLAYER_DIAMETER / 2.0f);
-        Vec2 circle1Edge2 = circle1Edge1.scaled(-1);
-
-        Vec2 circle2Edge1 = circle1Edge1 + movement;
-        Vec2 circle2Edge2 = circle1Edge2 + movement;
-
-        Vec2 circleAreaQuad[4] = {
-            circle1Edge1,
-            circle1Edge2,
-            circle2Edge2,
-            circle2Edge1
-        };
-
-        Polygon circleArea;
-        circleArea.nPoints = 4;
-        circleArea.p = circleAreaQuad;
-
-        std::vector<Vec2> collidingTiles;
-
-        for (float dY = -1; dY < 1; dY++) {
-            for (float dX = -1; dX < 1; dX++) {
-
-                float x = dX + oldPlayerPos.x;
-                float y = dY + oldPlayerPos.y;
-
-                int tileX = floor(x);
-                int tileY = floor(y);
-
-                Tile* tile = getTile(state->chunkmap, tileX, tileY);
-
-                if (TileTypeData[tile->type].flags & TileTypeFlag::Walkable) {
-                    continue;
-                }
-
-                int colliding = 0;
-
-                for (int p = 0; p < 4; p++) {
-                    colliding |= pointInPoly({(float)tileX,   (float)tileY},   circleArea);
-                    colliding |= pointInPoly({(float)tileX+1, (float)tileY},   circleArea);
-                    colliding |= pointInPoly({(float)tileX,   (float)tileY+1}, circleArea);
-                    colliding |= pointInPoly({(float)tileX+1, (float)tileY+1}, circleArea);
-
-                    if (colliding) {
-                        collidingTiles.push_back({dX, dY});
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (collidingTiles.size() > 0) {
-            Vec2 minDistVec;
-            float minDist = INFINITY;
-            for (int i = 0; i < collidingTiles.size(); i++) {
-                Vec2 pos = collidingTiles[i];
-                float tDist = pos.x * pos.x + pos.y * pos.y;
-                if (tDist < minDist) {
-                    minDist = tDist;
-                    minDistVec = pos;
-                }
-            }
-
-            Vec2 collidingTilePosF = minDistVec + oldPlayerPos;
-
-            Vec2 tileCenterDelta = ((Vec2){collidingTilePosF.x + 0.5f, collidingTilePosF.y + 0.5f} - oldPlayerPos);
-            
-            Vec2 offset = tileCenterDelta.norm().scaled(-M_SQRT2);
-
-            newPlayerPos += offset;
-        }
-
-        player->x = newPlayerPos.x;
-        player->y = newPlayerPos.y;
-
-    }
-    */
-
-    void update(const MouseState& mouse, const Uint8* keyboardState, GameState* state, const GUI* gui) {
+    void update(GameState* state, const GUI* gui, Context* context) {
         Vec2 aimingPosition = gameViewport.pixelToWorldPosition(mouse.x, mouse.y);
 
         if (mouse.leftButtonDown()) {
@@ -443,6 +394,10 @@ public:
                 placeEntityOnTile(&state->ecs, selectedTile, chest);
             }
             
+        }
+
+        for (auto keyBinding : keyBindings) {
+            keyBinding->updateKeyState(keyboardState[SDL_GetScancodeFromKey(keyBinding->key)], context);
         }
     }
 };

@@ -15,49 +15,8 @@
 #include "Tiles.hpp"
 #include "Player.hpp"
 #include "Entities/Entities.hpp"
-#include "Entities/Systems/Rendering.hpp"
-#include "Entities/Systems/Systems.hpp"
-
-/*
-std::vector<Entity>& entitiesSpatialSearch(const ChunkMap* chunkmap, Vec2 pos, float radius) {
-    radius = abs(radius);
-    float radiusSqrd = radius * radius;
-
-    // form rectangle of chunks to search for entities in
-    IVec2 highChunkBound = {(int)floor((pos.x + radius) / CHUNKSIZE), (int)floor((pos.y + radius) / CHUNKSIZE)};
-    IVec2 lowChunkBound =  {(int)floor((pos.x - radius) / CHUNKSIZE), (int)floor((pos.y - radius) / CHUNKSIZE)};
-
-    // int chunksWidth =  (highChunkBound.x - lowChunkBound.x);
-    // int chunksHeight = (highChunkBound.y - lowChunkBound.y);
-
-    // int nNearbyChunks = chunksWidth * chunksHeight;
-    
-    std::vector<Entity> entities; // entities found in spatial search
-
-    // go through each chunk in chunk search rectangle
-    for (int y = lowChunkBound.y; y < highChunkBound.y; y++) {
-        for (int x = lowChunkBound.x; x < highChunkBound.x; x++) {
-            const ChunkData* chunkdata = chunkmap->getChunkData({x, y});
-            if (chunkdata == NULL) {
-                // entities can't be in non-existent chunks
-                continue;
-            }
-
-            for (int e = 0; e < chunkdata->closeEntities.size(); e++) {
-                Entity closeEntity = chunkdata->closeEntities[e];
-                Vec2 entityPosition = {0, 0}; // this should be getting position component
-                float distSqrd = entityPosition.x * entityPosition.x + entityPosition.y * entityPosition.y;
-                if (distSqrd < radiusSqrd) {
-                    // entity is within radius
-                    entities.push_back(closeEntity);
-                }
-            }
-        }
-    }
-
-    return entities;
-}
-*/
+#include "EntitySystems/Rendering.hpp"
+#include "EntitySystems/Systems.hpp"
 
 //void foreachEntityInRange(ECS* ecs, Vec2 point, float distance, std::function<void(Entity)> callback) {   
 //}
@@ -80,13 +39,13 @@ void GameState::init(SDL_Renderer* renderer, GameViewport* gameViewport) {
 
     ecs.init<COMPONENTS>();
 
-    auto renderSystem = new RenderSystem(renderer, gameViewport);
+    auto renderSystem = new RenderSystem(&ecs, renderer, gameViewport);
     ecs.NewSystem<RenderSystem>(renderSystem);
     ecs.NewSystems<SYSTEMS>();
+    ecs.System<InserterSystem>()->chunkmap = &chunkmap;
     ecs.testInitialization();
     SpecialEntityStatic::Init(&ecs);
-
-
+    setGlobalECS(&ecs);
 
     player = Player(&ecs);
 
@@ -294,6 +253,37 @@ void placeEntityOnTile(ECS* ecs, Tile* tile, Entity entity) {
     }
 }
 
-void useGrenade(GameState* state, Vec2 playerAim) {
-    
+void forEachEntityInRange(ECS* ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, std::function<int(EntityType<PositionComponent>)> callback) {
+    int nCheckedEntities = 0;
+    radius = abs(radius);
+    float radiusSqrd = radius * radius;
+
+    // form rectangle of chunks to search for entities in
+    IVec2 highChunkBound = {(int)floor((pos.x + radius) / CHUNKSIZE), (int)floor((pos.y + radius) / CHUNKSIZE)};
+    IVec2 lowChunkBound =  {(int)floor((pos.x - radius) / CHUNKSIZE), (int)floor((pos.y - radius) / CHUNKSIZE)};
+
+    // go through each chunk in chunk search rectangle
+    for (int y = lowChunkBound.y; y <= highChunkBound.y; y++) {
+        for (int x = lowChunkBound.x; x <= highChunkBound.x; x++) {
+            const ChunkData* chunkdata = chunkmap->getChunkData({x, y});
+            if (chunkdata == NULL) {
+                // entities can't be in non-existent chunks
+                continue;
+            }
+
+            for (size_t e = 0; e < chunkdata->closeEntities.size(); e++) {
+                EntityType<PositionComponent> closeEntity = chunkdata->closeEntities[e].cast<PositionComponent>();
+                Vec2 entityPosition = *closeEntity.Get<PositionComponent>(); // this should be getting position component
+                Vec2 delta = entityPosition - pos;
+                float distSqrd = delta.x * delta.x + delta.y * delta.y;
+                if (distSqrd < radiusSqrd) {
+                    // entity is within radius
+                    nCheckedEntities++;
+                    if (callback(closeEntity)) {
+                        return;
+                    }
+                }
+            }
+        }
+    }
 }

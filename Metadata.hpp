@@ -21,9 +21,16 @@ public:
     MetadataInfo(double targetFps, bool vsync);
 
     /*
-    * Mark the start time of the game, for better tracking of various data (like start time)
+    * Mark the start time of the application, for better tracking of various data (like start time)
+    * @return The current time in ticks.
     */ 
     Uint32 start();
+
+    /*
+    * Mark the end of the application's main loop.
+    * @return The time elapsed in seconds.
+    */
+    double end();
 
     /* 
     * Tick to signify one update passing, allowing update time tracking

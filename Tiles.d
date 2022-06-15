@@ -47,10 +47,9 @@ Tiles.o: Tiles.cpp Tiles.hpp constants.hpp \
   /usr/local/include/SDL2/SDL_misc.h Textures.hpp \
   /usr/local/Cellar/sdl2_image/2.0.5/include/SDL2/SDL_image.h \
   SDL_FontCache/SDL_FontCache.h /usr/local/include/SDL2/SDL_ttf.h \
-  Items.hpp Log.hpp Entities/Entity.hpp Entities/Component.hpp \
-  Entities/../ComponentMetadata/macro.hpp \
-  Entities/../ComponentMetadata/getID.hpp Entities/../Log.hpp \
-  Entities/../constants.hpp
+  Items.hpp Log.hpp ECS/Entity.hpp ECS/Component.hpp \
+  ECS/../ComponentMetadata/macro.hpp ECS/../ComponentMetadata/getID.hpp \
+  ECS/../Log.hpp ECS/../constants.hpp
 
 Tiles.hpp:
 
@@ -168,14 +167,14 @@ Items.hpp:
 
 Log.hpp:
 
-Entities/Entity.hpp:
+ECS/Entity.hpp:
 
-Entities/Component.hpp:
+ECS/Component.hpp:
 
-Entities/../ComponentMetadata/macro.hpp:
+ECS/../ComponentMetadata/macro.hpp:
 
-Entities/../ComponentMetadata/getID.hpp:
+ECS/../ComponentMetadata/getID.hpp:
 
-Entities/../Log.hpp:
+ECS/../Log.hpp:
 
-Entities/../constants.hpp:
+ECS/../constants.hpp:

@@ -3,6 +3,8 @@
 int LogCategory = LOG_CATEGORY_MAIN;
 
 void CustomLog(void *userdata, int category, SDL_LogPriority priority, const char *message) {
+    LogArguments args = *static_cast<LogArguments*>(userdata);
+    
     const char* fg = "";
     const char* prefix = "";
     const char* effect = "";
@@ -27,15 +29,26 @@ void CustomLog(void *userdata, int category, SDL_LogPriority priority, const cha
         break;
     }
 
+    int messageLength = strlen(message);
+
+    char text[messageLength + 128];
+    sprintf(text, "%s%s", prefix, message);
+
+    char consoleMessage[messageLength + 128];
+    if (args.useColorCodes)
+        sprintf(consoleMessage, "\033[%s;0;%sm%s\033[0m\n", effect, fg, text);
+    else
+        sprintf(consoleMessage, "%s\n", text);
+
     switch (category) {
     case LOG_CATEGORY_MAIN:
-        printf("\033[%s;0;%sm%s%s\033[0m\n", effect, fg, prefix, message);
+        printf("%s", consoleMessage);
         break;
     case LOG_CATEGORY_TEST:
         //printf("test message");
         break;
     default:
-        printf("\033[%s;0;%sm%s%s\033[0m\n", effect, fg, prefix, message);
+        printf("%s", consoleMessage);
         break;
     }
 }

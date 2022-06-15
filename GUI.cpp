@@ -8,6 +8,6 @@ void Draw::itemStack(SDL_Renderer* renderer, float scale, ItemStack item, SDL_Re
     // its pointless
     if (ItemData[item.item].stackSize != 1 && item.quantity != INFINITE_ITEM_QUANTITY) {
         FC_DrawScale(FreeSans, renderer, destination->x + 3, destination->y - 4, FC_MakeScale(scale/2.0f,scale/2.0f),
-        "%d", 2);
+        "%d", item.quantity);
     }
 }

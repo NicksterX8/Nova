@@ -6,7 +6,7 @@
 #include "Tiles.hpp"
 #include "constants.hpp"
 #include "NC/cpp-vectors.hpp"
-#include "Entities/Entity.hpp"
+#include "ECS/Entity.hpp"
 
 typedef Tile Chunk[CHUNKSIZE][CHUNKSIZE]; // 2d array of tiles
 
@@ -84,10 +84,12 @@ private:
     ChunkData* newEntry(IVec2 position);
 };
 
-Tile* getTileAtPosition(ChunkMap& chunkmap, float x, float y);
-Tile* getTileAtPosition(ChunkMap& chunkmap, Vec2 position);
-Tile* getTileAtPosition(ChunkMap& chunkmap, int x, int y);
-Tile* getTileAtPosition(ChunkMap& chunkmap, IVec2 tilePos);
+IVec2 tileToChunkPosition(Vec2 position);
+
+Tile* getTileAtPosition(const ChunkMap& chunkmap, float x, float y);
+Tile* getTileAtPosition(const ChunkMap& chunkmap, Vec2 position);
+Tile* getTileAtPosition(const ChunkMap& chunkmap, int x, int y);
+Tile* getTileAtPosition(const ChunkMap& chunkmap, IVec2 tilePos);
 
 bool chunkIsVisible(IVec2 chunkPosition, const SDL_FRect *worldViewport);
 

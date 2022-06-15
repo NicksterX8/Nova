@@ -21,24 +21,22 @@ struct Context {
     const Uint8 *keyboard;
     GameState* state;
     GUI* gui;
+    PlayerControls* playerControls;
     GameViewport* gameViewport;
     float& worldScale;
     MouseState& lastUpdateMouseState;
     Vec2& lastUpdatePlayerTargetPos;
 
-    Context(SDLContext& sdlContext, GameState* state, GUI* gui, GameViewport* gameViewport,
+    Context(SDLContext& sdlContext, GameState* state, GUI* gui, PlayerControls& playerControls, GameViewport* gameViewport,
     float& worldScale, MouseState& lastUpdateMouseState, Vec2& lastUpdatePlayerTargetPos):
     sdlCtx(sdlContext), state(state), gui(gui), gameViewport(gameViewport), worldScale(worldScale),
     lastUpdateMouseState(lastUpdateMouseState), lastUpdatePlayerTargetPos(lastUpdatePlayerTargetPos) {
         keyboard = SDL_GetKeyboardState(NULL);
+        this->playerControls = &playerControls;
     }
 };
 
-void updateTilePixels(float scale);
-
 GameViewport newGameViewport(int renderWidth, int renderHeight, float focusX, float focusY);
-
-void updateSystems(GameState* state);
 
 // Main game loop
 int update(Context ctx);

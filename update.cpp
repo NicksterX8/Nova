@@ -1,22 +1,30 @@
 #include "update.hpp"
-#include "Entities/Systems/Rendering.hpp"
-#include "Entities/Systems/Systems.hpp"
-#include "GUI.hpp"
-#include "Debug.hpp"
-#include "Entities/Entities.hpp"
-#include "Log.hpp"
-#include "PlayerControls.hpp"
-#include "Rendering/rendering.hpp"
+
+#include <thread>
+#include <vector>
+
 #include "NC/colors.h"
 #include "NC/utils.h"
+#include "Log.hpp"
+#include "Debug.hpp"
+#include "GUI.hpp"
+#include "PlayerControls.hpp"
+#include "Rendering/rendering.hpp"
 
-void updateTilePixels(float scale) {
+#include "EntitySystems/Rendering.hpp"
+#include "EntitySystems/Systems.hpp"
+#include "Entities/Entities.hpp"
+#include "EntityComponents/Components.hpp"
+
+static void updateTilePixels(float scale) {
     if (scale == 0) {
         scale = 1;
     } else if (scale < 0) {
         scale = -scale;
     }
     TilePixels = DEFAULT_TILE_PIXEL_SIZE * SDLPixelScale * scale;
+    TileWidth = DEFAULT_TILE_PIXEL_SIZE * SDLPixelScale * scale;
+    TileHeight = TileWidth * TILE_PIXEL_VERTICAL_SCALE;
 }
 
 GameViewport newGameViewport(int renderWidth, int renderHeight, float focusX, float focusY) {
@@ -26,8 +34,8 @@ GameViewport newGameViewport(int renderWidth, int renderHeight, float focusX, fl
         renderWidth,
         renderHeight
     };
-    float worldWidth = ((float)display.w / TilePixels);
-    float worldHeight = ((float)display.h / TilePixels);
+    float worldWidth = ((float)display.w / TileWidth);
+    float worldHeight = ((float)display.h / TileHeight);
     SDL_FRect world = {
         focusX - worldWidth/2.0f,
         focusY - worldHeight/2.0f,
@@ -42,21 +50,189 @@ GameViewport newGameViewport(int renderWidth, int renderHeight, float focusX, fl
     return newViewport;
 }
 
-void updateSystems(GameState* state) {
+
+
+bool validSystemSchedule() {
+    return false;
+}
+
+bool canRunConcurrently(
+    ComponentAccessType* accessArrayA, ComponentAccessType* accessArrayB,
+    bool AContainsStructuralChanges, bool AMustExecuteAfterStructuralChanges,
+    bool BContainsStructuralChanges, bool BMustExecuteAfterStructuralChanges
+) {
+    using namespace ComponentAccess;
+    for (int i = 0; i < NUM_COMPONENTS; i++) {
+        const ComponentAccessType accessA = accessArrayA[i];
+        const ComponentAccessType accessB = accessArrayB[i];
+        if (accessA & (Write | Remove)) {
+            if (accessB & (Write | Read | Remove | Add | Flag)) {
+                // fail
+                return false;
+            }
+        }
+        else if (accessB & (Write | Remove)) {
+            if (accessA & (Write | Read | Remove | Add | Flag)) {
+                // fail
+                return false;
+            }
+        }
+
+        if ((accessA & Add) && (accessB & (Add | Remove | Write | Read | Flag))) {
+            return false;
+        }
+
+        if ((accessB & Add) && (accessA & (Add | Remove | Write | Read | Flag))) {
+            return false;
+        }
+
+        if (AContainsStructuralChanges) {
+            if (BMustExecuteAfterStructuralChanges) {
+                // fail
+                return false;
+            }
+        }
+
+        if (BContainsStructuralChanges) {
+            if (AMustExecuteAfterStructuralChanges) {
+                // fail
+                return false;
+            }
+        } 
+    }
+
+    return true;
+}
+
+bool canRunConcurrently(EntitySystem* sysA, EntitySystem* sysB) {
+    return canRunConcurrently(sysA->sys.componentAccess, sysB->sys.componentAccess,
+        sysA->containsStructuralChanges, sysA->mustExecuteAfterStructuralChanges,
+        sysB->containsStructuralChanges, sysB->mustExecuteAfterStructuralChanges);
+}
+
+void systemJob(EntitySystem* system) {
+    // Log("starting job for system %p", system);
+    system->Update();
+    // Log("finishing job for system %p", system);
+}
+
+void runConcurrently(ECS* ecs, EntitySystem* sysA, EntitySystem* sysB) {
+    if (!canRunConcurrently(sysA, sysB)) {
+        LogCritical("Attempted to run two incompatible systems together concurrently! Running in sequence.");
+        systemJob(sysA);
+        systemJob(sysB);
+        return;
+    }
+
+    std::thread thread2(systemJob, sysA);
+    std::thread thread3(systemJob, sysB);
+
+    thread2.join();
+    thread3.join();
+
+    return;
+}
+
+void playBackCommandBuffer(ECS* ecs, EntityCommandBuffer* buffer) {
+    for (auto command : buffer->commands) {
+        command(ecs);
+    }
+    buffer->commands.clear();
+}
+
+template<std::size_t NSystems>
+void runConcurrently(ECS* ecs, std::array<EntitySystem*, NSystems> systems) {
+    constexpr int N = NSystems;
+
+    static_assert(N > 1, "Can not run one or less systems concurrently!");
+
+    ComponentAccessType access[NUM_COMPONENTS] = {0};
+    bool fail = false;
+    for (int i = 0; i < N-1; i++) {
+        for (int c = 0; c < NUM_COMPONENTS; c++) {
+           access[c] |= systems[i]->sys.componentAccess[c];
+        }
+
+        if (true) {
+            
+        } else {
+            fail = true;
+            break;
+        }
+    }
+
+    if (fail) {
+        LogCritical("Failed to run group concurrently!");
+
+    } else {
+        std::thread threads[N]; 
+        for (int i = 0; i < N; i++) {
+            threads[i] = std::thread(systemJob, systems[i]);
+        }
+        
+        for (int i = 0; i < N; i++) {
+            threads[i].join();
+        }
+    }
+
+    for (int i = 0; i < N; i++) {
+        playBackCommandBuffer(ecs, systems[i]->commandBuffer);
+    }
+
+    return;
+}
+
+template<class S>
+void runSystem(ECS* ecs) {
+    ecs->System<S>()->Update();
+    playBackCommandBuffer(ecs, ecs->System<S>()->commandBuffer);
+}
+
+static void updateSystems(GameState* state) {
     ECS& ecs = state->ecs;
+
+    state->chunkmap.iterateChunkdata([](ChunkData* chunkdata){
+        chunkdata->closeEntities.clear();
+        return 0;
+    });
+    ecs.System<PositionSystem>()->chunkmap = &state->chunkmap;
+    runSystem<PositionSystem>(&ecs);
     
-    ecs.System<RotationSystem>()->Update(&ecs);
-    ecs.System<GrowthSystem>()->Update(&ecs);
-    ecs.System<FollowSystem>()->Update(&ecs);
-    ecs.System<MotionSystem>()->Update(&ecs);
-    ecs.System<ExplosivesSystem>()->Update(&ecs);
-    ecs.System<ExplosionSystem>()->Update(&ecs);
-    ecs.System<InserterSystem>()->Update(&ecs, state->chunkmap);
-    ecs.System<InventorySystem>()->Update(&ecs);
-    ecs.System<HealthSystem>()->Update(&ecs);
-    ecs.System<DyingSystem>()->Update(&ecs);
-    ecs.System<RotatableSystem>()->Update(&ecs);
-    ecs.DoScheduledRemoves<COMPONENTS>();
+    // run at the same time
+    // remove self
+   
+    //ecs.System<GrowthSystem>()->Update();
+    // ecs.System<MotionSystem>()->Update();
+    std::array<EntitySystem*, 3> group = {
+        ecs.System<GrowthSystem>(),
+        ecs.System<MotionSystem>(),
+        ecs.System<RotationSystem>()
+    };
+    runConcurrently(&ecs, group);
+
+    runSystem<FollowSystem>(&ecs);
+    // ecs.System<ExplosivesSystem>()->Update();
+    runSystem<ExplosivesSystem>(&ecs);
+
+    state->chunkmap.iterateChunkdata([](ChunkData* chunkdata){
+        chunkdata->closeEntities.clear();
+        return 0;
+    });
+    runSystem<PositionSystem>(&ecs);
+
+    ecs.System<ExplosionSystem>()->Update(&ecs, state->chunkmap);
+    playBackCommandBuffer(&ecs, ecs.System<ExplosionSystem>()->commandBuffer);
+    runSystem<InserterSystem>(&ecs);
+    runSystem<InventorySystem>(&ecs);
+    runSystem<HealthSystem>(&ecs);
+    runSystem<RotatableSystem>(&ecs);
+    runSystem<DyingSystem>(&ecs);
+
+    state->chunkmap.iterateChunkdata([](ChunkData* chunkdata){
+        chunkdata->closeEntities.clear();
+        return 0;
+    });
+    runSystem<PositionSystem>(&ecs);
 }
 
 
@@ -80,9 +256,8 @@ int update(Context ctx) {
     SDL_PumpEvents();
     MouseState mouse = getMouseState();
     // handle events //
-    PlayerControls playerControls = PlayerControls(gameViewport, mouse, ctx.keyboard); // player related event handler
-
-    int mouseCount = 0;
+    PlayerControls& playerControls = *ctx.playerControls;
+    playerControls.updateState();
 
     SDL_Event event;
     while (SDL_PollEvent(&event) != 0) {
@@ -105,10 +280,6 @@ int update(Context ctx) {
                 updateTilePixels(ctx.worldScale);
                 break;
             case SDL_MOUSEBUTTONDOWN:
-                mouseCount++;
-                if (mouseCount > 1) {
-                    Log("Mouse clicked more than once in a frame!");
-                }
                 break;
             default:
                 break;
@@ -119,7 +290,7 @@ int update(Context ctx) {
 
     state->player.grenadeThrowCooldown--;
 
-    playerControls.update(mouse, ctx.keyboard, state, ctx.gui);
+    playerControls.update(state, ctx.gui, &ctx);
     Vec2 focus = state->player.getPosition();
     *gameViewport = newGameViewport(renWidth, renHeight, focus.x, focus.y);
 
@@ -176,7 +347,7 @@ int update(Context ctx) {
     ctx.lastUpdatePlayerTargetPos = playerTargetPos;
 
     if (quit) {
-        Log("update func sending quit");
+        Log("Returning from main update loop.");
         return 1;
     }
     return 0; 

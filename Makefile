@@ -18,11 +18,11 @@ ARGS =
 
 MAINFILE := main.cpp
 
-FILES = main update Chunks Entities/EntityType PlayerControls GUI Items Entities/EntitySystemInterface Entities/EntityManager Entities/EntitySystem Entities/ECS \
-	Entities/Entities Entities/Entity Entities/Components Textures Tiles GameViewport \
+FILES = main update Chunks ECS/EntityType PlayerControls GUI Items ECS/EntitySystemInterface ECS/EntityManager ECS/EntitySystem ECS/ECS \
+	Entities/Entities ECS/Entity EntityComponents/Components Textures Tiles GameViewport \
 	Log Debug Metadata GameState Rendering/Drawing
 
-SRC_FILES = $(FILES:=.$(EXT)) $(MAINFILE)
+SRC_FILES = $(FILES:=.$(EXT))
 OBJ_FILES = $(FILES:=.o)
 DEPEND_FILES = $(FILES:=.d)
 	
@@ -56,10 +56,14 @@ clean:
 
 %.o: %.cpp Makefile
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+# cd "/Users/melaniewilson/Faketorio/ComponentMetadata/" && g++ -std=c++17 parse.cpp -o parse && "/Users/melaniewilson/Faketorio/ComponentMetadata/"parse
+
+compile:
+	rm -f main.o
+	make
 
 deploy:
-	cd "/Users/melaniewilson/Faketorio/ComponentMetadata/" && g++ -std=c++17 parse.cpp -o parse && "/Users/melaniewilson/Faketorio/ComponentMetadata/"parse
-	make
+	make compile
 	./exe
 
 buildNC:

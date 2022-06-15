@@ -17,7 +17,7 @@ void Draw::thickRect(SDL_Renderer* renderer, const SDL_FRect* rect, int thicknes
     }
 }
 
-void Draw::debugRect(SDL_Renderer* renderer, SDL_FRect* rect, float scale) {
+void Draw::debugRect(SDL_Renderer* renderer, const SDL_FRect* rect, float scale) {
     SDL_SetRenderDrawColor(renderer, 255, 0, 255, 200);
     thickRect(renderer, rect, scale);
 }
@@ -43,12 +43,12 @@ void Draw::debugVLine(SDL_Renderer* renderer, float x, float y1, float y2, float
 }
 
 void Draw::player(const Player* player, SDL_Renderer* renderer, Vec2 offset) {
-    float width = 1.0f * TilePixels;
-    float height = 1.0f * TilePixels;
+    float width = 1.0f * TileWidth;
+    float height = 1.0f * TileHeight;
     Vec2 playerPosition = player->getPosition();
     SDL_FRect destination = {
-        playerPosition.x * TilePixels + offset.x - width/2.0f,
-        playerPosition.y * TilePixels + offset.y - height/2.0f,
+        playerPosition.x * TileWidth + offset.x - width/2.0f,
+        playerPosition.y * TileHeight + offset.y - height/2.0f,
         width,
         height
     };
@@ -88,8 +88,8 @@ void Draw::chunk(const Chunk* chunk, SDL_Renderer* renderer, float scale, SDL_FR
 
 void Draw::chunkExp(const Chunk* chunk, SDL_Renderer* renderer, float scale, SDL_FRect destination) {
     SDL_FRect tileDst;
-    tileDst.w = TilePixels;
-    tileDst.h = TilePixels;
+    tileDst.w = TileWidth;
+    tileDst.h = TileHeight;
 
     for (int type = 0; type < NUM_TILE_TYPES; type++) {
         SDL_Texture* background = TileTypeData[type].background;
@@ -109,8 +109,8 @@ void Draw::chunkExp(const Chunk* chunk, SDL_Renderer* renderer, float scale, SDL
 
 void Draw::chunkExp2(const Chunk* chunk, SDL_Renderer* renderer, float scale, SDL_FRect destination) {
     SDL_FRect tileDst;
-    tileDst.w = TilePixels;
-    tileDst.h = TilePixels;
+    tileDst.w = TileWidth;
+    tileDst.h = TileHeight;
 
 
     IVec2 tileTypes[NUM_TILE_TYPES][CHUNKSIZE*CHUNKSIZE];
@@ -168,11 +168,11 @@ int Draw::drawChunkBorders(SDL_Renderer* renderer, float scale, const GameViewpo
     float firstChunkY = gameViewport->world.y - distanceToChunkY;
     Vec2 borderScreenPos = gameViewport->worldToPixelPositionF({firstChunkX, firstChunkY});
     int nLinesDrawn = 0;
-    for (; borderScreenPos.x < gameViewport->displayRightEdge(); borderScreenPos.x += CHUNKPIXELS) {
+    for (; borderScreenPos.x < gameViewport->displayRightEdge(); borderScreenPos.x += TileWidth * CHUNKSIZE) {
         debugVLine(renderer, borderScreenPos.x, gameViewport->display.y, gameViewport->displayBottomEdge(), scale);
         nLinesDrawn++;
     }
-    for (; borderScreenPos.y < gameViewport->displayBottomEdge(); borderScreenPos.y += CHUNKPIXELS) {
+    for (; borderScreenPos.y < gameViewport->displayBottomEdge(); borderScreenPos.y += TileHeight * CHUNKSIZE) {
         // SDL_RenderDrawLineF(renderer, gameViewport->display.x, borderScreenPos.y, gameViewport->displayRightEdge(), borderScreenPos.y);
         debugHLine(renderer, borderScreenPos.y, gameViewport->display.x, gameViewport->displayRightEdge(), scale);
         nLinesDrawn++;

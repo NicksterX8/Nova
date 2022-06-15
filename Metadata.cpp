@@ -15,6 +15,10 @@ Uint32 MetadataInfo::start() {
     return startTicks;
 }
 
+double MetadataInfo::end() {
+    return (GetTicks() - startTicks) / 1000.0f;
+}
+
 double MetadataInfo::tick() {
     perfCountLastTick = perfCountCurrentTick;
     perfCountCurrentTick = GetPerformanceCount();
