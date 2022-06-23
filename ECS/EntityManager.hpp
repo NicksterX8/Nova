@@ -36,7 +36,8 @@ public:
 
     template<class T>
     int pool_remove_sig(EntityID entity, ComponentFlags signature) {
-        if ((componentSignature<T>() & signature).any()) {
+        if (sizeof(T) == 0) return 1;
+        if (signature[getID<T>()]) {
             ComponentPool<T>* pool = getPool<T>();
             return pool->remove(entity);
         }
@@ -45,6 +46,7 @@ public:
 
     template<class T>
     int pool_remove_component(EntityID entity) {
+        if (sizeof(T) == 0) return 1;
         ComponentPool<T>* pool = getPool<T>();
         return pool->remove(entity);
     }
@@ -69,20 +71,10 @@ public:
         return code;
     }
 
-    /*
-    int removeEntityComponents(EntityID entity, ComponentFlags signature) {
-        int codes[] = { 0, ( (void)0, pool_remove_component<Components>(entity)) ... };
-        int code = 0;
-        for (size_t i = 0; i < sizeof(codes) / sizeof(int); i++) {
-            code |= codes[i];
-        }
-        return code;
-    }
-    */
-
     template<class T>
     void pool_add_sig(EntityID entity, ComponentFlags signature) {
-        if ((componentSignature<T>() & signature).any()) {
+        if (sizeof(T) == 0) return;
+        if (signature[getID<T>()]) {
             ComponentPool<T>* pool = getPool<T>();
             pool->add(entity);
         }
@@ -96,6 +88,7 @@ public:
 
     template<class T>
     int pool_add_component(EntityID entity) {
+        if (sizeof(T) == 0) return 1;
         ComponentPool<T>* pool = getPool<T>();
         return pool->add(entity);
     }
@@ -172,6 +165,9 @@ public:
 
     template<class T> 
     T* Get(_Entity entity) const {
+        if (sizeof(T) == 0) {
+            return NULL;
+        }
         if (!EntityExists(entity)) {
             Log.Error("EntityManager::Get : Attempted to get a component of a non-living entity! Returning NULL. EntityID: %u. Version: %u", entity.id, entity.version);
             return NULL;
@@ -209,8 +205,14 @@ public:
             return -1;
         }
 
-        addEntityComponents<T>(entity.id);
         entityComponentFlags[entity.id] |= componentSignature<T>();
+
+        // dont waste time on adding to pool if its just a flag component
+        if (sizeof(T) == 0) {
+            return 1;
+        }
+    
+        addEntityComponents<T>(entity.id);    
         *Get<T>(entity) = startValue;
         return 0;
     }

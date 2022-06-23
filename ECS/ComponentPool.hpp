@@ -41,8 +41,6 @@ public:
     }
 
     T* get(EntityID entity) const {
-        // this check is removed to increase performance
-        
         if (entity > entityComponentSetSize) {
             Log("ComponentPool(%s)::get was called with an entity (%u) higher than entityComponentSetSize (%u)! returning NULL!", getComponentName<T>(), entity, entityComponentSetSize);
             return NULL;
