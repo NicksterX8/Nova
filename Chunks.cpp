@@ -21,8 +21,7 @@ void generateChunk(Chunk* chunk) {
     for (int row = 0; row < CHUNKSIZE; row++) {
         for (int col = 0; col < CHUNKSIZE; col++) {
             TileType tileType = TileTypes::Grass;
-            //TILE(chunk, row, col) = Tile(randomInt(0, NUM_TILE_TYPES-1));
-            TILE(chunk, row, col) = Tile(tileType);
+            CHUNK_TILE(chunk, row, col) = Tile(tileType);
         }
     }
 }

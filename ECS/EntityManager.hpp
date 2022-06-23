@@ -169,7 +169,7 @@ public:
             return NULL;
         }
         if (!EntityExists(entity)) {
-            Log.Error("EntityManager::Get : Attempted to get a component of a non-living entity! Returning NULL. EntityID: %u. Version: %u", entity.id, entity.version);
+            Log.Error("EntityManager::Get %s : Attempted to get a component of a non-existent entity! Returning NULL. Entity: %s", getComponentName<T>(), entity.DebugStr().c_str());
             return NULL;
         }
         if (entityComponentFlags[entity.id][getID<T>()]) {
@@ -180,7 +180,7 @@ public:
             return (pool->get(entity.id));
         }
         else {
-            Log.Error("Attempted to get a component of an entity that the entity does not have in its flags! Returning NULL.");
+            Log.Error("Attempted to get an unowned component of an entity! Returning NULL. Entity: %s", entity.DebugStr().c_str());
             return NULL;
         }
     }
@@ -188,7 +188,7 @@ public:
     template<class... Components>
     int Add(_Entity entity) {
         if (!EntityExists(entity)) {
-            Log.Error("EntityManager::Add : Attempted to add a component to a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
+            Log.Error("EntityManager::Add : Attempted to add components to a non-living entity! Returning -1. Entity: %s, Components: %s", entity.DebugStr().c_str(), getComponentNameList<Components...>().c_str());
             return -1;
         }
 
@@ -201,7 +201,7 @@ public:
     template<class T>
     int Add(_Entity entity, const T& startValue) {
         if (!EntityExists(entity)) {
-            Log.Error("EntityManager::Add : Attempted to add a component to a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
+            Log.Error("EntityManager::Add %s : Attempted to add a component to a non-living entity! Returning -1. Entity: %s", getComponentName<T>(), entity.DebugStr().c_str());
             return -1;
         }
 
@@ -220,7 +220,7 @@ public:
     template<class... Components>
     int AddSignature(_Entity entity, ComponentFlags signature) {
         if (!EntityExists(entity)) {
-            Log.Error("EntityManager::Add : Attempted to add a component to a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
+            Log.Error("EntityManager::AddSignature : Attempted to add components to a non-existent entity! Returning -1. Entity: %s", entity.DebugStr().c_str());
             return -1;
         }
         
@@ -234,7 +234,7 @@ public:
     template<class... Components>
     int Remove(_Entity entity) {
         if (!EntityExists(entity)) {
-            Log.Error("ECS::Remove : Attempted to remove a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
+            Log.Error("ECS::Remove %s : Attempted to remove a non-existent entity! Returning -1. Entity: %s", entity.DebugStr().c_str());
             return -1;
         }
         

@@ -19,3 +19,4 @@ struct AngleMotionEC;
 struct ItemStackComponent;
 struct TransporterEC;
 struct GrabableEC;
+struct EntityTypeComponent;

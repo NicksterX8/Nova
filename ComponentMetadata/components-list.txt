@@ -19,3 +19,4 @@ AngleMotionEC
 ItemStackComponent
 TransporterEC
 GrabableEC
+EntityTypeComponent

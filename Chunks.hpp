@@ -12,17 +12,17 @@ typedef Tile Chunk[CHUNKSIZE][CHUNKSIZE]; // 2d array of tiles
 
 struct ChunkData {
     IVec2 position; // chunk position aka floor(tilePosition / CHUNKSIZE), NOT tile position
-    std::vector<Entity> closeEntities;
+    std::vector<Entity> closeEntities; // entities that are at least partially inside the chunk
     Chunk* chunk; // pointer to chunk tiles
 
     ChunkData(Chunk* chunk, IVec2 position);
 
-    int tilePositionX() const;
-    int tilePositionY() const;
+    int tilePositionX() const; // Get the X position of this chunk relative to tiles' positions
+    int tilePositionY() const; // Get the Y position of this chunk relative to tiles' positions
 };
 
-#define TILE(chunk, row, col) ((*chunk)[row][col])
-#define TILE_BY_INDEX(chunk, index) (((Tile*)chunk)[index])
+#define CHUNK_TILE(chunk_ptr, row, col) ((*chunk_ptr)[row][col])
+#define CHUNK_TILE_INDEX(chunk_ptr, index) ((&(*chunk_ptr)[0][0])[index])
 
 void generateChunk(Chunk* chunk);
 

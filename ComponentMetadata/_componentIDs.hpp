@@ -1,21 +1,22 @@
-template<> constexpr unsigned int getID<PositionComponent>() { return 0; }
-template<> constexpr unsigned int getID<SizeComponent>() { return 1; }
-template<> constexpr unsigned int getID<RenderComponent>() { return 2; }
-template<> constexpr unsigned int getID<HealthComponent>() { return 3; }
-template<> constexpr unsigned int getID<GrowthComponent>() { return 4; }
-template<> constexpr unsigned int getID<CenteredRenderFlagComponent>() { return 5; }
-template<> constexpr unsigned int getID<ExplosionComponent>() { return 6; }
-template<> constexpr unsigned int getID<NametagComponent>() { return 7; }
-template<> constexpr unsigned int getID<ExplosiveComponent>() { return 8; }
-template<> constexpr unsigned int getID<InventoryComponent>() { return 9; }
-template<> constexpr unsigned int getID<MotionComponent>() { return 10; }
-template<> constexpr unsigned int getID<DyingComponent>() { return 11; }
-template<> constexpr unsigned int getID<InserterComponent>() { return 12; }
-template<> constexpr unsigned int getID<RotationComponent>() { return 13; }
-template<> constexpr unsigned int getID<RotatableComponent>() { return 14; }
-template<> constexpr unsigned int getID<FollowComponent>() { return 15; }
-template<> constexpr unsigned int getID<ImmortalEC>() { return 16; }
-template<> constexpr unsigned int getID<AngleMotionEC>() { return 17; }
-template<> constexpr unsigned int getID<ItemStackComponent>() { return 18; }
-template<> constexpr unsigned int getID<TransporterEC>() { return 19; }
-template<> constexpr unsigned int getID<GrabableEC>() { return 20; }
+template<> constexpr unsigned int getRawID<const PositionComponent>() { return 0; }
+template<> constexpr unsigned int getRawID<const SizeComponent>() { return 1; }
+template<> constexpr unsigned int getRawID<const RenderComponent>() { return 2; }
+template<> constexpr unsigned int getRawID<const HealthComponent>() { return 3; }
+template<> constexpr unsigned int getRawID<const GrowthComponent>() { return 4; }
+template<> constexpr unsigned int getRawID<const CenteredRenderFlagComponent>() { return 5; }
+template<> constexpr unsigned int getRawID<const ExplosionComponent>() { return 6; }
+template<> constexpr unsigned int getRawID<const NametagComponent>() { return 7; }
+template<> constexpr unsigned int getRawID<const ExplosiveComponent>() { return 8; }
+template<> constexpr unsigned int getRawID<const InventoryComponent>() { return 9; }
+template<> constexpr unsigned int getRawID<const MotionComponent>() { return 10; }
+template<> constexpr unsigned int getRawID<const DyingComponent>() { return 11; }
+template<> constexpr unsigned int getRawID<const InserterComponent>() { return 12; }
+template<> constexpr unsigned int getRawID<const RotationComponent>() { return 13; }
+template<> constexpr unsigned int getRawID<const RotatableComponent>() { return 14; }
+template<> constexpr unsigned int getRawID<const FollowComponent>() { return 15; }
+template<> constexpr unsigned int getRawID<const ImmortalEC>() { return 16; }
+template<> constexpr unsigned int getRawID<const AngleMotionEC>() { return 17; }
+template<> constexpr unsigned int getRawID<const ItemStackComponent>() { return 18; }
+template<> constexpr unsigned int getRawID<const TransporterEC>() { return 19; }
+template<> constexpr unsigned int getRawID<const GrabableEC>() { return 20; }
+template<> constexpr unsigned int getRawID<const EntityTypeComponent>() { return 21; }

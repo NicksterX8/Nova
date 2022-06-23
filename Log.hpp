@@ -10,18 +10,6 @@ enum LogCategory {
     LOG_CATEGORY_DEBUG
 };
 
-/*
-
-void CustomLog(void *arguments, int category, SDL_LogPriority priority, const char *message);
-
-#define Log(fmt, ...) SDL_LogMessage(LogCategory, SDL_LOG_PRIORITY_INFO, fmt, ##__VA_ARGS__)
-#define LogError(fmt, ...) SDL_LogMessage(LogCategory, SDL_LOG_PRIORITY_ERROR, fmt, ##__VA_ARGS__)
-#define LogWarn(fmt, ...) SDL_LogMessage(LogCategory, SDL_LOG_PRIORITY_WARN, fmt, ##__VA_ARGS__)
-#define LogCritical(fmt, ...) SDL_LogMessage(LogCategory, SDL_LOG_PRIORITY_CRITICAL, fmt, ##__VA_ARGS__)
-#define LogMessage(priority, fmt, ...) SDL_LogMessage(LogCategory, priority, fmt, ##__VA_ARGS__)
-
-*/
-
 class Logger {
     void logOutputFunction(int category, SDL_LogPriority priority, const char *message) const;
 public:

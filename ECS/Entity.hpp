@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <bitset>
+#include <sstream>
 #include <string>
 #include "Component.hpp"
 #include "../ComponentMetadata/macro.hpp"
@@ -179,8 +180,6 @@ constexpr inline bool entityHasComponents(_EntityType<EntityComponents...> entit
     return true;
 }
 
-
-
 struct EntityBase {
     EntityID id;
     EntityVersion version;
@@ -201,6 +200,24 @@ struct EntityBase {
     bool Exists() const;
 
     bool Null() const;
+
+    /*
+    * Get a string listing the entity's properties, useful for debug logs.
+    * Warning: This is a slow method, should only be used for debugging.
+    */
+    std::string DebugStr() const {
+        std::ostringstream stream;
+        if (id == NULL_ENTITY_ID)
+            stream << "ID: null";
+        else
+            stream << "ID: " << id;
+
+        if (version == NULL_ENTITY_VERSION)
+            stream << ", Version: null";
+        else
+            stream << " Version: " << version;
+        return stream.str();
+    }
 };
 
 template<class... Components>

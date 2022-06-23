@@ -66,7 +66,7 @@ void Draw::chunk(const Chunk* chunk, SDL_Renderer* renderer, float scale, SDL_FR
     bool warningLogged = false;
     for (int row = 0; row < CHUNKSIZE; row++) {
         for (int col = 0; col < CHUNKSIZE; col++) {
-            const Tile* tile = &TILE(chunk, row, col);
+            const Tile* tile = &CHUNK_TILE(chunk, row, col);
             /*
             if (tile->type == TileTypes::Empty) {
                 if (!warningLogged) {
@@ -95,7 +95,7 @@ void Draw::chunkExp(const Chunk* chunk, SDL_Renderer* renderer, float scale, SDL
         SDL_Texture* background = TileTypeData[type].background;
         for (int row = 0; row < CHUNKSIZE; row++) {
             for (int col = 0; col < CHUNKSIZE; col++) {
-                int tileType = TILE(chunk, row, col).type;
+                int tileType = CHUNK_TILE(chunk, row, col).type;
                 if (tileType == type) {
                     tileDst.x = destination.x + col * tileDst.w;
                     tileDst.y = destination.y + row * tileDst.h;
@@ -122,7 +122,7 @@ void Draw::chunkExp2(const Chunk* chunk, SDL_Renderer* renderer, float scale, SD
     // sort types
     for (int row = 0; row < CHUNKSIZE; row++) {
         for (int col = 0; col < CHUNKSIZE; col++) {
-            TileType type = TILE(chunk, row, col).type;
+            TileType type = CHUNK_TILE(chunk, row, col).type;
             IVec2 *typeArray = tileTypes[type];
             typeArray[tileTypesSize[type]] = {row, col};
             tileTypesSize[type]++;
@@ -150,7 +150,7 @@ void Draw::simpleChunk(const Chunk* chunk, SDL_Renderer* renderer, SDL_FRect des
         for (int col = 0; col < CHUNKSIZE; col++) {
             tileDst.x = destination.x + (tileWidth * col);
             tileDst.y = destination.y + (tileHeight * row);
-            const Tile* tile = &TILE(chunk, row, col);
+            const Tile* tile = &CHUNK_TILE(chunk, row, col);
             // dont render space or empty tiles
             if (tile->type > 1) {
                 Color backgroundColor = TileTypeData[tile->type].color;

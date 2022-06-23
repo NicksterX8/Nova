@@ -1,2 +1,2 @@
-#define COMPONENTS PositionComponent, SizeComponent, RenderComponent, HealthComponent, GrowthComponent, CenteredRenderFlagComponent, ExplosionComponent, NametagComponent, ExplosiveComponent, InventoryComponent, MotionComponent, DyingComponent, InserterComponent, RotationComponent, RotatableComponent, FollowComponent, ImmortalEC, AngleMotionEC, ItemStackComponent, TransporterEC, GrabableEC
-#define NUM_COMPONENTS 21
+#define COMPONENTS PositionComponent, SizeComponent, RenderComponent, HealthComponent, GrowthComponent, CenteredRenderFlagComponent, ExplosionComponent, NametagComponent, ExplosiveComponent, InventoryComponent, MotionComponent, DyingComponent, InserterComponent, RotationComponent, RotatableComponent, FollowComponent, ImmortalEC, AngleMotionEC, ItemStackComponent, TransporterEC, GrabableEC, EntityTypeComponent
+#define NUM_COMPONENTS 22
