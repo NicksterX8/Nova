@@ -1,7 +1,7 @@
 #include "Metadata.hpp"
 #include "constants.hpp"
 
-MetadataInfo::MetadataInfo(double targetFps, bool vsync) {
+MetadataTracker::MetadataTracker(double targetFps, bool vsync) {
     _fps = 0.0;
     this->targetFps = targetFps;
     deltaTime = 0.0f;
@@ -10,18 +10,18 @@ MetadataInfo::MetadataInfo(double targetFps, bool vsync) {
     vsyncEnabled = vsync;
 }
 
-Uint32 MetadataInfo::start() {
+Uint32 MetadataTracker::start() {
     startTicks = GetTicks();
     return startTicks;
 }
 
-double MetadataInfo::end() {
+double MetadataTracker::end() {
     return (GetTicks() - startTicks) / 1000.0f;
 }
 
-double MetadataInfo::tick() {
+double MetadataTracker::tick() {
     perfCountLastTick = perfCountCurrentTick;
-    perfCountCurrentTick = GetPerformanceCount();
+    perfCountCurrentTick = GetPerformanceCounter();
     deltaTime = (double)((perfCountCurrentTick - perfCountLastTick) * 
         1000/(double)GetPerformanceFrequency());
     _fps = 1000.0f / deltaTime;
@@ -29,25 +29,25 @@ double MetadataInfo::tick() {
     return deltaTime;
 }
 
-double MetadataInfo::fps() {
+double MetadataTracker::fps() const {
     return _fps;
 }
 
-void MetadataInfo::setTargetFps(double newTargetFps) {
+void MetadataTracker::setTargetFps(double newTargetFps) {
     targetFps = newTargetFps;
 }
-double MetadataInfo::getTargetFps() {
+double MetadataTracker::getTargetFps() const {
     return targetFps;
 }
 
 // Get the number of ticks that have passed
-int MetadataInfo::ticks() {
+int MetadataTracker::ticks() const {
     return _ticks;
 }
 
 // Get the start time (when start() was called) of the game in ticks.
-Uint32 MetadataInfo::getStartTicks() {
+Uint32 MetadataTracker::getStartTicks() const {
     return startTicks;
 }
 
-MetadataInfo Metadata = MetadataInfo(TARGET_FPS, ENABLE_VSYNC);
+const MetadataTracker* Metadata = NULL;

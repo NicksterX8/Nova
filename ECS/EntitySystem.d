@@ -9,13 +9,8 @@ ECS/EntitySystem.o: ECS/EntitySystem.cpp ECS/EntitySystem.hpp \
   /usr/local/include/SDL2/SDL_rect.h /usr/local/include/SDL2/SDL_error.h \
   /usr/local/include/SDL2/SDL_pixels.h \
   /usr/local/include/SDL2/SDL_endian.h \
-  /usr/local/include/SDL2/SDL_rwops.h ECS/EntityManager.hpp \
-  ECS/../NC/cpp-vectors.hpp ECS/../NC/vectors.h ECS/ComponentPool.hpp \
-  ECS/../ComponentMetadata/component.hpp \
-  ECS/../ComponentMetadata/componentDecl.hpp \
-  ECS/../ComponentMetadata/_componentIDs.hpp ECS/EntityType.hpp \
-  ECS/ECS.hpp /usr/local/include/SDL2/SDL.h \
-  /usr/local/include/SDL2/SDL_main.h \
+  /usr/local/include/SDL2/SDL_rwops.h ECS/Query.hpp ECS/ECS.hpp \
+  /usr/local/include/SDL2/SDL.h /usr/local/include/SDL2/SDL_main.h \
   /usr/local/include/SDL2/SDL_assert.h \
   /usr/local/include/SDL2/SDL_atomic.h \
   /usr/local/include/SDL2/SDL_audio.h \
@@ -51,12 +46,15 @@ ECS/EntitySystem.o: ECS/EntitySystem.cpp ECS/EntitySystem.hpp \
   /usr/local/include/SDL2/SDL_timer.h \
   /usr/local/include/SDL2/SDL_version.h \
   /usr/local/include/SDL2/SDL_locale.h \
-  /usr/local/include/SDL2/SDL_misc.h ECS/../Textures.hpp \
+  /usr/local/include/SDL2/SDL_misc.h ECS/../NC/cpp-vectors.hpp \
+  ECS/../NC/vectors.h ECS/../Textures.hpp \
   /usr/local/Cellar/sdl2_image/2.0.5/include/SDL2/SDL_image.h \
   ECS/../SDL_FontCache/SDL_FontCache.h /usr/local/include/SDL2/SDL_ttf.h \
-  ECS/SystemsConstants.hpp ECS/EntitySystemInterface.hpp \
-  ECS/../Chunks.hpp ECS/../Tiles.hpp ECS/../NC/colors.h ECS/../Items.hpp \
-  ECS/../ECS/Entity.hpp
+  ECS/SystemsConstants.hpp ECS/EntityManager.hpp ECS/ComponentPool.hpp \
+  ECS/../ComponentMetadata/component.hpp \
+  ECS/../ComponentMetadata/componentDecl.hpp \
+  ECS/../ComponentMetadata/_componentIDs.hpp \
+  ECS/EntitySystemInterface.hpp ECS/EntityType.hpp
 
 ECS/EntitySystem.hpp:
 
@@ -94,21 +92,7 @@ ECS/../constants.hpp:
 
 /usr/local/include/SDL2/SDL_rwops.h:
 
-ECS/EntityManager.hpp:
-
-ECS/../NC/cpp-vectors.hpp:
-
-ECS/../NC/vectors.h:
-
-ECS/ComponentPool.hpp:
-
-ECS/../ComponentMetadata/component.hpp:
-
-ECS/../ComponentMetadata/componentDecl.hpp:
-
-ECS/../ComponentMetadata/_componentIDs.hpp:
-
-ECS/EntityType.hpp:
+ECS/Query.hpp:
 
 ECS/ECS.hpp:
 
@@ -188,6 +172,10 @@ ECS/ECS.hpp:
 
 /usr/local/include/SDL2/SDL_misc.h:
 
+ECS/../NC/cpp-vectors.hpp:
+
+ECS/../NC/vectors.h:
+
 ECS/../Textures.hpp:
 
 /usr/local/Cellar/sdl2_image/2.0.5/include/SDL2/SDL_image.h:
@@ -198,14 +186,16 @@ ECS/../SDL_FontCache/SDL_FontCache.h:
 
 ECS/SystemsConstants.hpp:
 
+ECS/EntityManager.hpp:
+
+ECS/ComponentPool.hpp:
+
+ECS/../ComponentMetadata/component.hpp:
+
+ECS/../ComponentMetadata/componentDecl.hpp:
+
+ECS/../ComponentMetadata/_componentIDs.hpp:
+
 ECS/EntitySystemInterface.hpp:
 
-ECS/../Chunks.hpp:
-
-ECS/../Tiles.hpp:
-
-ECS/../NC/colors.h:
-
-ECS/../Items.hpp:
-
-ECS/../ECS/Entity.hpp:
+ECS/EntityType.hpp:

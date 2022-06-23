@@ -2,6 +2,7 @@
 #define ENTITY_SYSTEM_INCLUDED
 
 #include "Entity.hpp"
+#include "Query.hpp"
 #include "EntityManager.hpp"
 #include "EntityType.hpp"
 #include "../constants.hpp"
@@ -70,7 +71,7 @@ public:
 #ifdef DEBUG
         ComponentAccessType type = componentAccess[getID<T>()];
         if (!ComponentAccess::isReadable(type) || !ComponentAccess::isWriteable(type)) {
-            LogError("Attempted to get read write access to a component without the proper type. Returning NULL.");
+            Log.Error("Attempted to get read write access to a component without the proper type. Returning NULL.");
             return NULL;
         }
 #endif
@@ -82,7 +83,7 @@ public:
 #ifdef DEBUG
         ComponentAccessType type = componentAccess[getID<T>()];
         if (!ComponentAccess::isReadable(type)) {
-            LogError("Attempted to get read only access to a component without the proper type! Returning NULL.");
+            Log.Error("Attempted to get read only access to a component without the proper type! Returning NULL.");
             return NULL;
         }
 #endif
@@ -94,7 +95,7 @@ public:
 #ifdef DEBUG
         ComponentAccessType type = componentAccess[getID<T>()];
         if (type == ComponentAccess::None) {
-            LogError("Attempted to check a component without access to that component! Returning NULL.");
+            Log.Error("Attempted to check a component without access to that component! Returning NULL.");
         }
 #endif
         return ecs->entityComponents(entity.id)[getID<T>()];
@@ -108,12 +109,18 @@ public:
         return ecs->entityComponents(id);
     }
 
+    template<class... Components>
+    inline bool EntityHas(Entity entity) const {
+        constexpr ComponentFlags signature = componentSignature<Components...>();
+        return (ecs->entityComponents(entity.id) & signature) == signature;
+    }
+
     template<class T>
     inline void ScheduleRemoveComponent(Entity entity) const {
 #ifdef DEBUG
         ComponentAccessType type = componentAccess[getID<T>()];
         if (!(ComponentAccess::Remove & type)) {
-            LogError("Attempted to schedule remove a component without remove access to that component! Returning NULL.");
+            Log.Error("Attempted to schedule remove a component without remove access to that component! Returning NULL.");
             return;
         }
 #endif
@@ -158,6 +165,24 @@ protected:
     template<class... Components>
     using EntityCallback = std::function<void(EntityType<Components...>)>;
 
+    template<class Query>
+    inline void QueryForEach(std::function<void(Entity entity)> callback) {
+        for (int e = nEntities-1; e >= 0; e--) {
+            if (!sys.EntityLives(entities[e])) {
+                RemoveEntityLocally(e);
+                continue;
+            }
+
+            if (!Query::check(sys.entityComponents(entities[e].id))) {
+                RemoveEntityLocally(e);
+                continue;
+            }
+            
+            callback(entities[e]);
+        }
+        
+    }
+
     inline void ForEach(ECS* ecs, std::function<void(Entity)> callback) {
         for (int e = nEntities-1; e >= 0; e--) {
             if (!ecs->EntityLives(entities[e])) {
@@ -192,7 +217,7 @@ protected:
             }
             
             if ((sys.entityComponents(entities[e].id) & componentSignature<Components...>()) == componentSignature<Components...>())
-                callback(entities[e].castType<EntityType<Components...>>());
+                callback(entities[e].cast<Components...>());
         }
     }
 };

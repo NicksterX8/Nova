@@ -18,3 +18,4 @@ struct ImmortalEC;
 struct AngleMotionEC;
 struct ItemStackComponent;
 struct TransporterEC;
+struct GrabableEC;

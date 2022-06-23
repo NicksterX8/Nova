@@ -21,7 +21,7 @@
 //void foreachEntityInRange(ECS* ecs, Vec2 point, float distance, std::function<void(Entity)> callback) {   
 //}
 
-void GameState::free() {
+GameState::~GameState() {
     chunkmap.destroy();
     ecs.destroy();
 }
@@ -39,11 +39,12 @@ void GameState::init(SDL_Renderer* renderer, GameViewport* gameViewport) {
 
     ecs.init<COMPONENTS>();
 
-    auto renderSystem = new RenderSystem(&ecs, renderer, gameViewport);
-    ecs.NewSystem<RenderSystem>(renderSystem);
+    auto renderSystem = new SimpleRectRenderSystem(&ecs, renderer, gameViewport);
+    ecs.NewSystem<SimpleRectRenderSystem>(renderSystem);
     ecs.NewSystems<SYSTEMS>();
     ecs.System<InserterSystem>()->chunkmap = &chunkmap;
     ecs.testInitialization();
+    
     SpecialEntityStatic::Init(&ecs);
     setGlobalECS(&ecs);
 
@@ -197,7 +198,7 @@ void worldLineAlgorithm(Vec2 start, Vec2 end, std::function<int(IVec2)> callback
     }
 }
 
-bool pointIsOnTileEntity(ECS* ecs, Entity tileEntity, IVec2 tilePosition, Vec2 point) {
+bool pointIsOnTileEntity(const ECS* ecs, const Entity tileEntity, IVec2 tilePosition, Vec2 point) {
     // check if the click was actually on the entity.
     bool clickedOnEntity = true;
     // if the entity doesnt have size data, assume the click was on the entity I guess,
@@ -222,38 +223,34 @@ bool pointIsOnTileEntity(ECS* ecs, Entity tileEntity, IVec2 tilePosition, Vec2 p
     return clickedOnEntity;
 }
 
-bool findTileEntityAtPosition(GameState* state, Vec2 position, Entity* foundEntity) {
+OptionalEntity<> findTileEntityAtPosition(const GameState* state, Vec2 position) {
     IVec2 tilePosition = position.floorToIVec();
     Tile* selectedTile = getTileAtPosition(state->chunkmap, tilePosition);
     if (selectedTile) {
-        Entity tileEntity = selectedTile->entity;
-        if (state->ecs.EntityLives(tileEntity)) {
-            if (pointIsOnTileEntity(&state->ecs, tileEntity, tilePosition, position)) {
-
-                if (foundEntity)
-                    *foundEntity = tileEntity;
-                return true;
+        auto tileEntity = selectedTile->entity;
+        if (tileEntity.IsAlive()) {
+            if (pointIsOnTileEntity(&state->ecs, tileEntity.Unwrap(), tilePosition, position)) {
+                return tileEntity;
             }
         }
-        
     }
 
     // no entity could be found at that position
-    return false;
+    return NullEntity;
 }
 
 void removeEntityOnTile(ECS* ecs, Tile* tile) {
-    ecs->Remove<COMPONENTS>(tile->entity);
-    tile->entity.id = NULL_ENTITY;
+    ecs->Remove<COMPONENTS>(tile->entity.Unwrap());
+    tile->entity = NullEntity;
 }
 
 void placeEntityOnTile(ECS* ecs, Tile* tile, Entity entity) {
-    if (!ecs->EntityLives(tile->entity)) {
+    if (!tile->entity.IsAlive()) {
         tile->entity = entity;
     }
 }
 
-void forEachEntityInRange(ECS* ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, std::function<int(EntityType<PositionComponent>)> callback) {
+void forEachEntityInRange(const ECS* ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, std::function<int(EntityType<PositionComponent>)> callback) {
     int nCheckedEntities = 0;
     radius = abs(radius);
     float radiusSqrd = radius * radius;
@@ -273,8 +270,13 @@ void forEachEntityInRange(ECS* ecs, const ChunkMap* chunkmap, Vec2 pos, float ra
 
             for (size_t e = 0; e < chunkdata->closeEntities.size(); e++) {
                 EntityType<PositionComponent> closeEntity = chunkdata->closeEntities[e].cast<PositionComponent>();
-                Vec2 entityPosition = *closeEntity.Get<PositionComponent>(); // this should be getting position component
-                Vec2 delta = entityPosition - pos;
+                Vec2 entityCenter = *closeEntity.Get<PositionComponent>(); // this should be getting position component
+                if (closeEntity.Has<SizeComponent>()) {
+                    Vec2 halfSize = closeEntity.Get<SizeComponent>()->toVec2().scaled(0.5f);
+                    entityCenter += halfSize;
+                    radiusSqrd += (halfSize.x * halfSize.x + halfSize.y * halfSize.y) * M_SQRT2;
+                }
+                Vec2 delta = entityCenter - pos;
                 float distSqrd = delta.x * delta.x + delta.y * delta.y;
                 if (distSqrd < radiusSqrd) {
                     // entity is within radius
@@ -286,4 +288,28 @@ void forEachEntityInRange(ECS* ecs, const ChunkMap* chunkmap, Vec2 pos, float ra
             }
         }
     }
+}
+
+OptionalEntity<PositionComponent, SizeComponent>
+findEntityAtPosition(const ECS* ecs, const ChunkMap* chunkmap, Vec2 position) {
+    OptionalEntity<PositionComponent, SizeComponent> foundEntity;
+    forEachEntityInRange(ecs, chunkmap, position, M_SQRT2, [&](EntityType<PositionComponent> entity){
+        if (entity.Has<SizeComponent>()) {
+            Vec2 entityPos = *ecs->Get<PositionComponent>(entity);
+            Vec2 size = ecs->Get<SizeComponent>(entity)->toVec2();
+            if (entity.Has<CenteredRenderFlagComponent>()) {
+                position -= size.scaled(0.5f);
+            }
+            if (
+              position.x > entityPos.x && position.x < entityPos.x + size.x &&
+              position.y > entityPos.y && position.y < entityPos.y + size.y) {
+                // player is targeting this entity
+                foundEntity = entity.cast<PositionComponent, SizeComponent>();
+                return 1;
+            }
+        }
+        return 0;
+    });
+
+    return foundEntity;
 }

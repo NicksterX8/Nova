@@ -46,11 +46,11 @@ void ChunkPool::destroy() {
     free(pool);
 }
 
-int ChunkPool::used() const {
+size_t ChunkPool::used() const {
     return _used;
 }
 
-int ChunkPool::size() const {
+size_t ChunkPool::size() const {
     return _size;
 }
 
@@ -58,7 +58,7 @@ bool ChunkPool::hasRoom() const {
     return _used < _size;
 }
 
-Chunk* ChunkPool::at(int index) {
+Chunk* ChunkPool::at(size_t index) const {
     if (index >= _size) {
         index = _size - 1;
     }
@@ -95,7 +95,7 @@ void ChunkMap::destroy() {
     }
 }
 
-int ChunkMap::size() {
+size_t ChunkMap::size() const {
     return map.size();
 }
 
@@ -129,24 +129,28 @@ ChunkData* ChunkMap::createChunk(IVec2 position) {
     return newEntry(position);
 }
 
-void ChunkMap::iterateChunks(std::function<int(Chunk*)> callback) {
+int ChunkMap::iterateChunks(std::function<int(Chunk*)> callback) const {
     // go through pools instead of going through the map to have better data locality
     for (auto& pool : chunkPools) {
-        for (int c = 0; c < pool.used(); c++) {
+        for (size_t c = 0; c < pool.used(); c++) {
             Chunk* chunk = pool.at(c);
-            if (callback(chunk)) {
-                return;
+            int ret = callback(chunk);
+            if (ret) {
+                return ret;
             }
         }
     }
+    return 0;
 }
 
-void ChunkMap::iterateChunkdata(std::function<int(ChunkData*)> callback) {
+int ChunkMap::iterateChunkdata(std::function<int(ChunkData*)> callback) const {
     for (ChunkData* chunkdata : chunkDataList) {
-        if (callback(chunkdata)) {
-            return;
+        int ret = callback(chunkdata);
+        if (ret) {
+            return ret;
         }
     }
+    return 0;
 }
 
 Chunk* ChunkMap::newChunk(IVec2 position) {
@@ -183,6 +187,21 @@ ChunkData* ChunkMap::newEntry(IVec2 position) {
     chunkDataList.push_back(chunkData);
     map[position] = chunkData;
 
+    return chunkData;
+}
+
+ChunkData* ChunkMap::getOrCreateAt(IVec2 position) {
+    auto it = map.find(position);
+    if (it != map.end()) {
+        return it->second;
+    }
+
+    Chunk* chunk = newChunk(position);
+    // This is pretty bad, it will spread all the memory everywhere,
+    // this should be changed.
+    ChunkData* chunkData = new ChunkData(chunk, position);
+    chunkDataList.push_back(chunkData);
+    map[position] = chunkData;
     return chunkData;
 }
 

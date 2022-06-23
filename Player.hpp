@@ -18,30 +18,44 @@ enum Direction {
 };
 
 struct Player {
-    Entities::Player entity;
+    OptionalEntityT<Entities::Player> entity;
     Direction facingDirection = DirectionUp;
 
-    // Inventory inventory;
+    unsigned int numHotbarSlots = 9;
     ItemStack* heldItemStack = NULL;
     int selectedHotbarStack = 0;
 
-    int grenadeThrowCooldown = 0;
+    OptionalEntity<> selectedEntity;
 
-    static constexpr int GrenadeCooldown = 0;
+    int grenadeThrowCooldown = 0;
+    static constexpr int GrenadeCooldown = 10;
 
     Player() {}
 
     Player(ECS* ecs) {
         entity = Entities::Player(ecs, Vec2(0.0, 0.0));
-        Log("%d", entity.Get<InventoryComponent>()->inventory.size);
-        heldItemStack = NULL;
-        selectedHotbarStack = 0;
-        facingDirection = DirectionUp;
+    }
+
+    Entities::Player& getEntity() {
+        return entity.Unwrap();
+    }
+    const Entities::Player& getEntity() const {
+        return entity.Unwrap();
+    }
+
+    Vec2 getSize() const {
+        if (entity.IsAlive()) {
+            auto size = entity.Unwrap().Get<SizeComponent>();
+            if (size) {
+                return size->toVec2();
+            }
+        }
+        return {1, 1};
     }
 
     Vec2 getPosition() const {
         if (entity.IsAlive()) {
-            auto position = entity.Get<PositionComponent>();
+            auto position = entity.Unwrap().Get<PositionComponent>();
             if (position)
                 return *position;
         }
@@ -51,7 +65,7 @@ struct Player {
 
     void setPosition(Vec2 pos) {
         if (entity.IsAlive()) {
-            auto position = entity.Get<PositionComponent>();
+            auto position = getEntity().Get<PositionComponent>();
             if (position)
                 *position = pos;
         }
@@ -59,7 +73,7 @@ struct Player {
 
     Inventory* inventory() const {
         if (entity.IsAlive()) {
-            auto component = entity.Get<InventoryComponent>();
+            auto component = getEntity().Get<InventoryComponent>();
             if (component) {
                 return &component->inventory;
             }
@@ -140,14 +154,6 @@ struct Player {
                     return true;
                 }
             }
-        }
-        return false;
-    }
-
-    bool tryUseHeldItem() {
-        if (heldItemStack)
-        if (ItemData[heldItemStack->item].flags & Items::Usable) {
-
         }
         return false;
     }

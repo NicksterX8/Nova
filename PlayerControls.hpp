@@ -212,7 +212,7 @@ public:
                     // click counted as on gui, not world.
                     // trigger gui stuff
                     // find clicked hotbar slot (if it was a click on a hotbar slot)
-                    for (int slot = 0; slot < NUM_HOTBAR_SLOTS; slot++) {
+                    for (unsigned int slot = 0; slot < state->player.numHotbarSlots; slot++) {
                         SDL_FRect slotRect = gui->hotbar.slots[slot];
                         if (mousePos.x > slotRect.x && mousePos.x < slotRect.x + slotRect.w &&
                             mousePos.y > slotRect.y && mousePos.y < slotRect.y + slotRect.h) {
@@ -236,6 +236,7 @@ public:
                         }
                     }
                 } else {
+
                     ItemStack* heldItemStack = state->player.heldItemStack;
                     if (heldItemStack && (ItemData[state->player.heldItemStack->item].flags & Items::Placeable)) {
                         // place item
@@ -243,21 +244,37 @@ public:
                     } else {
                         state->player.heldItemStack = NULL;
                     }
+
+                    // find entity to select
+                    auto entityOnMouse = findEntityAtPosition(&state->ecs, &state->chunkmap, mouseWorldPos);
+                    if (entityOnMouse != state->player.selectedEntity)
+                        state->player.selectedEntity = entityOnMouse;
+                    else
+                        state->player.selectedEntity = NullEntity;
                     
+                    OptionalEntity<> selectedEntity = state->player.selectedEntity;
+                    if (selectedEntity.Has<GrabableEC, ItemStackComponent>()) {
+                        ItemStack itemGrabbed = selectedEntity.Unwrap().Get<ItemStackComponent>()->item;
+                        state->player.inventory()->addItemStack(itemGrabbed);
+                        state->ecs.Remove<COMPONENTS>(selectedEntity.Unwrap());
+                    }
                 }
             }
 
         } else if (event.button == SDL_BUTTON_RIGHT) {
-            static int frame = Metadata.ticks();
+            static int frame = Metadata->ticks();
             if (clickInWorld) {
-                Entity tileEntity;
-                if (findTileEntityAtPosition(state, worldPos, &tileEntity)) {
+
+                auto tileEntity = findTileEntityAtPosition(state, worldPos);
+                if (tileEntity.IsAlive()) {
                     Log("Removing entity at %d,%d", (int)floor(worldPos.x), (int)floor(worldPos.y));
                         removeEntityOnTile(&state->ecs, selectedTile);
+
+                    tileEntity.Unwrap().id = 2;
                 }
 
                 if (state->player.heldItemStack) {
-                    if (ItemData[state->player.heldItemStack->item].flags &     Items::Usable) {
+                    if (ItemData[state->player.heldItemStack->item].flags & Items::Usable) {
                         state->player.tryThrowGrenade(&state->ecs, worldPos);
                     }
                 }
@@ -268,14 +285,14 @@ public:
     void handleKeydown(const SDL_KeyboardEvent& event, GameState* state) {
         switch (event.keysym.sym) {
             case 'e': {
-                EntityType<> tileEntity;
-                if (findTileEntityAtPosition(state, mouseWorldPos, &tileEntity.toEntity())) {
+                auto tileEntity = findTileEntityAtPosition(state, mouseWorldPos);
+                if (tileEntity.IsValid()) {
                     // does entity have inventory
                     if (tileEntity.Has<InventoryComponent>()) {
                         // then open inventory
-                        Inventory* inventory = &state->ecs.Get<InventoryComponent>(tileEntity)->inventory;
+                        Inventory* inventory = &state->ecs.Get<InventoryComponent>(tileEntity.Unwrap())->inventory;
                         // for now since I dont want to make GUI so just give the items in the inventory to the player
-                        for (int i = 0; i < inventory->size; i++) {
+                        for (Uint32 i = 0; i < inventory->size; i++) {
                             if (state->player.inventory()) {
                                 int nAdded = state->player.inventory()->addItemStack(inventory->items[i]);
                                 if (nAdded > 0)
@@ -288,27 +305,27 @@ public:
                 break;}
             case 'i': {
                 Tile* tile = getTileAtPosition(state->chunkmap, mouseWorldPos);
-                EntityType<> tileEntity = tile->entity.cast<>();
-                if (tile)
-                if (!tileEntity.IsAlive()) {
-                    Vec2 inputPos = {mouseWorldPos.x + 1, mouseWorldPos.y};
-                    Tile* inputTile = getTileAtPosition(state->chunkmap, inputPos);
-                    Vec2 outputPos = {mouseWorldPos.x - 1, mouseWorldPos.y};
-                    Tile* outputTile = getTileAtPosition(state->chunkmap, outputPos);
-                    Entity inserter = Entities::Inserter(&state->ecs, mouseWorldPos.vfloor(), 1, inputTile, outputTile);
-                    
-                    if (tile) {
-                        placeEntityOnTile(&state->ecs, tile, inserter);
+                if (tile) {
+                    if (!tile->entity.IsAlive()) {
+                        Vec2 inputPos = {mouseWorldPos.x + 1, mouseWorldPos.y};
+                        Tile* inputTile = getTileAtPosition(state->chunkmap, inputPos);
+                        Vec2 outputPos = {mouseWorldPos.x - 1, mouseWorldPos.y};
+                        Tile* outputTile = getTileAtPosition(state->chunkmap, outputPos);
+                        Entity inserter = Entities::Inserter(&state->ecs, mouseWorldPos.vfloor(), 1, inputPos.floorToIVec(), outputPos.floorToIVec());
+                        
+                        if (tile) {
+                            placeEntityOnTile(&state->ecs, tile, inserter);
+                        }
                     }
                 }
                 break;}
             case 'r': {
                 Tile* tile = getTileAtPosition(state->chunkmap, mouseWorldPos);
                 if (tile)
-                if (state->ecs.EntityLives(tile->entity)) {
-                    if (state->ecs.entityComponents(tile->entity.id)[getID<RotatableComponent>()]) {
-                        float* rotation = &state->ecs.Get<RotationComponent>(tile->entity)->degrees;
-                        auto rotatable = state->ecs.Get<RotatableComponent>(tile->entity);
+                if (tile->entity.IsAlive()) {
+                    if (tile->entity.Has<RotationComponent, RotatableComponent>()) {
+                        float* rotation = &state->ecs.Get<RotationComponent>(tile->entity.Unwrap())->degrees;
+                        auto rotatable = state->ecs.Get<RotatableComponent>(tile->entity.Unwrap());
                         // left shift switches direction
                         if (keyboardState[SDL_SCANCODE_LSHIFT]) {
                             *rotation -= rotatable->increment;
@@ -362,16 +379,7 @@ public:
         player->setPosition(newPlayerPos);
     }
 
-    void update(GameState* state, const GUI* gui, Context* context) {
-        Vec2 aimingPosition = gameViewport.pixelToWorldPosition(mouse.x, mouse.y);
-
-        if (mouse.leftButtonDown()) {
-            leftMouseHeld(mouse, state, gui);
-        }
-        if (mouse.rightButtonDown()) {
-            rightMouseHeld(mouse, state, gui);
-        }
-
+    void doPlayerMovementTick(GameState* state) {
         int sidewaysInput = keyboardState[SDL_SCANCODE_D] - keyboardState[SDL_SCANCODE_A];
         // remember that up is negative and down is positive in the coordinate system
         int updownInput = keyboardState[SDL_SCANCODE_S] - keyboardState[SDL_SCANCODE_W]; 
@@ -385,10 +393,21 @@ public:
         float movementY = updownInput * speed;
 
         movePlayer(state, Vec2(movementX, movementY));
+    }
+
+    void update(GameState* state, const GUI* gui, Context* context) {
+        Vec2 aimingPosition = gameViewport.pixelToWorldPosition(mouse.x, mouse.y);
+
+        if (mouse.leftButtonDown()) {
+            leftMouseHeld(mouse, state, gui);
+        }
+        if (mouse.rightButtonDown()) {
+            rightMouseHeld(mouse, state, gui);
+        }
 
         if (keyboardState[SDL_SCANCODE_G]) {
             Tile* selectedTile = getTileAtPosition(state->chunkmap, aimingPosition);
-            if (!state->ecs.EntityLives(selectedTile->entity)) {
+            if (selectedTile->entity.IsAlive()) {
                 Log("Adding entity at %d,%d", (int)floor(aimingPosition.x), (int)floor(aimingPosition.y));
                 Entity chest = Entities::Chest(&state->ecs, aimingPosition.vfloor(), 32, 1, 1);
                 placeEntityOnTile(&state->ecs, selectedTile, chest);

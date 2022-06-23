@@ -11,9 +11,10 @@ Uint32 EntityManager::numLiveEntities() const {
 }
 
 bool EntityManager::EntityLives(_Entity entity) const {
-    if (entity.id != NULL_ENTITY) {
+    // TODO: Optimize 
+    if (entity.IsValid()) {
         Uint32 index = indices[entity.id];
-        if (index != NULL_ENTITY) {
+        if (index != NULL_ENTITY_ID) {
             return (entities[index].version == entity.version);
         }
     }
@@ -22,34 +23,34 @@ bool EntityManager::EntityLives(_Entity entity) const {
 }
 
 _Entity EntityManager::New() {
-    if (liveEntities < MAX_ENTITIES - 1 && freeEntities.size() > 0) {
-        // get top entity from free entity stack
-        _Entity entity = freeEntities.back();
-        if (entity.id == NULL_ENTITY) {
-            LogError("Entity from freeEntities was NULL! EntityID: %d", entity.id);
-        }
-        freeEntities.pop_back();
-
-        // add free entity to end of entities array
-        Uint32 index = liveEntities;
-        entities[index] = entity;
-        indices[entity.id] = index; // update the indices array to tell where the entity is stored
-        entityComponentFlags[entity.id] = ComponentFlags(false); // entity starts with no components
-        liveEntities++;
-
-        return entity;
+    if (liveEntities >= MAX_ENTITIES || freeEntities.size() < 0) {
+        Log.Critical("Ran out of entity space in ECS! Live entities: %u, freeEntities size: %lu. Aborting.\n", liveEntities, freeEntities.size());
+        abort();
     }
-    
-    LogError("Ran out of entity space in ECS! Live entities: %u, freeEntities size: %lu. Aborting with return NULL_ENTITY.\n", liveEntities, freeEntities.size());
-    return {NULL_ENTITY, 0};
+
+    // get top entity from free entity stack
+    EntityBase entity = freeEntities.back();
+    if (!entity.IsValid()) {
+        Log.Error("Entity from freeEntities was NULL! EntityID: %d", entity.id);
+    }
+    freeEntities.pop_back();
+
+    // add free entity to end of entities array
+    Uint32 index = liveEntities;
+    entities[index] = entity;
+    indices[entity.id] = index; // update the indices array to tell where the entity is stored
+    entityComponentFlags[entity.id] = ComponentFlags(false); // entity starts with no components
+    liveEntities++;
+
+    return baseToEntity(entity);
 }
 
 _Entity EntityManager::getEntityByIndex(Uint32 entityIndex) {
     if (entityIndex >= liveEntities) {
-        LogError("ECS::getEntityByIndex : index out out bounds! Index : %u, liveEntities: %u", entityIndex, liveEntities);
-        return entities[0];
+        Log.Error("ECS::getEntityByIndex : index out out bounds! Index : %u, liveEntities: %u", entityIndex, liveEntities);
+        return baseToEntity(entities[0]);
     }
-    return entities[entityIndex];
+    return baseToEntity(entities[entityIndex]);
 }
 
 ComponentFlags EntityManager::entityComponents(EntityID entityID) const {

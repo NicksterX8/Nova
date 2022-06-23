@@ -7,7 +7,7 @@
 /*
 * Useful metadata information and utilities
 */
-class MetadataInfo {
+class MetadataTracker {
     double _fps; // actual fps
     double targetFps; // Desired fps
     double deltaTime; // the change in miliseconds from the last tick to the current tick
@@ -18,7 +18,7 @@ class MetadataInfo {
 public:
     bool vsyncEnabled;
 
-    MetadataInfo(double targetFps, bool vsync);
+    MetadataTracker(double targetFps, bool vsync);
 
     /*
     * Mark the start time of the application, for better tracking of various data (like start time)
@@ -42,19 +42,19 @@ public:
     * Get the current estimated frames (more accurately, ticks) per second,
     * based on the deltatime between ticks
     */
-    double fps();
+    double fps() const;
 
     void setTargetFps(double newTargetFps);
-    double getTargetFps();
+    double getTargetFps() const;
 
-    // Get the number of ticks that have passed
-    int ticks();
+    // Get the number of ticks (incremented each time Metadata::tick() is called) since the start of the application
+    int ticks() const;
 
     // Get the start time (when start() was called) of the game in ticks.
-    Uint32 getStartTicks();
+    Uint32 getStartTicks() const;
 
 };
 
-extern MetadataInfo Metadata;
+extern const MetadataTracker* Metadata;
 
 #endif

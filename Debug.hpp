@@ -21,6 +21,6 @@ public:
     void resetSettings();
 };
 
-extern DebugClass Debug;
+extern const DebugClass* Debug;
 
 #endif

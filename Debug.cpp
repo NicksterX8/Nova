@@ -10,4 +10,4 @@ void DebugClass::resetSettings() {
     memcpy(&settings, allzeros, sizeof(settings));
 }
 
-DebugClass Debug = DebugClass();
+const DebugClass* Debug = NULL;

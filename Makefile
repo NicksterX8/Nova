@@ -6,7 +6,7 @@ CXXFLAGS := -g -Wall -Wextra -std=c++14 -MMD -MP \
 
 LIBS = SDL2_gfx/SDL2_gfx.a SDL_FontCache/SDL_FontCache.o NC/utils.o NC/vectors.o \
 	NC/SDLContext.o
-EMSC_LIBS = SDL2_gfx/SDL2_gfx.emsc.a SDL_FontCache/SDL_FontCache.emsc.o
+EMSC_LIBS = NC/utils.emsc.o NC/vectors.emsc.o NC/SDLContext.emsc.o SDL2_gfx/SDL2_gfx.emsc.a SDL_FontCache/SDL_FontCache.emsc.o
 
 INCLUDES = -I /usr/local/Cellar/sdl2/2.0.16/include \
  -I /usr/local/Cellar/sdl2_image/2.0.5/include
@@ -18,7 +18,8 @@ ARGS =
 
 MAINFILE := main.cpp
 
-FILES = main update Chunks ECS/EntityType PlayerControls GUI Items ECS/EntitySystemInterface ECS/EntityManager ECS/EntitySystem ECS/ECS \
+FILES = main update GameSave/main Entities/Methods Chunks ECS/EntityType PlayerControls \
+	GUI Items ECS/EntitySystemInterface ECS/EntityManager ECS/EntitySystem ECS/ECS \
 	Entities/Entities ECS/Entity EntityComponents/Components Textures Tiles GameViewport \
 	Log Debug Metadata GameState Rendering/Drawing
 
@@ -56,11 +57,17 @@ clean:
 
 %.o: %.cpp Makefile
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+
+%.emsc.o: %.cpp
+	 em++  $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 # cd "/Users/melaniewilson/Faketorio/ComponentMetadata/" && g++ -std=c++17 parse.cpp -o parse && "/Users/melaniewilson/Faketorio/ComponentMetadata/"parse
 
 compile:
 	rm -f main.o
 	make
+
+compileWeb:
+
 
 deploy:
 	make compile
@@ -71,8 +78,11 @@ buildNC:
 
 sourceEMCC:
 	cd ~/emsdk && ./emsdk activate
-web:
-	em++ -DBUILD_EMSCRIPTEN main.cpp $(EMSC_OBJ_FILES)  \
+
+web: emscripten
+
+emscripten: $(EMSC_OBJ_FILES)
+	em++ -DBUILD_EMSCRIPTEN $^ $(EMSC_LIBS) \
 	-o build/game.html \
 	$(INCLUDES) \
  	-I /usr/local/Cellar/emscripten/include \
@@ -80,4 +90,5 @@ web:
 	--preload-file assets \
 	-Wall -g -lm -s \
 	USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2 -s SDL2_IMAGE_FORMATS='["jpg","png"]' \
+	-s ALLOW_MEMORY_GROWTH=1 \
 	--use-preload-plugins

@@ -30,7 +30,7 @@ void EntitySystemInterface::AddEntity(Entity entity) {
 
 int EntitySystemInterface::RemoveEntityLocally(Uint32 localIndex) {
     if (localIndex >= nEntities) {
-        LogError("EntitySystem::RemoveEntity : localIndex out of bounds. index: %u, nEntities: %u", localIndex, nEntities);
+        Log.Error("EntitySystem::RemoveEntity : localIndex out of bounds. index: %u, nEntities: %u", localIndex, nEntities);
         return 1;
     }
     entities[localIndex] = entities[nEntities-1];
@@ -39,23 +39,18 @@ int EntitySystemInterface::RemoveEntityLocally(Uint32 localIndex) {
 }
 
 int EntitySystemInterface::RemoveEntity(Entity entity) {
-    /*
     if (nEntities == 0) {
-        //LogError("Tried to remove an entity from a system that has no entities!");
+        //Log.Error("Tried to remove an entity from a system that has no entities!");
         return -1;
     }
 
-    for (Uint32 e = nEntities-1;; e--) {
+    for (int e = nEntities-1; e >= 0; e--) {
         if (entity.id == entities[e].id) {
-            RemoveEntity(e);
+            RemoveEntityLocally(e);
             return 0;
         }
-
-        if (e == 0) break;
     }
     return -1;
-    */
-    return 0;
 }
 
 void EntitySystemInterface::EntitiesWereRemoved(EntityManager* em) {

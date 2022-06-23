@@ -23,6 +23,8 @@ struct GameState {
     Player player;
     ECS ecs;
 
+    ~GameState();
+
     void free();
     void init(SDL_Renderer*, GameViewport*);
 };
@@ -36,14 +38,17 @@ IVec2* worldLine(Vec2 start, Vec2 end, int* lineSize);
 
 void worldLineAlgorithm(Vec2 start, Vec2 end, std::function<int(IVec2)> callback);
 
-bool pointIsOnTileEntity(ECS* ecs, Entity tileEntity, IVec2 tilePosition, Vec2 point);
+bool pointIsOnTileEntity(const ECS* ecs, Entity tileEntity, IVec2 tilePosition, Vec2 point);
 
-bool findTileEntityAtPosition(GameState* state, Vec2 position, Entity* foundEntity);
+OptionalEntity<> findTileEntityAtPosition(const GameState* state, Vec2 position);
 
 void removeEntityOnTile(ECS* ecs, Tile* tile);
 
 void placeEntityOnTile(ECS* ecs, Tile* tile, Entity entity);
 
-void forEachEntityInRange(ECS* ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, std::function<int(EntityType<PositionComponent>)> callback);
+void forEachEntityInRange(const ECS* ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, std::function<int(EntityType<PositionComponent>)> callback);
+
+OptionalEntity<PositionComponent, SizeComponent>
+findEntityAtPosition(const ECS* ecs, const ChunkMap* chunkmap, Vec2 position);
 
 #endif

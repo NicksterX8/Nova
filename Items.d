@@ -45,7 +45,7 @@ Items.o: Items.cpp Items.hpp /usr/local/include/SDL2/SDL.h \
   /usr/local/include/SDL2/SDL_timer.h \
   /usr/local/include/SDL2/SDL_version.h \
   /usr/local/include/SDL2/SDL_locale.h \
-  /usr/local/include/SDL2/SDL_misc.h Log.hpp
+  /usr/local/include/SDL2/SDL_misc.h
 
 Items.hpp:
 
@@ -146,5 +146,3 @@ Items.hpp:
 /usr/local/include/SDL2/SDL_locale.h:
 
 /usr/local/include/SDL2/SDL_misc.h:
-
-Log.hpp:

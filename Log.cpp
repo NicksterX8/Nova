@@ -1,10 +1,6 @@
 #include "Log.hpp"
 
-int LogCategory = LOG_CATEGORY_MAIN;
-
-void CustomLog(void *userdata, int category, SDL_LogPriority priority, const char *message) {
-    LogArguments args = *static_cast<LogArguments*>(userdata);
-    
+void Logger::logOutputFunction(int category, SDL_LogPriority priority, const char *message) const {
     const char* fg = "";
     const char* prefix = "";
     const char* effect = "";
@@ -35,7 +31,7 @@ void CustomLog(void *userdata, int category, SDL_LogPriority priority, const cha
     sprintf(text, "%s%s", prefix, message);
 
     char consoleMessage[messageLength + 128];
-    if (args.useColorCodes)
+    if (useEscapeCodes)
         sprintf(consoleMessage, "\033[%s;0;%sm%s\033[0m\n", effect, fg, text);
     else
         sprintf(consoleMessage, "%s\n", text);
@@ -52,3 +48,10 @@ void CustomLog(void *userdata, int category, SDL_LogPriority priority, const cha
         break;
     }
 }
+
+void Logger::logOutputFunction(void* arg, int category, SDL_LogPriority priority, const char *message) {
+    Logger* logger = static_cast<Logger*>(arg);
+    logger->logOutputFunction(category, priority, message);
+}
+
+Logger Log;

@@ -2,6 +2,7 @@
 #include "Log.hpp"
 
 #include <vector>
+#include <stdio.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -22,14 +23,15 @@
 #include "GUI.hpp"
 #include "Debug.hpp"
 #include "loadData.hpp"
+
+#include "EntityComponents/Components.hpp"
 #include "Entities/Entities.hpp"
 #include "EntitySystems/Rendering.hpp"
 #include "EntitySystems/Systems.hpp"
 #include "update.hpp"
 #include "Debug.hpp"
 #include "Items.hpp"
-#include "Log.hpp"
-#include "constants.hpp"
+#include "GameSave/main.hpp"
 
 #ifdef DEBUG
     //#include "Testing.hpp"
@@ -71,32 +73,30 @@ void unload() {
     Textures.unload();
 }
 
-void setDebugSettings() {
+void setDebugSettings(DebugClass& debug) {
     // shorten name for easier typing while keeping default settings
-    DebugSettings ds = Debug.settings;
+    DebugSettings& ds = debug.settings;
 
     ds.drawChunkBorders = false;
     ds.drawChunkCoordinates = false;
     ds.drawEntityRects = false;
     ds.drawEntityIDs = false;
-
-    Debug.settings = ds;
 }
 
-void setDefaultKeyBindings(PlayerControls* controls) {
+void setDefaultKeyBindings(Context& ctx, PlayerControls* controls) {
     controls->addKeyBinding(new FunctionKeyBinding('y', [](Context* ctx){
         auto mouse = ctx->playerControls->getMouse();
         Entity zombie = Entities::Enemy(
             &ctx->state->ecs,
             ctx->gameViewport->pixelToWorldPosition(mouse.x, mouse.y),
-            ctx->state->player.entity
+            ctx->state->player.getEntity()
         );
     }));
 
     KeyBinding* keyBindings[] = {
-        new ToggleKeyBinding('b', &Debug.settings.drawChunkBorders),
-        new ToggleKeyBinding('u', &Debug.settings.drawEntityRects),
-        new ToggleKeyBinding('c', &Debug.settings.drawChunkCoordinates),
+        new ToggleKeyBinding('b', &ctx.debug.settings.drawChunkBorders),
+        new ToggleKeyBinding('u', &ctx.debug.settings.drawEntityRects),
+        new ToggleKeyBinding('c', &ctx.debug.settings.drawChunkCoordinates),
 
         new FunctionKeyBinding('q', [](Context* ctx){
             ctx->state->player.releaseHeldItem();
@@ -133,17 +133,14 @@ void logEntitySystemInfo() {
     int charIndex = 0;
     for (int i = 0; i < NUM_SYSTEMS; i++) {
         const char* start = &systemsStr2[charIndex];
-        const char* end;
         const char* chr = start;
         int size = 0;
         while (true) {
             if (*chr == ',') {
-                end = chr;
                 break;
             }
             if (*chr == '\0') {
                 // Log("failed to find comma");
-                end = chr;
                 break;
             }
             chr++;
@@ -166,53 +163,59 @@ void logEntityComponentInfo() {
     strcpy(componentsStr2, componentsStr+1);
     componentsStr2[length-2] = '\0';
 
-    char (componentsList[NUM_COMPONENTS])[256];
+    char* buffer = (char*)malloc(sizeof(char) * 256 * NUM_COMPONENTS);
+
+    char* componentsList;
+    componentsList = buffer;
     int charIndex = 0;
     for (int i = 0; i < NUM_COMPONENTS; i++) {
         const char* start = &componentsStr2[charIndex];
-        const char* end;
         const char* chr = start;
         int size = 0;
         while (true) {
             if (*chr == ',') {
-                end = chr;
                 break;
             }
             if (*chr == '\0') {
                 // Log("failed to find comma");
-                end = chr;
                 break;
             }
             chr++;
             size++;
         }
-        strlcpy(componentsList[i], start, size+1);
-        componentsList[i][size] = '\0';
+        strlcpy(&componentsList[i * 256], start, size+1);
+        componentsList[i * 256 + size] = '\0';
         charIndex += (size + 2);
     }
 
     for (int i = 0; i < NUM_COMPONENTS; i++) {
-        Log("ID: %d, Component: %s.", i, componentsList[i]);
-        componentNames[i] = componentsList[i];
+        Log("ID: %d, Component: %s.", i, &componentsList[i * 256]);
+        componentNames[i] = &componentsList[i * 256];
     }
 }
 
-int main(int argc, char** argv) {
-    setDebugSettings();
-
-    bool useConsoleColorCodes = true;
-    for (int i = 0; i < argc; i++) {
-        if (strcmp(argv[i], "--no-color-codes")) {
-            useConsoleColorCodes = false;
-        }
-    }
-
-    LogArguments* logArgs = new LogArguments(useConsoleColorCodes);
-    SDL_LogSetOutputFunction(CustomLog, logArgs);
+void initLogging() {
+    SDL_LogSetOutputFunction(Logger::logOutputFunction, &Log);
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_WARN);
     SDL_LogSetPriority(LOG_CATEGORY_MAIN, SDL_LOG_PRIORITY_INFO);
+}
 
-    LogCategory = LOG_CATEGORY_MAIN;
+int main(int argc, char** argv) {
+    initLogging();
+
+    DebugClass debug;
+    setDebugSettings(debug);
+    Debug = &debug;
+
+    MetadataTracker metadata = MetadataTracker(TARGET_FPS, ENABLE_VSYNC);
+    Metadata = &metadata;
+
+    Log.useEscapeCodes = true;
+    for (int i = 0; i < argc; i++) {
+        if (strcmp(argv[i], "--no-color-codes") == 0) {
+            Log.useEscapeCodes = false;
+        }
+    }
 
     SDLContext sdlCtx = initSDL();
 
@@ -232,6 +235,8 @@ int main(int argc, char** argv) {
     
     state->init(sdlCtx.ren, &gameViewport);
 
+    // GameSave::load(state);
+
     for (int e = 0; e < 1000; e++) {
         Vec2 pos = {(float)randomInt(-200, 200), (float)randomInt(-200, 200)};
         Entity entity = Entities::Tree(&state->ecs, pos, {1, 1});
@@ -248,7 +253,6 @@ int main(int argc, char** argv) {
     Vec2 lastUpdatePlayerTargetPos = gameViewport.pixelToWorldPosition(mousePos.x, mousePos.y);
     GUI gui;
     PlayerControls playerControls = PlayerControls(gameViewport); // player related event handler
-    setDefaultKeyBindings(&playerControls);
     Context context = Context(
         sdlCtx,
         state,
@@ -257,22 +261,28 @@ int main(int argc, char** argv) {
         &gameViewport,
         worldScale,
         lastUpdateMouseState,
-        lastUpdatePlayerTargetPos
+        lastUpdatePlayerTargetPos,
+        debug,
+        metadata
     );
 
-    if (Metadata.vsyncEnabled) {
-        Metadata.setTargetFps(60);
+    setDefaultKeyBindings(context, &playerControls);
+
+    if (metadata.vsyncEnabled) {
+        metadata.setTargetFps(60);
     } else {
-        Metadata.setTargetFps(TARGET_FPS);
+        metadata.setTargetFps(TARGET_FPS);
     }
-    Metadata.start();
+    metadata.start();
     NC_SetMainLoop(updateWrapper, &context);
-    double secondsElapsed = Metadata.end();
+    double secondsElapsed = metadata.end();
     Log("Time elapsed: %.1f", secondsElapsed);
+
+    GameSave::save(state);
 
     unload();
 
-    state->free();
+    delete state;
 
     quitSDLContext(sdlCtx);
 

@@ -26,11 +26,15 @@ struct Context {
     float& worldScale;
     MouseState& lastUpdateMouseState;
     Vec2& lastUpdatePlayerTargetPos;
+    DebugClass& debug;
+    MetadataTracker& metadata;
 
     Context(SDLContext& sdlContext, GameState* state, GUI* gui, PlayerControls& playerControls, GameViewport* gameViewport,
-    float& worldScale, MouseState& lastUpdateMouseState, Vec2& lastUpdatePlayerTargetPos):
+    float& worldScale, MouseState& lastUpdateMouseState, Vec2& lastUpdatePlayerTargetPos,
+    DebugClass& debug, MetadataTracker& metadata):
     sdlCtx(sdlContext), state(state), gui(gui), gameViewport(gameViewport), worldScale(worldScale),
-    lastUpdateMouseState(lastUpdateMouseState), lastUpdatePlayerTargetPos(lastUpdatePlayerTargetPos) {
+    lastUpdateMouseState(lastUpdateMouseState), lastUpdatePlayerTargetPos(lastUpdatePlayerTargetPos),
+    debug(debug), metadata(metadata) {
         keyboard = SDL_GetKeyboardState(NULL);
         this->playerControls = &playerControls;
     }

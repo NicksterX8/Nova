@@ -3,7 +3,7 @@
     RotationSystem, MotionSystem, ExplosivesSystem, \
     GrowthSystem, DyingSystem, InserterSystem, \
     RotatableSystem, ExplosionSystem, HealthSystem, \
-    InventorySystem, FollowSystem, PositionSystem
+    InventorySystem, FollowSystem, PositionSystem, SimpleRectRenderSystem
 
 
 namespace _SYSTEM_COUNT_ {

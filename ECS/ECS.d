@@ -55,8 +55,7 @@ ECS/ECS.o: ECS/ECS.cpp ECS/ECS.hpp /usr/local/include/SDL2/SDL.h \
   ECS/../ComponentMetadata/component.hpp \
   ECS/../ComponentMetadata/componentDecl.hpp \
   ECS/../ComponentMetadata/_componentIDs.hpp \
-  ECS/EntitySystemInterface.hpp ECS/../Chunks.hpp ECS/../Tiles.hpp \
-  ECS/../NC/colors.h ECS/../Items.hpp ECS/../ECS/Entity.hpp
+  ECS/EntitySystemInterface.hpp
 
 ECS/ECS.hpp:
 
@@ -195,13 +194,3 @@ ECS/../ComponentMetadata/componentDecl.hpp:
 ECS/../ComponentMetadata/_componentIDs.hpp:
 
 ECS/EntitySystemInterface.hpp:
-
-ECS/../Chunks.hpp:
-
-ECS/../Tiles.hpp:
-
-ECS/../NC/colors.h:
-
-ECS/../Items.hpp:
-
-ECS/../ECS/Entity.hpp:

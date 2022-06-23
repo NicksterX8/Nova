@@ -9,6 +9,10 @@ bool EntityBase::IsAlive() const {
     return globalECS->EntityLives(Entity(this->id, this->version));
 }
 
+bool EntityBase::IsValid() const {
+    return id != NULL_ENTITY_ID && version != NULL_ENTITY_VERSION;
+}
+
 void setGlobalECS(ECS* _ecs) {
     globalECS = _ecs;
 }

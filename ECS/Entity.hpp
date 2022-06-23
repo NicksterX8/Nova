@@ -21,14 +21,10 @@ template<std::size_t N>
 class MyBitset {
 public:
     constexpr static size_t nInts = (N/64) + ((N % 64) != 0);
-    Uint64 bits[nInts];
+    Uint64 bits[nInts] = {0};
     using Self = MyBitset<N>;
 
-    constexpr MyBitset() {
-        for (size_t i = 0; i < nInts; i++) {
-            bits[i] = 0;
-        }
-    }
+    constexpr MyBitset() {}
 
     constexpr MyBitset(bool startValue) {
         for (size_t i = 0; i < nInts; i++) {
@@ -119,7 +115,9 @@ public:
 typedef MyBitset<NUM_COMPONENTS> ComponentFlags;
 
 #define MAX_ENTITIES 100000
-#define NULL_ENTITY (MAX_ENTITIES-1)
+//#define NULL_ENTITY (MAX_ENTITIES-1)
+constexpr EntityID NULL_ENTITY_ID = (MAX_ENTITIES-1);
+constexpr EntityVersion NULL_ENTITY_VERSION = (Uint32)-1;
 
 extern const char* componentNames[NUM_COMPONENTS];
 
@@ -181,6 +179,8 @@ constexpr inline bool entityHasComponents(_EntityType<EntityComponents...> entit
     return true;
 }
 
+
+
 struct EntityBase {
     EntityID id;
     EntityVersion version;
@@ -190,30 +190,32 @@ struct EntityBase {
     constexpr EntityBase(EntityID ID, EntityVersion Version)
     : id(ID), version(Version) {}
 
+    constexpr bool operator==(EntityBase rhs) const {
+        return (id == rhs.id && version == rhs.version);
+    }
+
     bool IsAlive() const;
+
+    bool IsValid() const;
 };
 
 template<class... Components>
 struct _EntityType : public EntityBase {
     using Self = _EntityType<Components...>;
+    // using EntityBase::EntityBase;
 
-    constexpr _EntityType() {}
+    constexpr _EntityType(EntityID ID, EntityVersion Version) : EntityBase(ID, Version) {}
 
     template<class... C>
     _EntityType(_EntityType<C...> entity) {
 #ifdef DEBUG
         bool cast_success = entityHasComponents<Components...>(entity);
         if (!cast_success) {
-            LogError("Casted from ineligible type! needed entity components: %s, actual entity components: %s", getComponentNameList<Components...>().c_str(), getComponentNameList<C...>().c_str());
+            Log.Error("Casted from ineligible type! needed entity components: %s, actual entity components: %s", getComponentNameList<Components...>().c_str(), getComponentNameList<C...>().c_str());
         }
 #endif
         id = entity.id;
         version = entity.version;
-    }
-
-    template<class EntityClass>
-    constexpr bool operator==(EntityClass rhs) const {
-        return (id == rhs.id && version == rhs.version);
     }
 
     template<class... NewComponents>
@@ -231,7 +233,8 @@ class ECS;
 void setGlobalECS(ECS* ecs);
 
 struct _Entity : public EntityBase {
-    _Entity() {}
+    // _Entity() {}
+    // using EntityBase::EntityBase;
 
     constexpr _Entity(EntityID ID, EntityVersion Version): EntityBase(ID, Version) {}
 
@@ -241,10 +244,12 @@ struct _Entity : public EntityBase {
         version = entityType.version;
     }
 
+    /*
     template<class EntityClass>
     constexpr bool operator==(EntityClass rhs) const {
         return (id == rhs.id && version == rhs.version);
     }
+    */
 
     template<class... NewComponents>
     constexpr inline _EntityType<NewComponents...>& cast() const {
@@ -254,6 +259,10 @@ struct _Entity : public EntityBase {
     template<class Type>
     constexpr inline Type& castType() const {
         return *((Type*)(this));
+    }
+
+    constexpr operator _EntityType<>() const {
+        return cast<>();
     }
 };
 
@@ -268,5 +277,18 @@ constexpr bool entityTypeHasComponents(_EntityType<T2...> entity) {
 }
 
 typedef _Entity Entity;
+
+inline Entity baseToEntity(EntityBase base) {
+    return *((Entity*)&base);
+}
+
+constexpr EntityBase NULL_ENTITY = EntityBase(NULL_ENTITY_ID, NULL_ENTITY_VERSION);
+ 
+/*
+template<class E1, class E2>
+bool operator==(E1 e1, E2 e2) {
+    return e1.id == e2.id && e1.version == e2.version;
+}
+*/
 
 #endif

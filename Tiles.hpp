@@ -6,7 +6,7 @@
 #include "Textures.hpp"
 #include <SDL2/SDL.h>
 #include "Items.hpp"
-#include "ECS/Entity.hpp"
+#include "ECS/EntityType.hpp"
 
 extern float TilePixels;
 extern float TileWidth;
@@ -49,7 +49,7 @@ extern TileTypeDataStruct TileTypeData[NUM_TILE_TYPES];
 
 struct Tile {
     TileType type;
-    Entity entity;
+    OptionalEntity<> entity;
 
     Tile();
     Tile(TileType type);

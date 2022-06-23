@@ -35,9 +35,9 @@ public:
     std::vector<Test> runAllTests() {
         std::vector<Test> failedTests;
         for (size_t i = 0; i < tests.size(); i++) {
-            LogCategory = LOG_CATEGORY_TEST;
+            Log.category = LOG_CATEGORY_TEST;
             int result = tests[i].testFunction();
-            LogCategory = LOG_CATEGORY_MAIN;
+            Log.category = LOG_CATEGORY_MAIN;
             if (result) {
                 Log("Test failed! Name: \"%s\", Code: %d\n", tests[i].name.c_str(), result);
                 failedTests.push_back(tests[i]);
@@ -362,7 +362,7 @@ namespace Tests {
         if (success) {
             Log("SUCCESS: All tests succeeded.\n");
         } else {
-            LogError("FAILURE: %lu tests failed.\n", failedTests.size());
+            Log.Error("FAILURE: %lu tests failed.\n", failedTests.size());
         }
 
         return success;

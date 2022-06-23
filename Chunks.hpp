@@ -27,8 +27,8 @@ struct ChunkData {
 void generateChunk(Chunk* chunk);
 
 class ChunkPool {
-    int _size;
-    int _used;
+    size_t _size;
+    size_t _used;
     Chunk* pool;
 public:
     ChunkPool();
@@ -39,13 +39,13 @@ public:
 
     void destroy();
 
-    int used() const;
+    size_t used() const;
 
-    int size() const;
+    size_t size() const;
 
     bool hasRoom() const;
 
-    Chunk* at(int index);
+    Chunk* at(size_t index) const;
 
     Chunk* getNew();
 }; 
@@ -60,21 +60,37 @@ class ChunkMap {
 public:
     void init();
     void destroy();
-    int size();
+    size_t size() const;
 
     /*
     * Get a chunk data object from the map.
     * Returns NULL if the chunk couldn't be found.
     */
     ChunkData* getChunkData(IVec2 chunkPosition) const;
+
+    /*
+    * Like getChunkData except will create a new chunk if the chunk couldn't be found.
+    * The chunk will not be generated, so this shouldn't be used most in most cases.
+    */
+    ChunkData* getOrCreateAt(IVec2 position);
+
     /*
     * Get a const chunk from the map.
     * Returns NULL if the chunk couldn't be found.
     */
     Chunk* getChunk(IVec2 chunkPosition) const;
     ChunkData* createChunk(IVec2 position);
-    void iterateChunks(std::function<int(Chunk*)> callback);
-    void iterateChunkdata(std::function<int(ChunkData*)> callback);
+    /*
+    * @return The value returned from the final callback
+    */
+    int iterateChunks(std::function<int(Chunk*)> callback) const;
+
+    /*
+    * @return The value returned from the final callback
+    */
+    int iterateChunkdata(std::function<int(ChunkData*)> callback) const;
+
+    
 private:
     /*
     * Create and allocate for a new ungenerated chunk at the position.

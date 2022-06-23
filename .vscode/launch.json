@@ -6,16 +6,12 @@
     "configurations": [
         {
             "name": "Launch main",
-            "type": "cppdbg",
+            "type": "lldb",
             "request": "launch",
             "preLaunchTask":"compile",
             "program": "${workspaceFolder}/exe",
             "args": [],
-            "stopAtEntry": false,
-            "cwd": "${fileDirname}",
-            "environment": [],
-            "externalConsole": false,
-            "MIMode": "lldb"
+            "cwd": "${workspaceFolder}"
         },
         {
             "name": "Launch Test",

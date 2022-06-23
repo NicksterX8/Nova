@@ -18,3 +18,4 @@ template<> constexpr unsigned int getID<ImmortalEC>() { return 16; }
 template<> constexpr unsigned int getID<AngleMotionEC>() { return 17; }
 template<> constexpr unsigned int getID<ItemStackComponent>() { return 18; }
 template<> constexpr unsigned int getID<TransporterEC>() { return 19; }
+template<> constexpr unsigned int getID<GrabableEC>() { return 20; }

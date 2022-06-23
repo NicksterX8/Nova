@@ -19,15 +19,21 @@ inline Entity ECS::New() {
 */
 
 void ECS::entitySignatureChanged(Entity entity, ComponentFlags oldSignature) {
-    for (Uint32 id = 0; id < NUM_SYSTEMS; id++) {
-        systems[id]->RemoveEntity(entity);
-    }
-
     ComponentFlags newSignature = manager.entityComponents(entity.id);
     for (Uint32 id = 0; id < NUM_SYSTEMS; id++) {
-        if (!systems[id]->Query(oldSignature) && systems[id]->Query(newSignature)) {
-            systems[id]->AddEntity(entity);
+        bool shouldBeInSystem = systems[id]->Query(newSignature);
+        bool isInSystem = systems[id]->Query(oldSignature);
+        if (shouldBeInSystem) {
+            if (!isInSystem) {
+                systems[id]->AddEntity(entity);
+            }
+            
+        } else {
+            if (isInSystem) {
+                systems[id]->RemoveEntity(entity);
+            }
         }
+            
     }
 }
 
@@ -36,5 +42,9 @@ void ECS::ScheduleRemove(Entity entity) {
 }
 
 EntityManager* ECS::em() {
+    return &manager;
+}
+
+const EntityManager* ECS::em() const {
     return &manager;
 }

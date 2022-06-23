@@ -2,6 +2,7 @@
 #define ENTITY_MANAGER_INCLUDED
 
 #include <stdlib.h>
+#include <assert.h>
 #include <stddef.h>
 #include <bitset>
 #include <functional>
@@ -22,12 +23,13 @@ typedef unsigned int Uint32;
 using EntityCallback = std::function<void(_Entity)>;
 
 class EntityManager {
-    _Entity entities[MAX_ENTITIES];
+public:
+    EntityBase entities[MAX_ENTITIES];
     Uint32 indices[MAX_ENTITIES];
     ComponentFlags entityComponentFlags[MAX_ENTITIES];
 
     Uint32 liveEntities = 0;
-    std::vector<_Entity> freeEntities = std::vector<_Entity>(MAX_ENTITIES);
+    std::vector<EntityBase> freeEntities = std::vector<EntityBase>(MAX_ENTITIES);
 
     void* pools[NUM_COMPONENTS] = {NULL};
     Uint32 nComponents = 0;
@@ -134,7 +136,7 @@ public:
         pools[id] = pool;
         nComponents++;
         if (nComponents > NUM_COMPONENTS) {
-            LogCritical("The number of components in the enity component system is greater than the constant NUM_COMPONENTS!"
+            Log.Critical("The number of components in the enity component system is greater than the constant NUM_COMPONENTS!"
                 "number of components in system: %u, NUM_COMPONENTS: %d", nComponents, NUM_COMPONENTS);
         }
     }
@@ -154,11 +156,10 @@ public:
         
         // all entities are free be default
         for (Uint32 i = 0; i < MAX_ENTITIES; i++) {
-            _Entity newEntity = {i, 0};
+            EntityBase newEntity = EntityBase(i, 0);
             freeEntities[(MAX_ENTITIES-1) - i] = newEntity;
-
-            entities[i].id = NULL_ENTITY;
-            indices[i] = NULL_ENTITY;
+            entities[i] = NULL_ENTITY;
+            indices[i] = NULL_ENTITY_ID;
 
             entityComponentFlags[i] = ComponentFlags(false);
         }
@@ -172,14 +173,18 @@ public:
     template<class T> 
     T* Get(_Entity entity) const {
         if (!EntityLives(entity)) {
-            LogError("EntityManager::Get : Attempted to get a component of a non-living entity! Returning NULL. EntityID: %u. Version: %u", entity.id, entity.version);
+            Log.Error("EntityManager::Get : Attempted to get a component of a non-living entity! Returning NULL. EntityID: %u. Version: %u", entity.id, entity.version);
             return NULL;
         }
         if (entityComponentFlags[entity.id][getID<T>()]) {
             return (getPool<T>())->get(entity.id);
         }
+        ComponentPool<T>* pool = getPool<T>();
+        if (pool->entityComponentSet[entity.id] != NULL_COMPONENTPOOL_INDEX) {
+            return (pool->get(entity.id));
+        }
         else {
-            LogError("Attempted to get a component of an entity that the entity does not have in its flags! Returning NULL.");
+            Log.Error("Attempted to get a component of an entity that the entity does not have in its flags! Returning NULL.");
             return NULL;
         }
     }
@@ -187,7 +192,7 @@ public:
     template<class... Components>
     int Add(_Entity entity) {
         if (!EntityLives(entity)) {
-            LogError("EntityManager::Add : Attempted to add a component to a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
+            Log.Error("EntityManager::Add : Attempted to add a component to a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
             return -1;
         }
 
@@ -198,9 +203,9 @@ public:
     }
 
     template<class T>
-    int Add(_Entity entity, T startValue) {
+    int Add(_Entity entity, const T& startValue) {
         if (!EntityLives(entity)) {
-            LogError("EntityManager::Add : Attempted to add a component to a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
+            Log.Error("EntityManager::Add : Attempted to add a component to a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
             return -1;
         }
 
@@ -213,7 +218,7 @@ public:
     template<class... Components>
     int AddSignature(_Entity entity, ComponentFlags signature) {
         if (!EntityLives(entity)) {
-            LogError("EntityManager::Add : Attempted to add a component to a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
+            Log.Error("EntityManager::Add : Attempted to add a component to a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
             return -1;
         }
         
@@ -227,14 +232,14 @@ public:
     template<class... Components>
     int Remove(_Entity entity) {
         if (!EntityLives(entity)) {
-            LogError("ECS::Remove : Attempted to remove a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
+            Log.Error("ECS::Remove : Attempted to remove a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
             return -1;
         }
         
         int componentPoolReturnCode = removeEntityComponentsAll<Components...>(entity.id);
         // swap last entity with this entity for 100% entity packing in array
         Uint32 lastEntityIndex = liveEntities-1;
-        _Entity lastEntity = entities[lastEntityIndex];
+        EntityBase lastEntity = entities[lastEntityIndex];
         if (entity == lastEntity) {
             // I dont think it matters
         }
@@ -252,8 +257,8 @@ public:
         liveEntities--;
 
         // set now unused last entity position data to null
-        entities[liveEntities].id = NULL_ENTITY;
-        indices[entity.id] = NULL_ENTITY;
+        entities[liveEntities].id = NULL_ENTITY_ID;
+        indices[entity.id] = NULL_ENTITY_ID;
         entityComponentFlags[entity.id] = ComponentFlags(false); // set this to 0 just in case
 
         return componentPoolReturnCode;
@@ -262,7 +267,7 @@ public:
     template<class... Components>
     int RemoveComponents(_Entity entity) {
         if (!EntityLives(entity)) {
-            LogError("EntityManager::Remove : Attempted to remove components from a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
+            Log.Error("EntityManager::Remove : Attempted to remove components from a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
             return -1;
         }
 
@@ -273,7 +278,7 @@ public:
     }
 
     template<class T>
-    Uint32 componentPoolSize() {
+    Uint32 componentPoolSize() const {
         return getPool<T>()->getSize();
     }
 
@@ -286,11 +291,11 @@ public:
     void iterateEntities(std::function<bool(ComponentFlags signature)> query, EntityCallback callback) {
         // iterate in reverse to maybe make removing safeish??
         for (Uint32 e = 0; e < liveEntities; e++) {
-            _Entity entity = entities[e];
+            EntityBase entity = entities[e];
             ComponentFlags signature = entityComponentFlags[entity.id];
 
             if (query(signature)) {
-                callback(entity);  
+                callback(baseToEntity(entity));  
             }
         }
     }
@@ -302,7 +307,7 @@ public:
     
     void iterateEntities(EntityCallback& callback) {
         for (Uint32 e = 0; e < liveEntities; e++) {
-            callback(entities[e]);
+            callback(baseToEntity(entities[e]));
         }
     }
     
@@ -313,13 +318,13 @@ public:
             
             if (both == componentSignature) {
                 // entity has all components
-                callback(entities[e]);
+                callback(baseToEntity(entities[e]));
             }
         }
     }    
 
     template<class T>
-    void iterateComponents(std::function<void(T*)> callback) {
+    void iterateComponents(std::function<void(T&)> callback) const {
         getPool<T>()->iterate(callback);
     }
 

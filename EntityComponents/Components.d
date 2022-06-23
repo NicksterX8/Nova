@@ -49,7 +49,7 @@ EntityComponents/Components.o: EntityComponents/Components.cpp \
   /usr/local/include/SDL2/SDL_misc.h \
   EntityComponents/../NC/cpp-vectors.hpp \
   EntityComponents/../NC/vectors.h EntityComponents/../Items.hpp \
-  EntityComponents/../Log.hpp EntityComponents/../ECS/EntityType.hpp \
+  EntityComponents/../ECS/EntityType.hpp \
   EntityComponents/../ECS/Entity.hpp \
   EntityComponents/../ECS/Component.hpp \
   EntityComponents/../ECS/../ComponentMetadata/macro.hpp \
@@ -68,10 +68,7 @@ EntityComponents/Components.o: EntityComponents/Components.cpp \
   EntityComponents/../ECS/../ComponentMetadata/component.hpp \
   EntityComponents/../ECS/../ComponentMetadata/componentDecl.hpp \
   EntityComponents/../ECS/../ComponentMetadata/_componentIDs.hpp \
-  EntityComponents/../ECS/EntitySystemInterface.hpp \
-  EntityComponents/../ECS/../Chunks.hpp EntityComponents/../Tiles.hpp \
-  EntityComponents/../constants.hpp EntityComponents/../NC/colors.h \
-  EntityComponents/../Textures.hpp
+  EntityComponents/../ECS/EntitySystemInterface.hpp
 
 EntityComponents/Components.hpp:
 
@@ -179,8 +176,6 @@ EntityComponents/../NC/vectors.h:
 
 EntityComponents/../Items.hpp:
 
-EntityComponents/../Log.hpp:
-
 EntityComponents/../ECS/EntityType.hpp:
 
 EntityComponents/../ECS/Entity.hpp:
@@ -220,13 +215,3 @@ EntityComponents/../ECS/../ComponentMetadata/componentDecl.hpp:
 EntityComponents/../ECS/../ComponentMetadata/_componentIDs.hpp:
 
 EntityComponents/../ECS/EntitySystemInterface.hpp:
-
-EntityComponents/../ECS/../Chunks.hpp:
-
-EntityComponents/../Tiles.hpp:
-
-EntityComponents/../constants.hpp:
-
-EntityComponents/../NC/colors.h:
-
-EntityComponents/../Textures.hpp:

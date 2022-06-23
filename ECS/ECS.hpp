@@ -21,8 +21,6 @@
 #include "ComponentPool.hpp"
 #include "../ComponentMetadata/component.hpp"
 
-#include "../Chunks.hpp"
-
 namespace Tests {
     class ECSTest;
 }
@@ -33,8 +31,6 @@ public:
     EntitySystemInterface* systems[NUM_SYSTEMS] = {NULL};
     std::vector<_Entity> entitiesToBeRemoved;
     std::vector< std::function<int(void)> > componentsToBeRemoved;
-
-    ChunkMap* chunkmap;
 
     ECS() {}
 
@@ -83,7 +79,7 @@ public:
     Component* Get(Entity entity, ComponentID component) const;
 
     template<class T>
-    inline void iterateComponents(std::function<void(T*)> callback) {
+    inline void iterateComponents(std::function<void(T&)> callback) const {
         manager.iterateComponents<T>(callback);
     }
 
@@ -100,7 +96,7 @@ public:
     }
 
     template<class T>
-    inline int Add(_Entity entity, T startValue) {
+    inline int Add(_Entity entity, const T& startValue) {
         ComponentFlags oldSignature = entityComponents(entity.id);
         int result = manager.Add<T>(entity, startValue);
         entitySignatureChanged(entity, oldSignature);
@@ -197,7 +193,7 @@ public:
     T* System() {
         T* system = static_cast<T*>(systems[getSystemID<T>()]);
         if (!system) {
-            LogError("ECS::System : Attempted to get a NULL system (id: %u).", getSystemID<T>());
+            Log.Error("ECS::System : Attempted to get a NULL system (id: %u).", getSystemID<T>());
             return NULL;
         }
         return system;
@@ -206,11 +202,12 @@ public:
     // other stuff
 
     EntityManager* em();
+    const EntityManager* em() const;
 
     bool testInitialization() {
         for (Uint32 i = 0; i < NUM_SYSTEMS; i++) {
             if (!systems[i]) {
-                LogError("Test of initialization failed! system number %u was NULL.", i);
+                Log.Error("Test of initialization failed! system number %u was NULL.", i);
                 return false;
             }
         }

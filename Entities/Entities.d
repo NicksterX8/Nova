@@ -61,15 +61,13 @@ Entities/Entities.o: Entities/Entities.cpp Entities/Entities.hpp \
   Entities/../ECS/../ComponentMetadata/componentDecl.hpp \
   Entities/../ECS/../ComponentMetadata/_componentIDs.hpp \
   Entities/../ECS/EntitySystemInterface.hpp \
-  Entities/../ECS/../Chunks.hpp Entities/../ECS/../Tiles.hpp \
-  Entities/../ECS/../NC/colors.h Entities/../ECS/../Items.hpp \
-  Entities/../ECS/../ECS/Entity.hpp \
   Entities/../EntityComponents/Components.hpp \
   Entities/../EntityComponents/../NC/cpp-vectors.hpp \
   Entities/../EntityComponents/../Items.hpp \
   Entities/../EntityComponents/../ECS/EntityType.hpp \
   Entities/../ECS/EntityType.hpp Entities/../Textures.hpp \
-  Entities/../Tiles.hpp
+  Entities/../Tiles.hpp Entities/../ECS/../NC/colors.h \
+  Entities/../ECS/../Items.hpp Entities/../ECS/../ECS/EntityType.hpp
 
 Entities/Entities.hpp:
 
@@ -211,16 +209,6 @@ Entities/../ECS/../ComponentMetadata/_componentIDs.hpp:
 
 Entities/../ECS/EntitySystemInterface.hpp:
 
-Entities/../ECS/../Chunks.hpp:
-
-Entities/../ECS/../Tiles.hpp:
-
-Entities/../ECS/../NC/colors.h:
-
-Entities/../ECS/../Items.hpp:
-
-Entities/../ECS/../ECS/Entity.hpp:
-
 Entities/../EntityComponents/Components.hpp:
 
 Entities/../EntityComponents/../NC/cpp-vectors.hpp:
@@ -234,3 +222,9 @@ Entities/../ECS/EntityType.hpp:
 Entities/../Textures.hpp:
 
 Entities/../Tiles.hpp:
+
+Entities/../ECS/../NC/colors.h:
+
+Entities/../ECS/../Items.hpp:
+
+Entities/../ECS/../ECS/EntityType.hpp:

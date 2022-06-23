@@ -8,7 +8,9 @@
 extern FC_Font *FreeSans;
 
 #define ASSETS_PATH "assets/"
-#define LOADIMG(var, filename) { var = IMG_LoadTexture(renderer, ASSETS_PATH filename); code |= (!var);}
+#define LOADIMG(var, filename) {\
+    var = IMG_LoadTexture(renderer, ASSETS_PATH filename);\
+    code |= (!var);}
 #define DELTEX(var) {SDL_DestroyTexture(var);}
 struct TextureStruct {
     SDL_Texture* player;

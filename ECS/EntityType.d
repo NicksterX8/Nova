@@ -54,8 +54,7 @@ ECS/EntityType.o: ECS/EntityType.cpp ECS/EntityType.hpp ECS/Entity.hpp \
   ECS/../ComponentMetadata/component.hpp \
   ECS/../ComponentMetadata/componentDecl.hpp \
   ECS/../ComponentMetadata/_componentIDs.hpp \
-  ECS/EntitySystemInterface.hpp ECS/../Chunks.hpp ECS/../Tiles.hpp \
-  ECS/../NC/colors.h ECS/../Items.hpp ECS/../ECS/Entity.hpp
+  ECS/EntitySystemInterface.hpp
 
 ECS/EntityType.hpp:
 
@@ -196,13 +195,3 @@ ECS/../ComponentMetadata/componentDecl.hpp:
 ECS/../ComponentMetadata/_componentIDs.hpp:
 
 ECS/EntitySystemInterface.hpp:
-
-ECS/../Chunks.hpp:
-
-ECS/../Tiles.hpp:
-
-ECS/../NC/colors.h:
-
-ECS/../Items.hpp:
-
-ECS/../ECS/Entity.hpp:

@@ -14,11 +14,12 @@ static std::default_random_engine randomGen;
 
 class PositionSystem : public EntitySystem {
 public:
-    ChunkMap* chunkmap;
+    ChunkMap* chunkmap = NULL;
 
     PositionSystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
         sys.GiveAccess<PositionComponent>(Read);
+        sys.GiveAccess<SizeComponent>(Read);
     }
 
     bool Query(ComponentFlags entitySignature) const {
@@ -26,12 +27,32 @@ public:
     }
 
     void Update() {
-        ForEach([&](EntityType<PositionComponent> entity){
+        ForEach<PositionComponent>([&](auto entity){
+            if (sys.EntityHas<SizeComponent>(entity)) {
+                return;
+            }
             Vec2 position = *sys.GetReadOnly<PositionComponent>(entity);
             IVec2 chunkPosition = tileToChunkPosition(position);
             ChunkData* chunkdata = chunkmap->getChunkData(chunkPosition);
             if (chunkdata) {
                 chunkdata->closeEntities.push_back(entity);
+            }
+        });
+
+        ForEach<PositionComponent, SizeComponent>([&](auto entity){
+            Vec2 position = *sys.GetReadOnly<PositionComponent>(entity);
+            Vec2 size = sys.GetReadOnly<SizeComponent>(entity)->toVec2();
+
+            IVec2 minChunkPosition = tileToChunkPosition(position);
+            IVec2 maxChunkPosition = tileToChunkPosition(position + size);
+            for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
+                for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
+                    IVec2 chunkPosition = {col, row};
+                    ChunkData* chunkdata = chunkmap->getChunkData(chunkPosition);
+                    if (chunkdata) {
+                        chunkdata->closeEntities.push_back(entity);
+                    }
+                }
             }
         });
     }
@@ -387,7 +408,7 @@ public:
 
 class InserterSystem : public EntitySystem {
 public:
-    ChunkMap* chunkmap;
+    ChunkMap* chunkmap = NULL;
 
     InserterSystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
@@ -408,6 +429,8 @@ public:
     }
 
     void Update() {
+        if (!chunkmap) {Log.Error("InserterSystem::Update Chunkmap is NULL");}
+
         ForEach([&](Entity entity){
             auto inserter = sys.GetReadWrite<InserterComponent>(entity);
             inserter->cycle++;
@@ -422,14 +445,15 @@ public:
                 rotateInserter(tilePos, inserter, rotation);
             }
 
-            Entity inputEntity = inserter->inputTile->entity;
-            Entity outputEntity = inserter->outputTile->entity;
+            auto inputEntity = getTileAtPosition(*chunkmap, inserter->inputTile)->entity;
+            OptionalEntity<> outputEntity = getTileAtPosition(*chunkmap, inserter->outputTile)->entity;
             if (inserter->cycle >= inserter->cycleLength) {
-                if (sys.EntityLives(inputEntity) && sys.EntityLives(outputEntity)) {
-                    if (sys.entityComponents(inputEntity.id)[getID<InventoryComponent>()] && sys.entityComponents(outputEntity.id)[getID<InventoryComponent>()]) {
-                        Inventory inputInventory = sys.GetReadWrite<InventoryComponent>(inputEntity)->inventory;
-                        Inventory outputInventory = sys.GetReadWrite<InventoryComponent>(outputEntity)->inventory;
-                        inputInventory.addItemStack(outputInventory.takeStack());
+                if (inputEntity.IsAlive() && outputEntity.IsAlive()) {
+                    if (inputEntity.Has<InventoryComponent>() && outputEntity.Has<InventoryComponent>()) {
+                    //if (sys.entityComponents(inputEntity.Unwrap().id)[getID<InventoryComponent>()] && sys.entityComponents(outputEntity.id)[getID<InventoryComponent>()]) {
+                        Inventory inputInventory = sys.GetReadWrite<InventoryComponent>(inputEntity.Unwrap())->inventory;
+                        Inventory outputInventory = sys.GetReadWrite<InventoryComponent>(outputEntity.Unwrap())->inventory;
+                        inputInventory.addItemStack(outputInventory.removeItemStack(outputInventory.firstItemStack()));
                     }
                 }
                 inserter->cycle = 0;
@@ -452,13 +476,14 @@ private:
         IVec2 inputPos = {tilePos.x + tileOffset.x, tilePos.y + tileOffset.y};
         IVec2 outputPos = {tilePos.x - tileOffset.x, tilePos.y - tileOffset.y};
 
-        Tile* inputTile = getTileAtPosition(*chunkmap, inputPos);
-        Tile* outputTile = getTileAtPosition(*chunkmap, outputPos);
+        // unnecessary
+        // Tile* inputTile = getTileAtPosition(*chunkmap, inputPos);
+        // Tile* outputTile = getTileAtPosition(*chunkmap, outputPos);
 
         // update tiles to reflect new rotation
 
-        inserter->inputTile = inputTile;
-        inserter->outputTile = outputTile;
+        inserter->inputTile = inputPos;
+        inserter->outputTile = outputPos;
 
         // rotations in degrees with their rounded rotation numbers and vector representation
         // 45 < r < 135 : 0 : {0, -1}

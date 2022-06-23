@@ -14,8 +14,7 @@ TileTypeDataStruct TileTypeData[NUM_TILE_TYPES];
 
 Tile::Tile() {
     type = TileTypes::Empty;
-    entity.id = NULL_ENTITY;
 }
 Tile::Tile(TileType type): type(type) {
-    entity.id = NULL_ENTITY;
+
 }

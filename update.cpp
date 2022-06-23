@@ -10,11 +10,13 @@
 #include "GUI.hpp"
 #include "PlayerControls.hpp"
 #include "Rendering/rendering.hpp"
+#include "GameSave/main.hpp"
 
 #include "EntitySystems/Rendering.hpp"
 #include "EntitySystems/Systems.hpp"
 #include "Entities/Entities.hpp"
 #include "EntityComponents/Components.hpp"
+#include "ECS/ECS.hpp"
 
 static void updateTilePixels(float scale) {
     if (scale == 0) {
@@ -48,12 +50,6 @@ GameViewport newGameViewport(int renderWidth, int renderHeight, float focusX, fl
         world
     );
     return newViewport;
-}
-
-
-
-bool validSystemSchedule() {
-    return false;
 }
 
 bool canRunConcurrently(
@@ -118,7 +114,7 @@ void systemJob(EntitySystem* system) {
 
 void runConcurrently(ECS* ecs, EntitySystem* sysA, EntitySystem* sysB) {
     if (!canRunConcurrently(sysA, sysB)) {
-        LogCritical("Attempted to run two incompatible systems together concurrently! Running in sequence.");
+        Log.Critical("Attempted to run two incompatible systems together concurrently! Running in sequence.");
         systemJob(sysA);
         systemJob(sysB);
         return;
@@ -161,8 +157,15 @@ void runConcurrently(ECS* ecs, std::array<EntitySystem*, NSystems> systems) {
         }
     }
 
+#ifdef EMSCRIPTEN
+    fail = true;
+#endif
+
     if (fail) {
-        LogCritical("Failed to run group concurrently!");
+        Log.Critical("Failed to run group concurrently! Running sequentially.");
+        for (int i = 0; i < N; i++) {
+            systemJob(systems[i]);
+        }
 
     } else {
         std::thread threads[N]; 
@@ -197,12 +200,7 @@ static void updateSystems(GameState* state) {
     });
     ecs.System<PositionSystem>()->chunkmap = &state->chunkmap;
     runSystem<PositionSystem>(&ecs);
-    
-    // run at the same time
-    // remove self
    
-    //ecs.System<GrowthSystem>()->Update();
-    // ecs.System<MotionSystem>()->Update();
     std::array<EntitySystem*, 3> group = {
         ecs.System<GrowthSystem>(),
         ecs.System<MotionSystem>(),
@@ -235,10 +233,15 @@ static void updateSystems(GameState* state) {
     runSystem<PositionSystem>(&ecs);
 }
 
+int tick(GameState* state) {
+    state->player.grenadeThrowCooldown--;
+    updateSystems(state);
+    return 0;
+}
 
 // Main game loop
 int update(Context ctx) {
-    Metadata.tick();
+    ctx.metadata.tick();
 
     bool quit = false;
 
@@ -252,9 +255,13 @@ int update(Context ctx) {
 
     updateTilePixels(ctx.worldScale);
 
+    //Vec2 focus = state->player.getPosition();
+    //*gameViewport = newGameViewport(renWidth, renHeight, focus.x, focus.y);
+
     // get user input state for this update
     SDL_PumpEvents();
     MouseState mouse = getMouseState();
+    Vec2 playerTargetPos = gameViewport->pixelToWorldPosition(mouse.x, mouse.y);
     // handle events //
     PlayerControls& playerControls = *ctx.playerControls;
     playerControls.updateState();
@@ -281,6 +288,15 @@ int update(Context ctx) {
                 break;
             case SDL_MOUSEBUTTONDOWN:
                 break;
+            case SDL_KEYDOWN:
+                switch (event.key.keysym.sym) {
+                case '7':
+                    GameSave::save(state);
+                    break;
+                case '9':
+                    GameSave::load(state);
+                    break;
+                }
             default:
                 break;
         }
@@ -288,58 +304,20 @@ int update(Context ctx) {
         playerControls.handleEvent(event, state, ctx.gui);
     }
 
-    state->player.grenadeThrowCooldown--;
-
     playerControls.update(state, ctx.gui, &ctx);
-    Vec2 focus = state->player.getPosition();
-    *gameViewport = newGameViewport(renWidth, renHeight, focus.x, focus.y);
 
-    Vec2 playerTargetPos = gameViewport->pixelToWorldPosition(mouse.x, mouse.y);
     if (playerTargetPos != ctx.lastUpdatePlayerTargetPos) {
         playerControls.playerMouseTargetMoved(mouse, ctx.lastUpdateMouseState, state, ctx.gui);
     }
 
-    int numTilesAccessed = 0;
-    
-    auto callback = [&numTilesAccessed](ChunkData* chunkdata){
-        int count;
-        for (int row = 0; row < CHUNKSIZE; row++) {
-            for (int col = 0; col < CHUNKSIZE; col++) {
-                Tile* tile = &TILE(chunkdata->chunk, row, col);
-                //if (tile->type == TileTypes::Space) {
-                    //IVec2 tilePos = {chunkdata->tilePositionX() + col + randomInt(-1, 1), chunkdata->tilePositionY() + row + randomInt(-1, 1)};
-                    //Tile* adjacentTile = getTileAtPosition(state->chunkmap, tilePos);
-                    //if (adjacentTile) {
-                    //    adjacentTile->type = TileTypes::Grass;
-                    //}
+    // these two functions should be combined
+    playerControls.doPlayerMovementTick(ctx.state);
+    tick(ctx.state);
 
-                    tile->type = count + 1;
-                    count = (count + 1) % 7;
-                //}
-
-                numTilesAccessed++;
-            }
-        }
-
-        return 0;
-    };
-    //state->chunkmap.iterateChunkdata(callback);
-
-    //Log("num Tiles accessed: %d", numTilesAccessed);
-
-    //if (!(Metadata.ticks() % 60))
-    //    state->player.inventory.addItemStack(ItemStack(0, 1000));
-
-    updateSystems(state);
-
-    /*
-    if (!(Metadata.ticks() % 60)) {
-        Log("Num entities in explosives system: %u", state->ecs.System<ExplosivesSystem>()->NumEntities());
-        Log("Num entities in motion system: %u", state->ecs.System<MotionSystem>()->NumEntities());
-        Log("num entities with explosive components: %u", state->ecs.componentPoolSize<ExplosiveComponent>());
-        Log("num entities with motion components: %u", state->ecs.componentPoolSize<MotionComponent>());
-    }
-    */
+    // update to new state from tick
+    Vec2 focus = state->player.getPosition();
+    *gameViewport = newGameViewport(renWidth, renHeight, focus.x, focus.y);
+    playerTargetPos = gameViewport->pixelToWorldPosition(mouse.x, mouse.y);
 
     render(ctx.sdlCtx.ren, ctx.sdlCtx.scale, ctx.gui, state, gameViewport, playerTargetPos);    
 

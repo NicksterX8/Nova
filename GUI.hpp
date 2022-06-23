@@ -15,33 +15,37 @@ namespace Draw {
 class Hotbar {
 public:
     SDL_FRect rect;
-    SDL_FRect slots[NUM_HOTBAR_SLOTS];
+    std::vector<SDL_FRect> slots;
 
     SDL_FRect area() const {
         return rect;
     }
 
     SDL_FRect draw(SDL_Renderer* ren, float scale, SDL_Rect viewport, const Player* player) {
-        SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
-        if (!player->inventory()) {
+        unsigned int numSlots = player->numHotbarSlots;
+        if (!player->inventory() || numSlots == 0) {
             return {0, 0, 0, 0};
         }
-        //SDL_RenderSetScale(ren, 1, 1);
-        float opacity = 0.5;
+
+        slots.clear();
+
+        SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
+
+        const float opacity = 0.5;
         Uint8 alpha = opacity * 255;
         float width = viewport.w;
         float height = viewport.h;
 
-        float maxSlotSize = 60 * scale;
-        float borderSize = 3 * scale;
+        const float maxSlotSize = 60 * scale;
+        const float borderSize = 3 * scale;
         float slotSize = maxSlotSize;
-        if (slotSize * NUM_HOTBAR_SLOTS > (width - borderSize * 2)) {
-            slotSize = (width - borderSize * 2) / NUM_HOTBAR_SLOTS;
+        if (slotSize * numSlots > (width - borderSize * 2)) {
+            slotSize = (width - borderSize * 2) / numSlots;
         }
-        float hotbarWidth = slotSize * NUM_HOTBAR_SLOTS;
+        float hotbarWidth = slotSize * numSlots;
         float borderHeight = slotSize + borderSize*2;
         
-        float maxWidth = (slotSize * NUM_HOTBAR_SLOTS) + borderSize*2;
+        float maxWidth = (slotSize * numSlots) + borderSize*2;
         float borderWidth = width;
         if (borderWidth > maxWidth) {
             borderWidth = maxWidth;
@@ -54,7 +58,8 @@ public:
             borderWidth,
             borderHeight 
         };
-        rect = border;
+
+        this->rect = border;
         
         SDL_FRect inside = {
             border.x + borderSize,
@@ -62,8 +67,8 @@ public:
             border.w - borderSize * 2,
             border.h - borderSize * 2
         };
+
         SDL_SetRenderDrawColor(ren, 60, 60, 60, 255);
-        //SDL_RenderFillRectF(ren, &border);
         Draw::thickRect(ren, &border, borderSize * scale);
         SDL_SetRenderDrawColor(ren, 100, 100, 100, alpha);
         SDL_RenderFillRectF(ren, &inside);
@@ -77,8 +82,8 @@ public:
                 slotSize
             };
             
-            for (int i = 0; i < NUM_HOTBAR_SLOTS; i++) {
-                slots[i] = hotbarSlot;
+            for (unsigned int i = 0; i < player->numHotbarSlots; i++) {
+                slots.push_back(hotbarSlot);
 
                 ItemStack item = player->inventory()->items[i];
 
@@ -108,22 +113,21 @@ public:
                 }
                 
                 // divide margin by 8, not 9 because there are 8 spaces between 9 slots, not 9.
-                hotbarSlot.x += slotSize + hotbarHorizontalMargin / (NUM_HOTBAR_SLOTS - 1);
+                hotbarSlot.x += slotSize + hotbarHorizontalMargin / (numSlots - 1);
             }
 
             // draw highlight around selected hotbar slot
             SDL_FRect selectedHotbarSlot = {
-                inside.x + player->selectedHotbarStack * (slotSize + hotbarHorizontalMargin / (NUM_HOTBAR_SLOTS - 1)),
+                inside.x + player->selectedHotbarStack * (slotSize + hotbarHorizontalMargin / (numSlots - 1)),
                 inside.y + hotbarVerticalMargin / 2,
                 slotSize,
                 slotSize
             };
             SDL_SetRenderDrawColor(ren, 0, 255, 255, 155);
-            //Draw::thickRect(ren, &selectedHotbarSlot, 2);
         }
 
-        //SDL_RenderSetScale(ren, 1, 1);
         SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_NONE);
+
         return area();
     }
 };

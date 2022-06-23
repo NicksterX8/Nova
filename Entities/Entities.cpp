@@ -58,8 +58,7 @@ namespace Entities {
         ecs->Get<SizeComponent>(entity)->height = size.y;
         Inventory inventory = Inventory(10);
         ecs->Get<InventoryComponent>(entity)->inventory = inventory;
-
-        strcpy(ecs->Get<NametagComponent>(entity)->type, "tree");
+        ecs->Get<NametagComponent>(entity)->setType("Tree");
         return entity;
     }
 
@@ -85,7 +84,7 @@ namespace Entities {
         return particle;
     }
 
-    Entity Inserter(ECS* ecs, Vec2 position, int reach, Tile* inputTile, Tile* outputTile) {
+    Entity Inserter(ECS* ecs, Vec2 position, int reach, IVec2 inputTile, IVec2 outputTile) {
         Entity inserter = ecs->New();
         ecs->Add<PositionComponent>(inserter, position);
         ecs->Add<SizeComponent>(inserter, {1.0f, 1.0f});
@@ -107,26 +106,11 @@ namespace Entities {
         return entity;
     }
 
-    class Skeleton : public EntityType<
-        SizeComponent, PositionComponent, RenderComponent
-    >{
-    public:
-        Skeleton() {
-            //Add<SizeComponent>({0.5, 0.5});
-           // Add<RenderComponent>(RenderComponent(Textures.player, RenderLayer::Player));
-            //Add<PositionComponent>(Vec2(2, 1));
-
-            TEST_ENTITY_COMPONENTS;
-        }
-    };
-
     Entity Enemy(ECS* ecs, Vec2 position, EntityType<PositionComponent> following) {
         Entity enemy = ecs->New();
         ecs->Add<PositionComponent>(enemy, position);
         ecs->Add<HealthComponent>(enemy, {100.0f});
-        auto nametag = NametagComponent();
-        strcpy(nametag.type, "Enemy");
-        ecs->Add<NametagComponent>(enemy, nametag);
+        ecs->Add<NametagComponent>(enemy, NametagComponent("Enemy", ""));
         ecs->Add<RotationComponent>(enemy, {0.0f});
         ecs->Add<SizeComponent>(enemy, {0.8f, 0.8f});
         ecs->Add<RenderComponent>(enemy, RenderComponent(Textures.player, RenderLayer::Player));
