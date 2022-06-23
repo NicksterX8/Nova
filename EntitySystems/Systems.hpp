@@ -190,7 +190,7 @@ public:
     void Update() {
         ForEach<PositionComponent, FollowComponent>([&](EntityType<PositionComponent, FollowComponent> entity){
             auto followComponent = sys.GetReadWrite<FollowComponent>(entity);
-            if (!sys.EntityLives(followComponent->entity)) {
+            if (!sys.EntityExists(followComponent->entity)) {
                 return;
             }
             EntityType<PositionComponent> following = followComponent->entity;
@@ -445,14 +445,14 @@ public:
                 rotateInserter(tilePos, inserter, rotation);
             }
 
-            auto inputEntity = getTileAtPosition(*chunkmap, inserter->inputTile)->entity;
-            OptionalEntity<> outputEntity = getTileAtPosition(*chunkmap, inserter->outputTile)->entity;
+            EntityType<> inputEntity = getTileAtPosition(*chunkmap, inserter->inputTile)->entity;
+            EntityType<> outputEntity = getTileAtPosition(*chunkmap, inserter->outputTile)->entity;
             if (inserter->cycle >= inserter->cycleLength) {
-                if (inputEntity.IsAlive() && outputEntity.IsAlive()) {
+                if (inputEntity.Exists() && outputEntity.Exists()) {
                     if (inputEntity.Has<InventoryComponent>() && outputEntity.Has<InventoryComponent>()) {
                     //if (sys.entityComponents(inputEntity.Unwrap().id)[getID<InventoryComponent>()] && sys.entityComponents(outputEntity.id)[getID<InventoryComponent>()]) {
-                        Inventory inputInventory = sys.GetReadWrite<InventoryComponent>(inputEntity.Unwrap())->inventory;
-                        Inventory outputInventory = sys.GetReadWrite<InventoryComponent>(outputEntity.Unwrap())->inventory;
+                        Inventory inputInventory = sys.GetReadWrite<InventoryComponent>(inputEntity)->inventory;
+                        Inventory outputInventory = sys.GetReadWrite<InventoryComponent>(outputEntity)->inventory;
                         inputInventory.addItemStack(outputInventory.removeItemStack(outputInventory.firstItemStack()));
                     }
                 }

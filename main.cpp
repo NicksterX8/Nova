@@ -89,7 +89,7 @@ void setDefaultKeyBindings(Context& ctx, PlayerControls* controls) {
         Entity zombie = Entities::Enemy(
             &ctx->state->ecs,
             ctx->gameViewport->pixelToWorldPosition(mouse.x, mouse.y),
-            ctx->state->player.getEntity()
+            ctx->state->player.entity
         );
     }));
 

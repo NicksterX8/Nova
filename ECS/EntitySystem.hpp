@@ -101,8 +101,8 @@ public:
         return ecs->entityComponents(entity.id)[getID<T>()];
     }
 
-    inline bool EntityLives(Entity entity) const {
-        return ecs->EntityLives(entity);
+    inline bool EntityExists(Entity entity) const {
+        return ecs->EntityExists(entity);
     }
 
     inline ComponentFlags entityComponents(EntityID id) const {
@@ -168,7 +168,7 @@ protected:
     template<class Query>
     inline void QueryForEach(std::function<void(Entity entity)> callback) {
         for (int e = nEntities-1; e >= 0; e--) {
-            if (!sys.EntityLives(entities[e])) {
+            if (!sys.EntityExists(entities[e])) {
                 RemoveEntityLocally(e);
                 continue;
             }
@@ -185,7 +185,7 @@ protected:
 
     inline void ForEach(ECS* ecs, std::function<void(Entity)> callback) {
         for (int e = nEntities-1; e >= 0; e--) {
-            if (!ecs->EntityLives(entities[e])) {
+            if (!ecs->EntityExists(entities[e])) {
                 RemoveEntityLocally(e);
                 continue;
             }
@@ -206,7 +206,7 @@ protected:
     inline void ForEach(Func callback) {
 
         for (int e = nEntities-1; e >= 0; e--) {
-            if (!sys.EntityLives(entities[e])) {
+            if (!sys.EntityExists(entities[e])) {
                 RemoveEntityLocally(e);
                 continue;
             }

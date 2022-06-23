@@ -9,7 +9,7 @@ namespace Entities {
 
 inline bool tryOccupyTileAt(Entity entity, Vec2 position, ChunkMap* chunkmap) {
     Tile* tile = getTileAtPosition(*chunkmap, position);
-    if (!(tile && tile->entity.IsAlive())) {
+    if (!(tile && tile->entity.Exists())) {
         tile->entity = entity;
         return true;
     }

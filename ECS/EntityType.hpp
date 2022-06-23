@@ -18,6 +18,8 @@ private:
     //SpecialEntity() {}
     //SpecialEntity(EntityBase base) : _EntityType<Components...>(base) {}
 public:
+    constexpr SpecialEntity() : _EntityType<Components...>(NullEntity.id, NullEntity.version) {}
+
     constexpr SpecialEntity(EntityID ID, EntityVersion Version) : _EntityType<Components...>(ID, Version) {}
 
     constexpr SpecialEntity(ECS* ecs) : _EntityType<Components...>(NULL_ENTITY_ID, NULL_ENTITY_VERSION) {
@@ -109,6 +111,7 @@ public:
 template<class... Components>
 using EntityType = SpecialEntity<Components...>;
 
+/*
 template<class... Components>
 struct OptionalEntity {
 protected:
@@ -159,8 +162,8 @@ public:
         return entity.IsValid();
     }
 
-    bool IsAlive() const {
-        return (IsValid() && entity.IsAlive());
+    bool Exists() const {
+        return (IsValid() && entity.Exists());
     }
 
     //operator bool() const {
@@ -189,7 +192,9 @@ public:
         return !operator==(rhs);
     }
 };
+*/
 
+/*
 template<class T = SpecialEntity<>>
 struct OptionalEntityT {
 private:
@@ -224,15 +229,32 @@ public:
         return entity.IsValid();
     }
 
-    bool IsAlive() const {
-        return (IsValid() && entity.IsAlive());
+    bool Exists() const {
+        return (IsValid() && entity.Exists());
     }
 
     operator bool() const {
         return IsValid();
     }
 };
+*/
 
-constexpr OptionalEntity<> NullEntity = OptionalEntity<>();
+
+template<class T>
+using OptionalEntityT = T;
+/*
+template<class T>
+struct OptionalEntityT : public T {
+    using T::T;
+};
+*/
+
+template<class... Components>
+using OptionalEntity = SpecialEntity<Components...>;
+/*
+struct OptionalEntity : public SpecialEntity<Components...> {
+    using SpecialEntity<Components...>::SpecialEntity;
+};
+*/
 
 #endif

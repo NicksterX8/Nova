@@ -158,7 +158,7 @@ public:
         for (Uint32 i = 0; i < MAX_ENTITIES; i++) {
             EntityBase newEntity = EntityBase(i, 0);
             freeEntities[(MAX_ENTITIES-1) - i] = newEntity;
-            entities[i] = NULL_ENTITY;
+            entities[i] = NullEntity;
             indices[i] = NULL_ENTITY_ID;
 
             entityComponentFlags[i] = ComponentFlags(false);
@@ -167,12 +167,12 @@ public:
 
     void destroy();
     Uint32 numLiveEntities() const;
-    bool EntityLives(_Entity entity) const;
+    bool EntityExists(_Entity entity) const;
     _Entity New();
 
     template<class T> 
     T* Get(_Entity entity) const {
-        if (!EntityLives(entity)) {
+        if (!EntityExists(entity)) {
             Log.Error("EntityManager::Get : Attempted to get a component of a non-living entity! Returning NULL. EntityID: %u. Version: %u", entity.id, entity.version);
             return NULL;
         }
@@ -191,7 +191,7 @@ public:
 
     template<class... Components>
     int Add(_Entity entity) {
-        if (!EntityLives(entity)) {
+        if (!EntityExists(entity)) {
             Log.Error("EntityManager::Add : Attempted to add a component to a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
             return -1;
         }
@@ -204,7 +204,7 @@ public:
 
     template<class T>
     int Add(_Entity entity, const T& startValue) {
-        if (!EntityLives(entity)) {
+        if (!EntityExists(entity)) {
             Log.Error("EntityManager::Add : Attempted to add a component to a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
             return -1;
         }
@@ -217,7 +217,7 @@ public:
 
     template<class... Components>
     int AddSignature(_Entity entity, ComponentFlags signature) {
-        if (!EntityLives(entity)) {
+        if (!EntityExists(entity)) {
             Log.Error("EntityManager::Add : Attempted to add a component to a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
             return -1;
         }
@@ -231,7 +231,7 @@ public:
 
     template<class... Components>
     int Remove(_Entity entity) {
-        if (!EntityLives(entity)) {
+        if (!EntityExists(entity)) {
             Log.Error("ECS::Remove : Attempted to remove a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
             return -1;
         }
@@ -266,7 +266,7 @@ public:
 
     template<class... Components>
     int RemoveComponents(_Entity entity) {
-        if (!EntityLives(entity)) {
+        if (!EntityExists(entity)) {
             Log.Error("EntityManager::Remove : Attempted to remove components from a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
             return -1;
         }

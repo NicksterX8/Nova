@@ -9,8 +9,8 @@ inline Uint32 ECS::numLiveEntities() {
     return manager.numLiveEntities();
 }
 
-inline bool ECS::EntityLives(Entity entity) {
-    return manager.EntityLives(entity);
+inline bool ECS::EntityExists(Entity entity) {
+    return manager.EntityExists(entity);
 }
 
 inline Entity ECS::New() {

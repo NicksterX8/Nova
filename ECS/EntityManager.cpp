@@ -10,9 +10,9 @@ Uint32 EntityManager::numLiveEntities() const {
     return liveEntities;
 }
 
-bool EntityManager::EntityLives(_Entity entity) const {
+bool EntityManager::EntityExists(_Entity entity) const {
     // TODO: Optimize 
-    if (entity.IsValid()) {
+    if (entity.id != NULL_ENTITY_ID && entity.version != NULL_ENTITY_VERSION) {
         Uint32 index = indices[entity.id];
         if (index != NULL_ENTITY_ID) {
             return (entities[index].version == entity.version);
@@ -30,7 +30,7 @@ _Entity EntityManager::New() {
 
     // get top entity from free entity stack
     EntityBase entity = freeEntities.back();
-    if (!entity.IsValid()) {
+    if (entity.Null()) {
         Log.Error("Entity from freeEntities was NULL! EntityID: %d", entity.id);
     }
     freeEntities.pop_back();

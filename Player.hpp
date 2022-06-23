@@ -36,16 +36,9 @@ struct Player {
         entity = Entities::Player(ecs, Vec2(0.0, 0.0));
     }
 
-    Entities::Player& getEntity() {
-        return entity.Unwrap();
-    }
-    const Entities::Player& getEntity() const {
-        return entity.Unwrap();
-    }
-
     Vec2 getSize() const {
-        if (entity.IsAlive()) {
-            auto size = entity.Unwrap().Get<SizeComponent>();
+        if (entity.Exists()) {
+            auto size = entity.Get<SizeComponent>();
             if (size) {
                 return size->toVec2();
             }
@@ -54,8 +47,8 @@ struct Player {
     }
 
     Vec2 getPosition() const {
-        if (entity.IsAlive()) {
-            auto position = entity.Unwrap().Get<PositionComponent>();
+        if (entity.Exists()) {
+            auto position = entity.Get<PositionComponent>();
             if (position)
                 return *position;
         }
@@ -64,16 +57,16 @@ struct Player {
     }
 
     void setPosition(Vec2 pos) {
-        if (entity.IsAlive()) {
-            auto position = getEntity().Get<PositionComponent>();
+        if (entity.Exists()) {
+            auto position = entity.Get<PositionComponent>();
             if (position)
                 *position = pos;
         }
     }
 
     Inventory* inventory() const {
-        if (entity.IsAlive()) {
-            auto component = getEntity().Get<InventoryComponent>();
+        if (entity.Exists()) {
+            auto component = entity.Get<InventoryComponent>();
             if (component) {
                 return &component->inventory;
             }

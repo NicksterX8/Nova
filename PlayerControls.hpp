@@ -254,9 +254,9 @@ public:
                     
                     OptionalEntity<> selectedEntity = state->player.selectedEntity;
                     if (selectedEntity.Has<GrabableEC, ItemStackComponent>()) {
-                        ItemStack itemGrabbed = selectedEntity.Unwrap().Get<ItemStackComponent>()->item;
+                        ItemStack itemGrabbed = selectedEntity.Get<ItemStackComponent>()->item;
                         state->player.inventory()->addItemStack(itemGrabbed);
-                        state->ecs.Remove<COMPONENTS>(selectedEntity.Unwrap());
+                        state->ecs.Remove<COMPONENTS>(selectedEntity);
                     }
                 }
             }
@@ -266,11 +266,9 @@ public:
             if (clickInWorld) {
 
                 auto tileEntity = findTileEntityAtPosition(state, worldPos);
-                if (tileEntity.IsAlive()) {
+                if (tileEntity.Exists()) {
                     Log("Removing entity at %d,%d", (int)floor(worldPos.x), (int)floor(worldPos.y));
                         removeEntityOnTile(&state->ecs, selectedTile);
-
-                    tileEntity.Unwrap().id = 2;
                 }
 
                 if (state->player.heldItemStack) {
@@ -286,18 +284,15 @@ public:
         switch (event.keysym.sym) {
             case 'e': {
                 auto tileEntity = findTileEntityAtPosition(state, mouseWorldPos);
-                if (tileEntity.IsValid()) {
-                    // does entity have inventory
+                if (tileEntity != NullEntity) {
                     if (tileEntity.Has<InventoryComponent>()) {
                         // then open inventory
-                        Inventory* inventory = &state->ecs.Get<InventoryComponent>(tileEntity.Unwrap())->inventory;
+                        Inventory* inventory = &state->ecs.Get<InventoryComponent>(tileEntity)->inventory;
                         // for now since I dont want to make GUI so just give the items in the inventory to the player
                         for (Uint32 i = 0; i < inventory->size; i++) {
                             if (state->player.inventory()) {
-                                int nAdded = state->player.inventory()->addItemStack(inventory->items[i]);
-                                if (nAdded > 0)
-                                    Log("nadded: %d", nAdded);
-                                inventory->items[i].reduceQuantity(nAdded);
+                                Uint32 numItemsAdded = state->player.inventory()->addItemStack(inventory->items[i]);
+                                inventory->items[i].reduceQuantity(numItemsAdded);
                             }
                         }
                     }
@@ -305,27 +300,21 @@ public:
                 break;}
             case 'i': {
                 Tile* tile = getTileAtPosition(state->chunkmap, mouseWorldPos);
-                if (tile) {
-                    if (!tile->entity.IsAlive()) {
-                        Vec2 inputPos = {mouseWorldPos.x + 1, mouseWorldPos.y};
-                        Tile* inputTile = getTileAtPosition(state->chunkmap, inputPos);
-                        Vec2 outputPos = {mouseWorldPos.x - 1, mouseWorldPos.y};
-                        Tile* outputTile = getTileAtPosition(state->chunkmap, outputPos);
-                        Entity inserter = Entities::Inserter(&state->ecs, mouseWorldPos.vfloor(), 1, inputPos.floorToIVec(), outputPos.floorToIVec());
-                        
-                        if (tile) {
-                            placeEntityOnTile(&state->ecs, tile, inserter);
-                        }
-                    }
+                if (tile && tile->entity.Exists()) {
+                    Vec2 inputPos = {mouseWorldPos.x + 1, mouseWorldPos.y};
+                    Tile* inputTile = getTileAtPosition(state->chunkmap, inputPos);
+                    Vec2 outputPos = {mouseWorldPos.x - 1, mouseWorldPos.y};
+                    Tile* outputTile = getTileAtPosition(state->chunkmap, outputPos);
+                    Entity inserter = Entities::Inserter(&state->ecs, mouseWorldPos.vfloor(), 1, inputPos.floorToIVec(), outputPos.floorToIVec());
+                    placeEntityOnTile(&state->ecs, tile, inserter);
                 }
                 break;}
             case 'r': {
                 Tile* tile = getTileAtPosition(state->chunkmap, mouseWorldPos);
-                if (tile)
-                if (tile->entity.IsAlive()) {
+                if (tile && tile->entity.Exists()) {
                     if (tile->entity.Has<RotationComponent, RotatableComponent>()) {
-                        float* rotation = &state->ecs.Get<RotationComponent>(tile->entity.Unwrap())->degrees;
-                        auto rotatable = state->ecs.Get<RotatableComponent>(tile->entity.Unwrap());
+                        float* rotation = &state->ecs.Get<RotationComponent>(tile->entity)->degrees;
+                        auto rotatable = state->ecs.Get<RotatableComponent>(tile->entity);
                         // left shift switches direction
                         if (keyboardState[SDL_SCANCODE_LSHIFT]) {
                             *rotation -= rotatable->increment;
@@ -407,7 +396,7 @@ public:
 
         if (keyboardState[SDL_SCANCODE_G]) {
             Tile* selectedTile = getTileAtPosition(state->chunkmap, aimingPosition);
-            if (selectedTile->entity.IsAlive()) {
+            if (selectedTile->entity.Exists()) {
                 Log("Adding entity at %d,%d", (int)floor(aimingPosition.x), (int)floor(aimingPosition.y));
                 Entity chest = Entities::Chest(&state->ecs, aimingPosition.vfloor(), 32, 1, 1);
                 placeEntityOnTile(&state->ecs, selectedTile, chest);

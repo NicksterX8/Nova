@@ -63,8 +63,8 @@ public:
         return manager.numLiveEntities();
     }
 
-    inline bool EntityLives(_Entity entity) const {
-        return manager.EntityLives(entity);
+    inline bool EntityExists(_Entity entity) const {
+        return manager.EntityExists(entity);
     }
 
     inline _Entity New() {

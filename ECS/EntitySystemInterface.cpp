@@ -57,7 +57,7 @@ void EntitySystemInterface::EntitiesWereRemoved(EntityManager* em) {
     for (Uint32 e = 0; e < nEntities; e++) {
         _Entity entity = entities[e];
         
-        if (!em->EntityLives(entity)) {
+        if (!em->EntityExists(entity)) {
             RemoveEntityLocally(e);
         }
     }

@@ -108,9 +108,9 @@ void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport*
     // only draw tile marker if mouse is actually on the world, not on the GUI
     if (!gui->pointInArea({(int)screenPos.x, (int)screenPos.y})) {
         OptionalEntity<> targetedEntity = state->player.selectedEntity;
-        if (targetedEntity.IsAlive()) {
+        if (targetedEntity.Exists()) {
             if (targetedEntity.Has<RenderComponent>()) {
-                SDL_FRect entityRect = targetedEntity.Unwrap().Get<RenderComponent>()->destination;
+                SDL_FRect entityRect = targetedEntity.Get<RenderComponent>()->destination;
                 SDL_SetRenderDrawColor(ren, 0, 255, 255, 255);
                 Draw::thickRect(ren, &entityRect, round(scale * 2));
             }
@@ -120,9 +120,6 @@ void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport*
                     Vec2 position = *state->ecs.Get<PositionComponent>(entity);
                     auto sizeComponent = state->ecs.Get<SizeComponent>(entity);
                     Vec2 size = {sizeComponent->width, sizeComponent->height};
-                    if (entity.Has<CenteredRenderFlagComponent>()) {
-                        position -= size.scaled(0.5f);
-                    }
                     if (
                         playerTargetPos.x > position.x && playerTargetPos.x < position.x + size.x &&
                         playerTargetPos.y > position.y && playerTargetPos.y < position.y + size.y) {

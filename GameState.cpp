@@ -44,7 +44,7 @@ void GameState::init(SDL_Renderer* renderer, GameViewport* gameViewport) {
     ecs.NewSystems<SYSTEMS>();
     ecs.System<InserterSystem>()->chunkmap = &chunkmap;
     ecs.testInitialization();
-    
+
     SpecialEntityStatic::Init(&ecs);
     setGlobalECS(&ecs);
 
@@ -228,8 +228,8 @@ OptionalEntity<> findTileEntityAtPosition(const GameState* state, Vec2 position)
     Tile* selectedTile = getTileAtPosition(state->chunkmap, tilePosition);
     if (selectedTile) {
         auto tileEntity = selectedTile->entity;
-        if (tileEntity.IsAlive()) {
-            if (pointIsOnTileEntity(&state->ecs, tileEntity.Unwrap(), tilePosition, position)) {
+        if (tileEntity.Exists()) {
+            if (pointIsOnTileEntity(&state->ecs, tileEntity, tilePosition, position)) {
                 return tileEntity;
             }
         }
@@ -240,12 +240,13 @@ OptionalEntity<> findTileEntityAtPosition(const GameState* state, Vec2 position)
 }
 
 void removeEntityOnTile(ECS* ecs, Tile* tile) {
-    ecs->Remove<COMPONENTS>(tile->entity.Unwrap());
+    if (tile->entity.Exists())
+        ecs->Remove<COMPONENTS>(tile->entity);
     tile->entity = NullEntity;
 }
 
 void placeEntityOnTile(ECS* ecs, Tile* tile, Entity entity) {
-    if (!tile->entity.IsAlive()) {
+    if (!tile->entity.Exists()) {
         tile->entity = entity;
     }
 }

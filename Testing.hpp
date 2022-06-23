@@ -263,10 +263,10 @@ namespace Tests {
         }
 
         for (int i = 0; i < nEnts-2; i += 2) {
-            if (ecs.EntityLives(entities[i])) {
+            if (ecs.EntityExists(entities[i])) {
                 fail |= 1;
             }
-            if (!ecs.EntityLives(entities[i+1])) {
+            if (!ecs.EntityExists(entities[i+1])) {
                 fail |= 1;
             }
         }
@@ -288,7 +288,7 @@ namespace Tests {
         }
 
         for (int i = 0; i < nEnts-2; i += 2) {
-            if (!ecs.EntityLives(entities[i+1])) {
+            if (!ecs.EntityExists(entities[i+1])) {
                 fail |= 1;
             }
         }

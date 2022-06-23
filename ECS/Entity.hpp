@@ -194,9 +194,13 @@ struct EntityBase {
         return (id == rhs.id && version == rhs.version);
     }
 
-    bool IsAlive() const;
+    constexpr bool operator!=(EntityBase rhs) const {
+        return !operator==(rhs);
+    }
 
-    bool IsValid() const;
+    bool Exists() const;
+
+    bool Null() const;
 };
 
 template<class... Components>
@@ -233,8 +237,8 @@ class ECS;
 void setGlobalECS(ECS* ecs);
 
 struct _Entity : public EntityBase {
-    // _Entity() {}
-    // using EntityBase::EntityBase;
+
+    constexpr _Entity(): EntityBase(NULL_ENTITY_ID, NULL_ENTITY_VERSION) {}
 
     constexpr _Entity(EntityID ID, EntityVersion Version): EntityBase(ID, Version) {}
 
@@ -282,7 +286,7 @@ inline Entity baseToEntity(EntityBase base) {
     return *((Entity*)&base);
 }
 
-constexpr EntityBase NULL_ENTITY = EntityBase(NULL_ENTITY_ID, NULL_ENTITY_VERSION);
+constexpr Entity NullEntity = Entity();
  
 /*
 template<class E1, class E2>
