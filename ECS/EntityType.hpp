@@ -29,7 +29,7 @@ public:
     template<class... C>
     constexpr SpecialEntity(_EntityType<C...> entity) : _EntityType<Components...>(entity) {}
 
-    constexpr SpecialEntity(Entity entity);
+    constexpr SpecialEntity(Entity entity) : _EntityType<Components...>(entity.id, entity.version) {}
 
     // SpecialEntity(EntityID id, EntityVersion version) : _EntityType<Components...>(id, version) {}
 
@@ -57,6 +57,13 @@ public:
     bool assertType() const {
         constexpr ComponentFlags typeFlags = componentSignature<Components...>();
         assert((typeFlags & SpecialEntityStatic::ecs->entityComponents(this->id)) == typeFlags && "entity type correct");
+        return true;
+    }
+
+    bool debugAssertType() const {
+#ifdef DEBUG
+        assertType();
+#endif
         return true;
     }
 

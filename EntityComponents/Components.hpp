@@ -6,6 +6,8 @@
 #include "../Items.hpp"
 #include "../ECS/EntityType.hpp"
 
+namespace EC {
+
 template<bool _Serializable = true>
 struct EntityComponent {
     static constexpr bool Serializable = _Serializable;
@@ -13,118 +15,116 @@ struct EntityComponent {
 
 #define ENTITY_TYPE_NAME_SIZE 64
 
-struct EntityTypeComponent : EntityComponent<> {
+struct EntityTypeEC : EntityComponent<> {
     char name[ENTITY_TYPE_NAME_SIZE];
 
-    EntityTypeComponent(const char* name) {
+    EntityTypeEC(const char* name) {
         strncpy(this->name, name, ENTITY_TYPE_NAME_SIZE);
     }
 };
 
-struct GrabableEC : EntityComponent<> {
-    ItemStack itemGiven;
+struct Grabable : EntityComponent<> {
+    ::ItemStack itemGiven;
 };
 
-struct HealthComponent : EntityComponent<> {
+struct Health : EntityComponent<> {
     float healthValue;
 
-    HealthComponent(float health) : healthValue(health) {}
+    Health(float health) : healthValue(health) {}
 };
 
-struct GrowthComponent : EntityComponent<> {
+struct Growth : EntityComponent<> {
     float growthValue;
 
-    GrowthComponent(float growth) : growthValue(growth) {}
+    Growth(float growth) : growthValue(growth) {}
 };
 
-struct PositionComponent : Vec2, EntityComponent<> {
-    PositionComponent(float x, float y);
-    PositionComponent(Vec2 vec);
+struct Position : Vec2, EntityComponent<> {
+    Position(float x, float y);
+    Position(Vec2 vec);
     
     Vec2 vec2() {
         return {x, y};
     }
 };
 
-struct SizeComponent : EntityComponent<> {
+struct Size : EntityComponent<> {
     float width;
     float height;
 
-    SizeComponent(float width, float height);
+    Size(float width, float height);
 
     Vec2 toVec2() const;
 };
 
-struct RenderComponent : EntityComponent<false> {
+struct Render : EntityComponent<false> {
     SDL_Texture* texture;
     SDL_FRect destination;
     float rotation;
     int layer;
+    Uint32 renderIndex;
 
-    RenderComponent(SDL_Texture* texture, int layer);
+    Render(SDL_Texture* texture, int layer);
 };
 
 // #define TEXTURE_NAME_SIZE 64
 
-// Render with the position representing the center of the entity, not the top left
-struct CenteredRenderFlagComponent : EntityComponent<> {};
-
-struct ExplosionComponent : EntityComponent<> {
+struct Explosion : EntityComponent<> {
     float radius;
     float damage;
     float life;
     int particleCount;
 
-    ExplosionComponent(float radius, float damage, float life, int particleCount);
+    Explosion(float radius, float damage, float life, int particleCount);
 };
 
-struct ExplosiveComponent : EntityComponent<false> {
-    ExplosionComponent* explosion;
+struct Explosive : EntityComponent<false> {
+    EC::Explosion* explosion;
 
-    ExplosiveComponent(ExplosionComponent* explosion);
+    Explosive(EC::Explosion* explosion);
 };
 
 #define MAX_ENTITY_NAME_LENGTH 64
 #define MAX_ENTITY_TYPENAME_LENGTH 64
 
-struct NametagComponent : EntityComponent<> {
+struct Nametag : EntityComponent<> {
     char name[MAX_ENTITY_NAME_LENGTH];
     char type[MAX_ENTITY_TYPENAME_LENGTH];
 
     void setName(const char* name);
     void setType(const char* type);
 
-    NametagComponent();
-    NametagComponent(const char* type, const char* name);
+    Nametag();
+    Nametag(const char* type, const char* name);
 };
 
-struct MotionComponent : EntityComponent<> {
+struct Motion : EntityComponent<> {
     Vec2 target;
     float speed;
 
-    MotionComponent(Vec2 target, float speed);
+    Motion(Vec2 target, float speed);
 };
 
-struct AngleMotionEC : EntityComponent<> {
+struct AngleMotion : EntityComponent<> {
     float rotationTarget;
     float rotationSpeed;
 
-    AngleMotionEC(float rotationTarget, float rotationSpeed);
+    AngleMotion(float rotationTarget, float rotationSpeed);
 };
 
-struct InventoryComponent : EntityComponent<false> {
-    Inventory inventory;
+struct Inventory : EntityComponent<false> {
+    ::Inventory inventory;
 
-    InventoryComponent(Inventory inventory) : inventory(inventory) {}
+    Inventory(::Inventory inventory) : inventory(inventory) {}
 };
 
-struct DyingComponent : EntityComponent<> {
+struct Dying : EntityComponent<> {
     int timeToRemoval;
 
-    DyingComponent(int updatesTilRemoval) : timeToRemoval(updatesTilRemoval) {}
+    Dying(int updatesTilRemoval) : timeToRemoval(updatesTilRemoval) {}
 };
 
-struct InserterComponent : EntityComponent<> {
+struct Inserter : EntityComponent<> {
     int cycleLength;
     int stackSize;
     int cycle;
@@ -134,25 +134,25 @@ struct InserterComponent : EntityComponent<> {
     IVec2 inputTile;
     IVec2 outputTile;
 
-    InserterComponent(int updatesPerMove, int stackSize, int reach, IVec2 input, IVec2 output)
+    Inserter(int updatesPerMove, int stackSize, int reach, IVec2 input, IVec2 output)
     : cycleLength(updatesPerMove), stackSize(stackSize), inputTile(input), outputTile(output) {
         cycle = 0;
     }
 };
 
-struct RotationComponent : EntityComponent<> {
+struct Rotation : EntityComponent<> {
     float degrees;
 
-    RotationComponent(float degrees);
+    Rotation(float degrees);
 };
 
-struct RotatableComponent : EntityComponent<> {
+struct Rotatable : EntityComponent<> {
     float start;
     float increment;
     // entity was rotated in the last update
     bool rotated;
 
-    RotatableComponent(float start, float increment)
+    Rotatable(float start, float increment)
     : start(start), increment(increment) {
         rotated = false;
     }
@@ -160,28 +160,30 @@ struct RotatableComponent : EntityComponent<> {
 
 // Entity that must have components
 
-struct FollowComponent : EntityComponent<> {
-    EntityType<PositionComponent> entity;
+struct Follow : EntityComponent<> {
+    EntityType<EC::Position> entity;
     float speed;
 
-    FollowComponent(EntityType<PositionComponent> following, float speed)
+    Follow(EntityType<EC::Position> following, float speed)
     : entity(following), speed(speed) {
         
     }
 };
 
-struct ItemStackComponent : EntityComponent<> {
-    ItemStack item;
+struct ItemStack : EntityComponent<> {
+    ::ItemStack item;
 
-    ItemStackComponent(ItemStack itemStack) : item(itemStack) {}
+    ItemStack(::ItemStack itemStack) : item(itemStack) {}
 };
 
-struct TransporterEC : EntityComponent<> {
+struct Transporter : EntityComponent<> {
     float speed;
 
-    TransporterEC(float speed) : speed(speed) {}
+    Transporter(float speed) : speed(speed) {}
 };
 
-struct ImmortalEC : EntityComponent<> {};
+struct Immortal : EntityComponent<> {};
+
+}
 
 #endif

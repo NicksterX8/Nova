@@ -109,23 +109,24 @@ void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport*
     if (!gui->pointInArea({(int)screenPos.x, (int)screenPos.y})) {
         OptionalEntity<> targetedEntity = state->player.selectedEntity;
         if (targetedEntity.Exists()) {
-            if (targetedEntity.Has<RenderComponent>()) {
-                SDL_FRect entityRect = targetedEntity.Get<RenderComponent>()->destination;
+            if (targetedEntity.Has<EC::Render>()) {
+                SDL_FRect entityRect = targetedEntity.Get<EC::Render>()->destination;
                 SDL_SetRenderDrawColor(ren, 0, 255, 255, 255);
                 Draw::thickRect(ren, &entityRect, round(scale * 2));
             }
         } else {
-            forEachEntityInRange(&state->ecs, &state->chunkmap, playerTargetPos, M_SQRT2, [&](EntityType<PositionComponent> entity){
-                if (entity.Has<SizeComponent, RenderComponent>()) {
-                    Vec2 position = *state->ecs.Get<PositionComponent>(entity);
-                    auto sizeComponent = state->ecs.Get<SizeComponent>(entity);
+            /*
+            forEachEntityInRange(&state->ecs, &state->chunkmap, playerTargetPos, M_SQRT2, [&](EntityType<EC::Position> entity){
+                if (entity.Has<EC::Size, EC::Render>()) {
+                    Vec2 position = *state->ecs.Get<EC::Position>(entity);
+                    auto sizeComponent = state->ecs.Get<EC::Size>(entity);
                     Vec2 size = {sizeComponent->width, sizeComponent->height};
                     if (
                         playerTargetPos.x > position.x && playerTargetPos.x < position.x + size.x &&
                         playerTargetPos.y > position.y && playerTargetPos.y < position.y + size.y) {
                         // player is targeting this entity
                         Vec2 destPos = gameViewport->worldToPixelPositionF(position);
-                        SDL_FRect entityRect = entity.Get<RenderComponent>()->destination;
+                        SDL_FRect entityRect = entity.Get<EC::Render>()->destination;
                         SDL_SetRenderDrawColor(ren, 0, 255, 255, 255);
                         Draw::thickRect(ren, &entityRect, round(scale * 2));
                         return 1;
@@ -133,6 +134,13 @@ void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport*
                 }
                 return 0;
             });
+            */
+            auto focusedEntity = findPlayerFocusedEntity(&state->ecs, state->chunkmap, playerTargetPos);
+            if (focusedEntity != NullEntity) {
+                SDL_FRect* entityRect = &focusedEntity.Get<EC::Render>()->destination;
+                SDL_SetRenderDrawColor(ren, 0, 255, 255, 255);
+                Draw::thickRect(ren, entityRect, round(scale * 2));
+            }
         }
     }      
 }

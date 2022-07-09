@@ -10,7 +10,11 @@ bool EntityBase::Exists() const {
 }
 
 bool EntityBase::Null() const {
-    return id == NULL_ENTITY_ID || version == NULL_ENTITY_VERSION;
+    return id >= NULL_ENTITY_ID || version >= NULL_ENTITY_VERSION;
+}
+
+bool EntityBase::NotNull() const {
+    return id < NULL_ENTITY_ID && version < NULL_ENTITY_VERSION;
 }
 
 void setGlobalECS(ECS* _ecs) {

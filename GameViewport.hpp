@@ -53,6 +53,15 @@ struct GameViewport {
     Vec2 pixelToWorldPosition(int pixelX, int pixelY) const;
 
     /*
+    * Get the world position in the same location as the screen relative pixel coordinates.
+    * inputs < 0 or > display width will work, with the coordinates being scaled according to
+    * the scale of display to world viewport size.
+    * @param pixelX an offset from the left side of the screen pixel position
+    * @param pixelY an offset from the top side of the screen pixel position
+    */
+    Vec2 pixelToWorldPosition(IVec2 pixelPos) const;
+
+    /*
     * Get the display position in the same location as where the world coordinates would be on the display,
     * assuming display.x and display.y are both 0. For factoring those in, use worldToPixelPosition.
     * Keep in mind that not all world coordinates are within the display,

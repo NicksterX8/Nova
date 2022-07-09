@@ -6,8 +6,8 @@
 
 namespace Entities {
 
-    ExplosionComponent grenadeExplosion = ExplosionComponent(4, 25, 1.0f, 60);
-    ExplosionComponent airstrikeExplosion = ExplosionComponent(8, 10000, 1.0f, 30);
+    EC::Explosion grenadeExplosion = EC::Explosion(4, 25, 1.0f, 60);
+    EC::Explosion airstrikeExplosion = EC::Explosion(8, 10000, 1.0f, 30);
 
     Explosive Grenade(ECS* ecs, Vec2 position, Vec2 size) {
        Explosive grenade = Explosive(ecs, position, size, Textures.grenade, &grenadeExplosion);
@@ -21,11 +21,11 @@ namespace Entities {
     }
 
     void throwExplosive(ECS* ecs, Explosive explosive, Vec2 target, float speed) {
-        explosive.Add<MotionComponent>(MotionComponent(target, speed));
-        if (explosive.Has<RotationComponent>()) {
-            float rotation = explosive.Get<RotationComponent>()->degrees;
+        explosive.Add<EC::Motion>(EC::Motion(target, speed));
+        if (explosive.Has<EC::Rotation>()) {
+            float rotation = explosive.Get<EC::Rotation>()->degrees;
             float timeToTarget = target.length() / speed;
-            explosive.Add<AngleMotionEC>(AngleMotionEC(rotation + timeToTarget * 30.0f, 30.0f));
+            explosive.Add<EC::AngleMotion>(EC::AngleMotion(rotation + timeToTarget * 30.0f, 30.0f));
         }
     }
 
@@ -39,60 +39,60 @@ namespace Entities {
     Entity Tree(ECS* ecs, Vec2 position, Vec2 size) {
         Entity entity = ecs->New();
         ComponentFlags signature = componentSignature<
-            HealthComponent,
-            GrowthComponent,
-            PositionComponent,
-            RenderComponent,
-            SizeComponent,
-            NametagComponent,
-            InventoryComponent
+            EC::Health,
+            EC::Growth,
+            EC::Position,
+            EC::Render,
+            EC::Size,
+            EC::Nametag,
+            EC::Inventory
         >();
 
-        ecs->AddSignature<COMPONENTS>(entity, signature);
+        ecs->AddSignature(entity, signature);
 
-        ecs->Get<HealthComponent>(entity)->healthValue = 100;
-        *ecs->Get<PositionComponent>(entity) = PositionComponent(position);
-        ecs->Get<GrowthComponent>(entity)->growthValue = 0;
-        *ecs->Get<RenderComponent>(entity) = RenderComponent(Textures.tree, RenderLayer::Trees);
-        ecs->Get<SizeComponent>(entity)->width = size.x;
-        ecs->Get<SizeComponent>(entity)->height = size.y;
+        ecs->Get<EC::Health>(entity)->healthValue = 100;
+        *ecs->Get<EC::Position>(entity) = EC::Position(position);
+        ecs->Get<EC::Growth>(entity)->growthValue = 0;
+        *ecs->Get<EC::Render>(entity) = EC::Render(Textures.tree, RenderLayer::Trees);
+        ecs->Get<EC::Size>(entity)->width = size.x;
+        ecs->Get<EC::Size>(entity)->height = size.y;
         Inventory inventory = Inventory(10);
-        ecs->Get<InventoryComponent>(entity)->inventory = inventory;
-        ecs->Get<NametagComponent>(entity)->setType("Tree");
+        ecs->Get<EC::Inventory>(entity)->inventory = inventory;
+        ecs->Get<EC::Nametag>(entity)->setType("Tree");
         return entity;
     }
 
-    Entity Chest(ECS* ecs, Vec2 position, int size, int width, int height) {
+    Entity Chest(ECS* ecs, Vec2 position, int inventorySize, int width, int height) {
         Entity chest = ecs->New();
-        ecs->Add<PositionComponent>(chest, (Vec2)(position + Vec2(0.1, 0.1)));
-        ecs->Add<SizeComponent>(chest, {(float)width - 0.2f, (float)height - 0.2f});
-        ecs->Add<RenderComponent>(chest, RenderComponent(Textures.chest, RenderLayer::Buildings));
-        Inventory inventory = Inventory(64);
-        ecs->Add<InventoryComponent>(chest, {inventory});
-        ecs->Add<GrowthComponent>(chest, {0});
+        ecs->Add<EC::Position>(chest, position);
+        ecs->Add<EC::Size>(chest, {(float)width - 0.2f, (float)height - 0.2f});
+        ecs->Add<EC::Render>(chest, EC::Render(Textures.chest, RenderLayer::Buildings));
+        Inventory inventory = Inventory(inventorySize);
+        ecs->Add<EC::Inventory>(chest, {inventory});
+        ecs->Add<EC::Growth>(chest, {0});
         return chest;
     }
 
-    Entity Particle(ECS* ecs, Vec2 position, Vec2 size, RenderComponent render, MotionComponent motion) {
+    Entity Particle(ECS* ecs, Vec2 position, Vec2 size, EC::Render render, EC::Motion motion) {
         Entity particle = ecs->New();
-        ecs->Add<PositionComponent>(particle, position);
-        ecs->Add<SizeComponent>(particle, {size.x, size.y});
-        ecs->Add<MotionComponent>(particle, motion);
-        ecs->Add<RenderComponent>(particle, render);
+        ecs->Add<EC::Position>(particle, position);
+        ecs->Add<EC::Size>(particle, {size.x, size.y});
+        ecs->Add<EC::Motion>(particle, motion);
+        ecs->Add<EC::Render>(particle, render);
         float distance = (motion.target - position).length();
-        ecs->Add<DyingComponent>(particle, (DyingComponent){(int)ceil(distance / motion.speed)});
+        ecs->Add<EC::Dying>(particle, (EC::Dying){(int)ceil(distance / motion.speed)});
         return particle;
     }
 
     Entity Inserter(ECS* ecs, Vec2 position, int reach, IVec2 inputTile, IVec2 outputTile) {
         Entity inserter = ecs->New();
-        ecs->Add<PositionComponent>(inserter, position);
-        ecs->Add<SizeComponent>(inserter, {1.0f, 1.0f});
-        ecs->Add<RenderComponent>(inserter, RenderComponent(Textures.inserter, RenderLayer::Buildings));
-        ecs->Add<RotationComponent>(inserter, {0.0f});
-        ecs->Add<RotatableComponent>(inserter, {0.0f, 90.0f});
+        ecs->Add<EC::Position>(inserter, position);
+        ecs->Add<EC::Size>(inserter, {1.0f, 1.0f});
+        ecs->Add<EC::Render>(inserter, EC::Render(Textures.inserter, RenderLayer::Buildings));
+        ecs->Add<EC::Rotation>(inserter, {0.0f});
+        ecs->Add<EC::Rotatable>(inserter, {0.0f, 90.0f});
         
-        ecs->Add<InserterComponent>(inserter, InserterComponent(60, 1, reach, inputTile, outputTile));
+        ecs->Add<EC::Inserter>(inserter, EC::Inserter(60, 1, reach, inputTile, outputTile));
         return inserter;
     }
 
@@ -101,39 +101,39 @@ namespace Entities {
         ComponentFlags signature = componentSignature<
             COMPONENTS
         >();
-        ecs->AddSignature<COMPONENTS>(entity, signature);
+        ecs->AddSignature(entity, signature);
 
         return entity;
     }
 
-    Entity Enemy(ECS* ecs, Vec2 position, EntityType<PositionComponent> following) {
+    Entity Enemy(ECS* ecs, Vec2 position, EntityType<EC::Position> following) {
         Entity enemy = ecs->New();
-        ecs->Add<PositionComponent>(enemy, position);
-        ecs->Add<HealthComponent>(enemy, {100.0f});
-        ecs->Add<NametagComponent>(enemy, NametagComponent("Enemy", ""));
-        ecs->Add<RotationComponent>(enemy, {0.0f});
-        ecs->Add<SizeComponent>(enemy, {0.8f, 0.8f});
-        ecs->Add<RenderComponent>(enemy, RenderComponent(Textures.player, RenderLayer::Player));
-        ecs->Add<RotatableComponent>(enemy, RotatableComponent(0.0f, 45.0f));
-        ecs->Add<FollowComponent>(enemy, FollowComponent(following, 0.05));
+        ecs->Add<EC::Position>(enemy, position);
+        ecs->Add<EC::Health>(enemy, {100.0f});
+        ecs->Add<EC::Nametag>(enemy, EC::Nametag("Enemy", ""));
+        ecs->Add<EC::Rotation>(enemy, {0.0f});
+        ecs->Add<EC::Size>(enemy, {0.8f, 0.8f});
+        ecs->Add<EC::Render>(enemy, EC::Render(Textures.player, RenderLayer::Player));
+        ecs->Add<EC::Rotatable>(enemy, EC::Rotatable(0.0f, 45.0f));
+        ecs->Add<EC::Follow>(enemy, EC::Follow(following, 0.05));
         return enemy;
     }
 
     /*
     PlayerEntity Player(ECS* ecs, Vec2 position) {
         EntityType<> player = ecs->New().cast<>();
-        ecs->Add<PositionComponent>(player, position);
-        ecs->Add<HealthComponent>(player, {INFINITY});
-        auto nametag = NametagComponent();
+        ecs->Add<EC::Position>(player, position);
+        ecs->Add<EC::Health>(player, {INFINITY});
+        auto nametag = EC::Nametag();
         strcpy(nametag.type, "Player");
-        ecs->Add<NametagComponent>(player, nametag);
-        ecs->Add<RotationComponent>(player, {0.0f});
-        ecs->Add<SizeComponent>(player, {0.8f, 0.8f});
+        ecs->Add<EC::Nametag>(player, nametag);
+        ecs->Add<EC::Rotation>(player, {0.0f});
+        ecs->Add<EC::Size>(player, {0.8f, 0.8f});
         Inventory inventory = Inventory(PLAYER_INVENTORY_SIZE);
-        ecs->Add<InventoryComponent>(player, {inventory});
-        ecs->Add<RenderComponent>(player, RenderComponent(Textures.player, RenderLayer::Player));
+        ecs->Add<EC::Inventory>(player, {inventory});
+        ecs->Add<EC::Render>(player, EC::Render(Textures.player, RenderLayer::Player));
         ecs->Add<CenteredRenderFlagComponent>(player);
-        ecs->Add<FollowComponent>(player, FollowComponent(player.cast<PositionComponent>(), 1.0f));
+        ecs->Add<EC::Follow>(player, EC::Follow(player.cast<EC::Position>(), 1.0f));
 
         Zombie(ecs, position);
         Skeleton skelly = Skeleton();
@@ -141,7 +141,7 @@ namespace Entities {
         Entity hidden = Skeleton();
         skelly = hidden.castType<Skeleton>();
 
-        player.Get<PositionComponent>()->x = 100;
+        player.Get<EC::Position>()->x = 100;
 
         static bool test = assertEntityType<PlayerEntityComponents>(player, ecs);
 
@@ -149,20 +149,20 @@ namespace Entities {
     }
     */
 
-    ZombieEntity Zombie(ECS* ecs, Vec2 position, EntityType<PositionComponent> following) {
+    ZombieEntity Zombie(ECS* ecs, Vec2 position, EntityType<EC::Position> following) {
         SafeEntity<> ent = ecs->New().cast<>();
 
         auto em = ecs->em();
 
         auto result = (ent
-            .Add<SizeComponent>({1, 1})
-            .Add<PositionComponent>()
-            .Add<RenderComponent>()
-            .Add<NametagComponent>()
-            .Add<InventoryComponent>()
-            .Add<HealthComponent>()
-            .Add<RotationComponent>()
-            .Add<FollowComponent>(FollowComponent(following, 0.05))
+            .Add<EC::Size>({1, 1})
+            .Add<EC::Position>()
+            .Add<EC::Render>()
+            .Add<EC::Nametag>()
+            .Add<EC::Inventory>()
+            .Add<EC::Health>()
+            .Add<EC::Rotation>()
+            .Add<EC::Follow>(EC::Follow(following, 0.05))
         );
     
         return result;

@@ -18,6 +18,11 @@
 #include "EntityComponents/Components.hpp"
 #include "ECS/ECS.hpp"
 
+Vec2 getMouseWorldPosition(const GameViewport& gameViewport) {
+    SDL_Point pixelPosition = SDLGetMousePixelPosition();
+    return gameViewport.pixelToWorldPosition(pixelPosition.x, pixelPosition.y);
+}
+
 static void updateTilePixels(float scale) {
     if (scale == 0) {
         scale = 1;
@@ -194,13 +199,18 @@ void runSystem(ECS* ecs) {
 static void updateSystems(GameState* state) {
     ECS& ecs = state->ecs;
 
+    /*
     state->chunkmap.iterateChunkdata([](ChunkData* chunkdata){
         chunkdata->closeEntities.clear();
         return 0;
     });
     ecs.System<PositionSystem>()->chunkmap = &state->chunkmap;
     runSystem<PositionSystem>(&ecs);
+    */
    
+    ecs.System<MotionSystem>()->m_ecs = &ecs;
+    ecs.System<MotionSystem>()->m_chunkmap = &state->chunkmap;
+
     std::array<EntitySystem*, 3> group = {
         ecs.System<GrowthSystem>(),
         ecs.System<MotionSystem>(),
@@ -212,11 +222,13 @@ static void updateSystems(GameState* state) {
     // ecs.System<ExplosivesSystem>()->Update();
     runSystem<ExplosivesSystem>(&ecs);
 
+    /*
     state->chunkmap.iterateChunkdata([](ChunkData* chunkdata){
         chunkdata->closeEntities.clear();
         return 0;
     });
     runSystem<PositionSystem>(&ecs);
+    */
 
     ecs.System<ExplosionSystem>()->Update(&ecs, state->chunkmap);
     playBackCommandBuffer(&ecs, ecs.System<ExplosionSystem>()->commandBuffer);
@@ -226,11 +238,13 @@ static void updateSystems(GameState* state) {
     runSystem<RotatableSystem>(&ecs);
     runSystem<DyingSystem>(&ecs);
 
+    /*
     state->chunkmap.iterateChunkdata([](ChunkData* chunkdata){
         chunkdata->closeEntities.clear();
         return 0;
     });
     runSystem<PositionSystem>(&ecs);
+    */
 }
 
 int tick(GameState* state) {
@@ -285,8 +299,6 @@ int update(Context ctx) {
                     ctx.worldScale = 8;
                 }
                 updateTilePixels(ctx.worldScale);
-                break;
-            case SDL_MOUSEBUTTONDOWN:
                 break;
             case SDL_KEYDOWN:
                 switch (event.key.keysym.sym) {

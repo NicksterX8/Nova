@@ -29,11 +29,12 @@ public:
     ComponentFlags entityComponentFlags[MAX_ENTITIES];
 
     Uint32 liveEntities = 0;
-    std::vector<EntityBase> freeEntities = std::vector<EntityBase>(MAX_ENTITIES);
+    std::vector<EntityBase> freeEntities = std::vector<EntityBase>(MAX_ENTITIES-1);
 
-    void* pools[NUM_COMPONENTS] = {NULL};
+    ComponentPool* pools[NUM_COMPONENTS] = {NULL};
     Uint32 nComponents = 0;
 
+    /*
     template<class T>
     int pool_remove_sig(EntityID entity, ComponentFlags signature) {
         if (sizeof(T) == 0) return 1;
@@ -85,11 +86,12 @@ public:
         int dummy[] = { 0, ( (void)pool_add_sig<Components>(entity, newComponents), 0) ... };
         (void)dummy;
     }
+    */
 
     template<class T>
     int pool_add_component(EntityID entity) {
         if (sizeof(T) == 0) return 1;
-        ComponentPool<T>* pool = getPool<T>();
+        ComponentPool* pool = getPool<T>();
         return pool->add(entity);
     }
 
@@ -99,25 +101,15 @@ public:
         (void)dummy;
     }
 
-    template<class T>
-    void pool_destroy() {
-        ComponentPool<T>* pool = getPool<T>();
-        pool->destroy();
-    }
-
-    template<class... Components>
-    void _destroyPools() {
-        int dummy[] = { 0, ( (void)pool_destroy<Components>(), 0) ... };
-        (void)dummy;
-    }
-
     void destroyPools() {
-        _destroyPools<COMPONENTS>();
+        for (ComponentID id = 0; id < nComponents; id++) {
+            pools[id]->destroy();
+        }
     }
 
     template<class T>
-    ComponentPool<T>* getPool() const {
-        return static_cast<ComponentPool<T>*>(pools[getID<T>()]);
+    ComponentPool* getPool() const {
+        return pools[getID<T>()];
     }
 public:
     template<class T>
@@ -125,7 +117,9 @@ public:
         Uint32 id = getID<T>();
         assert(id == nComponents);
         // make a new pool
-        ComponentPool<T>* pool = new ComponentPool<T>(100);
+        ComponentPool* pool = NULL;
+        if (sizeof(T) != 0)
+            pool = new ComponentPool(getID<T>(), sizeof(T), 100);
         pools[id] = pool;
         nComponents++;
         if (nComponents > NUM_COMPONENTS) {
@@ -147,20 +141,29 @@ public:
     void init() {
         newComponents<Components...>();
         
-        // all entities are free be default
+        // all entities are free by default
         for (Uint32 i = 0; i < MAX_ENTITIES; i++) {
-            EntityBase newEntity = EntityBase(i, 0);
-            freeEntities[(MAX_ENTITIES-1) - i] = newEntity;
             entities[i] = NullEntity;
             indices[i] = NULL_ENTITY_ID;
 
             entityComponentFlags[i] = ComponentFlags(false);
+        }
+
+        for (Uint32 i = MAX_ENTITIES-2;; i--) {
+            EntityBase newEntity = EntityBase(MAX_ENTITIES - i - 2, 0);
+            freeEntities[i] = newEntity;
+            if (i == 0) break;
         }
     }
 
     void destroy();
     Uint32 numLiveEntities() const;
     bool EntityExists(_Entity entity) const;
+    template<class... Cs>
+    inline bool EntityHas(_Entity entity) const {
+        constexpr ComponentFlags signature = componentSignature<Cs...>();
+        return (entityComponents(entity.id) & signature) == signature;
+    }
     _Entity New();
 
     template<class T> 
@@ -168,21 +171,35 @@ public:
         if (sizeof(T) == 0) {
             return NULL;
         }
-        if (!EntityExists(entity)) {
-            Log.Error("EntityManager::Get %s : Attempted to get a component of a non-existent entity! Returning NULL. Entity: %s", getComponentName<T>(), entity.DebugStr().c_str());
-            return NULL;
+
+        if (entity.id < NULL_ENTITY_ID && entity.version < NULL_ENTITY_VERSION) {
+            if (entities[indices[entity.id]].version == entity.version) {
+                ComponentFlags entityFlags = entityComponentFlags[entity.id];
+                if ((entityFlags & componentSignature<T>()).any()) {
+                    return static_cast<T*>(getPool<T>()->get(entity.id));
+                }
+            }
         }
-        if (entityComponentFlags[entity.id][getID<T>()]) {
-            return (getPool<T>())->get(entity.id);
+
+        Log.Error("Attempted to get unowned component \"%s\" of an entity! Returning NULL. Entity: %s", componentNames[getID<T>()], entity.DebugStr().c_str());
+        return NULL;
+    }
+
+    void* Get(ComponentID componentID, _Entity entity) const {
+        ComponentPool* pool = pools[componentID];
+        if (pool) {
+            if (entity.id < NULL_ENTITY_ID && entity.version < NULL_ENTITY_VERSION) {
+                if (entities[indices[entity.id]].version == entity.version) {
+                    ComponentFlags entityFlags = entityComponentFlags[entity.id];
+                    if (entityFlags[componentID]) {
+                        return pool->get(entity.id);
+                    }
+                }
+            }
         }
-        ComponentPool<T>* pool = getPool<T>();
-        if (pool->entityComponentSet[entity.id] != NULL_COMPONENTPOOL_INDEX) {
-            return (pool->get(entity.id));
-        }
-        else {
-            Log.Error("Attempted to get an unowned component of an entity! Returning NULL. Entity: %s", entity.DebugStr().c_str());
-            return NULL;
-        }
+
+        Log.Error("Failed to get component \"%s\" of an entity! Returning NULL. Entity: %s", componentNames[componentID], entity.DebugStr().c_str());
+        return NULL;
     }
 
     template<class... Components>
@@ -193,7 +210,12 @@ public:
         }
 
         ComponentFlags signature = componentSignature<Components...>();
-        addEntityComponents<Components...>(entity.id);
+        ComponentID ids[] = {0, ((void)0, getID<Components>()) ...};
+        // start at one to account for dummy value
+        for (Uint32 i = 1; i < sizeof(ids) / sizeof(ComponentID); i++) {
+            ComponentID id = ids[i];
+            pools[id]->add(entity.id);
+        }
         entityComponentFlags[entity.id] |= signature;
         return 0;
     }
@@ -207,17 +229,12 @@ public:
 
         entityComponentFlags[entity.id] |= componentSignature<T>();
 
-        // dont waste time on adding to pool if its just a flag component
-        if (sizeof(T) == 0) {
-            return 1;
-        }
-    
-        addEntityComponents<T>(entity.id);    
+        ComponentPool* pool = getPool<T>();
+        pool->add(entity.id);
         *Get<T>(entity) = startValue;
         return 0;
     }
 
-    template<class... Components>
     int AddSignature(_Entity entity, ComponentFlags signature) {
         if (!EntityExists(entity)) {
             Log.Error("EntityManager::AddSignature : Attempted to add components to a non-existent entity! Returning -1. Entity: %s", entity.DebugStr().c_str());
@@ -227,21 +244,32 @@ public:
         // just in case the same component is tried to be added twice
         ComponentFlags newComponents = (signature ^ entityComponentFlags[entity.id]) & signature;
         entityComponentFlags[entity.id] |= signature;
-        addEntitySignature<Components...>(entity.id, newComponents);
-        return 0;
+        int code = 0;
+        for (ComponentID id = 0; id < nComponents; id++) {
+            if (signature[id])
+                code |= pools[id]->add(entity.id);
+        }
+        return code;
     }
 
-    template<class... Components>
-    int Remove(_Entity entity) {
+    int Destroy(_Entity entity) {
+        ComponentFlags entityComponents = entityComponentFlags[entity.id];
+
         if (!EntityExists(entity)) {
             Log.Error("ECS::Remove %s : Attempted to remove a non-existent entity! Returning -1. Entity: %s", entity.DebugStr().c_str());
             return -1;
         }
-        
-        int componentPoolReturnCode = removeEntityComponentsAll<Components...>(entity.id);
+
+        int code = 0;
+        for (Uint32 id = 0; id < nComponents; id++) {
+            if (entityComponents[id])
+                code |= pools[id]->remove(entity.id);
+        }
+
         // swap last entity with this entity for 100% entity packing in array
         Uint32 lastEntityIndex = liveEntities-1;
         EntityBase lastEntity = entities[lastEntityIndex];
+        
         if (entity == lastEntity) {
             // I dont think it matters
         }
@@ -263,19 +291,43 @@ public:
         indices[entity.id] = NULL_ENTITY_ID;
         entityComponentFlags[entity.id] = ComponentFlags(false); // set this to 0 just in case
 
-        return componentPoolReturnCode;
+        return code;
+    }
+
+    int RemoveComponents(_Entity entity, ComponentID* componentIDs, Uint32 numComponentIDs) {
+        if (!EntityExists(entity)) {
+            Log.Error("EntityManager::RemoveComponents : Attempted to remove components from a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
+            return -1;
+        }
+
+        int code = 0;
+        for (Uint32 i = 0; i < numComponentIDs; i++) {
+            ComponentID id = componentIDs[i];
+            if (entityComponentFlags[entity.id][id]) {
+                code |= pools[id]->remove(entity.id);
+                entityComponentFlags[entity.id].set(id, 0);
+            }
+        }
+        return code;
     }
 
     template<class... Components>
     int RemoveComponents(_Entity entity) {
         if (!EntityExists(entity)) {
-            Log.Error("EntityManager::Remove : Attempted to remove components from a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
+            Log.Error("EntityManager::RemoveComponents : Attempted to remove components from a non-living entity! Returning -1. EntityID: %u. Version: %u", entity.id, entity.version);
             return -1;
         }
 
-        int code = removeEntityComponents<Components...>(entity.id);
-        entityComponentFlags[entity.id] ^= (componentSignature<Components...>() & entityComponentFlags[entity.id]);
+        auto componentIDs = getComponentIDs<Components...>();
 
+        int code = 0;
+        for (Uint32 i = 0; i < componentIDs.size(); i++) {
+            ComponentID id = componentIDs[i];
+            if (entityComponentFlags[entity.id][id]) {
+                code |= pools[id]->remove(entity.id);
+            }
+        }
+        entityComponentFlags[entity.id] |= componentSignature<Components...>();
         return code;
     }
 

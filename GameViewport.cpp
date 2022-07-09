@@ -89,13 +89,6 @@ Vec2 GameViewport::displayToWorldPosition(int displayX, int displayY) const {
     };
 }
 
-/*
-* Get the world position in the same location as the screen relative pixel coordinates.
-* inputs < 0 or > display width will work, with the coordinates being scaled according to
-* the scale of display to world viewport size.
-* @param pixelX an offset from the left side of the screen pixel position
-* @param pixelY an offset from the top side of the screen pixel position
-*/
 Vec2 GameViewport::pixelToWorldPosition(int pixelX, int pixelY) const {
     return {
         ((float)(pixelX - display.x) / display.w) * world.w + world.x,
@@ -103,14 +96,13 @@ Vec2 GameViewport::pixelToWorldPosition(int pixelX, int pixelY) const {
     };
 }
 
-/*
-* Get the display position in the same location as where the world coordinates would be on the display,
-* assuming display.x and display.y are both 0. For factoring those in, use worldToPixelPosition.
-* Keep in mind that not all world coordinates are within the display,
-* meaning it is possible for display coordinates to be < 0 or > display viewport width.
-* @param worldX a world coordinate
-* @param displayY a world coordinate
-*/
+Vec2 GameViewport::pixelToWorldPosition(IVec2 pixelPos) const {
+    return {
+        ((float)(pixelPos.x - display.x) / display.w) * world.w + world.x,
+        ((float)(pixelPos.y - display.y) / display.h) * world.h + world.y
+    };
+}
+
 IVec2 GameViewport::worldToDisplayPosition(float worldX, float worldY) const {
     return {
         (int)floor((worldX - world.x) * (display.w / world.w)),
@@ -118,13 +110,6 @@ IVec2 GameViewport::worldToDisplayPosition(float worldX, float worldY) const {
     };
 }
 
-/*
-* Get the display position in the same location as where the world coordinates would be on the display,
-* assuming display.x and display.y are both 0. For factoring those in, use worldToPixelPosition.
-* Keep in mind that not all world coordinates are within the display,
-* meaning it is possible for display coordinates to be < 0 or > display viewport width.
-* @param position a world coordinate
-*/
 IVec2 GameViewport::worldToDisplayPosition(Vec2 position) const {
     return {
         (int)floor((position.x - world.x) * (display.w / world.w)),
@@ -132,14 +117,6 @@ IVec2 GameViewport::worldToDisplayPosition(Vec2 position) const {
     };
 }
 
-/*
-* Get the display position in the same location as where the world coordinates would be on the display,
-* with display x and y offsets factored in.
-* Keep in mind that not all world coordinates are within the display,
-* meaning it is possible for display coordinates to be < 0 or > display viewport width.
-* @param worldX a world coordinate
-* @param displayY a world coordinate
-*/
 IVec2 GameViewport::worldToPixelPosition(float worldX, float worldY) const {
     return {
         (int)floor((worldX - world.x) * (display.w / world.w)) + display.x,

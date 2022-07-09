@@ -40,6 +40,8 @@ struct Context {
     }
 };
 
+Vec2 getMouseWorldPosition(const GameViewport& gameViewport);
+
 GameViewport newGameViewport(int renderWidth, int renderHeight, float focusX, float focusY);
 
 // Main game loop

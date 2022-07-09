@@ -12,7 +12,7 @@ Uint32 EntityManager::numLiveEntities() const {
 
 bool EntityManager::EntityExists(_Entity entity) const {
     // TODO: Optimize 
-    if (entity.id != NULL_ENTITY_ID && entity.version != NULL_ENTITY_VERSION) {
+    if (entity.id < NULL_ENTITY_ID && entity.version < NULL_ENTITY_VERSION) {
         Uint32 index = indices[entity.id];
         if (index != NULL_ENTITY_ID) {
             return (entities[index].version == entity.version);
@@ -25,7 +25,7 @@ bool EntityManager::EntityExists(_Entity entity) const {
 _Entity EntityManager::New() {
     if (liveEntities >= MAX_ENTITIES || freeEntities.size() < 0) {
         Log.Critical("Ran out of entity space in ECS! Live entities: %u, freeEntities size: %lu. Aborting.\n", liveEntities, freeEntities.size());
-        abort();
+        return NullEntity;
     }
 
     // get top entity from free entity stack

@@ -47,7 +47,7 @@ public:
 
     template<class T>
     void NewSystemT() {
-        Log("id: %u", getSystemID<T>());
+        // Log("id: %u", getSystemID<T>());
         if (!systems[getSystemID<T>()])
             systems[getSystemID<T>()] = new T(this);
     }
@@ -65,6 +65,11 @@ public:
 
     inline bool EntityExists(_Entity entity) const {
         return manager.EntityExists(entity);
+    }
+
+    template<class... Cs>
+    inline bool EntityHas(_Entity entity) const {
+        return manager.EntityHas<Cs...>(entity);
     }
 
     inline _Entity New() {
@@ -103,17 +108,15 @@ public:
         return result;
     }
 
-    template<class... Components>
     inline int AddSignature(_Entity entity, ComponentFlags signature) {
         ComponentFlags oldSignature = entityComponents(entity.id);
-        int result = manager.AddSignature<Components...>(entity, signature);
+        int result = manager.AddSignature(entity, signature);
         entitySignatureChanged(entity, oldSignature);
         return result;
     }
 
-    template<class First, class... Rest>
-    int Remove(_Entity entity) {
-        int result = manager.Remove<First, Rest...>(entity);
+    int Destroy(_Entity entity) {
+        int result = manager.Destroy(entity);
         for (Uint32 id = 0; id < NUM_SYSTEMS; id++) {
             //if (systems[id]->Query(manager.entityComponents(entity.id)))
             systems[id]->RemoveEntity(entity);
@@ -156,7 +159,7 @@ public:
         }
 
         for (_Entity entity : entitiesToBeRemoved) {
-            code |= Remove<First, Components...>(entity);
+            code |= Destroy(entity);
         }
 
         entitiesToBeRemoved.clear();

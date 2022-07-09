@@ -16,28 +16,10 @@ bool ta(Query query, ComponentFlags signature) {
     return query.check_t(signature);
 }
 
-inline void test12() {
-    constexpr EntityQuery<
-        RequireComponents<RenderComponent, PositionComponent>,
-        AvoidComponents<CenteredRenderFlagComponent>,
-        LogicalOrComponents<
-            LogicalOrComponentSet<HealthComponent, GrowthComponent>
-        >
-    > query;
-
-    Log("result 1: %d", 
-        query.check_t(componentSignature<PositionComponent, RenderComponent, GrowthComponent>()));
-
-    Log("result 2: %d", 
-        query.check_t(componentSignature<PositionComponent, RenderComponent, CenteredRenderFlagComponent>()));
-
-    Log("result 3: %d", 
-        ta(query, componentSignature<PositionComponent, RenderComponent, HealthComponent, CenteredRenderFlagComponent>()));
-}
-
 template<class C1, class C2>
 using TwoComponentEntityCallback = std::function<void(C1&, C2&)>;
 
+/*
 template<class C1, class C2, class Func>
 void iterateComponents(ECS* ecs, Func callback) {
     ComponentPool<C1>* pool1 = ecs->manager.getPool<C1>();
@@ -47,13 +29,13 @@ void iterateComponents(ECS* ecs, Func callback) {
     if (size1 < size2) {
         // use component pool 1
         for (Uint32 c = 0; c < size1; c++) {
-            /*
+            //
             EntityID entityID = pool1->componentOwners[c];
             Entity entity = ecs->manager.entities[ecs->manager.indices[entityID]];
             if (ecs->entityComponents(entityID)[getID<C2>()]) {
                 callback(entity.cast<C1, C2>(), &pool1->components[c], ecs->Get<C2>(entity));
             }
-            */
+            //
             EntityID entityID = pool1->componentOwners[c];
             // Entity entity = ecs->manager.entities[ecs->manager.indices[entityID]];
             if (ecs->entityComponents(entityID)[getID<C1>()]) {
@@ -71,6 +53,7 @@ void iterateComponents(ECS* ecs, Func callback) {
         }
     }
 }
+*/
 
 template<class C1, class Func>
 void iterateComponents(ECS* ecs, Func callback) {
@@ -81,13 +64,13 @@ template<class T, bool Mutable>
 using MutComponent = T;
 /*
 void tester(ECS* ecs) {
-    iterateComponents<PositionComponent, RenderComponent>(ecs,
-    [](PositionComponent& position, RenderComponent& render){
+    iterateComponents<EC::Position, EC::Render>(ecs,
+    [](EC::Position& position, EC::Render& render){
         render.destination.x = position.x;
         render.destination.y = position.y;
     });
 
-    iterateComponents<RenderComponent>(ecs, [](RenderComponent& render){
+    iterateComponents<EC::Render>(ecs, [](EC::Render& render){
         render.layer++;
     });
 }
@@ -101,19 +84,19 @@ public:
 
     RenderSizeSystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
-        sys.GiveAccess<RenderComponent>(Read | Write);
-        SYSTEM_ACCESS(SizeComponent) = Read;
+        sys.GiveAccess<EC::Render>(Read | Write);
+        SYSTEM_ACCESS(EC::Size) = Read;
     }
 
     bool Query(ComponentFlags entitySignature) const {
-        return ((entitySignature & componentSignature<SizeComponent, RenderComponent>()) == componentSignature<SizeComponent, RenderComponent>());
+        return ((entitySignature & componentSignature<EC::Size, EC::Render>()) == componentSignature<EC::Size, EC::Render>());
     }
 
     void Update() {
         ForEach([&](Entity entity){
-            SDL_FRect* renderDst = &sys.GetReadWrite<RenderComponent>(entity)->destination;
-            renderDst->w = sys.GetReadOnly<SizeComponent>(entity)->width * TileWidth;
-            renderDst->h = sys.GetReadOnly<SizeComponent>(entity)->height * TileHeight;
+            SDL_FRect* renderDst = &sys.GetReadWrite<EC::Render>(entity)->destination;
+            renderDst->w = sys.GetReadOnly<EC::Size>(entity)->width * TileWidth;
+            renderDst->h = sys.GetReadOnly<EC::Size>(entity)->height * TileHeight;
         });
     }
 
@@ -127,19 +110,19 @@ public:
 
     RenderPositionSystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
-        sys.GiveAccess<PositionComponent>(Read);
-        sys.GiveAccess<RenderComponent>(Read | Write);
+        sys.GiveAccess<EC::Position>(Read);
+        sys.GiveAccess<EC::Render>(Read | Write);
     }
 
     bool Query(ComponentFlags entitySignature) const {
-        return ((entitySignature & componentSignature<PositionComponent, RenderComponent>()) == componentSignature<PositionComponent, RenderComponent>());
+        return ((entitySignature & componentSignature<EC::Position, EC::Render>()) == componentSignature<EC::Position, EC::Render>());
     }
 
     void Update() {
         ForEach([&](Entity entity){
             // copy rotation to render component
-            SDL_FRect* renderDst = &sys.GetReadWrite<RenderComponent>(entity)->destination;
-            Vec2 dstPosition = gameViewport->worldToPixelPositionF(*sys.GetReadOnly<PositionComponent>(entity));
+            SDL_FRect* renderDst = &sys.GetReadWrite<EC::Render>(entity)->destination;
+            Vec2 dstPosition = gameViewport->worldToPixelPositionF(*sys.GetReadOnly<EC::Position>(entity));
             renderDst->x = dstPosition.x;
             renderDst->y = dstPosition.y;
         });
@@ -152,7 +135,7 @@ private:
 class SimpleRectRenderSystem : public EntitySystem {
 public:
     typedef EntityQuery<
-        RequireComponents<RenderComponent, SizeComponent, PositionComponent>,
+        RequireComponents<EC::Render, EC::Size, EC::Position>,
         AvoidComponents<>,
         LogicalOrComponents<>
     > QueryT;
@@ -175,45 +158,45 @@ public:
         this->gameViewport = gameViewport;
 
         using namespace ComponentAccess;
-        sys.GiveAccess<RenderComponent>(ReadWrite);
-        sys.GiveAccess<SizeComponent>(Read);
-        sys.GiveAccess<PositionComponent>(Read);
+        sys.GiveAccess<EC::Render>(ReadWrite);
+        sys.GiveAccess<EC::Size>(Read);
+        sys.GiveAccess<EC::Position>(Read);
     }
 
-    using QueriedEntity = EntityType<RenderComponent, SizeComponent, PositionComponent>;
+    using QueriedEntity = EntityType<EC::Render, EC::Size, EC::Position>;
 
     bool Query(ComponentFlags components) const {
-        //constexpr ComponentFlags need = componentSignature<RenderComponent, SizeComponent, PositionComponent>();
+        //constexpr ComponentFlags need = componentSignature<EC::Render, EC::Size, EC::Position>();
         //return ((need & components) == need);
         return QueryT::check(components);
     }
 
     void Update() {
         ForEach([this](Entity entity){
-            SDL_FRect* renderDst = &sys.GetReadWrite<RenderComponent>(entity)->destination;
-            renderDst->w = sys.GetReadOnly<SizeComponent>(entity)->width * TileWidth;
-            renderDst->h = sys.GetReadOnly<SizeComponent>(entity)->height * TileHeight;
+            SDL_FRect* renderDst = &sys.GetReadWrite<EC::Render>(entity)->destination;
+            renderDst->w = sys.GetReadOnly<EC::Size>(entity)->width * TileWidth;
+            renderDst->h = sys.GetReadOnly<EC::Size>(entity)->height * TileHeight;
         });
 
         ForEach([this](Entity entity){
             // copy position component to render component
-            SDL_FRect* renderDst = &sys.GetReadWrite<RenderComponent>(entity)->destination;
-            Vec2 dstPosition = gameViewport->worldToPixelPositionF(*sys.GetReadOnly<PositionComponent>(entity));
+            SDL_FRect* renderDst = &sys.GetReadWrite<EC::Render>(entity)->destination;
+            Vec2 dstPosition = gameViewport->worldToPixelPositionF(*sys.GetReadOnly<EC::Position>(entity));
             renderDst->x = dstPosition.x;
             renderDst->y = dstPosition.y;
         });
 
-        /*
         ForEach([this](Entity entity){
-            SDL_FRect* renderDst = &sys.GetReadWrite<RenderComponent>(entity)->destination;
+            SDL_FRect* renderDst = &sys.GetReadWrite<EC::Render>(entity)->destination;
             renderDst->x -= renderDst->w * 0.5f;
             renderDst->y -= renderDst->h * 0.5f;
         });
-        */
+
+        Uint32 index = 0;
 
         std::vector<RenderTarget> renderLayers[NUM_RENDER_LAYERS];
         ForEach([&](Entity entity){
-            const RenderComponent* render = sys.GetReadOnly<RenderComponent>(entity);
+            EC::Render* render = sys.GetReadWrite<EC::Render>(entity);
             if (render->texture != NULL) {
                 const SDL_FRect* dest = &render->destination;
                 if ((dest->x + dest->w > gameViewport->display.x && dest->x < gameViewport->displayRightEdge()) &&
@@ -222,6 +205,7 @@ public:
                     //dest->y > gameViewport->display.y && dest->y < gameViewport->displayBottomEdge())) {
                     
                     renderLayers[render->layer].push_back({render->texture, dest, render->rotation});
+                    render->renderIndex = index++;
                 }
             }
         });
@@ -235,13 +219,13 @@ public:
             }
         }
 
-        ForEach<HealthComponent, RenderComponent>([&](EntityType<HealthComponent, RenderComponent> entity){   
-            auto destRect = &sys.GetReadOnly<RenderComponent>(entity)->destination;
-            SDL_Rect _dest = FC_GetBounds(FreeSans, destRect->x, destRect->y, FC_ALIGN_LEFT, FC_MakeScale(0.5, 0.5), "%.1f", entity.Get<HealthComponent>()->healthValue);
+        ForEach<EC::Health, EC::Render>([&](EntityType<EC::Health, EC::Render> entity){   
+            auto destRect = &sys.GetReadOnly<EC::Render>(entity)->destination;
+            SDL_Rect _dest = FC_GetBounds(FreeSans, destRect->x, destRect->y, FC_ALIGN_LEFT, FC_MakeScale(0.5, 0.5), "%.1f", entity.Get<EC::Health>()->healthValue);
             auto dest = &_dest;
             if ((dest->x + dest->w > gameViewport->display.x && dest->x < gameViewport->displayRightEdge()) &&
                 (dest->y + dest->h > gameViewport->display.y && dest->y < gameViewport->displayBottomEdge())) {
-                FC_DrawScale(FreeSans, renderer, destRect->x, destRect->y, FC_MakeScale(0.5, 0.5), "%.1f", entity.Get<HealthComponent>()->healthValue);
+                FC_DrawScale(FreeSans, renderer, destRect->x, destRect->y, FC_MakeScale(0.5, 0.5), "%.1f", entity.Get<EC::Health>()->healthValue);
             }
     
         });
@@ -249,7 +233,7 @@ public:
         if (Debug->settings.drawEntityIDs) {
             int nRenderedIDs = 0;
             ForEach([&](Entity entity){
-                auto destRect = &sys.GetReadOnly<RenderComponent>(entity)->destination;
+                auto destRect = &sys.GetReadOnly<EC::Render>(entity)->destination;
                 SDL_Rect _dest = FC_GetBounds(FreeSans, destRect->x, destRect->y, FC_ALIGN_LEFT, FC_MakeScale(0.5, 0.5), "%u", entity.id);
                 auto dest = &_dest;
                 if ((dest->x + dest->w > gameViewport->display.x && dest->x < gameViewport->displayRightEdge()) &&
@@ -291,13 +275,13 @@ public:
     RenderSystem(ECS* ecs, SDL_Renderer* renderer, const GameViewport* gameViewport) : EntitySystem(ecs) {
         this->renderer = renderer;
         this->gameViewport = gameViewport;
-        signature = componentSignature<RenderComponent>();
+        using namespace EC;
+        signature = componentSignature<Render>();
 
         using namespace ComponentAccess;
-        sys.GiveAccess<RenderComponent>(ReadWrite);
-        sys.GiveAccess<CenteredRenderFlagComponent>(Flag);
-        sys.GiveAccess<SizeComponent>(Read);
-        sys.GiveAccess<PositionComponent>(Read);
+        sys.GiveAccess<Render>(ReadWrite);
+        sys.GiveAccess<Size>(Read);
+        sys.GiveAccess<Position>(Read);
     }
 
     bool Query(ComponentFlags entitySignature) const {
@@ -308,15 +292,15 @@ public:
     }
 
     void Update() {
-        ForEach<RenderComponent, SizeComponent>([&](auto entity){
-            SDL_FRect* renderDst = &sys.GetReadWrite<RenderComponent>(entity)->destination;
+        ForEach<EC::Render, EC::Size>([&](auto entity){
+            SDL_FRect* renderDst = &sys.GetReadWrite<EC::Render>(entity)->destination;
             renderDst->x -= renderDst->w * 0.5f;
             renderDst->y -= renderDst->h * 0.5f;
         });
 
         std::vector<RenderTarget> renderLayers[NUM_RENDER_LAYERS];
         ForEach([&](Entity entity){
-            const RenderComponent* render = sys.GetReadOnly<RenderComponent>(entity);
+            const EC::Render* render = sys.GetReadOnly<EC::Render>(entity);
             if (render->texture != NULL) {
                 const SDL_FRect* dest = &render->destination;
                 if ((dest->x + dest->w > gameViewport->display.x && dest->x < gameViewport->displayRightEdge()) &&
@@ -338,13 +322,13 @@ public:
             }
         }
 
-        ForEach<HealthComponent, RenderComponent>([&](EntityType<HealthComponent, RenderComponent> entity){   
-            auto destRect = &sys.GetReadOnly<RenderComponent>(entity)->destination;
-            SDL_Rect _dest = FC_GetBounds(FreeSans, destRect->x, destRect->y, FC_ALIGN_LEFT, FC_MakeScale(0.5, 0.5), "%.1f", entity.Get<HealthComponent>()->healthValue);
+        ForEach<EC::Health, EC::Render>([&](EntityType<EC::Health, EC::Render> entity){   
+            auto destRect = &sys.GetReadOnly<EC::Render>(entity)->destination;
+            SDL_Rect _dest = FC_GetBounds(FreeSans, destRect->x, destRect->y, FC_ALIGN_LEFT, FC_MakeScale(0.5, 0.5), "%.1f", entity.Get<EC::Health>()->healthValue);
             auto dest = &_dest;
             if ((dest->x + dest->w > gameViewport->display.x && dest->x < gameViewport->displayRightEdge()) &&
                 (dest->y + dest->h > gameViewport->display.y && dest->y < gameViewport->displayBottomEdge())) {
-                FC_DrawScale(FreeSans, renderer, destRect->x, destRect->y, FC_MakeScale(0.5, 0.5), "%.1f", entity.Get<HealthComponent>()->healthValue);
+                FC_DrawScale(FreeSans, renderer, destRect->x, destRect->y, FC_MakeScale(0.5, 0.5), "%.1f", entity.Get<EC::Health>()->healthValue);
             }
     
         });
@@ -352,7 +336,7 @@ public:
         if (Debug->settings.drawEntityIDs) {
             int nRenderedIDs = 0;
             ForEach([&](Entity entity){
-                auto destRect = &sys.GetReadOnly<RenderComponent>(entity)->destination;
+                auto destRect = &sys.GetReadOnly<EC::Render>(entity)->destination;
                 SDL_Rect _dest = FC_GetBounds(FreeSans, destRect->x, destRect->y, FC_ALIGN_LEFT, FC_MakeScale(0.5, 0.5), "%u", entity.id);
                 auto dest = &_dest;
                 if ((dest->x + dest->w > gameViewport->display.x && dest->x < gameViewport->displayRightEdge()) &&

@@ -169,7 +169,7 @@ const T* readProp(const char* propName, const char* src) {
 }
 
 template<class C>
-void writeComponentPool(FileWriter& ef, const ComponentPool<C>* pool) {
+void writeComponentPool(FileWriter& ef, const ComponentPool* pool) {
 
     if (!C::Serializable) {
         Log("non serial component passed!");
@@ -188,42 +188,41 @@ void writeComponentPool(FileWriter& ef, const ComponentPool<C>* pool) {
 
     FileWriter cf;
 
-    cf.set("componentSize", sizeof(C));
-    cf.set("numComponents", (size_t)pool->getSize());
-    cf.set("components", pool->components, sizeof(C) * pool->getSize());
-    cf.set("componentOwners", pool->componentOwners, sizeof(EntityID) * pool->getSize());
+    cf.set("componentSize", pool->componentSize);
+    cf.set("numComponents", (size_t)pool->size());
+    cf.set("components", pool->components, pool->componentSize * pool->size());
+    cf.set("componentOwners", pool->componentOwners, sizeof(EntityID) * pool->size());
 
-    ef.write(cf, getComponentName<C>());
+    ef.write(cf, componentNames[pool->id]);
 }
 
-template<class C>
-int readComponentPool(const char* source, EntityManager* em) {
+int readComponentPool(const char* source, ComponentPool* pool) {
     int code = 0;
 
-    ComponentPool<C>* pool = static_cast<ComponentPool<C>*>(em->pools[getID<C>()]);
-    pool->size = 0;
+    //ComponentPool* pool = em->pools[getID<C>()];
+    pool->_size = 0;
 
     const char* contents = static_cast<const char*>(
-        readProp(getComponentName<C>(), source));
+        readProp(componentNames[pool->id], source));
 
-    size_t size = *static_cast<const size_t*>(
+    size_t componentSize = *static_cast<const size_t*>(
         readProp("componentSize", contents));
 
     size_t numComponents = *static_cast<const size_t*>(
         readProp("numComponents", contents));
 
-    const C* components = static_cast<const C*>(
+    const void* components = static_cast<const void*>(
         readProp("components", contents));
 
     const EntityID* componentOwners = static_cast<const EntityID*>(
         readProp("componentOwners", contents));
     
-    assert(pool->size == 0 && "pool written to must not have pre-existing components");
+    assert(pool->size() == 0 && "pool written to must not have pre-existing components");
     pool->resize(numComponents + 10);
-    memcpy(pool->components, components, numComponents * size);
+    memcpy(pool->components, components, numComponents * componentSize);
     memcpy(pool->componentOwners, componentOwners, numComponents * sizeof(EntityID));
 
-    for (Uint32 i = 0; i < pool->entityComponentSetSize; i++) {
+    for (Uint32 i = 0; i < MAX_ENTITIES; i++) {
         pool->entityComponentSet[i] = NULL_COMPONENTPOOL_INDEX;
     }
 
@@ -232,7 +231,7 @@ int readComponentPool(const char* source, EntityManager* em) {
         pool->entityComponentSet[owner] = i;
     }
 
-    pool->size = (Uint32)numComponents;
+    pool->_size = (Uint32)numComponents;
 
     for (Uint32 i = 0; i < (Uint32)numComponents; i++) {
         pool->entityComponentSet[pool->componentOwners[i]] = i;
@@ -252,7 +251,7 @@ int writeComponentPools(FileWriter& ef, const EntityManager* em) {
 
 template<class... Components>
 int readComponentPools(const char* source, EntityManager* em) {
-    int codes[] = {0, ( (void)0, readComponentPool<Components>(source, em) ) ...};
+    int codes[] = {0, ( (void)0, readComponentPool(source, em->getPool<Components>()) ) ...};
     int code = codes[0];
     for (size_t i = 1; i < sizeof(codes) / sizeof(int); i++) {
         code |= codes[i];
@@ -418,8 +417,8 @@ int readEntityDataFromFile(const char* filepath, ECS* ecs) {
 
     readComponentPools<COMPONENTS>(src, ecs->em());
 
-    auto inventoryECPool = ecs->manager.getPool<InventoryComponent>();
-    for (Uint32 i = 0; i < inventoryECPool->getSize(); i++) {
+    auto inventoryECPool = ecs->manager.getPool<EC::Inventory>();
+    for (Uint32 i = 0; i < inventoryECPool->size(); i++) {
         // inventoryECPool->components[i].inventory 
     }
 

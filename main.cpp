@@ -83,31 +83,82 @@ void setDebugSettings(DebugClass& debug) {
     ds.drawEntityIDs = false;
 }
 
+void placeInserter(ChunkMap& chunkmap, ECS* ecs, Vec2 mouseWorldPos) {
+    Tile* tile = getTileAtPosition(chunkmap, mouseWorldPos);
+    if (tile && !tile->entity.Exists()) {
+        Vec2 inputPos = {mouseWorldPos.x + 1, mouseWorldPos.y};
+        //Tile* inputTile = getTileAtPosition(chunkmap, inputPos);
+        Vec2 outputPos = {mouseWorldPos.x - 1, mouseWorldPos.y};
+        //Tile* outputTile = getTileAtPosition(chunkmap, outputPos);
+        Entity inserter = Entities::Inserter(ecs, mouseWorldPos.vfloor() + Vec2(0.5f, 0.5f), 1, inputPos.floorToIVec(), outputPos.floorToIVec());
+        placeEntityOnTile(ecs, tile, inserter);
+    }
+}
+
+void rotateEntity(EntityType<EC::Rotation, EC::Rotatable> entity, bool counterClockwise) {
+    entity.debugAssertType();
+
+    float* rotation = &entity.Get<EC::Rotation>()->degrees;
+    auto rotatable = entity.Get<EC::Rotatable>();
+    // left shift switches direction
+    if (counterClockwise) {
+        *rotation -= rotatable->increment;
+    } else {
+        *rotation += rotatable->increment;
+    }
+    rotatable->rotated = true;
+}
+
 void setDefaultKeyBindings(Context& ctx, PlayerControls* controls) {
-    controls->addKeyBinding(new FunctionKeyBinding('y', [](Context* ctx){
-        auto mouse = ctx->playerControls->getMouse();
+    GameState& state = *ctx.state;
+    Player& player = state.player;
+    ECS* ecs = &state.ecs;
+    ChunkMap& chunkmap = state.chunkmap;
+    GameViewport& gameViewport = *ctx.gameViewport;
+    PlayerControls& playerControls = *ctx.playerControls;
+    DebugClass& debug = ctx.debug;
+
+    controls->addKeyBinding(new FunctionKeyBinding('y',
+    [ecs, &gameViewport, &state, &playerControls](){
+        auto mouse = playerControls.getMouse();
         Entity zombie = Entities::Enemy(
-            &ctx->state->ecs,
-            ctx->gameViewport->pixelToWorldPosition(mouse.x, mouse.y),
-            ctx->state->player.entity
+            ecs,
+            gameViewport.pixelToWorldPosition(mouse.x, mouse.y),
+            state.player.entity
         );
     }));
 
     KeyBinding* keyBindings[] = {
-        new ToggleKeyBinding('b', &ctx.debug.settings.drawChunkBorders),
-        new ToggleKeyBinding('u', &ctx.debug.settings.drawEntityRects),
-        new ToggleKeyBinding('c', &ctx.debug.settings.drawChunkCoordinates),
+        new ToggleKeyBinding('b', &debug.settings.drawChunkBorders),
+        new ToggleKeyBinding('u', &debug.settings.drawEntityRects),
+        new ToggleKeyBinding('c', &debug.settings.drawChunkCoordinates),
 
-        new FunctionKeyBinding('q', [](Context* ctx){
-            ctx->state->player.releaseHeldItem();
+        new FunctionKeyBinding('q', [&player](){
+            player.releaseHeldItem();
         }),
-        new FunctionKeyBinding('l', [](Context* ctx){
+        new FunctionKeyBinding('c', [ecs, &gameViewport](){
+            int width = 2;
+            int height = 1;
+            Vec2 position = getMouseWorldPosition(gameViewport).vfloor() + Vec2(width/2.0f, height/2.0f);
+            auto chest = Entities::Chest(ecs, position, 3, width, height);
+
+        }),
+        new FunctionKeyBinding('l', [ecs](){
             // do airstrikes row by row
             for (int y = -100; y < 100; y += 5) {
                 for (int x = -100; x < 100; x += 5) {
-                    auto airstrike = Entities::Airstrike(&ctx->state->ecs, Vec2(x, y * 2), {3.0f, 3.0f}, Vec2(x, y));
+                    auto airstrike = Entities::Airstrike(ecs, Vec2(x, y * 2), {3.0f, 3.0f}, Vec2(x, y));
                 }
             }
+        }),
+        new FunctionKeyBinding('i', [ecs, &gameViewport, &chunkmap](){
+            placeInserter(chunkmap, ecs, getMouseWorldPosition(gameViewport));
+        }),
+        new FunctionKeyBinding('r', [&gameViewport, &playerControls, ecs, &chunkmap](){
+            //player.findFocusedEntity(getMouseWorldPosition(gameViewport));
+            auto focusedEntity = findPlayerFocusedEntity(ecs, chunkmap, getMouseWorldPosition(gameViewport));
+            if (focusedEntity.Has<EC::Rotation, EC::Rotatable>())
+                rotateEntity(focusedEntity.cast<EC::Rotation, EC::Rotatable>(), playerControls.keyboardState[SDL_SCANCODE_LSHIFT]);
         })
 
     };
@@ -237,9 +288,10 @@ int main(int argc, char** argv) {
 
     // GameSave::load(state);
 
-    for (int e = 0; e < 1000; e++) {
+    for (int e = 0; e < 2000; e++) {
         Vec2 pos = {(float)randomInt(-200, 200), (float)randomInt(-200, 200)};
         Entity entity = Entities::Tree(&state->ecs, pos, {1, 1});
+        entityCreated(state, entity);
     }
 
     gameViewport = newGameViewport(screenWidth, screenHeight, state->player.getPosition().x, state->player.getPosition().y);

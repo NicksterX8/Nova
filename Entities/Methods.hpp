@@ -16,8 +16,8 @@ inline bool tryOccupyTileAt(Entity entity, Vec2 position, ChunkMap* chunkmap) {
     return false;
 }
 
-inline bool tryOccupyTile(EntityType<PositionComponent> entity, ChunkMap* chunkmap, ECS* ecs) {
-    Vec2 position = ecs->Get<PositionComponent>(entity)->vec2();
+inline bool tryOccupyTile(EntityType<EC::Position> entity, ChunkMap* chunkmap, ECS* ecs) {
+    Vec2 position = ecs->Get<EC::Position>(entity)->vec2();
     return tryOccupyTileAt(entity, position, chunkmap);
 }
 

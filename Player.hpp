@@ -38,7 +38,7 @@ struct Player {
 
     Vec2 getSize() const {
         if (entity.Exists()) {
-            auto size = entity.Get<SizeComponent>();
+            auto size = entity.Get<EC::Size>();
             if (size) {
                 return size->toVec2();
             }
@@ -48,7 +48,7 @@ struct Player {
 
     Vec2 getPosition() const {
         if (entity.Exists()) {
-            auto position = entity.Get<PositionComponent>();
+            auto position = entity.Get<EC::Position>();
             if (position)
                 return *position;
         }
@@ -58,7 +58,7 @@ struct Player {
 
     void setPosition(Vec2 pos) {
         if (entity.Exists()) {
-            auto position = entity.Get<PositionComponent>();
+            auto position = entity.Get<EC::Position>();
             if (position)
                 *position = pos;
         }
@@ -66,7 +66,7 @@ struct Player {
 
     Inventory* inventory() const {
         if (entity.Exists()) {
-            auto component = entity.Get<InventoryComponent>();
+            auto component = entity.Get<EC::Inventory>();
             if (component) {
                 return &component->inventory;
             }
@@ -79,22 +79,22 @@ struct Player {
         if (heldItemStack->item == Items::SandGun) {
             Entity sand = ecs->New();
             ecs->Add<
-                PositionComponent,
-                SizeComponent,
-                MotionComponent,
-                RenderComponent
+                EC::Position,
+                EC::Size,
+                EC::Motion,
+                EC::Render
             >(sand);
 
             // adjust position by half a tile to make the tile's center spawn on top of the player,
             // instead of the top left corner 
-            *ecs->Get<PositionComponent>(sand) = 
-                PositionComponent(getPosition().x - 0.5f, getPosition().y - 0.5f);
-            *ecs->Get<SizeComponent>(sand) = {1, 1};
+            *ecs->Get<EC::Position>(sand) = 
+                EC::Position(getPosition().x - 0.5f, getPosition().y - 0.5f);
+            *ecs->Get<EC::Size>(sand) = {1, 1};
             // adjust position by half a tile to make center of the sand go towards the aiming point,
             // instead of the top left corner
-            *ecs->Get<MotionComponent>(sand) = 
-                MotionComponent({aimingPosition.x - 0.5f, aimingPosition.y - 0.5f}, 2);
-            *ecs->Get<RenderComponent>(sand) = RenderComponent(Textures.Tiles.sand, RenderLayer::Particles);
+            *ecs->Get<EC::Motion>(sand) = 
+                EC::Motion({aimingPosition.x - 0.5f, aimingPosition.y - 0.5f}, 2);
+            *ecs->Get<EC::Render>(sand) = EC::Render(Textures.Tiles.sand, RenderLayer::Particles);
             return true;
         }
         return false;

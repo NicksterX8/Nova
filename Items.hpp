@@ -2,10 +2,10 @@
 #define ITEMS_INCLUDED
 
 #include <SDL2/SDL.h>
+#include <functional>
 
-typedef Uint16 ItemID;
+typedef Uint16 Item;
 typedef Uint32 ItemFlags;
-typedef Uint8 Item;
 
 // forward declare this
 typedef Uint16 TileType;
@@ -24,8 +24,9 @@ namespace Items {
 
     enum Flags {
         Placeable = 1,
-        Edible = 2,
-        Usable = 4
+        Edible    = 2,
+        Usable    = 4,
+        Breakable = 8,
     };
 
     struct PlaceableItem {
@@ -37,7 +38,11 @@ namespace Items {
     };
 
     struct UseableItem {
-        
+        std::function<bool()> onUse;
+    };
+
+    struct BreakableItem {
+        float durabilityPerUse;
     };
 }
 
@@ -50,14 +55,16 @@ struct ItemTypeData {
     Items::PlaceableItem placeable;
     Items::EdibleItem edible;
     Items::UseableItem usable;
+    Items::BreakableItem breakable;
 };
 extern ItemTypeData ItemData[NUM_ITEMS];
 
-constexpr Uint32 INFINITE_ITEM_QUANTITY = (unsigned int)(-1);
+constexpr Uint32 INFINITE_ITEM_QUANTITY = (Uint32)(-1);
 
 struct ItemStack {
     Item item;
     Uint32 quantity;
+    float durability = 100.0f;
 
     ItemStack();
     // construct an item stack with a quantity of 1

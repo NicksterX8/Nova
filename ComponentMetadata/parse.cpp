@@ -32,11 +32,9 @@ int main() {
 
     
     ostringstream stream;
-
     for (auto component : components) {
-        stream << "template<> constexpr unsigned int getRawID<const " << component.name << ">() { return " << component.id << "; }\n";   
+        stream << "template<> constexpr unsigned int getRawID<const " << "EC::" << component.name << ">() { return " << component.id << "; }\n";   
     }
-
     cout << stream.str();
 
     ofstream output("_componentIDs.hpp");
@@ -50,7 +48,7 @@ int main() {
     macro << "#define COMPONENTS ";
     for (size_t i = 0; i < components.size(); i++) {
         ComponentInfo component = components[i];
-        macro << component.name;
+        macro << "EC::" << component.name;
         if (i != components.size() - 1)
             macro << ", ";
     }
@@ -60,10 +58,12 @@ int main() {
     macroOut.close();
 
     ofstream componentDecl("componentDecl.hpp");
+    componentDecl << "namespace EC {\n";
     for (size_t i = 0; i < components.size(); i++) {
         auto component = components[i];
         componentDecl << "struct " << component.name << ";\n";
     }
+    componentDecl << "}";
 
     return 0;
 }

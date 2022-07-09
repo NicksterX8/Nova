@@ -1,89 +1,149 @@
 #include <iostream>
 #include "math.h"
 #include "stdlib.h"
+#include <functional>
  
 using namespace std;
 
-struct S {};
+struct S {
+    int y;
+};
 
-int counter = 0;
+#include <SDL2/SDL.h>
 
-template<class T>
-constexpr int getRawID() {
-    return -1;
-}
+typedef Uint16 ItemID;
 
-template<>
-constexpr int getRawID<const int>() {
-    return 0;
-}
-
-template<>
-constexpr int getRawID<const float>() {
-    return 1;
-}
-
-template<class T>
-constexpr int getID() {
-    return getRawID<const T>();
-}
-
-template<class T>
-int getWID() {
-    cout << "id1: " << getID<T&>() << "\n";
-    cout << "id2: " << getID<const T>() << "\n";
-    return getID<T&>();
-}
-
-template<class T>
-constexpr bool tIsMutable() {
-    return (getID<T>() != -1) && getRawID<T>() == -1;
-}
-
-template<class T>
-constexpr bool tIsConst() {
-    return !tIsMutable<T>();
-}
-
-template<class T1, class T2, class Func>
-void doCallback(Func callback) {
-    int id1 = getID<T1>();
-    int id2 = getID<T2>();
-
-    cout << "callback id1: " << id1 << " id2: " << id2 << "\n";
-
-    if (tIsConst<T1>()) {
-        cout << "t1 is const\n";
+namespace Items {
+    namespace Flags {
+        enum Flags {
+            IsWettable=1,
+            IsSpoilable=2
+        };
     }
-    if (tIsMutable<T2>()) {
-        cout << "t2 is mutable\n";
+}
+
+struct ItemFlagNameIdPair {
+    const char* name;
+    Uint32 id;
+};
+
+namespace ItemFlags {
+    enum Flags {
+        Wettable
+    };
+}
+
+ItemFlagNameIdPair itemFlags[] = {
+    {"wettable", ItemFlags::Wettable}
+};
+
+struct ItemType {};
+
+namespace ItemComponents {
+    Uint32 itemComponentIdCounter = 0;
+
+    template<class T>
+    Uint32 itemComponentID() {
+        static Uint32 id = itemComponentIdCounter++;
+        return id;
     }
 
-    cout << "id1: " << id1 << " id2: " << id2 << "\n";
-    T1* t1 = new T1();
-    T2* t2 = new T2();
-    callback(*t1, *t2);
+    struct Wettable {
+        float wetness;
+    };
+
+    struct Spoilable {
+        float spoilage;
+    };
+
+    struct Breakable {
+        float durability;
+    };
+};
+
+struct ItemTypeDataStruct {
+    const char* name;
+    SDL_Texture* texture;
+    Uint32 flags;
+    
+};
+
+template<class Type, class Component>
+void* componentGetter(ItemType* type) {
+    return static_cast<Component*>(static_cast<Type*>(type));
 }
 
-template<class T>
-const T* ptr() {
-    return new T();
+struct GranolaBarDataType : ItemTypeDataStruct {
+    GranolaBarDataType() {
+        name = "granola-bar";
+        texture = NULL;
+
+        
+    }
+};
+
+#define NUM_ITEM_TYPES 1
+
+ItemTypeDataStruct ItemTypeData[NUM_ITEM_TYPES];
+
+struct Item {
+    ItemID id;
+    ItemType* type;
+
+    template<class T>
+    T* getComponent() {
+        if (ItemTypeData[id].has<T>()) {
+            return 
+        }
+        return NULL;
+    }
+
+};
+
+struct ItemStack {
+    Uint32 quantity;
+    Item item;
+};
+
+namespace {
+
+using namespace ItemComponents;
+
+struct GranolaBar : ItemType, Wettable, Spoilable {
+
+    GranolaBar() {
+        spoilage = 0.0f;
+        wetness = 100;
+    }
+};
+
 }
 
-void myCallback(const int& i, const float& f) {
-    cout << "callback!\n";
-}
+struct A {
+    int a = 3;
+};
+
+struct B {
+    int b = 2;
+};
+
+struct AB : public A, public B {
+    int ab = 6;
+};
 
 int main() {
-    int a = getID<int>();
-    int f = getID<float>();
-    int ca = getID<const int>();
+    ItemStack stack;
+    cout << "size of stack: " << sizeof(stack) << "\n";
+    cout << "size of id: " << sizeof(ItemID) << "\n";
+    cout << "size of item: " << sizeof(Item) << "\n";
 
-    cout << "a: " << a << " ca: " << ca << "\n";
+    AB ab;
+    A* a = static_cast<A*>(&ab);
+    B* b = static_cast<B*>(&ab);
+    cout << "ab.a: " << ab.a << " a.a: " << a->a << " b.b: " << b->b << "\n";
 
-    doCallback<int, const float>(myCallback);
-
-    const int* p = ptr<const int>();
+    GranolaBar bar;
+    bar.spoilage = 10.0f;
 
     return 0;
 }

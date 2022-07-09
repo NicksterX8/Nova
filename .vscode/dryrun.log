@@ -1,9 +1,7 @@
 make --dry-run --always-make --keep-going --print-directory
 make: Entering directory `/Users/melaniewilson/Faketorio'
 g++ -g -Wall -Wextra -std=c++14 -MMD -MP -Wno-missing-field-initializers -Wno-unused-variable -Wno-unused-parameter -Wno-unused-private-field -I /usr/local/Cellar/sdl2/2.0.16/include -I /usr/local/Cellar/sdl2_image/2.0.5/include -c main.cpp -o main.o
- 
 g++ -g -Wall -Wextra -std=c++14 -MMD -MP -Wno-missing-field-initializers -Wno-unused-variable -Wno-unused-parameter -Wno-unused-private-field -I /usr/local/Cellar/sdl2/2.0.16/include -I /usr/local/Cellar/sdl2_image/2.0.5/include -c update.cpp -o update.o
- 
 g++ -g -Wall -Wextra -std=c++14 -MMD -MP -Wno-missing-field-initializers -Wno-unused-variable -Wno-unused-parameter -Wno-unused-private-field -I /usr/local/Cellar/sdl2/2.0.16/include -I /usr/local/Cellar/sdl2_image/2.0.5/include -c GameSave/main.cpp -o GameSave/main.o
 g++ -g -Wall -Wextra -std=c++14 -MMD -MP -Wno-missing-field-initializers -Wno-unused-variable -Wno-unused-parameter -Wno-unused-private-field -I /usr/local/Cellar/sdl2/2.0.16/include -I /usr/local/Cellar/sdl2_image/2.0.5/include -c Entities/Methods.cpp -o Entities/Methods.o
 g++ -g -Wall -Wextra -std=c++14 -MMD -MP -Wno-missing-field-initializers -Wno-unused-variable -Wno-unused-parameter -Wno-unused-private-field -I /usr/local/Cellar/sdl2/2.0.16/include -I /usr/local/Cellar/sdl2_image/2.0.5/include -c Chunks.cpp -o Chunks.o

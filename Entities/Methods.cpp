@@ -17,7 +17,7 @@ static void copyEntityComponents(ECS* ecs, Entity src, Entity dst, const Compone
 Entity clone(ECS* ecs, Entity entity) {
     Entity cloned = ecs->New();
     ComponentFlags entitySignature = ecs->entityComponents(entity.id);
-    ecs->AddSignature<COMPONENTS>(cloned, entitySignature);
+    ecs->AddSignature(cloned, entitySignature);
     copyEntityComponents<COMPONENTS>(ecs, entity, cloned, entitySignature);
     return cloned;
 }

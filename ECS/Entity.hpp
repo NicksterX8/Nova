@@ -55,6 +55,14 @@ public:
         return false;
     }
 
+    constexpr bool hasAll(MyBitset aBitset) {
+        return (*this & aBitset) == aBitset;
+    }
+
+    constexpr bool hasNone(MyBitset aBitset) {
+        return !(*this & aBitset).any();
+    }
+
     constexpr Self operator&(Self rhs) const {
         Self result;
         for (size_t i = 0; i < nInts; i++) {
@@ -122,16 +130,25 @@ constexpr EntityVersion NULL_ENTITY_VERSION = (Uint32)-1;
 
 extern const char* componentNames[NUM_COMPONENTS];
 
-template<typename... Components>
+template<class... Components>
 constexpr ComponentFlags componentSignature() {
     // void 0 to remove unused result warning
-    ComponentID ids[] = { 0, ( (void)0, getID<Components>()) ... };
+    constexpr ComponentID ids[] = { 0, ( (void)0, getID<Components>()) ... };
     // sum component signatures
     ComponentFlags result;
     for (size_t i = 1; i < sizeof(ids) / sizeof(ComponentID); i++) {
         result.set(ids[i], true);
     }
     return result;
+}
+
+template<class... Components>
+constexpr std::array<ComponentID, sizeof...(Components)> getComponentIDs() {
+    constexpr ComponentID ids[] = {0, ((void)0, getID<Components>()) ...};
+    std::array<ComponentID, sizeof...(Components)> idsArray;
+    for (Uint32 i = 0; i < sizeof...(Components); i++) {
+        idsArray[i] = ids[i+1];
+    }
 }
 
 template<class T>
@@ -201,6 +218,8 @@ struct EntityBase {
 
     bool Null() const;
 
+    bool NotNull() const;
+
     /*
     * Get a string listing the entity's properties, useful for debug logs.
     * Warning: This is a slow method, should only be used for debugging.
@@ -215,7 +234,7 @@ struct EntityBase {
         if (version == NULL_ENTITY_VERSION)
             stream << ", Version: null";
         else
-            stream << " Version: " << version;
+            stream << ", Version: " << version;
         return stream.str();
     }
 };

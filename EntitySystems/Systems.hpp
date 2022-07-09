@@ -18,20 +18,20 @@ public:
 
     PositionSystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
-        sys.GiveAccess<PositionComponent>(Read);
-        sys.GiveAccess<SizeComponent>(Read);
+        sys.GiveAccess<EC::Position>(Read);
+        sys.GiveAccess<EC::Size>(Read);
     }
 
     bool Query(ComponentFlags entitySignature) const {
-        return (entitySignature[getID<PositionComponent>()]);
+        return (entitySignature[getID<EC::Position>()]);
     }
 
     void Update() {
-        ForEach<PositionComponent>([&](auto entity){
-            if (sys.EntityHas<SizeComponent>(entity)) {
+        ForEach<EC::Position>([&](auto entity){
+            if (sys.EntityHas<EC::Size>(entity)) {
                 return;
             }
-            Vec2 position = *sys.GetReadOnly<PositionComponent>(entity);
+            Vec2 position = *sys.GetReadOnly<EC::Position>(entity);
             IVec2 chunkPosition = tileToChunkPosition(position);
             ChunkData* chunkdata = chunkmap->getChunkData(chunkPosition);
             if (chunkdata) {
@@ -39,12 +39,12 @@ public:
             }
         });
 
-        ForEach<PositionComponent, SizeComponent>([&](auto entity){
-            Vec2 position = *sys.GetReadOnly<PositionComponent>(entity);
-            Vec2 size = sys.GetReadOnly<SizeComponent>(entity)->toVec2();
+        ForEach<EC::Position, EC::Size>([&](auto entity){
+            Vec2 position = *sys.GetReadOnly<EC::Position>(entity);
+            Vec2 size = sys.GetReadOnly<EC::Size>(entity)->toVec2();
 
-            IVec2 minChunkPosition = tileToChunkPosition(position);
-            IVec2 maxChunkPosition = tileToChunkPosition(position + size);
+            IVec2 minChunkPosition = tileToChunkPosition(position - size.scaled(0.5f));
+            IVec2 maxChunkPosition = tileToChunkPosition(position + size.scaled(0.5f));
             for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
                 for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
                     IVec2 chunkPosition = {col, row};
@@ -65,15 +65,15 @@ class RotationSystem : public EntitySystem {
 public:
     RotationSystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
-        sys.GiveAccess<RotationComponent>(ReadWrite);
-        sys.GiveAccess<AngleMotionEC>(Read | Remove);
-        sys.GiveAccess<RenderComponent>(ReadWrite);
+        sys.GiveAccess<EC::Rotation>(ReadWrite);
+        sys.GiveAccess<EC::AngleMotion>(Read | Remove);
+        sys.GiveAccess<EC::Render>(ReadWrite);
 
         containsStructuralChanges = true;
     }
 
     bool Query(ComponentFlags entitySignature) const {
-        return (entitySignature[getID<RotationComponent>()]);
+        return (entitySignature[getID<EC::Rotation>()]);
     }
 
     void Update() {
@@ -83,22 +83,22 @@ public:
 private:
 
     void setEntitiesRenderRotation() {
-        ForEach<AngleMotionEC, RotationComponent>([&](EntityType<AngleMotionEC, RotationComponent> entity){
-            float* rotation = &entity.Get<RotationComponent>()->degrees;
-            auto angleMotion = entity.Get<AngleMotionEC>();
+        ForEach<EC::AngleMotion, EC::Rotation>([&](EntityType<EC::AngleMotion, EC::Rotation> entity){
+            float* rotation = &entity.Get<EC::Rotation>()->degrees;
+            auto angleMotion = entity.Get<EC::AngleMotion>();
             if (fabs(*rotation - angleMotion->rotationTarget) < angleMotion->rotationSpeed) {
                 // reached target
                 *rotation = angleMotion->rotationTarget;
-                // commandBuffer->RemoveComponent<AngleMotionEC>(entity);
+                // commandBuffer->RemoveComponent<EC::AngleMotion>(entity);
                 return;
             }
 
             *rotation += angleMotion->rotationSpeed;
         });
 
-        ForEach<RotationComponent, RenderComponent>([&](auto entity){
+        ForEach<EC::Rotation, EC::Render>([&](auto entity){
             // copy rotation to render component
-            sys.GetReadWrite<RenderComponent>(entity)->rotation = sys.GetReadOnly<RotationComponent>(entity)->degrees;
+            sys.GetReadWrite<EC::Render>(entity)->rotation = sys.GetReadOnly<EC::Rotation>(entity)->degrees;
         });
     }
 };
@@ -107,16 +107,16 @@ class RotatableSystem : public EntitySystem {
 public:
     RotatableSystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
-        sys.GiveAccess<RotatableComponent>(ReadWrite);
+        sys.GiveAccess<EC::Rotatable>(ReadWrite);
     }
 
     bool Query(ComponentFlags entitySignature) const {
-        return (entitySignature[getID<RotatableComponent>()]);
+        return (entitySignature[getID<EC::Rotatable>()]);
     }
 
     void Update() {
         ForEach([&](auto entity){
-            sys.GetReadWrite<RotatableComponent>(entity)->rotated = false;
+            sys.GetReadWrite<EC::Rotatable>(entity)->rotated = false;
         });
     }
 };
@@ -125,16 +125,16 @@ class GrowthSystem : public EntitySystem {
 public:
     GrowthSystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
-        sys.GiveAccess<GrowthComponent>(Read | Write);
+        sys.GiveAccess<EC::Growth>(Read | Write);
     }
 
     bool Query(ComponentFlags entitySignature) const {
-        return (entitySignature[getID<GrowthComponent>()]);
+        return (entitySignature[getID<EC::Growth>()]);
     }
 
     void Update() {
         ForEach([&](auto entity){
-            sys.GetReadWrite<GrowthComponent>(entity)->growthValue += 1;
+            sys.GetReadWrite<EC::Growth>(entity)->growthValue += 1;
         });
     }
 private:
@@ -143,31 +143,37 @@ private:
 
 class MotionSystem : public EntitySystem {
 public:
+    ChunkMap* m_chunkmap;
+    ECS* m_ecs;
+
     MotionSystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
-        sys.GiveAccess<MotionComponent>(Read | Remove);
-        sys.GiveAccess<PositionComponent>(Read | Write);
+        sys.GiveAccess<EC::Motion>(Read | Remove);
+        sys.GiveAccess<EC::Position>(Read | Write);
     }
 
     bool Query(ComponentFlags entitySignature) const {
-        return (entitySignature[getID<MotionComponent>()]);
+        return (entitySignature[getID<EC::Motion>()]);
     }
 
     void Update() {
-        ForEach<PositionComponent, MotionComponent>([&](auto entity){
-            PositionComponent* position = sys.GetReadWrite<PositionComponent>(entity);
-            Vec2 target = sys.GetReadOnly<MotionComponent>(entity)->target;
-            Vec2 delta = {target.x - position->x, target.y - position->y};
-            float speed = sys.GetReadOnly<MotionComponent>(entity)->speed;
+        ForEach<EC::Position, EC::Motion>([&](auto entity){
+            auto positionComponent = sys.GetReadWrite<EC::Position>(entity);
+            Vec2 position = positionComponent->vec2();
+            Vec2 target = sys.GetReadOnly<EC::Motion>(entity)->target;
+            Vec2 delta = {target.x - position.x, target.y - position.y};
+            float speed = sys.GetReadOnly<EC::Motion>(entity)->speed;
             Vec2 unit = delta.norm().scaled(speed);
 
             if (delta.length() < speed) {
-                position->x = target.x;
-                position->y = target.y;
+                positionComponent->x = target.x;
+                positionComponent->y = target.y;
             } else {
-                position->x += unit.x;
-                position->y += unit.y;
+                positionComponent->x += unit.x;
+                positionComponent->y += unit.y;
             }
+
+            entityPositionChanged(m_chunkmap, m_ecs, entity.template cast<EC::Position>(), position);
         });
     }
 private:
@@ -178,25 +184,25 @@ class FollowSystem : public EntitySystem {
 public:
     FollowSystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
-        SYSTEM_ACCESS(PositionComponent) = ReadWrite;
-        SYSTEM_ACCESS(FollowComponent) = ReadWrite;
-        SYSTEM_ACCESS(HealthComponent) = ReadWrite;
+        SYSTEM_ACCESS(EC::Position) = ReadWrite;
+        SYSTEM_ACCESS(EC::Follow) = ReadWrite;
+        SYSTEM_ACCESS(EC::Health) = ReadWrite;
     }
 
     bool Query(ComponentFlags signature) const {
-        return (signature[getID<FollowComponent>()]);
+        return (signature[getID<EC::Follow>()]);
     }
 
     void Update() {
-        ForEach<PositionComponent, FollowComponent>([&](EntityType<PositionComponent, FollowComponent> entity){
-            auto followComponent = sys.GetReadWrite<FollowComponent>(entity);
+        ForEach<EC::Position, EC::Follow>([&](EntityType<EC::Position, EC::Follow> entity){
+            auto followComponent = sys.GetReadWrite<EC::Follow>(entity);
             if (!sys.EntityExists(followComponent->entity)) {
                 return;
             }
-            EntityType<PositionComponent> following = followComponent->entity;
-            Vec2 target = *sys.GetReadOnly<PositionComponent>(following);
+            EntityType<EC::Position> following = followComponent->entity;
+            Vec2 target = *sys.GetReadOnly<EC::Position>(following);
 
-            PositionComponent* position = sys.GetReadWrite<PositionComponent>(entity);
+            EC::Position* position = sys.GetReadWrite<EC::Position>(entity);
             Vec2 delta = {target.x - position->x, target.y - position->y};
             Vec2 unit = delta.norm().scaled(followComponent->speed);
 
@@ -206,8 +212,8 @@ public:
 
                 // do something
                 // hurt them if they have health
-                if (following.Has<HealthComponent>()) {
-                    following.Get<HealthComponent>()->healthValue -= 10;
+                if (following.Has<EC::Health>()) {
+                    following.Get<EC::Health>()->healthValue -= 10;
                 }
 
             } else {
@@ -222,25 +228,25 @@ class HealthSystem : public EntitySystem {
 public:
     HealthSystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
-        sys.GiveAccess<HealthComponent>(ReadWrite);
-        sys.GiveAccess<ImmortalEC>(Flag);
+        sys.GiveAccess<EC::Health>(ReadWrite);
+        sys.GiveAccess<EC::Immortal>(Flag);
 
         containsStructuralChanges = true;
     }
 
     bool Query(ComponentFlags entitySignature) const {
-        return (entitySignature[getID<HealthComponent>()]);
+        return (entitySignature[getID<EC::Health>()]);
     }
 
     void Update() {
         ForEach([&](Entity entity){
-            float* health = &sys.GetReadWrite<HealthComponent>(entity)->healthValue;
+            float* health = &sys.GetReadWrite<EC::Health>(entity)->healthValue;
             // Must do check like this instead of (*health <= 0.0f) to account for NaN values,
             // which can occur when infinite damage is done to an entity with infinite health
             // so in that situation the infinite damage wins out, rather than the infinte health
             if (!(*health > 0.0f)) {
-                if (!sys.entityComponents(entity.id)[getID<ImmortalEC>()])
-                    DestroyEntity<COMPONENTS>(entity);
+                if (!sys.entityComponents(entity.id)[getID<EC::Immortal>()])
+                    DestroyEntity(entity);
             }
         });
     }
@@ -250,22 +256,22 @@ class InventorySystem : public EntitySystem {
 public:
     InventorySystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
-        sys.GiveAccess<GrowthComponent>(ReadWrite);
-        sys.GiveAccess<InventoryComponent>(ReadWrite);
+        sys.GiveAccess<EC::Growth>(ReadWrite);
+        sys.GiveAccess<EC::Inventory>(ReadWrite);
 
         mustExecuteAfterStructuralChanges = true;
     }
 
     bool Query(ComponentFlags entitySignature) const {
-        return (entitySignature[getID<InventoryComponent>()]);
+        return (entitySignature[getID<EC::Inventory>()]);
     }
 
     void Update() {
-        ForEach<GrowthComponent>([&](auto entity){
-            GrowthComponent* growth = sys.GetReadWrite<GrowthComponent>(entity);
+        ForEach<EC::Growth>([&](auto entity){
+            EC::Growth* growth = sys.GetReadWrite<EC::Growth>(entity);
             if (growth->growthValue > 100) {
                 growth->growthValue -= 100;
-                Inventory* inventory = &sys.GetReadWrite<InventoryComponent>(entity)->inventory;
+                Inventory* inventory = &sys.GetReadWrite<EC::Inventory>(entity)->inventory;
                 inventory->addItemStack(ItemStack(Items::Wall));
             }
         });
@@ -276,31 +282,31 @@ class ExplosivesSystem : public EntitySystem {
 public:
     ExplosivesSystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
-        SYSTEM_ACCESS(ExplosiveComponent) = ReadWrite;
-        SYSTEM_ACCESS(PositionComponent) = Read;
-        SYSTEM_ACCESS(MotionComponent) = Read;
+        SYSTEM_ACCESS(EC::Explosive) = ReadWrite;
+        SYSTEM_ACCESS(EC::Position) = Read;
+        SYSTEM_ACCESS(EC::Motion) = Read;
 
         mustExecuteAfterStructuralChanges = true;
         containsStructuralChanges = true;
     }
 
     bool Query(ComponentFlags entitySignature) const {
-        return (entitySignature[getID<ExplosiveComponent>()]);
+        return (entitySignature[getID<EC::Explosive>()]);
     }
 
     void Update() {
-        ForEach<PositionComponent, MotionComponent>([&](auto entity){
-            Vec2 target = sys.GetReadOnly<MotionComponent>(entity)->target;
-            Vec2 position = *sys.GetReadOnly<PositionComponent>(entity);
+        ForEach<EC::Position, EC::Motion>([&](auto entity){
+            Vec2 target = sys.GetReadOnly<EC::Motion>(entity)->target;
+            Vec2 position = *sys.GetReadOnly<EC::Position>(entity);
 
             if (target.x == position.x && target.y == position.y) {
                 // EXPLODE
                 
                 commandBuffer->DeferredStructuralChange([entity, target](ECS* ecs){
                     Entity explosion = ecs->New();
-                    auto explosionComponent = *ecs->Get<ExplosiveComponent>(entity)->explosion;
-                    ecs->Add<ExplosionComponent>(explosion, explosionComponent);
-                    ecs->Add<PositionComponent>(explosion, PositionComponent(target));
+                    auto explosionComponent = *ecs->Get<EC::Explosive>(entity)->explosion;
+                    ecs->Add<EC::Explosion>(explosion, explosionComponent);
+                    ecs->Add<EC::Position>(explosion, EC::Position(target));
 
                     float radius = explosionComponent.radius;
 
@@ -326,17 +332,17 @@ public:
                             ecs,
                             target,
                             {size, size},
-                            RenderComponent(Textures.Tiles.sand, RenderLayer::Particles),
-                            MotionComponent(particleTarget, speed)
+                            EC::Render(Textures.Tiles.sand, RenderLayer::Particles),
+                            EC::Motion(particleTarget, speed)
                         );
 
-                        ecs->Add<RotationComponent>(particle, {angle});
-                        ecs->Add<AngleMotionEC>(particle, AngleMotionEC(angle + dist * 30, speed));
+                        ecs->Add<EC::Rotation>(particle, {angle});
+                        ecs->Add<EC::AngleMotion>(particle, EC::AngleMotion(angle + dist * 30, speed));
                     }
                 });
 
                 commandBuffer->DeferredStructuralChange([entity](ECS* ecs){
-                    ecs->Remove<COMPONENTS>(entity);
+                    ecs->Destroy(entity);
                 });
                 
             }
@@ -349,38 +355,38 @@ class ExplosionSystem : public EntitySystem {
 public:
     ExplosionSystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
-        SYSTEM_ACCESS(PositionComponent) = Read;
-        SYSTEM_ACCESS(SizeComponent) = Read;
-        SYSTEM_ACCESS(ExplosionComponent) = ReadWrite;
-        SYSTEM_ACCESS(HealthComponent) = ReadWrite;
+        SYSTEM_ACCESS(EC::Position) = Read;
+        SYSTEM_ACCESS(EC::Size) = Read;
+        SYSTEM_ACCESS(EC::Explosion) = ReadWrite;
+        SYSTEM_ACCESS(EC::Health) = ReadWrite;
         mustExecuteAfterStructuralChanges = true;
     }
 
     bool Query(ComponentFlags signature) const {
-        return (signature[getID<ExplosionComponent>()]);
+        return (signature[getID<EC::Explosion>()]);
     }
 
     void Update() {}
 
     void Update(ECS* ecs, ChunkMap& chunkmap) {
-        ForEach<PositionComponent, ExplosionComponent>([&](auto entity){
-            ExplosionComponent* explosion = ecs->Get<ExplosionComponent>(entity);
+        ForEach<EC::Position, EC::Explosion>([&](auto entity){
+            EC::Explosion* explosion = ecs->Get<EC::Explosion>(entity);
             float radius = explosion->radius;
-            //PositionComponent* positionComponent = ecs->Get<PositionComponent>(entity);
+            //EC::Position* positionComponent = ecs->Get<EC::Position>(entity);
             //Vec2 position = {positionComponent->x, positionComponent->y};
-            Vec2 position = *sys.GetReadOnly<PositionComponent>(entity);
+            Vec2 position = *sys.GetReadOnly<EC::Position>(entity);
             
             // search for entities to kill
             forEachEntityInRange(ecs, &chunkmap, position, radius, [&](Entity affectedEntity){
-                if (sys.entityComponents(affectedEntity.id)[getID<HealthComponent>()]) {
+                if (sys.entityComponents(affectedEntity.id)[getID<EC::Health>()]) {
                     if (affectedEntity == entity) {
                         // explosion component shouldn't affect itself
                         return 0;
                     }
 
-                    Vec2 aPos = *sys.GetReadOnly<PositionComponent>(affectedEntity);
-                    if (sys.entityComponents(affectedEntity.id)[getID<SizeComponent>()]) {
-                        auto size = sys.GetReadOnly<SizeComponent>(affectedEntity);
+                    Vec2 aPos = *sys.GetReadOnly<EC::Position>(affectedEntity);
+                    if (sys.entityComponents(affectedEntity.id)[getID<EC::Size>()]) {
+                        auto size = sys.GetReadOnly<EC::Size>(affectedEntity);
                         aPos.x += size->width/2;
                         aPos.y += size->height/2;
                     }
@@ -390,7 +396,7 @@ public:
                     if (distanceSqrd < radius*radius) {
                         // entity is in range of explosion,
                         // reduce their health
-                        sys.GetReadWrite<HealthComponent>(affectedEntity)->healthValue -= explosion->damage;
+                        sys.GetReadWrite<EC::Health>(affectedEntity)->healthValue -= explosion->damage;
                     }
                 }
                 return 0;
@@ -399,7 +405,7 @@ public:
             explosion->life--;
             if (explosion->life < 1) {
                 commandBuffer->DeferredStructuralChange([entity](ECS* ecs){
-                    ecs->Remove<COMPONENTS>(entity);
+                    ecs->Destroy(entity);
                 });
             }
         });
@@ -412,57 +418,61 @@ public:
 
     InserterSystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
-        sys.GiveAccess<InserterComponent>(Read | Write);
-        sys.GiveAccess<InventoryComponent>(Read | Write);
-        sys.GiveAccess<PositionComponent>(Read);
-        sys.GiveAccess<RotationComponent>(Read);
-        sys.GiveAccess<RotatableComponent>(Read);
+        sys.GiveAccess<EC::Inserter>(Read | Write);
+        sys.GiveAccess<EC::Inventory>(Read | Write);
+        sys.GiveAccess<EC::Position>(Read);
+        sys.GiveAccess<EC::Rotation>(Read);
+        sys.GiveAccess<EC::Rotatable>(Read);
 
         mustExecuteAfterStructuralChanges = true;
     }
 
     bool Query(ComponentFlags entitySignature) const {
         ComponentFlags need = componentSignature<
-            InserterComponent, PositionComponent, RotationComponent, RotatableComponent
+            EC::Inserter, EC::Position, EC::Rotation, EC::Rotatable
         >();
         return ((entitySignature & need) == need);
     }
 
     void Update() {
-        if (!chunkmap) {Log.Error("InserterSystem::Update Chunkmap is NULL");}
+        if (!chunkmap) {
+            Log.Error("InserterSystem::Update Chunkmap is NULL");
+            return;
+        }
 
         ForEach([&](Entity entity){
-            auto inserter = sys.GetReadWrite<InserterComponent>(entity);
+            auto inserter = sys.GetReadWrite<EC::Inserter>(entity);
             inserter->cycle++;
 
-            Vec2 position = *sys.GetReadOnly<PositionComponent>(entity); 
+            Vec2 position = *sys.GetReadOnly<EC::Position>(entity); 
             IVec2 tilePos = position.floorToIVec();
 
             // adjust for rotations
-            auto rotatable = sys.GetReadOnly<RotatableComponent>(entity);
+            auto rotatable = sys.GetReadOnly<EC::Rotatable>(entity);
             if (rotatable->rotated) {
-                float rotation = sys.GetReadOnly<RotationComponent>(entity)->degrees;
+                float rotation = sys.GetReadOnly<EC::Rotation>(entity)->degrees;
                 rotateInserter(tilePos, inserter, rotation);
             }
 
-            EntityType<> inputEntity = getTileAtPosition(*chunkmap, inserter->inputTile)->entity;
-            EntityType<> outputEntity = getTileAtPosition(*chunkmap, inserter->outputTile)->entity;
             if (inserter->cycle >= inserter->cycleLength) {
-                if (inputEntity.Exists() && outputEntity.Exists()) {
-                    if (inputEntity.Has<InventoryComponent>() && outputEntity.Has<InventoryComponent>()) {
-                    //if (sys.entityComponents(inputEntity.Unwrap().id)[getID<InventoryComponent>()] && sys.entityComponents(outputEntity.id)[getID<InventoryComponent>()]) {
-                        Inventory inputInventory = sys.GetReadWrite<InventoryComponent>(inputEntity)->inventory;
-                        Inventory outputInventory = sys.GetReadWrite<InventoryComponent>(outputEntity)->inventory;
+                Tile* inputTile = getTileAtPosition(*chunkmap, inserter->inputTile);
+                Tile* outputTile = getTileAtPosition(*chunkmap, inserter->outputTile);
+                if (inputTile && outputTile) {
+                    EntityType<> inputEntity = inputTile->entity;
+                    EntityType<> outputEntity = outputTile->entity;
+                    if (inputEntity.Has<EC::Inventory>() && outputEntity.Has<EC::Inventory>()) {
+                        Inventory inputInventory = sys.GetReadWrite<EC::Inventory>(inputEntity)->inventory;
+                        Inventory outputInventory = sys.GetReadWrite<EC::Inventory>(outputEntity)->inventory;
                         inputInventory.addItemStack(outputInventory.removeItemStack(outputInventory.firstItemStack()));
                     }
+                    inserter->cycle = 0;
                 }
-                inserter->cycle = 0;
             }
         });
     }
 
 private:
-    void rotateInserter(IVec2 tilePos, InserterComponent* inserter, float rotation) {
+    void rotateInserter(IVec2 tilePos, EC::Inserter* inserter, float rotation) {
         
         int roundedRotation = (int)round(rotation / 90) % 4;
 
@@ -500,13 +510,13 @@ class TransportSystem : public EntitySystem {
 public:
     TransportSystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
-        SYSTEM_ACCESS(TransporterEC) = Read | Write;
+        SYSTEM_ACCESS(EC::Transporter) = Read | Write;
 
         mustExecuteAfterStructuralChanges = true;
     }
 
     bool Query(ComponentFlags signature) const {
-        return signature[getID<TransporterEC>()];
+        return signature[getID<EC::Transporter>()];
     }
 
     void Update() {
@@ -519,20 +529,20 @@ public:
 class DyingSystem : public EntitySystem {
 public:
     DyingSystem(ECS* ecs) : EntitySystem(ecs) {
-        SYSTEM_ACCESS(DyingComponent) = ComponentAccess::ReadWrite;
+        SYSTEM_ACCESS(EC::Dying) = ComponentAccess::ReadWrite;
         containsStructuralChanges = true;
     }
 
     bool Query(ComponentFlags entitySignature) const {
-        return (entitySignature[getID<DyingComponent>()]);
+        return (entitySignature[getID<EC::Dying>()]);
     }
 
     void Update() {
         ForEach([&](Entity entity){
-            int* timeToRemoval = &sys.GetReadWrite<DyingComponent>(entity)->timeToRemoval;
+            int* timeToRemoval = &sys.GetReadWrite<EC::Dying>(entity)->timeToRemoval;
             (*timeToRemoval)--;
             if (*timeToRemoval < 1) {
-                DestroyEntity<COMPONENTS>(entity);
+                DestroyEntity(entity);
             }
         });
     }

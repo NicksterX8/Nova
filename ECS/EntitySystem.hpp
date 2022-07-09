@@ -155,10 +155,9 @@ public:
 
 protected:
 
-    template<class First, class... Rest>
     void DestroyEntity(Entity entity) {
         commandBuffer->DeferredStructuralChange([entity](ECS* ecs){
-            ecs->Remove<First, Rest...>(entity);
+            ecs->Destroy(entity);
         });
     }
 

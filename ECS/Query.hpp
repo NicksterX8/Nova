@@ -6,26 +6,26 @@
 #include <array>
 
 template<class... Components>
-struct ComponentList {};
+struct ComponentList {
+    constexpr static ComponentFlags signature() {
+        return componentSignature<Components...>();
+    }
 
-template<class... Components>
-constexpr ComponentFlags listSignature(ComponentList<Components...> list) {
-    return componentSignature<Components...>();
-}
+    constexpr static size_t count() {
+        return sizeof...(Components);
+    }
 
-template<class T>
-struct ComponentPoolSizePair {
-    ComponentPool<T>* pool;
-    Uint32 size;
+    using PoolArrayType = std::array<ComponentPool*, sizeof...(Components)>;
+
+    inline static PoolArrayType getPoolArray(const ECS* ecs) {
+        ComponentPool* pools[] = {0, ((void)0, ecs->manager.getPool<Components>()) ...};
+        PoolArrayType poolArray;
+        for (Uint32 i = 0; i < sizeof(pools) / sizeof(ComponentPool*) - 1; i++) {
+            poolArray[i] = pools[i+1];
+        }
+        return poolArray;
+    }
 };
-
-template<class C1, class C2>
-Uint32 minSize(const ComponentPool<C1>* pool1, const ComponentPool<C2>* pool2) {
-    Uint32 size1 = pool1->getSize();
-    Uint32 size2 = pool2->getSize();
-
-    return size1;
-}
 
 template<class... Components>
 constexpr auto componentListPoolSizes(const ECS* ecs) {
@@ -36,11 +36,6 @@ constexpr auto componentListPoolSizes(const ECS* ecs) {
         result[i] = sizes[i+1];
     }
     return result;
-}
-
-template<class... Components>
-constexpr auto componentListPoolSizes(const ECS* ecs, ComponentList<Components...> list) {
-    return componentListPoolSizes<Components...>(ecs);
 }
 
 // @param outID Pass a valid address to get filled in with the id of the component pool with the minimum size
@@ -64,28 +59,25 @@ Uint32 minimumPoolSize(const ECS* ecs, ComponentID* outID) {
     return minComponentPoolSize;
 }
 
-/*
-template<class T>
-auto maybeGetPool(const ECS* ecs, ComponentID id) {
-    if (getID<T>() == id) {
-        return ecs->manager.getPool<T>();
-    }
-
-    
-}
-*/
-
-/*
 template<class... Components>
-auto getPoolFromID(ComponentID id) {
+constexpr ComponentPool* smallestComponentPool(const ECS* ecs) {
+    if (sizeof...(Components) == 0) return NULL;
+
     constexpr ComponentID ids[] = {0, ((void)0, getID<Components>()) ...};
-    for (size_t i = 1; i < sizeof(ids) / sizeof(ComponentID); i++) {
-        if (ids[i] == id) {
-            return 
+    ComponentPool* pools[] = {0, ((void)0, ecs->manager.getPool<Components>()) ...};
+    Uint32 minSize = pools[1];
+    ComponentPool* minSizePool = pools[1];
+    for (Uint32 i = 2; i < sizeof(pools) / sizeof(ComponentPool*); i++) {
+        Uint32 poolSize = pools[i]->size();
+        if (poolSize < minSize) {
+            minSize = poolSize;
+            minSizePool = pools[i];
         }
     }
+
+    return minSizePool;
 }
-*/
+
 
 template<class... Components>
 using RequireComponents = ComponentList<Components...>;
@@ -140,7 +132,8 @@ public:
 
     template<class... Sets>
     static constexpr ComponentFlags getLogicalOrSignature(LogicalOrComponents<Sets...> _logicalORs, int index) {
-        constexpr ComponentFlags setSignatures[] = {0, ((void)0, setSignature(makeSet<Sets>())) ...};
+        constexpr ComponentFlags setSignatures[] = {0, ((void)0, Sets::signature()) ...};
+
         return setSignatures[index+1];
     }
     
@@ -148,6 +141,7 @@ public:
     // LogicalOrList logicalORs;
     // std::array<LogicalOrComponentSet, NumLogicalOrSets> logicalORs;
 
+    /*
     static constexpr ComponentFlags requiredSignature() {
         return listSignature(require);
     }
@@ -155,43 +149,47 @@ public:
     static constexpr ComponentFlags avoidedSignature() {
         return listSignature(avoid);
     }
+    */
 
     static constexpr bool check(ComponentFlags signature) {
         const size_t numLogicalORs = getNumLogicalORs(logicalORs);
 
         for (size_t i = 0; i < numLogicalORs; i++) {
             ComponentFlags logicalOrSignature = getLogicalOrSignature(logicalORs, i);
-            if (!(signature & logicalOrSignature).any()) {
+            if (signature.hasNone(logicalOrSignature)) {
                 return false;
             }
         }
 
-        return ((signature & requiredSignature()) == requiredSignature()) &&
-            !(signature & avoidedSignature()).any();
+        return (signature.hasAll(Require::signature()) && signature.hasNone(Avoid::signature()));
     }
 
 private:
     template<class... RequiredComponents, class... AvoidedComponents, class... LogicalOrComponentSets>
     static void ForEachExpanded(const ECS* ecs, 
-        EntityQuery<
+        const EntityQuery<
             RequireComponents<RequiredComponents...>,
             AvoidComponents<AvoidedComponents...>,
             LogicalOrComponents<LogicalOrComponentSets...>
         > query, std::function<void(Entity)> callback)
     {
-        constexpr ComponentID requiredIDs[] = {0, ((void)0, getID<RequiredComponents>()) ...};
-        constexpr ComponentID avoidedIDs[] = {0, ((void)0, getID<AvoidedComponents>()) ...};
+        //constexpr ComponentID requiredIDs[] = {0, ((void)0, getID<RequiredComponents>()) ...};
+        //constexpr ComponentID avoidedIDs[] = {0, ((void)0, getID<AvoidedComponents>()) ...};
 
-        const size_t numRequiredComponents = getNumRequiredComponents(require);
-        const size_t numAvoidedComponents = getNumAvoidedComponents(avoid);
-        if (numRequiredComponents > 0) {
-            // find minimum component pool size so we can search through that one
-            ComponentID minID;
-            Uint32 minSize = minimumPoolSize<RequiredComponents...>(ecs, &minID);
-            // auto startPool = getPoolFromID<RequiredComponents...>(minID);
+        //const size_t numRequiredComponents = getNumRequiredComponents(require);
+        //const size_t numAvoidedComponents = getNumAvoidedComponents(avoid);
 
-            // for (Uint32 e = 0; e < minSize; )
+        if (Require::count() > 0) {
+            // find minimum component pool size so we can search through that one, for speed
+            // Require::PoolArrayType requiredPools = Require::getPoolArray();
+            ComponentPool* smallestPool = smallestComponentPool<RequiredComponents...>(ecs);
+            for (int c = smallestPool->size()-1; c >= 0; c--) {
+                EntityID entityID = smallestPool->componentOwners[c];
+                ComponentFlags entityComponents = ecs->entityComponents(entityID);
+                if (entityComponents.hasAll(Require::signature())) {
 
+                }
+            }
         }
 
     }

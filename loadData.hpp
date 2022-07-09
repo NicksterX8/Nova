@@ -123,7 +123,13 @@ void loadItemData() {
     ItemData[SandGun] = {
         .icon = Textures.Tiles.sand,
         .flags = Usable,
-        .stackSize = 1
+        .stackSize = 1,
+        .usable = {
+            .onUse = [](){
+                Log("Hello from on use");
+                return true;
+            }
+        }
     };
 }
 

@@ -113,11 +113,11 @@ namespace Tests {
 
         ECS ecs;
         Entity ent1 = ecs.New();
-        ecs.Add<PositionComponent, GrowthComponent>(ent1);
-        PositionComponent* position = ecs.Get<PositionComponent>(ent1);
+        ecs.Add<EC::Position, EC::Growth>(ent1);
+        EC::Position* position = ecs.Get<EC::Position>(ent1);
         ecs.Remove(ent1);
 
-        fail |= (ecs.Get<PositionComponent>(ent1) != NULL);
+        fail |= (ecs.Get<EC::Position>(ent1) != NULL);
 
         return fail;
     }
@@ -127,11 +127,11 @@ namespace Tests {
 
         ECS ecs;
         Entity ent1 = ecs.New();
-        fail |= (ecs.componentPoolSize<HealthComponent>() != 0);
-        ecs.Add<HealthComponent, SizeComponent>(ent1);
-        fail |= (ecs.componentPoolSize<HealthComponent>() != 1);
+        fail |= (ecs.componentPoolSize<EC::Health>() != 0);
+        ecs.Add<EC::Health, EC::Size>(ent1);
+        fail |= (ecs.componentPoolSize<EC::Health>() != 1);
         ecs.Remove(ent1);
-        fail |= (ecs.componentPoolSize<HealthComponent>() != 0);
+        fail |= (ecs.componentPoolSize<EC::Health>() != 0);
 
         return fail;
     }
@@ -141,11 +141,11 @@ namespace Tests {
 
         ECS ecs;
         Entity ent1 = ecs.New();
-        ecs.Add<HealthComponent, SizeComponent>(ent1);
-        fail |= (ecs.componentPoolSize<SizeComponent>() != 1);
-        ecs.RemoveComponents<SizeComponent>(ent1);
-        fail |= (ecs.componentPoolSize<SizeComponent>() != 0);
-        fail |= (ecs.componentPoolSize<HealthComponent>() != 1);
+        ecs.Add<EC::Health, EC::Size>(ent1);
+        fail |= (ecs.componentPoolSize<EC::Size>() != 1);
+        ecs.RemoveComponents<EC::Size>(ent1);
+        fail |= (ecs.componentPoolSize<EC::Size>() != 0);
+        fail |= (ecs.componentPoolSize<EC::Health>() != 1);
 
         return fail;
     }
@@ -155,12 +155,12 @@ namespace Tests {
 
         ECS ecs;
         Entity ent1 = ecs.New();
-        ComponentFlags signature = componentSignature<RenderComponent, SizeComponent>();
+        ComponentFlags signature = componentSignature<EC::Render, EC::Size>();
         ecs.Add(ent1, signature);
         ecs.Remove(ent1);
-        ecs.RemoveComponents<SizeComponent>(ent1);
-        fail |= (ecs.componentPoolSize<SizeComponent>() != 0);
-        fail |= (ecs.componentPoolSize<RenderComponent>() != 0);
+        ecs.RemoveComponents<EC::Size>(ent1);
+        fail |= (ecs.componentPoolSize<EC::Size>() != 0);
+        fail |= (ecs.componentPoolSize<EC::Render>() != 0);
         fail |= (ECStest.entitySignature(&ecs, ent1) != 0);
 
         return fail;
@@ -171,12 +171,12 @@ namespace Tests {
 
         ECS ecs;
         Entity ent1 = ecs.New();
-        ComponentFlags signature = componentSignature<RenderComponent, SizeComponent>();
+        ComponentFlags signature = componentSignature<EC::Render, EC::Size>();
         ecs.Add(ent1, signature);
-        int code = ecs.RemoveComponents<MotionComponent>(ent1);
+        int code = ecs.RemoveComponents<EC::Motion>(ent1);
         fail |= (code == 0);
         fail |= (ECStest.entitySignature(&ecs, ent1) != signature);
-        code = ecs.RemoveComponents<RenderComponent, SizeComponent, ExplosionComponent>(ent1);
+        code = ecs.RemoveComponents<EC::Render, EC::Size, EC::Explosion>(ent1);
         fail |= (code == 0);
         fail |= (ECStest.entitySignature(&ecs, ent1) != 0);
 
@@ -191,7 +191,7 @@ namespace Tests {
         for (int i = 0; i < 10; i++) {
             Entity ent1 = ecs.New();
             entities[i] = ent1;
-            ComponentFlags signature = componentSignature<RenderComponent, SizeComponent>();
+            ComponentFlags signature = componentSignature<EC::Render, EC::Size>();
         }
 
         fail |= (ecs.numLiveEntities() != 10);
@@ -216,18 +216,18 @@ namespace Tests {
         for (int i = 0; i < 10; i++) {
             Entity ent1 = ecs.New();
             entities[i] = ent1;
-            ComponentFlags signature = componentSignature<RenderComponent, SizeComponent>();
+            ComponentFlags signature = componentSignature<EC::Render, EC::Size>();
             ecs.Add(ent1, signature);
         }
 
-        fail |= (ecs.componentPoolSize<RenderComponent>() != 10);
+        fail |= (ecs.componentPoolSize<EC::Render>() != 10);
 
         int code = 0;
         for (int i = 0; i < 8; i++) {
-            code |= ecs.RemoveComponents<RenderComponent>(entities[i]);
+            code |= ecs.RemoveComponents<EC::Render>(entities[i]);
         }
         
-        fail |= (ecs.componentPoolSize<RenderComponent>() != 2);
+        fail |= (ecs.componentPoolSize<EC::Render>() != 2);
 
         fail |= (code != 0);
 
@@ -249,9 +249,9 @@ namespace Tests {
             entities[i] = ent1;
             ComponentFlags signature;
             if (i%2) {
-                signature = componentSignature<RenderComponent, SizeComponent>();
+                signature = componentSignature<EC::Render, EC::Size>();
             } else {
-                signature = componentSignature<GrowthComponent, HealthComponent>();
+                signature = componentSignature<EC::Growth, EC::Health>();
             }
             
             ecs.Add(ent1, signature);
@@ -275,7 +275,7 @@ namespace Tests {
             if (ecs.entityComponents(entities[i].id) != 0) {
                 fail |= 1;
             }
-            if (ecs.entityComponents(entities[i+1].id) != componentSignature<RenderComponent, SizeComponent>()) {
+            if (ecs.entityComponents(entities[i+1].id) != componentSignature<EC::Render, EC::Size>()) {
                 fail |= 1;
             }
         }
@@ -283,7 +283,7 @@ namespace Tests {
         Entity entities2[100];
         for (int n = 0; n < 20; n++) {
             Entity entity = ecs.New();
-            ecs.Add<NametagComponent, GrowthComponent>(entity);
+            ecs.Add<EC::Nametag, EC::Growth>(entity);
             entities2[n] = entity;
         }
 
@@ -294,13 +294,13 @@ namespace Tests {
         }
 
         for (int i = 0; i < nEnts-2; i += 2) {
-            if (ecs.entityComponents(entities[i+1].id) != componentSignature<RenderComponent, SizeComponent>()) {
+            if (ecs.entityComponents(entities[i+1].id) != componentSignature<EC::Render, EC::Size>()) {
                 fail |= 1;
             }
         }
 
         for (int i = 0; i < 20; i++) {
-            if (ecs.entityComponents(entities2[i].id) != componentSignature<NametagComponent, GrowthComponent>()) {
+            if (ecs.entityComponents(entities2[i].id) != componentSignature<EC::Nametag, EC::Growth>()) {
                 fail |= 1;
             }
         }
@@ -315,12 +315,12 @@ namespace Tests {
 
         ECS ecs;
         Entity ent1 = ecs.New();
-        ComponentFlags signature = componentSignature<RenderComponent, SizeComponent>();
+        ComponentFlags signature = componentSignature<EC::Render, EC::Size>();
 
         fail |= (!(signature[2] && signature[1]));
         fail |= ((signature[0] && signature[3]));
 
-        ComponentFlags signature2 = componentSignature<PositionComponent, RenderComponent>();
+        ComponentFlags signature2 = componentSignature<EC::Position, EC::Render>();
 
         fail |= (signature2[0] != 1);
 
@@ -328,7 +328,7 @@ namespace Tests {
             fail |= 1;
         }
 
-        ComponentFlags signature3 = componentSignature<PositionComponent, RenderComponent, NametagComponent>();
+        ComponentFlags signature3 = componentSignature<EC::Position, EC::Render, EC::Nametag>();
 
         if (!((signature3 & signature2) == signature2)) {
             fail |= 1;

@@ -39,11 +39,6 @@ int EntitySystemInterface::RemoveEntityLocally(Uint32 localIndex) {
 }
 
 int EntitySystemInterface::RemoveEntity(Entity entity) {
-    if (nEntities == 0) {
-        //Log.Error("Tried to remove an entity from a system that has no entities!");
-        return -1;
-    }
-
     for (int e = nEntities-1; e >= 0; e--) {
         if (entity.id == entities[e].id) {
             RemoveEntityLocally(e);

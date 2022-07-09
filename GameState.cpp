@@ -204,11 +204,11 @@ bool pointIsOnTileEntity(const ECS* ecs, const Entity tileEntity, IVec2 tilePosi
     // if the entity doesnt have size data, assume the click was on the entity I guess,
     // since you cant do checks otherwise.
     // Kind of undecided whether the player should be able to click on an entity with no size
-    auto size = ecs->Get<SizeComponent>(tileEntity);
+    auto size = ecs->Get<EC::Size>(tileEntity);
     if (size) {
         // if there isn't a position component, assume the position is the top left corner of the tile
         Vec2 position = Vec2(tilePosition.x, tilePosition.y);
-        auto positionComponent = ecs->Get<PositionComponent>(tileEntity);
+        auto positionComponent = ecs->Get<EC::Position>(tileEntity);
         if (positionComponent) {
             position.x = positionComponent->x;
             position.y = positionComponent->y;
@@ -239,19 +239,24 @@ OptionalEntity<> findTileEntityAtPosition(const GameState* state, Vec2 position)
     return NullEntity;
 }
 
-void removeEntityOnTile(ECS* ecs, Tile* tile) {
-    if (tile->entity.Exists())
-        ecs->Remove<COMPONENTS>(tile->entity);
+bool removeEntityOnTile(ECS* ecs, Tile* tile) {
+    if (tile->entity.Exists()) {
+        ecs->Destroy(tile->entity);
+        return true;
+    }
     tile->entity = NullEntity;
+    return false;
 }
 
-void placeEntityOnTile(ECS* ecs, Tile* tile, Entity entity) {
+bool placeEntityOnTile(ECS* ecs, Tile* tile, Entity entity) {
     if (!tile->entity.Exists()) {
         tile->entity = entity;
+        return true;
     }
+    return false;
 }
 
-void forEachEntityInRange(const ECS* ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, std::function<int(EntityType<PositionComponent>)> callback) {
+void forEachEntityInRange(const ECS* ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, std::function<int(EntityType<EC::Position>)> callback) {
     int nCheckedEntities = 0;
     radius = abs(radius);
     float radiusSqrd = radius * radius;
@@ -270,10 +275,14 @@ void forEachEntityInRange(const ECS* ecs, const ChunkMap* chunkmap, Vec2 pos, fl
             }
 
             for (size_t e = 0; e < chunkdata->closeEntities.size(); e++) {
-                EntityType<PositionComponent> closeEntity = chunkdata->closeEntities[e].cast<PositionComponent>();
-                Vec2 entityCenter = *closeEntity.Get<PositionComponent>(); // this should be getting position component
-                if (closeEntity.Has<SizeComponent>()) {
-                    Vec2 halfSize = closeEntity.Get<SizeComponent>()->toVec2().scaled(0.5f);
+                EntityType<EC::Position> closeEntity = chunkdata->closeEntities[e].cast<EC::Position>();
+                if (!ecs->EntityExists(closeEntity)) {
+                    Log.Error("Entity in closeEntities is dead!");
+                    continue;
+                }
+                Vec2 entityCenter = *closeEntity.Get<EC::Position>(); // this should be getting position component
+                if (closeEntity.Has<EC::Size>()) {
+                    Vec2 halfSize = closeEntity.Get<EC::Size>()->toVec2().scaled(0.5f);
                     entityCenter += halfSize;
                     radiusSqrd += (halfSize.x * halfSize.x + halfSize.y * halfSize.y) * M_SQRT2;
                 }
@@ -291,21 +300,48 @@ void forEachEntityInRange(const ECS* ecs, const ChunkMap* chunkmap, Vec2 pos, fl
     }
 }
 
-OptionalEntity<PositionComponent, SizeComponent>
-findEntityAtPosition(const ECS* ecs, const ChunkMap* chunkmap, Vec2 position) {
-    OptionalEntity<PositionComponent, SizeComponent> foundEntity;
-    forEachEntityInRange(ecs, chunkmap, position, M_SQRT2, [&](EntityType<PositionComponent> entity){
-        if (entity.Has<SizeComponent>()) {
-            Vec2 entityPos = *ecs->Get<PositionComponent>(entity);
-            Vec2 size = ecs->Get<SizeComponent>(entity)->toVec2();
-            if (entity.Has<CenteredRenderFlagComponent>()) {
-                position -= size.scaled(0.5f);
+void forEachEntityNearPoint(const ECS* ecs, const ChunkMap* chunkmap, Vec2 point, std::function<int(EntityType<EC::Position>)> callback) {
+    IVec2 chunkPos = tileToChunkPosition(point);
+    const ChunkData* chunkdata = chunkmap->getChunkData(chunkPos);
+    if (!chunkdata) {
+        // entities can't be in non-existent chunks
+        return;
+    }
+
+    for (size_t e = 0; e < chunkdata->closeEntities.size(); e++) {
+        EntityType<EC::Position> closeEntity = chunkdata->closeEntities[e].cast<EC::Position>();
+        if (callback(closeEntity)) {
+            return;
+        }
+    }
+}
+
+void forEachChunkContainingBounds(const ChunkMap* chunkmap, Vec2 position, Vec2 size, std::function<void(ChunkData*)> callback) {
+    IVec2 minChunkPosition = tileToChunkPosition(position - size.scaled(0.5f));
+    IVec2 maxChunkPosition = tileToChunkPosition(position + size.scaled(0.5f));
+    for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
+        for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
+            IVec2 chunkPosition = {col, row};
+            ChunkData* chunkdata = chunkmap->getChunkData(chunkPosition);
+            if (chunkdata) {
+                callback(chunkdata);
             }
+        }
+    }
+}
+
+OptionalEntity<EC::Position, EC::Size>
+findFirstEntityAtPosition(const ECS* ecs, const ChunkMap* chunkmap, Vec2 position) {
+    OptionalEntity<EC::Position, EC::Size> foundEntity;
+    forEachEntityNearPoint(ecs, chunkmap, position, [&](EntityType<EC::Position> entity){
+        if (entity.Has<EC::Size>()) {
+            Vec2 entityPos = *ecs->Get<EC::Position>(entity);
+            Vec2 size = ecs->Get<EC::Size>(entity)->toVec2();
             if (
               position.x > entityPos.x && position.x < entityPos.x + size.x &&
               position.y > entityPos.y && position.y < entityPos.y + size.y) {
                 // player is targeting this entity
-                foundEntity = entity.cast<PositionComponent, SizeComponent>();
+                foundEntity = entity.cast<EC::Position, EC::Size>();
                 return 1;
             }
         }
@@ -313,4 +349,228 @@ findEntityAtPosition(const ECS* ecs, const ChunkMap* chunkmap, Vec2 position) {
     });
 
     return foundEntity;
+}
+
+
+
+OptionalEntity<EC::Position>
+findClosestEntityToPosition(const ECS* ecs, const ChunkMap* chunkmap, Vec2 position) {
+    EntityType<EC::Position> closestEntity = NullEntity;
+    float closestDistSqrd = INFINITY;
+    forEachEntityNearPoint(ecs, chunkmap, position, [&](EntityType<EC::Position> entity){
+        Vec2 entityPos = *ecs->Get<EC::Position>(entity);
+        Vec2 delta = entityPos - position;
+        float entityDistSqrd = delta.distSqrd();
+        if (entityDistSqrd < closestDistSqrd) {
+            closestEntity = entity;
+            closestDistSqrd = entityDistSqrd;
+        }
+        return 0;
+    });
+
+    return closestEntity;
+}
+
+bool pointInsideEntityBounds(Vec2 point, const EntityType<EC::Position, EC::Size> entity) {
+    entity.debugAssertType();
+
+    Vec2 entityPosition = entity.Get<EC::Position>()->vec2();
+    Vec2 entitySize = entity.Get<EC::Size>()->toVec2();
+
+    Vec2 minEntityPos = entityPosition - entitySize.scaled(0.5f);
+    Vec2 maxEntityPos = entityPosition + entitySize.scaled(0.5f);
+
+    if (point.x > minEntityPos.x && point.x < maxEntityPos.x &&
+        point.y > minEntityPos.y && point.y < maxEntityPos.y) {
+        
+        return true;
+    }
+    return false;
+}
+
+void entityCreated(GameState* state, Entity entity) {
+    Vec2 entityPos = state->ecs.Get<EC::Position>(entity)->vec2();
+    Vec2 entitySize = state->ecs.Get<EC::Size>(entity)->toVec2();
+    forEachChunkContainingBounds(&state->chunkmap, entityPos, entitySize, [&](ChunkData* chunkdata){
+        chunkdata->closeEntities.push_back(entity);
+    });
+}
+
+void entitySizeChanged(ChunkMap* chunkmap, const ECS* ecs, EntityType<EC::Position, EC::Size> entity, Vec2 oldSize) {
+    Vec2 newSize = ecs->Get<EC::Size>(entity)->toVec2();
+    if (oldSize.x == newSize.x && oldSize.y == newSize.y) {
+        return;
+    }
+    Vec2 pos = ecs->Get<EC::Position>(entity)->vec2();
+    IVec2 oldMinChunkPosition = tileToChunkPosition(pos - oldSize.scaled(0.5f));
+    IVec2 oldMaxChunkPosition = tileToChunkPosition(pos + oldSize.scaled(0.5f));
+    IVec2 newMinChunkPosition = tileToChunkPosition(pos - newSize.scaled(0.5f));
+    IVec2 newMaxChunkPosition = tileToChunkPosition(pos + newSize.scaled(0.5f));
+    IVec2 minChunkPosition = {
+        (oldMinChunkPosition.x < newMinChunkPosition.x) ? oldMaxChunkPosition.x : newMaxChunkPosition.x,
+        (oldMinChunkPosition.y < newMinChunkPosition.y) ? oldMaxChunkPosition.y : newMaxChunkPosition.y
+    };
+    IVec2 maxChunkPosition = {
+        (oldMaxChunkPosition.x < newMaxChunkPosition.x) ? oldMaxChunkPosition.x : newMaxChunkPosition.x,
+        (oldMaxChunkPosition.y < newMaxChunkPosition.y) ? oldMaxChunkPosition.y : newMaxChunkPosition.y
+    };
+    for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
+        for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
+            IVec2 chunkPosition = {col, row};
+
+            bool inNewArea = (chunkPosition.x >= newMinChunkPosition.x && chunkPosition.y >= newMinChunkPosition.y &&
+                chunkPosition.x <= newMaxChunkPosition.x && chunkPosition.y <= newMaxChunkPosition.y);
+            
+            bool inOldArea = (chunkPosition.x >= oldMinChunkPosition.x && chunkPosition.y >= oldMinChunkPosition.y &&
+                chunkPosition.x <= oldMaxChunkPosition.x && chunkPosition.y <= oldMaxChunkPosition.y);
+
+            if (inNewArea && !inOldArea) {
+                // add entity to new chunk
+                ChunkData* newChunkdata = chunkmap->getChunkData(chunkPosition);
+                if (newChunkdata) {
+                    newChunkdata->closeEntities.push_back(entity);
+                }
+            }
+
+            if (inOldArea && !inNewArea) {
+                // remove entity from old chunk
+                ChunkData* oldChunkdata = chunkmap->getChunkData(chunkPosition);
+                if (oldChunkdata) {
+                    for (unsigned int e = 0; e < oldChunkdata->closeEntities.size(); e++) {
+                        // TODO: try implementing binary search with sorting for faster removal
+                        if (oldChunkdata->closeEntities[e].id == entity.id)
+                            oldChunkdata->closeEntities.erase(oldChunkdata->closeEntities.begin() + e);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void entityPositionChanged(ChunkMap* chunkmap, const ECS* ecs, EntityType<EC::Position> entity, Vec2 oldPos) {
+    Vec2 newPos = ecs->Get<EC::Position>(entity)->vec2();
+    if (oldPos.x == newPos.x && oldPos.y == newPos.y) {
+        return;
+    }
+
+    if (ecs->EntityHas<EC::Size>(entity)) {
+        Vec2 size = ecs->Get<EC::Size>(entity)->toVec2();
+        IVec2 oldMinChunkPosition = tileToChunkPosition(oldPos - size.scaled(0.5f));
+        IVec2 oldMaxChunkPosition = tileToChunkPosition(oldPos + size.scaled(0.5f));
+        IVec2 newMinChunkPosition = tileToChunkPosition(newPos - size.scaled(0.5f));
+        IVec2 newMaxChunkPosition = tileToChunkPosition(newPos + size.scaled(0.5f));
+        IVec2 minChunkPosition = {
+            (oldMinChunkPosition.x < newMinChunkPosition.x) ? oldMaxChunkPosition.x : newMaxChunkPosition.x,
+            (oldMinChunkPosition.y < newMinChunkPosition.y) ? oldMaxChunkPosition.y : newMaxChunkPosition.y
+        };
+        IVec2 maxChunkPosition = {
+            (oldMaxChunkPosition.x > newMaxChunkPosition.x) ? oldMaxChunkPosition.x : newMaxChunkPosition.x,
+            (oldMaxChunkPosition.y > newMaxChunkPosition.y) ? oldMaxChunkPosition.y : newMaxChunkPosition.y
+        };
+        for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
+            for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
+                IVec2 chunkPosition = {col, row};
+
+                bool inNewArea = (chunkPosition.x >= newMinChunkPosition.x && chunkPosition.y >= newMinChunkPosition.y &&
+                  chunkPosition.x <= newMaxChunkPosition.x && chunkPosition.y <= newMaxChunkPosition.y);
+                
+                bool inOldArea = (chunkPosition.x >= oldMinChunkPosition.x && chunkPosition.y >= oldMinChunkPosition.y &&
+                  chunkPosition.x <= oldMaxChunkPosition.x && chunkPosition.y <= oldMaxChunkPosition.y);
+
+                if (inNewArea && !inOldArea) {
+                    // add entity to new chunk
+                    ChunkData* newChunkdata = chunkmap->getChunkData(chunkPosition);
+                    if (newChunkdata) {
+                        newChunkdata->closeEntities.push_back(entity);
+                    }
+                }
+
+                if (inOldArea && !inNewArea) {
+                    // remove entity from old chunk
+                    ChunkData* oldChunkdata = chunkmap->getChunkData(chunkPosition);
+                    if (oldChunkdata) {
+                        for (unsigned int e = 0; e < oldChunkdata->closeEntities.size(); e++) {
+                            // TODO: try implementing binary search with sorting for faster removal
+                            if (oldChunkdata->closeEntities[e].id == entity.id)
+                                oldChunkdata->closeEntities.erase(oldChunkdata->closeEntities.begin() + e);
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        IVec2 oldChunkPosition = tileToChunkPosition(oldPos);
+        IVec2 newChunkPosition = tileToChunkPosition(newPos);
+        if (oldChunkPosition != newChunkPosition) {
+            // add entity to new chunk
+            ChunkData* newChunkdata = chunkmap->getChunkData(newChunkPosition);
+            if (newChunkdata) {
+                newChunkdata->closeEntities.push_back(entity);
+            }
+            // remove entity from old chunk
+            ChunkData* oldChunkdata = chunkmap->getChunkData(oldChunkPosition);
+            if (oldChunkdata) {
+                for (unsigned int e = 0; e < oldChunkdata->closeEntities.size(); e++) {
+                    // TODO: try implementing binary search with sorting for faster removal
+                    if (oldChunkdata->closeEntities[e].id == entity.id)
+                        oldChunkdata->closeEntities.erase(oldChunkdata->closeEntities.begin() + e);
+                }
+            }
+        }
+    }
+}
+
+void entityPositionAndSizeChanged(ChunkMap* chunkmap, const ECS* ecs, EntityType<EC::Position, EC::Size> entity, Vec2 oldPos, Vec2 oldSize) {
+    Vec2 newPos = ecs->Get<EC::Position>(entity)->vec2();
+    Vec2 newSize = ecs->Get<EC::Size>(entity)->toVec2();
+    if (oldPos.x == newPos.x && oldPos.y == newPos.y) {
+        return;
+    }
+    if (oldSize.x == newSize.x && oldSize.y == newSize.y) {
+        return;
+    }
+
+    IVec2 oldMinChunkPosition = tileToChunkPosition(oldPos - oldSize.scaled(0.5f));
+    IVec2 oldMaxChunkPosition = tileToChunkPosition(oldPos + oldSize.scaled(0.5f));
+    IVec2 newMinChunkPosition = tileToChunkPosition(newPos - newSize.scaled(0.5f));
+    IVec2 newMaxChunkPosition = tileToChunkPosition(newPos + newSize.scaled(0.5f));
+    IVec2 minChunkPosition = {
+        (oldMinChunkPosition.x < newMinChunkPosition.x) ? oldMaxChunkPosition.x : newMaxChunkPosition.x,
+        (oldMinChunkPosition.y < newMinChunkPosition.y) ? oldMaxChunkPosition.y : newMaxChunkPosition.y
+    };
+    IVec2 maxChunkPosition = {
+        (oldMaxChunkPosition.x > newMaxChunkPosition.x) ? oldMaxChunkPosition.x : newMaxChunkPosition.x,
+        (oldMaxChunkPosition.y > newMaxChunkPosition.y) ? oldMaxChunkPosition.y : newMaxChunkPosition.y
+    };
+    for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
+        for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
+            IVec2 chunkPosition = {col, row};
+
+            bool inNewArea = (chunkPosition.x >= newMinChunkPosition.x && chunkPosition.y >= newMinChunkPosition.y &&
+                chunkPosition.x <= newMaxChunkPosition.x && chunkPosition.y <= newMaxChunkPosition.y);
+            
+            bool inOldArea = (chunkPosition.x >= oldMinChunkPosition.x && chunkPosition.y >= oldMinChunkPosition.y &&
+                chunkPosition.x <= oldMaxChunkPosition.x && chunkPosition.y <= oldMaxChunkPosition.y);
+
+            if (inNewArea && !inOldArea) {
+                // add entity to new chunk
+                ChunkData* newChunkdata = chunkmap->getChunkData(chunkPosition);
+                if (newChunkdata) {
+                    newChunkdata->closeEntities.push_back(entity);
+                }
+            }
+
+            if (inOldArea && !inNewArea) {
+                // remove entity from old chunk
+                ChunkData* oldChunkdata = chunkmap->getChunkData(chunkPosition);
+                if (oldChunkdata) {
+                    for (unsigned int e = 0; e < oldChunkdata->closeEntities.size(); e++) {
+                        // TODO: try implementing binary search with sorting for faster removal
+                        if (oldChunkdata->closeEntities[e].id == entity.id)
+                            oldChunkdata->closeEntities.erase(oldChunkdata->closeEntities.begin() + e);
+                    }
+                }
+            }
+        }
+    }
 }

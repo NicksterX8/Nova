@@ -12,7 +12,7 @@
 
 inline Entity createEntity(ECS* ecs, const char* type) {
     Entity entity = ecs->New();
-    ecs->Add<EntityTypeComponent>(entity, {type});
+    ecs->Add<EC::EntityTypeEC>(entity, {type});
     return entity;
 }
 
@@ -26,18 +26,18 @@ Entity replicateEntityOfType(ECS* ecs, const char* type, Entity entity) {
 
 namespace Entities {
 
-    using BushType = EntityType<PositionComponent, SizeComponent, RenderComponent>;
+    using BushType = EntityType<EC::Position, EC::Size, EC::Render>;
     class Bush : public BushType {
     public:
-        // using Prototype = EntityType<SizeComponent, RenderComponent>;
+        // using Prototype = EntityType<EC::Size, EC::Render>;
 
         void AddPrototype(ECS* ecs) {
-            Add<SizeComponent>({1, 1});
-            Add<RenderComponent>(RenderComponent(Textures.tree, RenderLayer::Trees));
+            Add<EC::Size>({1, 1});
+            Add<EC::Render>(EC::Render(Textures.tree, RenderLayer::Trees));
         }
 
         void AddDynamic(ECS* ecs, Vec2 position) {
-            Add<PositionComponent>(position);
+            Add<EC::Position>(position);
         }
 
         Bush(ECS* ecs, Vec2 position) : BushType(ecs) {
@@ -48,22 +48,22 @@ namespace Entities {
     };
 
     using ExplosiveType = EntityType<
-        PositionComponent, SizeComponent, ExplosiveComponent, RenderComponent, RotationComponent
+        EC::Position, EC::Size, EC::Explosive, EC::Render, EC::Rotation
     >;
     class Explosive : public ExplosiveType {
     public:
-        Explosive(ECS* ecs, Vec2 position, Vec2 size, SDL_Texture* texture, ExplosionComponent* explosion, float startRotation = 0.0f) : ExplosiveType(ecs) {
+        Explosive(ECS* ecs, Vec2 position, Vec2 size, SDL_Texture* texture, EC::Explosion* explosion, float startRotation = 0.0f) : ExplosiveType(ecs) {
             *this = ecs->New().castType<Explosive>();
 
-            Add<PositionComponent>(position);
-            Add<SizeComponent>({size.x, size.y});
-            Add<ExplosiveComponent>(ExplosiveComponent(explosion));
-            Add<RenderComponent>(RenderComponent(texture, RenderLayer::Particles));
-            Add<RotationComponent>({startRotation});
+            Add<EC::Position>(position);
+            Add<EC::Size>({size.x, size.y});
+            Add<EC::Explosive>(EC::Explosive(explosion));
+            Add<EC::Render>(EC::Render(texture, RenderLayer::Particles));
+            Add<EC::Rotation>({startRotation});
         }
 
         //void init(Explosive explosive) {
-        //    explosive.Get<RenderComponent>()->texture = Textures.grenade;
+        //    explosive.Get<EC::Render>()->texture = Textures.grenade;
         //}
     };
 
@@ -78,60 +78,60 @@ namespace Entities {
 
     Entity Tree(ECS* ecs, Vec2 position, Vec2 size);
 
-    Entity Chest(ECS* ecs, Vec2 position, int size, int width, int height);
+    Entity Chest(ECS* ecs, Vec2 position, int inventorySize, int width, int height);
 
-    Entity Particle(ECS* ecs, Vec2 position, Vec2 size, RenderComponent render, MotionComponent motion);
+    Entity Particle(ECS* ecs, Vec2 position, Vec2 size, EC::Render render, EC::Motion motion);
 
     Entity Inserter(ECS* ecs, Vec2 position, int reach, IVec2 inputTile, IVec2 outputTile);
 
     Entity Random(ECS* ecs);
 
-    Entity Enemy(ECS* ecs, Vec2 position, EntityType<PositionComponent> following);
+    Entity Enemy(ECS* ecs, Vec2 position, EntityType<EC::Position> following);
 
     #define TEST_ENTITY_COMPONENTS {static bool test = assertType();}
 
     /*
     namespace Player {
         using Type = EntityType<
-            HealthComponent, NametagComponent,
-            RotationComponent, SizeComponent, InventoryComponent,
-            RenderComponent, PositionComponent,
-            ImmortalEC
+            EC::Health, EC::Nametag,
+            EC::Rotation, EC::Size, EC::Inventory,
+            EC::Render, EC::Position,
+            EC::Immortal
         >;
 
         Type Construct(ECS* ecs, Vec2 position) {
             Type e = createEntity(ecs, "player");
-            e.Add<PositionComponent>(position);
-            e.Add<HealthComponent>({1000});
-            e.Add<RotationComponent>({0.0f});
-            e.Add<SizeComponent>({0.8f, 0.8f});
+            e.Add<EC::Position>(position);
+            e.Add<EC::Health>({1000});
+            e.Add<EC::Rotation>({0.0f});
+            e.Add<EC::Size>({0.8f, 0.8f});
             Inventory inventory = Inventory(PLAYER_INVENTORY_SIZE);
-            e.Add<InventoryComponent>({inventory});
-            e.Add<RenderComponent>({Textures.player, RenderLayer::Player});
-            e.Add<ImmortalEC>();
+            e.Add<EC::Inventory>({inventory});
+            e.Add<EC::Render>({Textures.player, RenderLayer::Player});
+            e.Add<EC::Immortal>();
             return e;
         }
     }*/
 
     using PlayerType = EntityType<
-        HealthComponent, NametagComponent,
-        RotationComponent, SizeComponent, InventoryComponent,
-        RenderComponent, PositionComponent,
-        ImmortalEC
+        EC::Health, EC::Nametag,
+        EC::Rotation, EC::Size, EC::Inventory,
+        EC::Render, EC::Position,
+        EC::Immortal
     >;
 
     struct Player : public PlayerType {
         using PlayerType::PlayerType;
         Player(ECS* ecs, Vec2 position) : PlayerType(ecs) {
-            Add<PositionComponent>(position);
-            Add<HealthComponent>({1000});
-            Add<NametagComponent>(NametagComponent("Player", ""));
-            Add<RotationComponent>({0.0f});
-            Add<SizeComponent>({0.8f, 0.8f});
+            Add<EC::Position>(position);
+            Add<EC::Health>({1000});
+            Add<EC::Nametag>(EC::Nametag("Player", ""));
+            Add<EC::Rotation>({0.0f});
+            Add<EC::Size>({0.8f, 0.8f});
             Inventory inventory = Inventory(PLAYER_INVENTORY_SIZE);
-            Add<InventoryComponent>({inventory});
-            Add<RenderComponent>({Textures.player, RenderLayer::Player});
-            Add<ImmortalEC>();
+            Add<EC::Inventory>({inventory});
+            Add<EC::Render>({Textures.player, RenderLayer::Player});
+            Add<EC::Immortal>();
 
             TEST_ENTITY_COMPONENTS;
         }
@@ -157,7 +157,7 @@ namespace Entities {
         struct name : typename {\
         DECL_CTOR(name, typename)
 
-    DECL_ENTITY(MyEntity2, (EntityType<RenderComponent, PositionComponent>), MyEntity2Type)
+    DECL_ENTITY(MyEntity2, (EntityType<EC::Render, EC::Position>), MyEntity2Type)
         MyEntity2(ECS* ecs) : MyEntity2Type(ecs) {
 
         }
@@ -165,56 +165,56 @@ namespace Entities {
     */
 
     using ItemStackType = EntityType<
-        PositionComponent, SizeComponent, RenderComponent
+        EC::Position, EC::Size, EC::Render
     >;
     class ItemStack : public ItemStackType {
     public:
         ItemStack(ECS* ecs, Vec2 position, ::ItemStack item) : ItemStackType(ecs) {
             *this = ecs->New().castType<ItemStack>();
 
-            Add<PositionComponent>(position);
-            Add<SizeComponent>({0.5f, 0.5f});
-            Add<ItemStackComponent>(::ItemStack(item));
-            Add<GrabableEC>();
-            Add<RenderComponent>(RenderComponent(ItemData[item.item].icon, RenderLayer::Items));
+            Add<EC::Position>(position);
+            Add<EC::Size>({0.5f, 0.5f});
+            Add<EC::ItemStack>(::ItemStack(item));
+            Add<EC::Grabable>();
+            Add<EC::Render>(EC::Render(ItemData[item.item].icon, RenderLayer::Items));
         }
     };
 
     using TransportBeltType = EntityType<
-        HealthComponent, RotationComponent, RotatableComponent,
-        RenderComponent, PositionComponent, SizeComponent
+        EC::Health, EC::Rotation, EC::Rotatable,
+        EC::Render, EC::Position, EC::Size
     >;
 
     class TransportBelt : public TransportBeltType {
     public:
         TransportBelt(ECS* ecs, Vec2 position) : TransportBeltType(ecs) {
-            Add<HealthComponent>({100.0f});
-            Add<PositionComponent>(position);
-            Add<SizeComponent>({1.0f, 1.0f});
-            Add<RenderComponent>(RenderComponent(Textures.inserter, RenderLayer::Buildings));
-            Add<RotationComponent>({0.0f});
-            Add<RotatableComponent>(RotatableComponent(0.0f, 90.0f));
-            Add<TransporterEC>({0.15f});
+            Add<EC::Health>({100.0f});
+            Add<EC::Position>(position);
+            Add<EC::Size>({1.0f, 1.0f});
+            Add<EC::Render>(EC::Render(Textures.inserter, RenderLayer::Buildings));
+            Add<EC::Rotation>({0.0f});
+            Add<EC::Rotatable>(EC::Rotatable(0.0f, 90.0f));
+            Add<EC::Transporter>({0.15f});
         }
     };
 
     /*
-    #define PlayerEntityComponents HealthComponent, NametagComponent, \
-            RotationComponent, SizeComponent, InventoryComponent, \
-            RenderComponent, FollowComponent, PositionComponent, \
+    #define PlayerEntityComponents EC::Health, EC::Nametag, \
+            EC::Rotation, EC::Size, EC::Inventory, \
+            EC::Render, EC::Follow, EC::Position, \
             CenteredRenderFlagComponent
     
     using PlayerEntity = EntityType<PlayerEntityComponents>;
     PlayerEntity Player(ECS* ecs, Vec2 position);
     */
 
-    #define ZombieEntityComponents HealthComponent, NametagComponent, \
-            RotationComponent, SizeComponent, InventoryComponent, \
-            RenderComponent, FollowComponent, PositionComponent, \
-            FollowComponent
+    #define ZombieEntityComponents EC::Health, EC::Nametag, \
+            EC::Rotation, EC::Size, EC::Inventory, \
+            EC::Render, EC::Follow, EC::Position, \
+            EC::Follow
     
     using ZombieEntity = EntityType<ZombieEntityComponents>;
-    ZombieEntity Zombie(ECS* ecs, Vec2 position, EntityType<PositionComponent> following);
+    ZombieEntity Zombie(ECS* ecs, Vec2 position, EntityType<EC::Position> following);
 
 }
 
