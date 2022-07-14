@@ -21,10 +21,10 @@
 #include "ComponentPool.hpp"
 #include "../ComponentMetadata/component.hpp"
 
-namespace Tests {
-    class ECSTest;
-}
 
+namespace ECS {
+
+/*
 class ECS {
 public:
     EntityManager manager;
@@ -83,11 +83,6 @@ public:
 
     Component* Get(Entity entity, ComponentID component) const;
 
-    template<class T>
-    inline void iterateComponents(std::function<void(T&)> callback) const {
-        manager.iterateComponents<T>(callback);
-    }
-
 private:
     void entitySignatureChanged(_Entity entity, ComponentFlags oldSignature);
 public:
@@ -132,19 +127,19 @@ public:
         return result;
     }
 
-    /*
+    /
     inline int RemoveComponents(Entity entity, ComponentFlags signature) {
         int result = manager.RemoveComponents(entity, signature);
         entitySignatureChanged(entity);
         return result;
     }
-    */
+    /
 
-    /*
+    /
     * Scheduling removes isn't necessary at this time, but it might be needed in the future
     * OK it is useful for actually plowing through components instead of stopping and removing entities,
     * you can just schedule them to go all at once
-    */
+    /
     
     void ScheduleRemove(_Entity entity);
 
@@ -274,6 +269,9 @@ template<class... Components>
 _EntityType<Components...>& assertCastEntityType(_Entity entity, ECS* ecs) {
     assertEntityType(entity, ecs);
     return entity.castType<_EntityType<Components...>>();
+}
+*/
+
 }
 
 #endif

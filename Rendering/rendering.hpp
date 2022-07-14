@@ -42,11 +42,11 @@ int drawWorld(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, 
     
     for (int x = minChunkPos.x; x <= maxChunkPos.x; x++) {
         for (int y = minChunkPos.y; y <= maxChunkPos.y; y++) {
-            const Chunk* chunk = state->chunkmap.getChunk({x, y});
-            if (!chunk) {
+            const ChunkData* chunkdata = state->chunkmap.getChunkData({x, y});
+            if (!chunkdata) {
                 ChunkData* newChunk = state->chunkmap.createChunk({x, y});
                 generateChunk(newChunk->chunk);
-                chunk = newChunk->chunk;
+                chunkdata = newChunk;
             }
 
             Vec2 screenDst = gameViewport->worldToPixelPositionF(Vec2(x * CHUNKSIZE, y * CHUNKSIZE));
@@ -59,23 +59,44 @@ int drawWorld(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, 
             
             // When zoomed out far, simplify rendering for better performance and less distraction
             if (TileWidth < 10.0f) {
-                Draw::simpleChunk(chunk, ren, destination);
+                Draw::simpleChunk(chunkdata->chunk, ren, destination);
             } else {
-                Draw::chunkExp(chunk, ren, scale, destination);
+                Draw::chunkExp(chunkdata->chunk, ren, scale, destination);
                 // draw chunk coordinates
                 if (Debug->settings.drawChunkCoordinates) {
                     FC_DrawScale(FreeSans, ren, destination.x + 3*scale, destination.y + 2*scale, FC_MakeScale(0.5f,0.5f),
                     "%d, %d", x * CHUNKSIZE, y * CHUNKSIZE);
-                }    
+                }
+
+                if (Debug->settings.drawChunkEntityCount) {
+                    FC_DrawScale(FreeSans, ren, destination.x + destination.w/2.0f, destination.y + destination.h/2.0f, FC_MakeScale(0.5f,0.5f),
+                    "%llu", chunkdata->closeEntities.size());
+                }
             }
 
         }
     }
 
+    /*
     auto renderSystem = state->ecs.System<SimpleRectRenderSystem>();
     renderSystem->scale = scale;
     renderSystem->renderer = ren;
     renderSystem->Update();
+    */
+
+    auto renderSystem = SimpleRectRenderSystem(ren, gameViewport);
+    renderSystem.scale = scale;
+    renderSystem.Update(state->ecs);
+
+    using RenderSystemQuery = ECS::EntityQuery<
+        ECS::RequireComponents<EC::Render, EC::Position, EC::Size>,
+        ECS::AvoidComponents<>,
+        ECS::LogicalOrComponents<>
+    >;
+
+    state->ecs.ForEach<RenderSystemQuery>([&](Entity entity){
+        //Log("entity");
+    });
     
     //if (Metadata.ticks() % 30 == 0)
     //    Log("rendered %d entities", nRenderedEntities);
@@ -108,9 +129,9 @@ void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport*
     // only draw tile marker if mouse is actually on the world, not on the GUI
     if (!gui->pointInArea({(int)screenPos.x, (int)screenPos.y})) {
         OptionalEntity<> targetedEntity = state->player.selectedEntity;
-        if (targetedEntity.Exists()) {
-            if (targetedEntity.Has<EC::Render>()) {
-                SDL_FRect entityRect = targetedEntity.Get<EC::Render>()->destination;
+        if (targetedEntity.Exists(&state->ecs)) {
+            if (targetedEntity.Has<EC::Render>(&state->ecs)) {
+                SDL_FRect entityRect = targetedEntity.Get<EC::Render>(&state->ecs)->destination;
                 SDL_SetRenderDrawColor(ren, 0, 255, 255, 255);
                 Draw::thickRect(ren, &entityRect, round(scale * 2));
             }
@@ -137,7 +158,7 @@ void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport*
             */
             auto focusedEntity = findPlayerFocusedEntity(&state->ecs, state->chunkmap, playerTargetPos);
             if (focusedEntity != NullEntity) {
-                SDL_FRect* entityRect = &focusedEntity.Get<EC::Render>()->destination;
+                SDL_FRect* entityRect = &focusedEntity.Get<EC::Render>(&state->ecs)->destination;
                 SDL_SetRenderDrawColor(ren, 0, 255, 255, 255);
                 Draw::thickRect(ren, entityRect, round(scale * 2));
             }

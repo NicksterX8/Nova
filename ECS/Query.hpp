@@ -5,67 +5,29 @@
 #include "ECS.hpp"
 #include <array>
 
-template<class... Components>
-struct ComponentList {
-    constexpr static ComponentFlags signature() {
-        return componentSignature<Components...>();
-    }
+namespace ECS {
 
-    constexpr static size_t count() {
-        return sizeof...(Components);
-    }
-
-    using PoolArrayType = std::array<ComponentPool*, sizeof...(Components)>;
-
-    inline static PoolArrayType getPoolArray(const ECS* ecs) {
-        ComponentPool* pools[] = {0, ((void)0, ecs->manager.getPool<Components>()) ...};
-        PoolArrayType poolArray;
-        for (Uint32 i = 0; i < sizeof(pools) / sizeof(ComponentPool*) - 1; i++) {
-            poolArray[i] = pools[i+1];
-        }
-        return poolArray;
+template<class... Types>
+struct TypeList {
+    constexpr static size_t size() {
+        return sizeof...(Types);
     }
 };
 
 template<class... Components>
-constexpr auto componentListPoolSizes(const ECS* ecs) {
-    Uint32 sizes[] = {0, ((void)0, ecs->componentPoolSize<Components>()) ...};
-
-    std::array<Uint32, sizeof...(Components)> result;
-    for (size_t i = 0; i < sizeof...(Components); i++) {
-        result[i] = sizes[i+1];
+struct ComponentList : public TypeList<Components...> {
+    constexpr static ComponentFlags signature() {
+        return componentSignature<Components...>();
     }
-    return result;
-}
-
-// @param outID Pass a valid address to get filled in with the id of the component pool with the minimum size
-template<class... Components>
-Uint32 minimumPoolSize(const ECS* ecs, ComponentID* outID) {
-    if (sizeof...(Components) == 0) return 0;
-
-    constexpr ComponentID ids[] = {0, ((void)0, getID<Components>()) ...};
-    auto componentPoolSizes = componentListPoolSizes<Components...>(ecs);
-    Uint32 minComponentPoolSize = componentPoolSizes[0];
-    ComponentID minComponentPoolId = ids[1];
-    // array starts at index one due to dummy 0 used in parameter unpacking
-    for (size_t i = 1; i < sizeof(ids) / sizeof(ComponentID); i++) {
-        if (componentPoolSizes[i] < minComponentPoolSize) {
-            minComponentPoolSize = componentPoolSizes[i];
-            minComponentPoolId = ids[i];
-        }
-    }
-
-    if (outID) *outID = minComponentPoolId;
-    return minComponentPoolSize;
-}
+};
 
 template<class... Components>
-constexpr ComponentPool* smallestComponentPool(const ECS* ecs) {
+constexpr ComponentPool* smallestComponentPool(const EntityManager* em) {
     if (sizeof...(Components) == 0) return NULL;
 
     constexpr ComponentID ids[] = {0, ((void)0, getID<Components>()) ...};
-    ComponentPool* pools[] = {0, ((void)0, ecs->manager.getPool<Components>()) ...};
-    Uint32 minSize = pools[1];
+    ComponentPool* pools[] = {0, ((void)0, em->getPool<Components>()) ...};
+    Uint32 minSize = pools[1]->size();
     ComponentPool* minSizePool = pools[1];
     for (Uint32 i = 2; i < sizeof(pools) / sizeof(ComponentPool*); i++) {
         Uint32 poolSize = pools[i]->size();
@@ -80,7 +42,12 @@ constexpr ComponentPool* smallestComponentPool(const ECS* ecs) {
 
 
 template<class... Components>
-using RequireComponents = ComponentList<Components...>;
+class RequireComponents : public ComponentList<Components...> {
+public:
+    static inline ComponentPool* smallestPool(const EntityManager* em) {
+        return smallestComponentPool<Components...>(em);
+    }
+};
 
 template<class... Components>
 using AvoidComponents = ComponentList<Components...>;
@@ -89,18 +56,18 @@ template<class... Components>
 using LogicalOrComponentSet = ComponentList<Components...>;
 
 template<class... Sets>
-struct LogicalOrComponents {};
+struct LogicalOrComponents : public TypeList<Sets...> {};
 
-//template<class... Sets>
-//using LogicalORComponents = LogicalOrComponentSet<Components...>;
-
-template<class Require, class Avoid, class LogicalORs>
+template<class Require, class Avoid=AvoidComponents<>, class LogicalORs=LogicalOrComponents<>>
 struct EntityQuery {
     using Self = EntityQuery<Require, Avoid, LogicalORs>;
     static constexpr Require require = {};
+    using Required = Require;
     static constexpr Avoid avoid = {};
+    using Avoided = Avoid;
     //static constexpr size_t NumLogicalORs = sizeof...(LogicalORs);
     static constexpr LogicalORs logicalORs = {};
+    using LogicalORed = LogicalORs;
 private:
     template<class... Components>
     static constexpr ComponentFlags setSignature(LogicalOrComponentSet<Components...> set) {
@@ -136,20 +103,6 @@ public:
 
         return setSignatures[index+1];
     }
-    
-    //static constexpr ComponentFlags logicalOrSignatures[NumLogicalORs] = {0, ((void)0, listSignature<LogicalORs>()) ...};
-    // LogicalOrList logicalORs;
-    // std::array<LogicalOrComponentSet, NumLogicalOrSets> logicalORs;
-
-    /*
-    static constexpr ComponentFlags requiredSignature() {
-        return listSignature(require);
-    }
-
-    static constexpr ComponentFlags avoidedSignature() {
-        return listSignature(avoid);
-    }
-    */
 
     static constexpr bool check(ComponentFlags signature) {
         const size_t numLogicalORs = getNumLogicalORs(logicalORs);
@@ -163,48 +116,60 @@ public:
 
         return (signature.hasAll(Require::signature()) && signature.hasNone(Avoid::signature()));
     }
-
-private:
-    template<class... RequiredComponents, class... AvoidedComponents, class... LogicalOrComponentSets>
-    static void ForEachExpanded(const ECS* ecs, 
-        const EntityQuery<
-            RequireComponents<RequiredComponents...>,
-            AvoidComponents<AvoidedComponents...>,
-            LogicalOrComponents<LogicalOrComponentSets...>
-        > query, std::function<void(Entity)> callback)
-    {
-        //constexpr ComponentID requiredIDs[] = {0, ((void)0, getID<RequiredComponents>()) ...};
-        //constexpr ComponentID avoidedIDs[] = {0, ((void)0, getID<AvoidedComponents>()) ...};
-
-        //const size_t numRequiredComponents = getNumRequiredComponents(require);
-        //const size_t numAvoidedComponents = getNumAvoidedComponents(avoid);
-
-        if (Require::count() > 0) {
-            // find minimum component pool size so we can search through that one, for speed
-            // Require::PoolArrayType requiredPools = Require::getPoolArray();
-            ComponentPool* smallestPool = smallestComponentPool<RequiredComponents...>(ecs);
-            for (int c = smallestPool->size()-1; c >= 0; c--) {
-                EntityID entityID = smallestPool->componentOwners[c];
-                ComponentFlags entityComponents = ecs->entityComponents(entityID);
-                if (entityComponents.hasAll(Require::signature())) {
-
-                }
-            }
-        }
-
-    }
 public:
+    static void ForEach(const EntityManager* em, const std::function<void(Entity)>& callback) {
+        if (Require::size() > 0) {
+            // find minimum component pool size so we can search through that one, for speed
+            //Require::PoolArrayType requiredPools = Require::getPoolArray();
+            //ComponentPool* iteratedPool = smallestComponentPool<RequiredComponents...>(ecs);
+            ComponentPool* iteratedPool = Require::smallestPool(em);
+            for (int c = iteratedPool->size()-1; c >= 0; c--) {
+                EntityID entityID = iteratedPool->componentOwners[c];
+                EntityManager::EntityData entityData = em->entityDataList[entityID];
+                // check required and avoided
+                if (entityData.flags.hasAll(Require::signature()) && entityData.flags.hasNone(Avoid::signature())) {
+                    // check logical ORs
+                    for (size_t i = 0; i < LogicalORs::size(); i++) {
+                        const ComponentFlags logicalOrSignature = getLogicalOrSignature(logicalORs, i);
+                        if (entityData.flags.hasNone(logicalOrSignature)) {
+                            goto endEntityLoop;
+                        }
+                    }
 
-    static void ForEach(const ECS* ecs, std::function<void(Entity)> callback) {
-        constexpr Self self = {};
-        ForEachExpanded(ecs, self, callback);
-    };
+                    // Entity has required, does not have avoided, and has the logical OR components.
+                    callback(Entity(entityID, entityData.version));
+                }
+            endEntityLoop:
+                continue;
+            }
+        } else {
+            // iterate main entity list
+            const Entity* entities = (Entity*)em->entities;
+            for (int c = em->numLiveEntities()-1; c >= 0; c--) {
+                Entity entity = entities[c];
+                ComponentFlags entityComponents = em->getEntityComponents(entity.id);
+                if (entityComponents.hasNone(Avoid::signature())) {
+                    for (size_t i = 0; i < LogicalORs::size(); i++) {
+                        const ComponentFlags logicalOrSignature = getLogicalOrSignature(logicalORs, i);
+                        if (entityComponents.hasNone(logicalOrSignature)) {
+                            goto endEntityLoop2;
+                        }
+                    }
+
+                    callback(entity);
+                }
+            endEntityLoop2:
+                continue;
+            }
+            
+        }
+    }
 
     constexpr bool check_t(ComponentFlags signature) const {
         return check(signature);
     }
 };
 
-
+}
 
 #endif

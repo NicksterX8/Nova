@@ -63,18 +63,25 @@ main.o: main.cpp constants.hpp /usr/local/include/SDL2/SDL_log.h \
   Entities/../EntityComponents/../NC/cpp-vectors.hpp \
   Entities/../EntityComponents/../Items.hpp \
   Entities/../EntityComponents/../ECS/EntityType.hpp \
+  Entities/../EntityComponents/../SECS/ECS.hpp \
+  Entities/../EntityComponents/../SECS/../ECS/ECS.hpp \
+  Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp \
+  Entities/../EntityComponents/../SECS/../ECS/Query.hpp \
   Entities/../ECS/EntityType.hpp Entities/../Textures.hpp \
-  GameViewport.hpp PlayerControls.hpp Debug.hpp Metadata.hpp \
-  NC/physics.h NC/geometry.h NC/lines.h NC/polygons.h GUI.hpp \
-  Rendering/Drawing.hpp Rendering/../GameState.hpp \
-  Rendering/../GameViewport.hpp Entities/Methods.hpp \
-  Entities/../Chunks.hpp loadData.hpp EntityComponents/Components.hpp \
-  EntitySystems/Rendering.hpp EntitySystems/../ECS/EntitySystem.hpp \
-  ECS/Query.hpp EntitySystems/../ECS/Query.hpp \
-  EntitySystems/../ECS/ECS.hpp EntitySystems/../GameViewport.hpp \
-  EntitySystems/../Log.hpp EntitySystems/../Rendering/Drawing.hpp \
-  EntitySystems/../Debug.hpp EntitySystems/Systems.hpp \
-  EntitySystems/../ECS/EntityType.hpp EntitySystems/../constants.hpp \
+  Entities/../SECS/EntityWorld.hpp \
+  Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp \
+  Entities/../NC/cpp-vectors.hpp Entities/Methods.hpp \
+  Entities/../Chunks.hpp GameViewport.hpp PlayerControls.hpp Debug.hpp \
+  Metadata.hpp NC/physics.h NC/geometry.h NC/lines.h NC/polygons.h \
+  GUI.hpp Rendering/Drawing.hpp Rendering/../GameState.hpp \
+  Rendering/../GameViewport.hpp loadData.hpp \
+  EntityComponents/Components.hpp EntitySystems/Rendering.hpp \
+  EntitySystems/../ECS/EntitySystem.hpp ECS/Query.hpp \
+  EntitySystems/../ECS/Query.hpp EntitySystems/../ECS/ECS.hpp \
+  EntitySystems/../GameViewport.hpp EntitySystems/../Log.hpp \
+  EntitySystems/../Rendering/Drawing.hpp EntitySystems/../Debug.hpp \
+  EntitySystems/Systems.hpp EntitySystems/../ECS/EntityType.hpp \
+  EntitySystems/../constants.hpp EntitySystems/../Entities/Methods.hpp \
   update.hpp GameSave/main.hpp GameSave/../GameState.hpp
 
 constants.hpp:
@@ -257,9 +264,27 @@ Entities/../EntityComponents/../Items.hpp:
 
 Entities/../EntityComponents/../ECS/EntityType.hpp:
 
+Entities/../EntityComponents/../SECS/ECS.hpp:
+
+Entities/../EntityComponents/../SECS/../ECS/ECS.hpp:
+
+Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp:
+
+Entities/../EntityComponents/../SECS/../ECS/Query.hpp:
+
 Entities/../ECS/EntityType.hpp:
 
 Entities/../Textures.hpp:
+
+Entities/../SECS/EntityWorld.hpp:
+
+Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp:
+
+Entities/../NC/cpp-vectors.hpp:
+
+Entities/Methods.hpp:
+
+Entities/../Chunks.hpp:
 
 GameViewport.hpp:
 
@@ -284,10 +309,6 @@ Rendering/Drawing.hpp:
 Rendering/../GameState.hpp:
 
 Rendering/../GameViewport.hpp:
-
-Entities/Methods.hpp:
-
-Entities/../Chunks.hpp:
 
 loadData.hpp:
 
@@ -316,6 +337,8 @@ EntitySystems/Systems.hpp:
 EntitySystems/../ECS/EntityType.hpp:
 
 EntitySystems/../constants.hpp:
+
+EntitySystems/../Entities/Methods.hpp:
 
 update.hpp:
 

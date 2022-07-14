@@ -63,18 +63,27 @@ GameState.o: GameState.cpp GameState.hpp /usr/local/include/SDL2/SDL.h \
   Entities/../EntityComponents/../NC/cpp-vectors.hpp \
   Entities/../EntityComponents/../Items.hpp \
   Entities/../EntityComponents/../ECS/EntityType.hpp \
+  Entities/../EntityComponents/../SECS/ECS.hpp \
+  Entities/../EntityComponents/../SECS/../ECS/ECS.hpp \
+  Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp \
+  Entities/../EntityComponents/../SECS/../ECS/Query.hpp \
   Entities/../ECS/EntityType.hpp Entities/../Textures.hpp \
-  GameViewport.hpp SDL2_gfx/SDL2_gfx.h SDL2_gfx/SDL2_gfxPrimitives.h \
-  SDL2_gfx/SDL2_imageFilter.h SDL2_gfx/SDL2_rotozoom.h \
-  SDL2_gfx/SDL2_framerate.h SDL2_gfx/SDL2_gfxPrimitives_font.h \
-  EntitySystems/Rendering.hpp EntitySystems/../ECS/EntitySystem.hpp \
-  ECS/Query.hpp EntitySystems/../ECS/Query.hpp \
-  EntitySystems/../ECS/ECS.hpp EntitySystems/../GameViewport.hpp \
-  EntitySystems/../Log.hpp EntitySystems/../Rendering/Drawing.hpp \
+  Entities/../SECS/EntityWorld.hpp \
+  Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp \
+  Entities/../NC/cpp-vectors.hpp Entities/Methods.hpp \
+  Entities/../Chunks.hpp GameViewport.hpp SDL2_gfx/SDL2_gfx.h \
+  SDL2_gfx/SDL2_gfxPrimitives.h SDL2_gfx/SDL2_imageFilter.h \
+  SDL2_gfx/SDL2_rotozoom.h SDL2_gfx/SDL2_framerate.h \
+  SDL2_gfx/SDL2_gfxPrimitives_font.h EntitySystems/Rendering.hpp \
+  EntitySystems/../ECS/EntitySystem.hpp ECS/Query.hpp \
+  EntitySystems/../ECS/Query.hpp EntitySystems/../ECS/ECS.hpp \
+  EntitySystems/../GameViewport.hpp EntitySystems/../Log.hpp \
+  EntitySystems/../Rendering/Drawing.hpp \
   EntitySystems/../Rendering/../GameState.hpp \
   EntitySystems/../Rendering/../GameViewport.hpp \
   EntitySystems/../Debug.hpp EntitySystems/Systems.hpp \
-  EntitySystems/../ECS/EntityType.hpp EntitySystems/../constants.hpp
+  EntitySystems/../ECS/EntityType.hpp EntitySystems/../constants.hpp \
+  EntitySystems/../Entities/Methods.hpp
 
 GameState.hpp:
 
@@ -248,9 +257,27 @@ Entities/../EntityComponents/../Items.hpp:
 
 Entities/../EntityComponents/../ECS/EntityType.hpp:
 
+Entities/../EntityComponents/../SECS/ECS.hpp:
+
+Entities/../EntityComponents/../SECS/../ECS/ECS.hpp:
+
+Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp:
+
+Entities/../EntityComponents/../SECS/../ECS/Query.hpp:
+
 Entities/../ECS/EntityType.hpp:
 
 Entities/../Textures.hpp:
+
+Entities/../SECS/EntityWorld.hpp:
+
+Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp:
+
+Entities/../NC/cpp-vectors.hpp:
+
+Entities/Methods.hpp:
+
+Entities/../Chunks.hpp:
 
 GameViewport.hpp:
 
@@ -293,3 +320,5 @@ EntitySystems/Systems.hpp:
 EntitySystems/../ECS/EntityType.hpp:
 
 EntitySystems/../constants.hpp:
+
+EntitySystems/../Entities/Methods.hpp:

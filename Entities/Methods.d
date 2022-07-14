@@ -70,11 +70,17 @@ Entities/Methods.o: Entities/Methods.cpp Entities/Methods.hpp \
   Entities/../EntityComponents/../ECS/../ComponentMetadata/componentDecl.hpp \
   Entities/../EntityComponents/../ECS/../ComponentMetadata/_componentIDs.hpp \
   Entities/../EntityComponents/../ECS/EntitySystemInterface.hpp \
+  Entities/../EntityComponents/../SECS/ECS.hpp \
+  Entities/../EntityComponents/../SECS/../ECS/ECS.hpp \
+  Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp \
+  Entities/../EntityComponents/../SECS/../ECS/Query.hpp \
   Entities/../ECS/EntityType.hpp Entities/../Chunks.hpp \
   Entities/../EntityComponents/../Tiles.hpp \
   Entities/../EntityComponents/../constants.hpp \
   Entities/../EntityComponents/../NC/colors.h \
-  Entities/../EntityComponents/../Textures.hpp
+  Entities/../EntityComponents/../Textures.hpp \
+  Entities/../SECS/EntityWorld.hpp \
+  Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp
 
 Entities/Methods.hpp:
 
@@ -224,6 +230,14 @@ Entities/../EntityComponents/../ECS/../ComponentMetadata/_componentIDs.hpp:
 
 Entities/../EntityComponents/../ECS/EntitySystemInterface.hpp:
 
+Entities/../EntityComponents/../SECS/ECS.hpp:
+
+Entities/../EntityComponents/../SECS/../ECS/ECS.hpp:
+
+Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp:
+
+Entities/../EntityComponents/../SECS/../ECS/Query.hpp:
+
 Entities/../ECS/EntityType.hpp:
 
 Entities/../Chunks.hpp:
@@ -235,3 +249,7 @@ Entities/../EntityComponents/../constants.hpp:
 Entities/../EntityComponents/../NC/colors.h:
 
 Entities/../EntityComponents/../Textures.hpp:
+
+Entities/../SECS/EntityWorld.hpp:
+
+Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp:

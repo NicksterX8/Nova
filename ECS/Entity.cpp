@@ -1,22 +1,14 @@
 #include "Entity.hpp"
 #include "ECS.hpp"
 
-const char* componentNames[NUM_COMPONENTS] = {NULL};
-
-static ECS* globalECS;
-
-bool EntityBase::Exists() const {
-    return globalECS->EntityExists(Entity(this->id, this->version));
-}
+namespace ECS {
 
 bool EntityBase::Null() const {
-    return id >= NULL_ENTITY_ID || version >= NULL_ENTITY_VERSION;
+    return id >= NULL_ENTITY_ID || version == NULL_ENTITY_VERSION;
 }
 
 bool EntityBase::NotNull() const {
-    return id < NULL_ENTITY_ID && version < NULL_ENTITY_VERSION;
+    return !Null();
 }
 
-void setGlobalECS(ECS* _ecs) {
-    globalECS = _ecs;
 }

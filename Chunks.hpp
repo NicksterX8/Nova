@@ -8,6 +8,8 @@
 #include "NC/cpp-vectors.hpp"
 #include "ECS/Entity.hpp"
 
+using ECS::Entity;
+
 typedef Tile Chunk[CHUNKSIZE][CHUNKSIZE]; // 2d array of tiles
 
 struct ChunkData {
@@ -19,6 +21,17 @@ struct ChunkData {
 
     int tilePositionX() const; // Get the X position of this chunk relative to tiles' positions
     int tilePositionY() const; // Get the Y position of this chunk relative to tiles' positions
+
+    inline bool removeCloseEntity(Entity entity) {
+        for (unsigned int e = 0; e < closeEntities.size(); e++) {
+            // TODO: try implementing binary search with sorting for faster removal
+            if (closeEntities[e].id == entity.id) {
+                closeEntities.erase(closeEntities.begin() + e);
+                return true;
+            }
+        }
+        return false;
+    }
 };
 
 #define CHUNK_TILE(chunk_ptr, row, col) ((*chunk_ptr)[row][col])

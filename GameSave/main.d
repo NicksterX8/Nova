@@ -71,9 +71,18 @@ GameSave/main.o: GameSave/main.cpp GameSave/main.hpp \
   GameSave/../Entities/../EntityComponents/../NC/cpp-vectors.hpp \
   GameSave/../Entities/../EntityComponents/../Items.hpp \
   GameSave/../Entities/../EntityComponents/../ECS/EntityType.hpp \
+  GameSave/../Entities/../EntityComponents/../SECS/ECS.hpp \
+  GameSave/../Entities/../EntityComponents/../SECS/../ECS/ECS.hpp \
+  GameSave/../Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp \
+  GameSave/../Entities/../EntityComponents/../SECS/../ECS/Query.hpp \
   GameSave/../Entities/../ECS/EntityType.hpp \
-  GameSave/../Entities/../Textures.hpp GameSave/../GameViewport.hpp \
-  GameSave/GameSave.hpp GameSave/Chunks.hpp GameSave/../Log.hpp
+  GameSave/../Entities/../Textures.hpp \
+  GameSave/../Entities/../SECS/EntityWorld.hpp \
+  GameSave/../Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp \
+  GameSave/../Entities/../NC/cpp-vectors.hpp \
+  GameSave/../Entities/Methods.hpp GameSave/../Entities/../Chunks.hpp \
+  GameSave/../GameViewport.hpp GameSave/GameSave.hpp GameSave/Chunks.hpp \
+  GameSave/../Log.hpp
 
 GameSave/main.hpp:
 
@@ -249,9 +258,27 @@ GameSave/../Entities/../EntityComponents/../Items.hpp:
 
 GameSave/../Entities/../EntityComponents/../ECS/EntityType.hpp:
 
+GameSave/../Entities/../EntityComponents/../SECS/ECS.hpp:
+
+GameSave/../Entities/../EntityComponents/../SECS/../ECS/ECS.hpp:
+
+GameSave/../Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp:
+
+GameSave/../Entities/../EntityComponents/../SECS/../ECS/Query.hpp:
+
 GameSave/../Entities/../ECS/EntityType.hpp:
 
 GameSave/../Entities/../Textures.hpp:
+
+GameSave/../Entities/../SECS/EntityWorld.hpp:
+
+GameSave/../Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp:
+
+GameSave/../Entities/../NC/cpp-vectors.hpp:
+
+GameSave/../Entities/Methods.hpp:
+
+GameSave/../Entities/../Chunks.hpp:
 
 GameSave/../GameViewport.hpp:
 

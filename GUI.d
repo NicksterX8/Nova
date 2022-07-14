@@ -64,8 +64,16 @@ GUI.o: GUI.cpp GUI.hpp /usr/local/include/SDL2/SDL.h \
   Entities/../EntityComponents/../NC/cpp-vectors.hpp \
   Entities/../EntityComponents/../Items.hpp \
   Entities/../EntityComponents/../ECS/EntityType.hpp \
+  Entities/../EntityComponents/../SECS/ECS.hpp \
+  Entities/../EntityComponents/../SECS/../ECS/ECS.hpp \
+  Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp \
+  Entities/../EntityComponents/../SECS/../ECS/Query.hpp \
   Entities/../ECS/EntityType.hpp Entities/../Textures.hpp \
-  GameViewport.hpp Rendering/../GameViewport.hpp NC/SDLContext.h
+  Entities/../SECS/EntityWorld.hpp \
+  Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp \
+  Entities/../NC/cpp-vectors.hpp Entities/Methods.hpp \
+  Entities/../Chunks.hpp GameViewport.hpp Rendering/../GameViewport.hpp \
+  NC/SDLContext.h
 
 GUI.hpp:
 
@@ -243,9 +251,27 @@ Entities/../EntityComponents/../Items.hpp:
 
 Entities/../EntityComponents/../ECS/EntityType.hpp:
 
+Entities/../EntityComponents/../SECS/ECS.hpp:
+
+Entities/../EntityComponents/../SECS/../ECS/ECS.hpp:
+
+Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp:
+
+Entities/../EntityComponents/../SECS/../ECS/Query.hpp:
+
 Entities/../ECS/EntityType.hpp:
 
 Entities/../Textures.hpp:
+
+Entities/../SECS/EntityWorld.hpp:
+
+Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp:
+
+Entities/../NC/cpp-vectors.hpp:
+
+Entities/Methods.hpp:
+
+Entities/../Chunks.hpp:
 
 GameViewport.hpp:
 

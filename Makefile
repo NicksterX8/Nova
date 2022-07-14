@@ -18,10 +18,10 @@ ARGS =
 
 MAINFILE := main.cpp
 
-FILES = main update GameSave/main Entities/Methods Chunks ECS/EntityType PlayerControls \
+FILES = main update GameSave/main Entities/Methods Chunks PlayerControls \
 	GUI Items ECS/EntitySystemInterface ECS/EntityManager ECS/EntitySystem ECS/ECS \
 	Entities/Entities ECS/Entity EntityComponents/Components Textures Tiles GameViewport \
-	Log Debug Metadata GameState Rendering/Drawing
+	Log Debug Metadata GameState Rendering/Drawing SECS/ECS
 
 SRC_FILES = $(FILES:=.$(EXT))
 OBJ_FILES = $(FILES:=.o)

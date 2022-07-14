@@ -8,6 +8,8 @@
 
 namespace GameSave {
 
+using namespace ECS;
+
 struct ChunkPositionPair {
     IVec2 position;
     Chunk chunk;
@@ -181,7 +183,7 @@ void writeComponentPool(FileWriter& ef, const ComponentPool* pool) {
     component size: 4
     number of components: 4
     components: component size * number of components
-    component owners: 4 * number of components
+    component owners: 8 * number of components
     */
 
     int code = 0;
@@ -191,7 +193,7 @@ void writeComponentPool(FileWriter& ef, const ComponentPool* pool) {
     cf.set("componentSize", pool->componentSize);
     cf.set("numComponents", (size_t)pool->size());
     cf.set("components", pool->components, pool->componentSize * pool->size());
-    cf.set("componentOwners", pool->componentOwners, sizeof(EntityID) * pool->size());
+    cf.set("componentOwners", pool->componentOwners, sizeof(Entity) * pool->size());
 
     ef.write(cf, componentNames[pool->id]);
 }
@@ -199,7 +201,6 @@ void writeComponentPool(FileWriter& ef, const ComponentPool* pool) {
 int readComponentPool(const char* source, ComponentPool* pool) {
     int code = 0;
 
-    //ComponentPool* pool = em->pools[getID<C>()];
     pool->_size = 0;
 
     const char* contents = static_cast<const char*>(
@@ -214,16 +215,16 @@ int readComponentPool(const char* source, ComponentPool* pool) {
     const void* components = static_cast<const void*>(
         readProp("components", contents));
 
-    const EntityID* componentOwners = static_cast<const EntityID*>(
+    const Entity* componentOwners = static_cast<const Entity*>(
         readProp("componentOwners", contents));
     
     assert(pool->size() == 0 && "pool written to must not have pre-existing components");
     pool->resize(numComponents + 10);
     memcpy(pool->components, components, numComponents * componentSize);
-    memcpy(pool->componentOwners, componentOwners, numComponents * sizeof(EntityID));
+    memcpy(pool->componentOwners, componentOwners, numComponents * sizeof(Entity));
 
     for (Uint32 i = 0; i < MAX_ENTITIES; i++) {
-        pool->entityComponentSet[i] = NULL_COMPONENTPOOL_INDEX;
+        pool->entityComponentSet[i] = ECS_NULL_INDEX;
     }
 
     for (size_t i = 0; i < numComponents; i++) {
@@ -289,17 +290,16 @@ int writeEverythingToFiles(const char* outputSaveFolderPath, const GameState* st
 
     FileWriter ef;
 
-    size_t numLiveEntities = state->ecs.numLiveEntities();
+    size_t numLiveEntities = state->ecs.EntityCount();
     ef.set("numLiveEntities", &numLiveEntities, sizeof(size_t));
     ef.set("maxEntities", (size_t)MAX_ENTITIES);
-    ef.set("entities", state->ecs.manager.entities, sizeof(Entity) * MAX_ENTITIES);
-    ef.set("entityComponents", state->ecs.manager.entityComponentFlags, sizeof(ComponentFlags) * MAX_ENTITIES);
-    ef.set("numFreeEntities", state->ecs.manager.freeEntities.size());
-    ef.set("freeEntities", &state->ecs.manager.freeEntities[0],
-        sizeof(Entity) * state->ecs.manager.freeEntities.size());
-    ef.set("indices", state->ecs.manager.indices, sizeof(Uint32) * MAX_ENTITIES);
+    ef.set("entities", state->ecs.em->entities, sizeof(Entity) * MAX_ENTITIES);
+    ef.set("entityData", state->ecs.em->entityDataList, sizeof(EntityManager::EntityData) * MAX_ENTITIES);
+    ef.set("numFreeEntities", state->ecs.em->freeEntities.size());
+    ef.set("freeEntities", &state->ecs.em->freeEntities[0],
+        sizeof(EntityID) * state->ecs.em->freeEntities.size());
 
-    writeComponentPools<COMPONENTS>(ef, state->ecs.em());
+    writeComponentPools<COMPONENTS>(ef, state->ecs.em);
 
     ef.write(entityFile);
     fclose(entityFile);
@@ -373,7 +373,7 @@ const char* readFileContents(FILE* file) {
     return source;
 }
 
-int readEntityDataFromFile(const char* filepath, ECS* ecs) {
+int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
     int code = 0;
     FILE* file = fopen(filepath, "r");
     const char* src = readFileContents(file);
@@ -387,10 +387,9 @@ int readEntityDataFromFile(const char* filepath, ECS* ecs) {
     size_t numLiveEntities = *readProp<size_t>("numLiveEntities", src);
     size_t maxEntities = *readProp<size_t>("maxEntities", src);
     const Entity *entities = readProp<Entity>("entities", src);
-    const ComponentFlags *entityComponents = readProp<ComponentFlags>("entityComponents", src);
+    const EntityManager::EntityData *entityData = readProp<EntityManager::EntityData>("entityData", src);
     size_t numFreeEntities = *readProp<size_t>("numFreeEntities", src);
-    const Entity *freeEntities = readProp<Entity>("freeEntities", src);
-    const Uint32 *indices = readProp<Uint32>("indices", src);
+    const EntityID *freeEntities = readProp<EntityID>("freeEntities", src);
 
     // validate data
 
@@ -408,18 +407,17 @@ int readEntityDataFromFile(const char* filepath, ECS* ecs) {
     
     // update data
 
-    ecs->manager.liveEntities = (Uint32)numLiveEntities;
-    ecs->manager.freeEntities.clear();
-    ecs->manager.freeEntities.insert(ecs->manager.freeEntities.end(), freeEntities, freeEntities + numFreeEntities);
-    memcpy(ecs->manager.entities, entities, maxEntities * sizeof(Entity));
-    memcpy(ecs->manager.entityComponentFlags, entityComponents, maxEntities * sizeof(ComponentFlags));
-    memcpy(ecs->manager.indices, indices, sizeof(Uint32) * maxEntities);
+    ecs->em->liveEntities = (Uint32)numLiveEntities;
+    ecs->em->freeEntities.clear();
+    ecs->em->freeEntities.insert(ecs->em->freeEntities.end(), freeEntities, freeEntities + numFreeEntities);
+    memcpy(ecs->em->entities, entities, maxEntities * sizeof(Entity));
+    memcpy(ecs->em->entityDataList, entityData, maxEntities * sizeof(EntityManager::EntityData));
 
-    readComponentPools<COMPONENTS>(src, ecs->em());
+    readComponentPools<COMPONENTS>(src, ecs->em);
 
-    auto inventoryECPool = ecs->manager.getPool<EC::Inventory>();
+    ComponentPool* inventoryECPool = ecs->em->getPool<EC::Inventory>();
     for (Uint32 i = 0; i < inventoryECPool->size(); i++) {
-        // inventoryECPool->components[i].inventory 
+        Inventory& inventory = static_cast<EC::Inventory*>(inventoryECPool->atIndex(i))->inventory;
     }
 
     free((void*)src);

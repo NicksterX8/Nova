@@ -1,6 +1,8 @@
 #include "EntitySystemInterface.hpp"
 #include "EntityManager.hpp"
 
+namespace ECS {
+
 unsigned int SystemCount = 0;
 
 EntitySystemInterface::EntitySystemInterface() {
@@ -70,4 +72,6 @@ void EntitySystemInterface::resize(Uint32 reserve) {
     entities = newEntities;
     
     reservedEntities = reserve;
+}
+
 }

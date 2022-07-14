@@ -103,7 +103,7 @@ public:
 MouseState getMouseState();
 
 OptionalEntity<EC::Position, EC::Size, EC::Render>
-findPlayerFocusedEntity(const ECS* ecs, const ChunkMap& chunkmap, Vec2 playerMousePos);
+findPlayerFocusedEntity(const ComponentManager<EC::Position, const EC::Size, const EC::Render>& ecs, const ChunkMap& chunkmap, Vec2 playerMousePos);
 
 class PlayerControls {
 const GameViewport& gameViewport;
@@ -259,8 +259,12 @@ public:
                         state->player.selectedEntity = NullEntity;
                     
                     OptionalEntity<> selectedEntity = state->player.selectedEntity;
-                    if (selectedEntity.Has<EC::Grabable, EC::ItemStack>()) {
-                        ItemStack itemGrabbed = selectedEntity.Get<EC::ItemStack>()->item;
+                    if (selectedEntity.Has<EC::Render, EC::EntityTypeEC>(&state->ecs)) {
+                        const char* name = selectedEntity.Get<EC::EntityTypeEC>(&state->ecs)->name;
+                        Log("name: %s", name);
+                    }
+                    if (selectedEntity.Has<EC::Grabable, EC::ItemStack>(&state->ecs)) {
+                        ItemStack itemGrabbed = selectedEntity.Get<EC::ItemStack>(&state->ecs)->item;
                         state->player.inventory()->addItemStack(itemGrabbed);
                         state->ecs.Destroy(selectedEntity);
                     }
@@ -272,7 +276,7 @@ public:
             if (clickInWorld) {
 
                 auto tileEntity = findTileEntityAtPosition(state, worldPos);
-                if (tileEntity.Exists()) {
+                if (tileEntity.Exists(&state->ecs)) {
                     Log("Removing entity at %d,%d", (int)floor(worldPos.x), (int)floor(worldPos.y));
                         removeEntityOnTile(&state->ecs, selectedTile);
                 }
@@ -295,7 +299,7 @@ public:
             case 'e': {
                 auto tileEntity = findTileEntityAtPosition(state, mouseWorldPos);
                 if (tileEntity != NullEntity) {
-                    if (tileEntity.Has<EC::Inventory>()) {
+                    if (tileEntity.Has<EC::Inventory>(&state->ecs)) {
                         // then open inventory
                         Inventory* inventory = &state->ecs.Get<EC::Inventory>(tileEntity)->inventory;
                         // for now since I dont want to make GUI so just give the items in the inventory to the player
@@ -320,8 +324,16 @@ public:
                     auto itemEntity = Entities::ItemStack(&state->ecs, mouseWorldPos, dropStack);
                 }
             break;} 
+            case 't': {
+                if (
+                    state->ecs.Add<EC::Position>(state->player.entity)
+                ){
+                    Log("null");
+                }
+            break;}
             case SDLK_SPACE: {
-                break;}
+
+            break;}
             default:
                 break;
         }
@@ -348,7 +360,7 @@ public:
         Vec2 oldPlayerPos = state->player.getPosition();
         Vec2 newPlayerPos = oldPlayerPos + movement;
 
-        player->setPosition(newPlayerPos);
+        player->setPosition(state->chunkmap, newPlayerPos);
     }
 
     void doPlayerMovementTick(GameState* state) {
@@ -358,7 +370,7 @@ public:
         // might want to move this constant to constants.hpp
         float speed = PLAYERSPEED;
         if (sidewaysInput && updownInput) {
-            speed *= sqrt(2) / 2;
+            speed *= M_SQRT2 / 2.0;
         }
 
         float movementX = sidewaysInput * speed;
@@ -379,7 +391,7 @@ public:
 
         if (keyboardState[SDL_SCANCODE_G]) {
             Tile* selectedTile = getTileAtPosition(state->chunkmap, aimingPosition);
-            if (selectedTile->entity.Exists()) {
+            if (selectedTile->entity.Exists(&state->ecs)) {
                 Entity chest = Entities::Chest(&state->ecs, aimingPosition.vfloor(), 32, 1, 1);
                 placeEntityOnTile(&state->ecs, selectedTile, chest);
             }

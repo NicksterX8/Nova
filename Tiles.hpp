@@ -12,6 +12,8 @@ extern float TilePixels;
 extern float TileWidth;
 extern float TileHeight;
 
+using ECS::OptionalEntity;
+
 namespace TileTypes {
     enum E: Uint16 {
         Empty = 0,

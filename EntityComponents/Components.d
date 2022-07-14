@@ -68,7 +68,11 @@ EntityComponents/Components.o: EntityComponents/Components.cpp \
   EntityComponents/../ECS/../ComponentMetadata/component.hpp \
   EntityComponents/../ECS/../ComponentMetadata/componentDecl.hpp \
   EntityComponents/../ECS/../ComponentMetadata/_componentIDs.hpp \
-  EntityComponents/../ECS/EntitySystemInterface.hpp
+  EntityComponents/../ECS/EntitySystemInterface.hpp \
+  EntityComponents/../SECS/ECS.hpp \
+  EntityComponents/../SECS/../ECS/ECS.hpp \
+  EntityComponents/../SECS/../ECS/EntityType.hpp \
+  EntityComponents/../SECS/../ECS/Query.hpp
 
 EntityComponents/Components.hpp:
 
@@ -215,3 +219,11 @@ EntityComponents/../ECS/../ComponentMetadata/componentDecl.hpp:
 EntityComponents/../ECS/../ComponentMetadata/_componentIDs.hpp:
 
 EntityComponents/../ECS/EntitySystemInterface.hpp:
+
+EntityComponents/../SECS/ECS.hpp:
+
+EntityComponents/../SECS/../ECS/ECS.hpp:
+
+EntityComponents/../SECS/../ECS/EntityType.hpp:
+
+EntityComponents/../SECS/../ECS/Query.hpp:

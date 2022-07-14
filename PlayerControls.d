@@ -63,11 +63,18 @@ PlayerControls.o: PlayerControls.cpp PlayerControls.hpp NC/SDLContext.h \
   Entities/../EntityComponents/../NC/cpp-vectors.hpp \
   Entities/../EntityComponents/../Items.hpp \
   Entities/../EntityComponents/../ECS/EntityType.hpp \
+  Entities/../EntityComponents/../SECS/ECS.hpp \
+  Entities/../EntityComponents/../SECS/../ECS/ECS.hpp \
+  Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp \
+  Entities/../EntityComponents/../SECS/../ECS/Query.hpp \
   Entities/../ECS/EntityType.hpp Entities/../Textures.hpp \
-  GameViewport.hpp Debug.hpp Metadata.hpp NC/physics.h NC/geometry.h \
-  NC/lines.h NC/polygons.h GUI.hpp Rendering/Drawing.hpp \
-  Rendering/../GameState.hpp Rendering/../GameViewport.hpp \
-  Entities/Methods.hpp Entities/../Chunks.hpp Log.hpp
+  Entities/../SECS/EntityWorld.hpp \
+  Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp \
+  Entities/../NC/cpp-vectors.hpp Entities/Methods.hpp \
+  Entities/../Chunks.hpp GameViewport.hpp Debug.hpp Metadata.hpp \
+  NC/physics.h NC/geometry.h NC/lines.h NC/polygons.h GUI.hpp \
+  Rendering/Drawing.hpp Rendering/../GameState.hpp \
+  Rendering/../GameViewport.hpp Log.hpp
 
 PlayerControls.hpp:
 
@@ -245,9 +252,27 @@ Entities/../EntityComponents/../Items.hpp:
 
 Entities/../EntityComponents/../ECS/EntityType.hpp:
 
+Entities/../EntityComponents/../SECS/ECS.hpp:
+
+Entities/../EntityComponents/../SECS/../ECS/ECS.hpp:
+
+Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp:
+
+Entities/../EntityComponents/../SECS/../ECS/Query.hpp:
+
 Entities/../ECS/EntityType.hpp:
 
 Entities/../Textures.hpp:
+
+Entities/../SECS/EntityWorld.hpp:
+
+Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp:
+
+Entities/../NC/cpp-vectors.hpp:
+
+Entities/Methods.hpp:
+
+Entities/../Chunks.hpp:
 
 GameViewport.hpp:
 
@@ -270,9 +295,5 @@ Rendering/Drawing.hpp:
 Rendering/../GameState.hpp:
 
 Rendering/../GameViewport.hpp:
-
-Entities/Methods.hpp:
-
-Entities/../Chunks.hpp:
 
 Log.hpp:

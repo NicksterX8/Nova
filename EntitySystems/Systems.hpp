@@ -9,8 +9,11 @@
 
 #include "../Log.hpp"
 #include "../constants.hpp"
+#include "../Entities/Methods.hpp"
 
 static std::default_random_engine randomGen;
+
+/*
 
 class PositionSystem : public EntitySystem {
 public:
@@ -140,29 +143,17 @@ public:
 private:
 
 };
-
-class MotionSystem : public EntitySystem {
+*/
+class MotionSystem {
 public:
-    ChunkMap* m_chunkmap;
-    ECS* m_ecs;
-
-    MotionSystem(ECS* ecs) : EntitySystem(ecs) {
-        using namespace ComponentAccess;
-        sys.GiveAccess<EC::Motion>(Read | Remove);
-        sys.GiveAccess<EC::Position>(Read | Write);
-    }
-
-    bool Query(ComponentFlags entitySignature) const {
-        return (entitySignature[getID<EC::Motion>()]);
-    }
-
-    void Update() {
-        ForEach<EC::Position, EC::Motion>([&](auto entity){
-            auto positionComponent = sys.GetReadWrite<EC::Position>(entity);
+    void Update(const EntityWorld& ecs, ChunkMap* chunkmap) {
+        ecs.ForEach< EntityQuery< ECS::RequireComponents<EC::Motion, EC::Position> > >(
+        [&](auto entity){
+            auto positionComponent = ecs.Get<EC::Position>(entity);
             Vec2 position = positionComponent->vec2();
-            Vec2 target = sys.GetReadOnly<EC::Motion>(entity)->target;
+            Vec2 target = ecs.Get<EC::Motion>(entity)->target;
             Vec2 delta = {target.x - position.x, target.y - position.y};
-            float speed = sys.GetReadOnly<EC::Motion>(entity)->speed;
+            float speed = ecs.Get<EC::Motion>(entity)->speed;
             Vec2 unit = delta.norm().scaled(speed);
 
             if (delta.length() < speed) {
@@ -173,12 +164,11 @@ public:
                 positionComponent->y += unit.y;
             }
 
-            entityPositionChanged(m_chunkmap, m_ecs, entity.template cast<EC::Position>(), position);
+            entityPositionChanged(chunkmap, &ecs, entity.template cast<EC::Position>(), position);
         });
     }
-private:
-
 };
+/*
 
 class FollowSystem : public EntitySystem {
 public:
@@ -547,5 +537,7 @@ public:
         });
     }
 };
+
+*/
 
 #endif

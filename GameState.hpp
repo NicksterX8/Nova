@@ -21,7 +21,7 @@
 struct GameState {
     ChunkMap chunkmap;
     Player player;
-    ECS ecs;
+    EntityWorld ecs;
 
     ~GameState();
 
@@ -38,7 +38,7 @@ IVec2* worldLine(Vec2 start, Vec2 end, int* lineSize);
 
 void worldLineAlgorithm(Vec2 start, Vec2 end, std::function<int(IVec2)> callback);
 
-bool pointIsOnTileEntity(const ECS* ecs, Entity tileEntity, IVec2 tilePosition, Vec2 point);
+bool pointIsOnTileEntity(const EntityWorld* ecs, Entity tileEntity, IVec2 tilePosition, Vec2 point);
 
 OptionalEntity<> findTileEntityAtPosition(const GameState* state, Vec2 position);
 
@@ -47,28 +47,22 @@ OptionalEntity<> findTileEntityAtPosition(const GameState* state, Vec2 position)
 * Probably shouldn't use this tbh, not a good function.
 * @return A boolean representing whether the entity was destroyed.
 */
-bool removeEntityOnTile(ECS* ecs, Tile* tile);
+bool removeEntityOnTile(EntityWorld* ecs, Tile* tile);
 
-bool placeEntityOnTile(ECS* ecs, Tile* tile, Entity entity);
+bool placeEntityOnTile(EntityWorld* ecs, Tile* tile, Entity entity);
 
-void forEachEntityInRange(const ECS* ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, std::function<int(EntityType<EC::Position>)> callback);
+void forEachEntityInRange(const EntityWorld* ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, std::function<int(EntityType<EC::Position>)> callback);
 
-void forEachEntityNearPoint(const ECS* ecs, const ChunkMap* chunkmap, Vec2 point, std::function<int(EntityType<EC::Position>)> callback);
+void forEachEntityNearPoint(const ComponentManager<EC::Position, const EC::Size>& ecs, const ChunkMap* chunkmap, Vec2 point, std::function<int(EntityType<EC::Position>)> callback);
 
 void forEachChunkContainingBounds(const ChunkMap* chunkmap, Vec2 position, Vec2 size, std::function<void(ChunkData*)> callback);
 
 OptionalEntity<EC::Position, EC::Size>
-findFirstEntityAtPosition(const ECS* ecs, const ChunkMap* chunkmap, Vec2 position);
+findFirstEntityAtPosition(const EntityWorld* ecs, const ChunkMap* chunkmap, Vec2 position);
 
 OptionalEntity<EC::Position>
-findClosestEntityToPosition(const ECS* ecs, const ChunkMap* chunkmap, Vec2 position);
+findClosestEntityToPosition(const EntityWorld* ecs, const ChunkMap* chunkmap, Vec2 position);
 
-bool pointInsideEntityBounds(Vec2 point, const EntityType<EC::Position, EC::Size> entity);
-
-void entityCreated(GameState* state, Entity entity);
-
-void entitySizeChanged(ChunkMap* chunkmap, const ECS* ecs, EntityType<EC::Position, EC::Size> entity, Vec2 oldSize);
-void entityPositionChanged(ChunkMap* chunkmap, const ECS* ecs, EntityType<EC::Position> entity, Vec2 oldPos);
-void entityPositionAndSizeChanged(ChunkMap* chunkmap, const ECS* ecs, EntityType<EC::Position, EC::Size> entity, Vec2 oldPos, Vec2 oldSize);
+bool pointInsideEntityBounds(Vec2 point, EntityType<EC::Position, EC::Size> entity, const ComponentManager<const EC::Position, const EC::Size>& ecs);
 
 #endif

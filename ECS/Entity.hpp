@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <array>
 #include <bitset>
 #include <sstream>
 #include <string>
@@ -13,6 +14,8 @@
 #include "../constants.hpp"
 
 typedef uint32_t Uint32;
+
+namespace ECS {
 
 typedef Uint32 EntityID;
 typedef Uint32 EntityVersion;
@@ -36,8 +39,12 @@ public:
         }
     }
 
+    constexpr size_t size() const {
+        return N;
+    }
+
     constexpr bool operator[](Uint32 position) const {
-        return bits[position/64] & (1 << position);
+        return bits[position/64] & (1 << (position%64));
     }
 
     constexpr void set(Uint32 position, bool value) {
@@ -55,11 +62,21 @@ public:
         return false;
     }
 
-    constexpr bool hasAll(MyBitset aBitset) {
+    constexpr size_t count() const {
+        size_t c = 0;
+        for (size_t i = 0; i < N; i++) {
+            if (bits[i/64] & (1 << (i%64))) {
+                c++;
+            }
+        }
+        return c;
+    }
+
+    constexpr bool hasAll(MyBitset aBitset) const {
         return (*this & aBitset) == aBitset;
     }
 
-    constexpr bool hasNone(MyBitset aBitset) {
+    constexpr bool hasNone(MyBitset aBitset) const {
         return !(*this & aBitset).any();
     }
 
@@ -126,9 +143,9 @@ typedef MyBitset<NUM_COMPONENTS> ComponentFlags;
 #define MAX_ENTITIES 100000
 //#define NULL_ENTITY (MAX_ENTITIES-1)
 constexpr EntityID NULL_ENTITY_ID = (MAX_ENTITIES-1);
-constexpr EntityVersion NULL_ENTITY_VERSION = (Uint32)-1;
-
-extern const char* componentNames[NUM_COMPONENTS];
+constexpr EntityVersion NULL_ENTITY_VERSION = 0;
+constexpr EntityVersion RESERVED_ENTITY_VERSION = 1;
+constexpr EntityVersion WILDCARD_ENTITY_VERSION = UINT32_MAX;
 
 template<class... Components>
 constexpr ComponentFlags componentSignature() {
@@ -142,20 +159,36 @@ constexpr ComponentFlags componentSignature() {
     return result;
 }
 
+enum class ComponentType {
+    None = 0,
+    Mutable,
+    Const
+};
+
+struct ComponentTypeFlags {
+    ComponentFlags flag;
+    ComponentFlags mut;
+};
+
+template<class... Components>
+constexpr ComponentFlags componentMutSignature() {
+    constexpr unsigned int ids[]     = {0, ((void)0,              getID<Components>()) ...};
+    constexpr bool muts[]            = {0, ((void)0, componentIsMutable<Components>()) ...};
+
+    ComponentFlags result;
+    for (size_t i = 1; i < sizeof(ids) / sizeof(ComponentID); i++) {
+        if (muts[i])
+            result.set(ids[i], true);
+    }
+    return result;
+}
+
 template<class... Components>
 constexpr std::array<ComponentID, sizeof...(Components)> getComponentIDs() {
-    constexpr ComponentID ids[] = {0, ((void)0, getID<Components>()) ...};
-    std::array<ComponentID, sizeof...(Components)> idsArray;
-    for (Uint32 i = 0; i < sizeof...(Components); i++) {
-        idsArray[i] = ids[i+1];
-    }
+    return {getID<Components>() ...};
 }
 
-template<class T>
-const char* getComponentName() {
-    return componentNames[getID<T>()];
-}
-
+/*
 template<class... Components>
 std::string getComponentNameList() {
     ComponentID ids[] = {0, ((void)0, getID<Components>()) ...};
@@ -171,6 +204,7 @@ std::string getComponentNameList() {
 
     return listString;
 }
+*/
 
 template<class T, class... Components>
 constexpr bool componentInComponents() {
@@ -214,8 +248,6 @@ struct EntityBase {
         return !operator==(rhs);
     }
 
-    bool Exists() const;
-
     bool Null() const;
 
     bool NotNull() const;
@@ -232,9 +264,9 @@ struct EntityBase {
             stream << "ID: " << id;
 
         if (version == NULL_ENTITY_VERSION)
-            stream << ", Version: null";
+            stream << " | Version: null";
         else
-            stream << ", Version: " << version;
+            stream << " | Version: " << version;
         return stream.str();
     }
 };
@@ -248,12 +280,8 @@ struct _EntityType : public EntityBase {
 
     template<class... C>
     _EntityType(_EntityType<C...> entity) {
-#ifdef DEBUG
-        bool cast_success = entityHasComponents<Components...>(entity);
-        if (!cast_success) {
-            Log.Error("Casted from ineligible type! needed entity components: %s, actual entity components: %s", getComponentNameList<Components...>().c_str(), getComponentNameList<C...>().c_str());
-        }
-#endif
+        static_assert(componentSignature<C...>().hasAll(componentSignature<Components...>()), "need correct components to cast");
+
         id = entity.id;
         version = entity.version;
     }
@@ -268,28 +296,17 @@ struct _EntityType : public EntityBase {
     }
 };
 
-class ECS;
-
-void setGlobalECS(ECS* ecs);
-
 struct _Entity : public EntityBase {
 
-    constexpr _Entity(): EntityBase(NULL_ENTITY_ID, NULL_ENTITY_VERSION) {}
+    constexpr _Entity() : EntityBase(NULL_ENTITY_ID, NULL_ENTITY_VERSION) {}
 
-    constexpr _Entity(EntityID ID, EntityVersion Version): EntityBase(ID, Version) {}
+    constexpr _Entity(EntityID ID, EntityVersion Version) : EntityBase(ID, Version) {}
 
     template<class... C>
     constexpr _Entity(_EntityType<C...> entityType) {
         id = entityType.id;
         version = entityType.version;
     }
-
-    /*
-    template<class EntityClass>
-    constexpr bool operator==(EntityClass rhs) const {
-        return (id == rhs.id && version == rhs.version);
-    }
-    */
 
     template<class... NewComponents>
     constexpr inline _EntityType<NewComponents...>& cast() const {
@@ -323,12 +340,7 @@ inline Entity baseToEntity(EntityBase base) {
 }
 
 constexpr Entity NullEntity = Entity();
- 
-/*
-template<class E1, class E2>
-bool operator==(E1 e1, E2 e2) {
-    return e1.id == e2.id && e1.version == e2.version;
+
 }
-*/
 
 #endif

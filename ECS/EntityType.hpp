@@ -5,10 +5,7 @@
 #include "ECS.hpp"
 #include <assert.h>
 
-namespace SpecialEntityStatic {
-    extern ECS* ecs; // PRIVATE, DO NOT USE OUT OF SpecialEntity OR SpecialEntityStatic
-    void Init(ECS* _ecs);
-}
+namespace ECS {
 
 template<class... Components>
 struct SpecialEntity : public _EntityType<Components...> {
@@ -22,98 +19,52 @@ public:
 
     constexpr SpecialEntity(EntityID ID, EntityVersion Version) : _EntityType<Components...>(ID, Version) {}
 
-    constexpr SpecialEntity(ECS* ecs) : _EntityType<Components...>(NULL_ENTITY_ID, NULL_ENTITY_VERSION) {
-        *this = ecs->New().cast<Components...>();
-    }
-
     template<class... C>
     constexpr SpecialEntity(_EntityType<C...> entity) : _EntityType<Components...>(entity) {}
 
     constexpr SpecialEntity(Entity entity) : _EntityType<Components...>(entity.id, entity.version) {}
 
-    // SpecialEntity(EntityID id, EntityVersion version) : _EntityType<Components...>(id, version) {}
-
-    template<class T>
-    inline int Add() {
-        return SpecialEntityStatic::ecs->Add<T>(*this);
+    template<class C, class... Vs>
+    SpecialEntity(C* creator, Vs... args) : _EntityType<Components...>(creator->New(args...).template cast<Components...>()) {
+        
     }
 
-    template<class T>
-    inline int Add(const T& startValue) {
-        return SpecialEntityStatic::ecs->Add<T>(*this, startValue);
+    template<class S>
+    inline bool Exists(const S* world) const {
+        return world->EntityExists(*this);
     }
 
-    template<class T>
-    inline T* Get() const {
-        return SpecialEntityStatic::ecs->Get<T>(*this);
+    template<class T, class S>
+    inline T* Get(const S* getter) {
+        return getter->template Get<T>(*this);
     }
 
-    template<class... C>
-    bool Has() const {
-        constexpr ComponentFlags componentFlags = componentSignature<C...>();
-        return (componentFlags & SpecialEntityStatic::ecs->entityComponents(this->id)) == componentFlags;
+    template<class T, class S>
+    inline const T* Get(const S* getter) const {
+        return getter->template Get<T>(*this);
     }
 
-    bool assertType() const {
-        constexpr ComponentFlags typeFlags = componentSignature<Components...>();
-        assert((typeFlags & SpecialEntityStatic::ecs->entityComponents(this->id)) == typeFlags && "entity type correct");
-        return true;
+    template<class T, class S>
+    inline void Set(S* setter, const T& value) {
+        setter->template Set<T>(*this, value);
     }
 
-    bool debugAssertType() const {
-#ifdef DEBUG
-        assertType();
-#endif
-        return true;
+    template<class... Cs, class S>
+    bool Has(const S* s) const {
+       return s->template EntityHas<Cs...>(*this);
     }
 
-    /*
-    operator Self&() const {
-        return *(static_cast<_EntityType<Components...>*>(this));
-    }
-    */
-
-    Entity& toEntity() const {
-        return *((Entity*)(this));
+protected:
+    template<class T, class S>
+    int Add(S* s, const T& startValue) {
+        return s->template Add<T>(*this, startValue);
     }
 };
 
 template<>
 constexpr SpecialEntity<>::SpecialEntity(Entity entity) : _EntityType<>(entity.id, entity.version) {
-
 }
 
-template<class... Components>
-struct SafeEntity : public SpecialEntity<Components...> {
-private:
-    using Self = SafeEntity<Components...>;
-public:
-
-    // SafeEntity() {}
-
-    template<class... C>
-    SafeEntity(_EntityType<C...> entity) : SpecialEntity<Components...>(entity) {
-        this->id = entity.id;
-        this->version = entity.version;
-    }
-
-    template<class T>
-    inline SafeEntity<T, Components...>& Add() {
-        static_assert(!componentInComponents<T, Components...>(), "can't add component twice");
-        return *static_cast<SafeEntity<T, Components...>*>(&(SpecialEntityStatic::ecs->AddT<T>(*this)));
-    }
-
-    template<class T>
-    inline SafeEntity<T, Components...>& Add(T startValue) {
-        return *static_cast<SafeEntity<T, Components...>*>(&(SpecialEntityStatic::ecs->AddT<T>(*this, startValue)));
-    }
-
-    /*
-    operator Self&() {
-        return *(static_cast<_EntityType<Components...>*>(this));
-    }
-    */
-};
 
 template<class... Components>
 using EntityType = SpecialEntity<Components...>;
@@ -263,5 +214,7 @@ struct OptionalEntity : public SpecialEntity<Components...> {
     using SpecialEntity<Components...>::SpecialEntity;
 };
 */
+
+}
 
 #endif

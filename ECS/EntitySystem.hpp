@@ -8,6 +8,8 @@
 #include "../constants.hpp"
 #include <vector>
 
+namespace ECS {
+
 typedef Uint32 ComponentAccessType;
 
 namespace ComponentAccess {
@@ -32,6 +34,8 @@ namespace ComponentAccess {
     }
 }
 
+class ECS;
+
 class EntityCommandBuffer {
     ECS* ecs;
 public:
@@ -51,6 +55,8 @@ public:
     }
 
 };
+
+/*
 
 class EntitySystemAccess {
     ECS* ecs;
@@ -220,5 +226,9 @@ protected:
         }
     }
 };
+
+*/
+
+}
 
 #endif

@@ -57,15 +57,16 @@ GameViewport newGameViewport(int renderWidth, int renderHeight, float focusX, fl
     return newViewport;
 }
 
+/*
 bool canRunConcurrently(
-    ComponentAccessType* accessArrayA, ComponentAccessType* accessArrayB,
+    ECS::ComponentAccessType* accessArrayA, ECS::ComponentAccessType* accessArrayB,
     bool AContainsStructuralChanges, bool AMustExecuteAfterStructuralChanges,
     bool BContainsStructuralChanges, bool BMustExecuteAfterStructuralChanges
 ) {
-    using namespace ComponentAccess;
+    using namespace ECS::ComponentAccess;
     for (int i = 0; i < NUM_COMPONENTS; i++) {
-        const ComponentAccessType accessA = accessArrayA[i];
-        const ComponentAccessType accessB = accessArrayB[i];
+        const ECS::ComponentAccessType accessA = accessArrayA[i];
+        const ECS::ComponentAccessType accessB = accessArrayB[i];
         if (accessA & (Write | Remove)) {
             if (accessB & (Write | Read | Remove | Add | Flag)) {
                 // fail
@@ -105,19 +106,19 @@ bool canRunConcurrently(
     return true;
 }
 
-bool canRunConcurrently(EntitySystem* sysA, EntitySystem* sysB) {
+bool canRunConcurrently(ECS::EntitySystem* sysA, ECS::EntitySystem* sysB) {
     return canRunConcurrently(sysA->sys.componentAccess, sysB->sys.componentAccess,
         sysA->containsStructuralChanges, sysA->mustExecuteAfterStructuralChanges,
         sysB->containsStructuralChanges, sysB->mustExecuteAfterStructuralChanges);
 }
 
-void systemJob(EntitySystem* system) {
+void systemJob(ECS::EntitySystem* system) {
     // Log("starting job for system %p", system);
     system->Update();
     // Log("finishing job for system %p", system);
 }
 
-void runConcurrently(ECS* ecs, EntitySystem* sysA, EntitySystem* sysB) {
+void runConcurrently(EntityWorld* ecs, ECS::EntitySystem* sysA, ECS::EntitySystem* sysB) {
     if (!canRunConcurrently(sysA, sysB)) {
         Log.Critical("Attempted to run two incompatible systems together concurrently! Running in sequence.");
         systemJob(sysA);
@@ -134,20 +135,20 @@ void runConcurrently(ECS* ecs, EntitySystem* sysA, EntitySystem* sysB) {
     return;
 }
 
-void playBackCommandBuffer(ECS* ecs, EntityCommandBuffer* buffer) {
-    for (auto command : buffer->commands) {
-        command(ecs);
-    }
-    buffer->commands.clear();
+void playBackCommandBuffer(EntityWorld* ecs, ECS::EntityCommandBuffer* buffer) {
+    //for (auto command : buffer->commands) {
+    //    command(ecs);
+    //}
+    //buffer->commands.clear();
 }
 
 template<std::size_t NSystems>
-void runConcurrently(ECS* ecs, std::array<EntitySystem*, NSystems> systems) {
+void runConcurrently(EntityWorld* ecs, std::array<ECS::EntitySystem*, NSystems> systems) {
     constexpr int N = NSystems;
 
     static_assert(N > 1, "Can not run one or less systems concurrently!");
 
-    ComponentAccessType access[NUM_COMPONENTS] = {0};
+    ECS::ComponentAccessType access[NUM_COMPONENTS] = {0};
     bool fail = false;
     for (int i = 0; i < N-1; i++) {
         for (int c = 0; c < NUM_COMPONENTS; c++) {
@@ -189,15 +190,21 @@ void runConcurrently(ECS* ecs, std::array<EntitySystem*, NSystems> systems) {
 
     return;
 }
+*/
 
+/*
 template<class S>
-void runSystem(ECS* ecs) {
+void runSystem(EntityWorld* ecs) {
     ecs->System<S>()->Update();
     playBackCommandBuffer(ecs, ecs->System<S>()->commandBuffer);
 }
+*/
 
 static void updateSystems(GameState* state) {
-    ECS& ecs = state->ecs;
+    EntityWorld& ecs = state->ecs;
+    
+    MotionSystem motionSystem;
+    motionSystem.Update(ecs, &state->chunkmap);
 
     /*
     state->chunkmap.iterateChunkdata([](ChunkData* chunkdata){
@@ -207,7 +214,8 @@ static void updateSystems(GameState* state) {
     ecs.System<PositionSystem>()->chunkmap = &state->chunkmap;
     runSystem<PositionSystem>(&ecs);
     */
-   
+
+   /*
     ecs.System<MotionSystem>()->m_ecs = &ecs;
     ecs.System<MotionSystem>()->m_chunkmap = &state->chunkmap;
 
@@ -221,6 +229,7 @@ static void updateSystems(GameState* state) {
     runSystem<FollowSystem>(&ecs);
     // ecs.System<ExplosivesSystem>()->Update();
     runSystem<ExplosivesSystem>(&ecs);
+    */
 
     /*
     state->chunkmap.iterateChunkdata([](ChunkData* chunkdata){
@@ -230,6 +239,7 @@ static void updateSystems(GameState* state) {
     runSystem<PositionSystem>(&ecs);
     */
 
+   /*
     ecs.System<ExplosionSystem>()->Update(&ecs, state->chunkmap);
     playBackCommandBuffer(&ecs, ecs.System<ExplosionSystem>()->commandBuffer);
     runSystem<InserterSystem>(&ecs);
@@ -237,6 +247,7 @@ static void updateSystems(GameState* state) {
     runSystem<HealthSystem>(&ecs);
     runSystem<RotatableSystem>(&ecs);
     runSystem<DyingSystem>(&ecs);
+    */
 
     /*
     state->chunkmap.iterateChunkdata([](ChunkData* chunkdata){

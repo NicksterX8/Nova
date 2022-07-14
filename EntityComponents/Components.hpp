@@ -5,6 +5,7 @@
 #include "../NC/cpp-vectors.hpp"
 #include "../Items.hpp"
 #include "../ECS/EntityType.hpp"
+#include "../SECS/ECS.hpp"
 
 namespace EC {
 
@@ -16,10 +17,10 @@ struct EntityComponent {
 #define ENTITY_TYPE_NAME_SIZE 64
 
 struct EntityTypeEC : EntityComponent<> {
-    char name[ENTITY_TYPE_NAME_SIZE];
+    char name[ENTITY_TYPE_NAME_SIZE] = "undefined";
 
-    EntityTypeEC(const char* name) {
-        strncpy(this->name, name, ENTITY_TYPE_NAME_SIZE);
+    EntityTypeEC(const char* _name) {
+        strcpy(this->name, _name);
     }
 };
 
@@ -43,7 +44,7 @@ struct Position : Vec2, EntityComponent<> {
     Position(float x, float y);
     Position(Vec2 vec);
     
-    Vec2 vec2() {
+    Vec2 vec2() const {
         return {x, y};
     }
 };

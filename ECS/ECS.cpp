@@ -1,10 +1,14 @@
 #include "ECS.hpp"
 
+namespace ECS {
+
+    /*
+
 void ECS::destroy() {
     manager.destroy();
 }
 
-/*
+/
 inline Uint32 ECS::numLiveEntities() {
     return manager.numLiveEntities();
 }
@@ -16,7 +20,7 @@ inline bool ECS::EntityExists(Entity entity) {
 inline Entity ECS::New() {
     return manager.New();
 }
-*/
+/
 
 void ECS::entitySignatureChanged(Entity entity, ComponentFlags oldSignature) {
     ComponentFlags newSignature = manager.entityComponents(entity.id);
@@ -47,4 +51,8 @@ EntityManager* ECS::em() {
 
 const EntityManager* ECS::em() const {
     return &manager;
+}
+
+*/
+
 }

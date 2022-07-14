@@ -4,6 +4,8 @@
 #include "EntityManager.hpp"
 #include "Entity.hpp"
 
+namespace ECS {
+
 extern unsigned int SystemCount;
 
 template<class T>
@@ -46,5 +48,7 @@ public:
 private:
     void resize(Uint32 reserve);
 };
+
+}
 
 #endif

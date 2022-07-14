@@ -6,6 +6,8 @@
 struct DebugSettings {
     bool drawChunkBorders;
     bool drawChunkCoordinates;
+    bool drawChunkEntityCount;
+
     bool drawPlayerRect;
     bool drawEntityIDs;
     bool drawEntityRects;

@@ -70,8 +70,17 @@ Rendering/Drawing.o: Rendering/Drawing.cpp Rendering/Drawing.hpp \
   Rendering/../Entities/../EntityComponents/../NC/cpp-vectors.hpp \
   Rendering/../Entities/../EntityComponents/../Items.hpp \
   Rendering/../Entities/../EntityComponents/../ECS/EntityType.hpp \
+  Rendering/../Entities/../EntityComponents/../SECS/ECS.hpp \
+  Rendering/../Entities/../EntityComponents/../SECS/../ECS/ECS.hpp \
+  Rendering/../Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp \
+  Rendering/../Entities/../EntityComponents/../SECS/../ECS/Query.hpp \
   Rendering/../Entities/../ECS/EntityType.hpp \
-  Rendering/../Entities/../Textures.hpp Rendering/../GameViewport.hpp
+  Rendering/../Entities/../Textures.hpp \
+  Rendering/../Entities/../SECS/EntityWorld.hpp \
+  Rendering/../Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp \
+  Rendering/../Entities/../NC/cpp-vectors.hpp \
+  Rendering/../Entities/Methods.hpp Rendering/../Entities/../Chunks.hpp \
+  Rendering/../GameViewport.hpp
 
 Rendering/Drawing.hpp:
 
@@ -247,8 +256,26 @@ Rendering/../Entities/../EntityComponents/../Items.hpp:
 
 Rendering/../Entities/../EntityComponents/../ECS/EntityType.hpp:
 
+Rendering/../Entities/../EntityComponents/../SECS/ECS.hpp:
+
+Rendering/../Entities/../EntityComponents/../SECS/../ECS/ECS.hpp:
+
+Rendering/../Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp:
+
+Rendering/../Entities/../EntityComponents/../SECS/../ECS/Query.hpp:
+
 Rendering/../Entities/../ECS/EntityType.hpp:
 
 Rendering/../Entities/../Textures.hpp:
+
+Rendering/../Entities/../SECS/EntityWorld.hpp:
+
+Rendering/../Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp:
+
+Rendering/../Entities/../NC/cpp-vectors.hpp:
+
+Rendering/../Entities/Methods.hpp:
+
+Rendering/../Entities/../Chunks.hpp:
 
 Rendering/../GameViewport.hpp:
