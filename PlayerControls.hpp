@@ -223,7 +223,7 @@ public:
                         if (mousePos.x > slotRect.x && mousePos.x < slotRect.x + slotRect.w &&
                             mousePos.y > slotRect.y && mousePos.y < slotRect.y + slotRect.h) {
                             // click was on slot
-                            ItemStack* stack = &state->player.inventory()->items[slot];
+                            ItemStack* stack = &state->player.inventory()->get(slot);
                             if (state->player.heldItemStack) {
                                 // set held stack down in slot only if actually holding stack and if slot is open
                                 if (!stack->item) {
@@ -301,17 +301,17 @@ public:
                 if (tileEntity != NullEntity) {
                     if (tileEntity.Has<EC::Inventory>(&state->ecs)) {
                         // then open inventory
-                        Inventory* inventory = &state->ecs.Get<EC::Inventory>(tileEntity)->inventory;
+                        Inventory& inventory = state->ecs.Get<EC::Inventory>(tileEntity)->inventory;
                         // for now since I dont want to make GUI so just give the items in the inventory to the player
-                        for (Uint32 i = 0; i < inventory->size; i++) {
+                        for (Uint32 i = 0; i < inventory.size; i++) {
                             if (state->player.inventory()) {
-                                Uint32 numItemsAdded = state->player.inventory()->addItemStack(inventory->items[i]);
-                                inventory->items[i].reduceQuantity(numItemsAdded);
+                                Uint32 numItemsAdded = state->player.inventory()->addItemStack(inventory[i]);
+                                inventory[i].reduceQuantity(numItemsAdded);
                             }
                         }
                     }
                 }
-                break;}
+            break;}
             case 'o': {
                 auto belt = Entities::TransportBelt(&state->ecs, mouseWorldPos.vfloor());
                 Entities::tryOccupyTile(belt, &state->chunkmap, &state->ecs);
@@ -324,13 +324,6 @@ public:
                     auto itemEntity = Entities::ItemStack(&state->ecs, mouseWorldPos, dropStack);
                 }
             break;} 
-            case 't': {
-                if (
-                    state->ecs.Add<EC::Position>(state->player.entity)
-                ){
-                    Log("null");
-                }
-            break;}
             case SDLK_SPACE: {
 
             break;}
@@ -338,7 +331,7 @@ public:
                 break;
         }
 
-        for (int i = 1; i < 10; i++) {
+        for (int i = 1; i < (int)state->player.numHotbarSlots; i++) {
             if (event.keysym.sym == i + '0') {
                 state->player.selectHotbarSlot(i - 1);
             }

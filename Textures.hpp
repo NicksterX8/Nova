@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "SDL_FontCache/SDL_FontCache.h"
+#include <string>
 
 extern FC_Font *FreeSans;
 
@@ -32,6 +33,20 @@ struct TextureStruct {
         void unload();
 
     } Tiles;
+
+    inline std::string getNameFromTexture(SDL_Texture* texture) {
+        if (texture == player) {
+            return "player";
+        }
+        return "";
+    }
+
+    inline SDL_Texture* getTextureFromName(const char* name) {
+        if (strcmp(name, "player") == 0) {
+            return player;
+        }
+        return NULL;
+    }
 
     int load(SDL_Renderer* renderer);
 

@@ -42,9 +42,9 @@ void GameState::init(SDL_Renderer* renderer, GameViewport* gameViewport) {
         //entityPositionChanged(&chunkmap, ecs, entity, {NAN, NAN});
         Vec2 pos = ecs->Get<EC::Position>(entity)->vec2();
         if (ecs->EntityHas<EC::Size>(entity)) {
-            Vec2 size = ecs->Get<EC::Size>(entity)->toVec2();
-            IVec2 minChunkPosition = tileToChunkPosition(pos - size.scaled(0.5f));
-            IVec2 maxChunkPosition = tileToChunkPosition(pos + size.scaled(0.5f));
+            Vec2 size = ecs->Get<EC::Size>(entity)->vec2();
+            IVec2 minChunkPosition = toChunkPosition(pos - size.scaled(0.5f));
+            IVec2 maxChunkPosition = toChunkPosition(pos + size.scaled(0.5f));
             for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
                 for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
                     IVec2 chunkPosition = {col, row};
@@ -56,7 +56,7 @@ void GameState::init(SDL_Renderer* renderer, GameViewport* gameViewport) {
                 }
             }
         } else {
-            IVec2 chunkPosition = tileToChunkPosition(pos);
+            IVec2 chunkPosition = toChunkPosition(pos);
             // add entity to new chunk
             ChunkData* newChunkdata = chunkmap.getChunkData(chunkPosition);
             if (newChunkdata) {
@@ -71,14 +71,17 @@ void GameState::init(SDL_Renderer* renderer, GameViewport* gameViewport) {
     ecs.SetBeforeRemove<EC::Position>([&](EntityWorld* ecs, Entity entity){
         Vec2 entityPosition = ecs->Get<EC::Position>(entity)->vec2();
         if (ecs->EntityHas<EC::Size>(entity)) {
-            forEachChunkContainingBounds(&chunkmap, entityPosition, ecs->Get<EC::Size>(entity)->toVec2(), [entity](ChunkData* chunkdata){
+            forEachChunkContainingBounds(&chunkmap, entityPosition, ecs->Get<EC::Size>(entity)->vec2(), [entity](ChunkData* chunkdata){
                 if (!chunkdata->removeCloseEntity(entity)) {
                     Log.Warn("couldn't remove entity");
                 }
             });
         } else {
-            chunkmap.getChunkData(tileToChunkPosition(entityPosition))->removeCloseEntity(entity);
+            chunkmap.getChunkData(toChunkPosition(entityPosition))->removeCloseEntity(entity);
         }
+    });
+    ecs.SetBeforeRemove<EC::Inventory>([](EntityWorld* ecs, Entity entity){
+        ecs->Get<EC::Inventory>(entity)->inventory.destroy();
     });
 
     /*
@@ -321,9 +324,9 @@ void forEachEntityInRange(const ComponentManager<EC::Position, EC::Size>& ecs, c
                     Log.Error("Entity in closeEntities is dead!");
                     continue;
                 }
-                Vec2 entityCenter = *ecs.Get<EC::Position>(closeEntity);
+                Vec2 entityCenter = ecs.Get<EC::Position>(closeEntity)->vec2();
                 if (closeEntity.Has<EC::Size>(&ecs)) {
-                    Vec2 halfSize = ecs.Get<EC::Size>(closeEntity)->toVec2().scaled(0.5f);
+                    Vec2 halfSize = ecs.Get<EC::Size>(closeEntity)->vec2().scaled(0.5f);
                     entityCenter += halfSize;
                     radiusSqrd += (halfSize.x * halfSize.x + halfSize.y * halfSize.y) * M_SQRT2;
                 }
@@ -342,7 +345,7 @@ void forEachEntityInRange(const ComponentManager<EC::Position, EC::Size>& ecs, c
 }
 
 void forEachEntityNearPoint(const ComponentManager<EC::Position, const EC::Size>& ecs, const ChunkMap* chunkmap, Vec2 point, std::function<int(EntityType<EC::Position>)> callback) {
-    IVec2 chunkPos = tileToChunkPosition(point);
+    IVec2 chunkPos = toChunkPosition(point);
     const ChunkData* chunkdata = chunkmap->getChunkData(chunkPos);
     if (!chunkdata) {
         // entities can't be in non-existent chunks
@@ -358,8 +361,8 @@ void forEachEntityNearPoint(const ComponentManager<EC::Position, const EC::Size>
 }
 
 void forEachChunkContainingBounds(const ChunkMap* chunkmap, Vec2 position, Vec2 size, std::function<void(ChunkData*)> callback) {
-    IVec2 minChunkPosition = tileToChunkPosition(position - size.scaled(0.5f));
-    IVec2 maxChunkPosition = tileToChunkPosition(position + size.scaled(0.5f));
+    IVec2 minChunkPosition = toChunkPosition(position - size.scaled(0.5f));
+    IVec2 maxChunkPosition = toChunkPosition(position + size.scaled(0.5f));
     for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
         for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
             IVec2 chunkPosition = {col, row};
@@ -376,8 +379,8 @@ findFirstEntityAtPosition(const EntityWorld& ecs, const ChunkMap* chunkmap, Vec2
     OptionalEntity<EC::Position, EC::Size> foundEntity;
     forEachEntityNearPoint(ComponentManager<EC::Position, const EC::Render, EC::Size>(&ecs), chunkmap, position, [&](EntityType<EC::Position> entity){
         if (entity.Has<EC::Size>(&ecs)) {
-            Vec2 entityPos = *ecs.Get<EC::Position>(entity);
-            Vec2 size = ecs.Get<EC::Size>(entity)->toVec2();
+            Vec2 entityPos = ecs.Get<EC::Position>(entity)->vec2();
+            Vec2 size = ecs.Get<EC::Size>(entity)->vec2();
             if (
               position.x > entityPos.x && position.x < entityPos.x + size.x &&
               position.y > entityPos.y && position.y < entityPos.y + size.y) {
@@ -399,7 +402,7 @@ findClosestEntityToPosition(const EntityWorld* ecs, const ChunkMap* chunkmap, Ve
     EntityType<EC::Position> closestEntity = NullEntity;
     float closestDistSqrd = INFINITY;
     forEachEntityNearPoint(ecs, chunkmap, position, [&](EntityType<EC::Position> entity){
-        Vec2 entityPos = *ecs->Get<EC::Position>(entity);
+        Vec2 entityPos = ecs->Get<EC::Position>(entity)->vec2();
         Vec2 delta = entityPos - position;
         float entityDistSqrd = delta.distSqrd();
         if (entityDistSqrd < closestDistSqrd) {
@@ -414,7 +417,7 @@ findClosestEntityToPosition(const EntityWorld* ecs, const ChunkMap* chunkmap, Ve
 
 bool pointInsideEntityBounds(Vec2 point, const EntityType<EC::Position, EC::Size> entity, const ComponentManager<const EC::Position, const EC::Size>& ecs) {
     Vec2 entityPosition = entity.Get<const EC::Position>(&ecs)->vec2();
-    Vec2 entitySize = entity.Get<const EC::Size>(&ecs)->toVec2();
+    Vec2 entitySize = entity.Get<const EC::Size>(&ecs)->vec2();
 
     Vec2 minEntityPos = entityPosition - entitySize.scaled(0.5f);
     Vec2 maxEntityPos = entityPosition + entitySize.scaled(0.5f);

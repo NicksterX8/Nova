@@ -168,19 +168,36 @@ public:
         return (Entity*)em->entities;
     }
 
+    /* Get a component from the entity of the type T.
+     * Completely side-effect free. Will log an error and return null if the entity does not exist or if the entity does not own a component of the type.
+     * Passing a type that has not been initialized with init() will result in an error message and getting null.
+     * In order to not be wasteful, types with a size of 0 (AKA flag components) will result in a return value of null.
+     * @return A pointer to a component of the type or null on error.
+     */
     template<class T>
     T* Get(Entity entity) const {
         return em->Get<T>(entity);
     }
 
     template<class T>
-    void Set(Entity entity, const T& value) {
-        if (sizeof(T) == 0) return;
+    T* Set(Entity entity, const T& value) {
+        static_assert(std::is_const<T>(), "Component must be const to set values!");
+        if (sizeof(T) == 0) return NULL;
+
+        T* component = em->Get<T>(entity);
         // perhaps add a NULL check here and log an error instead of dereferencing immediately?
         // could hurt performance depending on where it's used
-        *em->Get<T>(entity) = value;
+        // decided to add check as otherwise this method is useless, so only use it if a null check is intended.
+        if (component)
+            *component = value;
+        return component;
     }
 
+    /* Add a component of the type to the entity, immediately initializing the value to param startValue.
+     * Triggers the relevant 'onAdd' event directly after adding and setting start value if not currently deferring events,
+     * otherwise it will be added to the back of the deferred events queue to be executed when finished deferring.
+     * @return 0 on success, any other value otherwise. A relevant error message should be logged.
+     */
     template<class T>
     int Add(Entity entity, const T& startValue) {
         int ret = em->Add<T>(entity, startValue);
@@ -197,6 +214,13 @@ public:
         return ret;
     }
 
+    /* Add the template argument components to the entity.
+     * Triggers the relevant 'onAdd' events directly after adding all of the components if not currently deferring events.
+     * Keep in mind the components will be left unitialized, meaning you may get either garbage or old component data if read to before being written to.
+     * If deferring events, the events will be added to the back of the deferred events queue to be executed when finished deferring in the order of the template arugments passed.
+     * The events will not be triggered if adding any of the components failed.
+     * @return 0 on success, -1 if adding any one of the components failed. A relevant error message should be logged.
+     */
     template<class... Components>
     int Add(Entity entity) {
         constexpr auto ids = ECS::getComponentIDs<Components...>();
@@ -262,7 +286,7 @@ public:
      * Creating entities while iterating this list is also safe, but keep in mind that entities created during iteration will be skipped.
      */
     inline void IterateEntities(std::function<void(Entity)> callback) const {
-        for (int e = em->numLiveEntities(); e >= 0; e--) {
+        for (int e = em->numLiveEntities()-1; e >= 0; e--) {
             callback(em->entities[e]);
         }
     }
@@ -283,6 +307,15 @@ public:
     template<class T>
     inline const ECS::ComponentPool* GetPool() const {
         return em->getPool<T>();
+    }
+
+    /* Get a pointer to the component pool for a given component type */
+    inline const ECS::ComponentPool* GetPool(ECS::ComponentID id) const {
+        return em->getPool(id);
+    }
+
+    inline Uint32 NumComponentPools() const {
+        return em->nComponents;
     }
 
     template<class... Components>
@@ -344,12 +377,6 @@ public:
         constexpr ComponentFlags mutSignature = ECS::componentMutSignature<Components...>();
         constexpr ECS::ComponentID id = getID<T>();
         static_assert(mutSignature[id] || componentIsConst<T>(), "need mutable signature to get mutable component");
-        return ecs->Get<T>(entity);
-    }
-
-    template<class T>
-    T* GetMut(Entity entity) const {
-        static_assert(ECS::componentInComponents<T, Components...>(), "component manager must be manager of component");
         return ecs->Get<T>(entity);
     }
 

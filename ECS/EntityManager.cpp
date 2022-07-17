@@ -84,9 +84,9 @@ int EntityManager::Destroy(Entity entity) {
 Entity EntityManager::getEntityByIndex(Uint32 entityIndex) const {
     if (entityIndex >= liveEntities) {
         Log.Error("ECS::getEntityByIndex : index out out bounds! Index : %u, liveEntities: %u", entityIndex, liveEntities);
-        return baseToEntity(entities[0]);
+        return NullEntity;
     }
-    return baseToEntity(entities[entityIndex]);
+    return entities[entityIndex];
 }
 
 ComponentFlags EntityManager::getEntityComponents(EntityID entityID) const {

@@ -292,8 +292,6 @@ int main(int argc, char** argv) {
     
     state->init(sdlCtx.ren, &gameViewport);
 
-    // GameSave::load(state);
-
     for (int e = 0; e < 2000; e++) {
         Vec2 pos = {(float)randomInt(-200, 200), (float)randomInt(-200, 200)};
         //Entity entity = Entities::Tree(&state->ecs, pos, {1, 1});
@@ -335,7 +333,7 @@ int main(int argc, char** argv) {
     double secondsElapsed = metadata.end();
     Log("Time elapsed: %.1f", secondsElapsed);
 
-    GameSave::save(state);
+    // GameSave::save(state);
 
     unload();
 

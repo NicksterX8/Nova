@@ -11,25 +11,24 @@ namespace ECS {
 
 class ComponentPool {
 public:
-    /* Component Info */
-    ComponentID id;
     size_t componentSize;
-    char name[ECS_MAX_COMPONENT_NAME_SIZE] = "null";
+    Uint32 _size = 0; // how many used components exist in the components array
+    Uint32 reserved = 0; // number of reserved component memory spaces
 
     void* components = NULL; // array of components
-    Uint32 _size = 0; // how many used components exist in the components array
-    Uint32* entityComponentSet = NULL; // array indexable by entity id to get the index of the component owned by that entity
-
     EntityID* componentOwners = NULL;
 
-    Uint32 reserved = 0; // number of reserved component memory spaces
+    Uint32* entityComponentSet = NULL; // array indexable by entity id to get the index of the component owned by that entity
+
+    ComponentID id;
+    char name[ECS_MAX_COMPONENT_NAME_SIZE] = "null";
 
     Uint32 size() const {
         return _size;
     }
 
     ComponentPool(ComponentID componentID, size_t componentSize, Uint32 startSize)
-    : id(componentID), componentSize(componentSize) {
+    : componentSize(componentSize), id(componentID) {
         if (componentSize != 0) {
             reserved = startSize;
             components = malloc(startSize * componentSize);
@@ -41,6 +40,7 @@ public:
         }
     }
 
+    // Destroy the component pool, deallocating all heap allocations
     void destroy() {
         free(components);
         free(componentOwners);
@@ -57,7 +57,7 @@ public:
         return &componentsData[index * componentSize];
     }
 
-    void* get(EntityID entity) const {        
+    void* get(EntityID entity) const {
         Uint32 componentIndex = entityComponentSet[entity];
 
         // this is optimized to just check if index is greater than size rather than two separate checks
@@ -133,6 +133,11 @@ public:
             Log.Error("ComponentPool(%s)::resize : New size is too small to contain all entities!\n"
                 "Old size: %d, New size: %d. Aborting.", name, _size, newSize);
             return -1;
+        }
+
+        if (newSize > reserved/2 && newSize < reserved) {
+            // do nothing as the size is already large enough and shortening it wouldn't save that much memory
+            return 0;
         }
 
         void* newComponents = realloc(components, newSize * componentSize);

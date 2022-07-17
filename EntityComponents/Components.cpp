@@ -2,23 +2,12 @@
 
 namespace EC {
 
-Position::Position(float x, float y) {
-    this->x = x;
-    this->y = y;
-}
-Position::Position(Vec2 vec) {
-    this->x = vec.x;
-    this->y = vec.y;
-}
+Position::Position(float x, float y) : x(x), y(y) {}
+Position::Position(Vec2 vec) : x(vec.x), y(vec.y) {}
 
 Size::Size(float width, float height)
-: width(width), height(height) {
-
-}
-
-Vec2 Size::toVec2() const {
-    return Vec2(width, height);
-}
+: width(width), height(height) {}
+Size::Size(Vec2 vec) : width(vec.x), height(vec.y) {}
 
 Render::Render(SDL_Texture* texture, int layer)
 : texture(texture), layer(layer) {

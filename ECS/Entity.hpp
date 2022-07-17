@@ -47,11 +47,11 @@ public:
         return bits[position/64] & (1 << (position%64));
     }
 
-    constexpr void set(Uint32 position, bool value) {
-        Uint64 num = bits[position/64];
-        Uint64 digit = (value << (position % 64));
-        num |= digit;
-        bits[position/64] = num;
+    constexpr void set(Uint32 position) {
+        if (position > size()) return;
+        Uint32 position64 = position >> 6;
+        Uint64 digit = (1 << (position - (position64 << 6)));
+        bits[position64] |= digit;
     }
 
     constexpr bool any() const {
@@ -141,44 +141,31 @@ public:
 typedef MyBitset<NUM_COMPONENTS> ComponentFlags;
 
 #define MAX_ENTITIES 100000
-//#define NULL_ENTITY (MAX_ENTITIES-1)
+
 constexpr EntityID NULL_ENTITY_ID = (MAX_ENTITIES-1);
 constexpr EntityVersion NULL_ENTITY_VERSION = 0;
-constexpr EntityVersion RESERVED_ENTITY_VERSION = 1;
 constexpr EntityVersion WILDCARD_ENTITY_VERSION = UINT32_MAX;
 
 template<class... Components>
 constexpr ComponentFlags componentSignature() {
-    // void 0 to remove unused result warning
-    constexpr ComponentID ids[] = { 0, ( (void)0, getID<Components>()) ... };
+    constexpr ComponentID ids[] = {getID<Components>() ...};
     // sum component signatures
     ComponentFlags result;
-    for (size_t i = 1; i < sizeof(ids) / sizeof(ComponentID); i++) {
-        result.set(ids[i], true);
+    for (size_t i = 0; i < sizeof...(Components); i++) {
+        result.set(ids[i]);
     }
     return result;
 }
 
-enum class ComponentType {
-    None = 0,
-    Mutable,
-    Const
-};
-
-struct ComponentTypeFlags {
-    ComponentFlags flag;
-    ComponentFlags mut;
-};
-
 template<class... Components>
 constexpr ComponentFlags componentMutSignature() {
-    constexpr unsigned int ids[]     = {0, ((void)0,              getID<Components>()) ...};
-    constexpr bool muts[]            = {0, ((void)0, componentIsMutable<Components>()) ...};
+    constexpr ComponentID   ids[] = {getID<Components>() ...};
+    constexpr bool         muts[] = {componentIsMutable<Components>() ...};
 
     ComponentFlags result;
-    for (size_t i = 1; i < sizeof(ids) / sizeof(ComponentID); i++) {
+    for (size_t i = 0; i < sizeof...(Components); i++) {
         if (muts[i])
-            result.set(ids[i], true);
+            result.set(ids[i]);
     }
     return result;
 }
@@ -188,47 +175,20 @@ constexpr std::array<ComponentID, sizeof...(Components)> getComponentIDs() {
     return {getID<Components>() ...};
 }
 
-/*
-template<class... Components>
-std::string getComponentNameList() {
-    ComponentID ids[] = {0, ((void)0, getID<Components>()) ...};
-    std::string listString;
-    for (size_t i = 1; i < sizeof(ids) / sizeof(ComponentID); i++) {
-        char text[256];
-        if (i != sizeof(ids) / sizeof(ComponentID) - 1)
-            sprintf(text, "%s, ", componentNames[ids[i]]);
-        else
-            sprintf(text, "%s", componentNames[ids[i]]);
-        listString.append(text);
-    }
-
-    return listString;
-}
-*/
-
 template<class T, class... Components>
 constexpr bool componentInComponents() {
-    constexpr ComponentID ids[] = { 0, ( (void)0, getID<Components>()) ... };
-    for (size_t i = 1; i < sizeof(ids) / sizeof(ComponentID); i++) {
-        if (getID<T>() == ids[i]) {
-            return true;
-        }
-    }
-    return false;
+    constexpr ComponentFlags signature = componentSignature<Components...>();
+    return signature[getID<T>()];
 }
 
 template<class... Components>
 struct _EntityType;
 
-template<class... Components, class... EntityComponents>
-constexpr inline bool entityHasComponents(_EntityType<EntityComponents...> entity) {
-    constexpr bool hasComponents[] = { 0, ( (void)0, componentInComponents<Components, EntityComponents...>()) ... };
-    for (size_t i = 1; i < sizeof(hasComponents) / sizeof(bool); i++) {
-        if ( !(hasComponents[i]) ) {
-            return false;
-        }
-    }
-    return true;
+template<class EntityTypeT, class... Components>
+constexpr bool entityHasComponents() {
+    constexpr ComponentFlags componentsSignature = componentSignature<Components...>();
+    constexpr ComponentFlags entitySignature = EntityTypeT::typeComponentFlags();
+    return entitySignature.hasAll(componentsSignature);
 }
 
 struct EntityBase {
@@ -286,6 +246,10 @@ struct _EntityType : public EntityBase {
         version = entity.version;
     }
 
+    constexpr static ComponentFlags typeComponentFlags() {
+        return componentSignature<Components...>();
+    }
+
     template<class... NewComponents>
     constexpr _EntityType<NewComponents...>& cast() const {
         return *((_EntityType<NewComponents...>*)(this));
@@ -323,23 +287,9 @@ struct _Entity : public EntityBase {
     }
 };
 
-template<class... T1, class... T2>
-constexpr bool entityTypeHasComponents(_EntityType<T2...> entity) {
-    constexpr ComponentFlags typeFlags = componentSignature<T1...>();
-    if ((typeFlags & componentSignature<T2...>()) != typeFlags) {
-        // Fail, missing some components
-        return false;
-    }
-    return true;
-}
-
 typedef _Entity Entity;
 
-inline Entity baseToEntity(EntityBase base) {
-    return *((Entity*)&base);
-}
-
-constexpr Entity NullEntity = Entity();
+constexpr Entity NullEntity = Entity(NULL_ENTITY_ID, NULL_ENTITY_VERSION);
 
 }
 

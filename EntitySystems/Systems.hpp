@@ -35,7 +35,7 @@ public:
                 return;
             }
             Vec2 position = *sys.GetReadOnly<EC::Position>(entity);
-            IVec2 chunkPosition = tileToChunkPosition(position);
+            IVec2 chunkPosition = toChunkPosition(position);
             ChunkData* chunkdata = chunkmap->getChunkData(chunkPosition);
             if (chunkdata) {
                 chunkdata->closeEntities.push_back(entity);
@@ -44,10 +44,10 @@ public:
 
         ForEach<EC::Position, EC::Size>([&](auto entity){
             Vec2 position = *sys.GetReadOnly<EC::Position>(entity);
-            Vec2 size = sys.GetReadOnly<EC::Size>(entity)->toVec2();
+            Vec2 size = sys.GetReadOnly<EC::Size>(entity)->vec2();
 
-            IVec2 minChunkPosition = tileToChunkPosition(position - size.scaled(0.5f));
-            IVec2 maxChunkPosition = tileToChunkPosition(position + size.scaled(0.5f));
+            IVec2 minChunkPosition = toChunkPosition(position - size.scaled(0.5f));
+            IVec2 maxChunkPosition = toChunkPosition(position + size.scaled(0.5f));
             for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
                 for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
                     IVec2 chunkPosition = {col, row};

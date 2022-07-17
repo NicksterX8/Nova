@@ -3,6 +3,8 @@
 
 #include <SDL2/SDL.h>
 #include <functional>
+#include <unordered_map>
+#include <vector>
 
 typedef Uint16 Item;
 typedef Uint32 ItemFlags;
@@ -82,33 +84,93 @@ struct ItemStack {
 };
 
 /*
+class ItemPool {
+public:
+    using Address = Sint32;
+    constexpr static Address NullAddress = -1;
+private:
+
+    ItemStack* buffer;
+    Uint32 used;
+    Uint32 reserved;
+    std::unordered_map<Address, Uint32> map;
+    std::vector<Address> freeAddresses;
+    std::vector<Uint32> freeIndices;
+public:
+    ItemStack* get(Address address) const {
+        auto it = map.find(address);
+        if (it != map.end()) {
+            return &buffer[it->second];
+        }        
+
+        return NULL;
+    }
+
+
+    Address alloc(Uint32 size) {
+        if (size == INFINITE_ITEM_QUANTITY) {
+            return NullAddress;
+        }
+
+        if (size + used > reserved) {
+            resize((size+used*2));
+        }
+
+        Uint32 index = freeIndices.back();
+        Address address = freeAddresses.back();
+        freeIndices.pop_back();
+        freeAddresses.pop_back();
+        used += size;
+
+        return address;
+    }
+
+    void deleteArray(Address address) {
+
+    }
+
+    int resize(Uint32 newSize) {
+        
+    }
+};
+*/
+
+/*
 * An inventory storing a number of item stacks
 */
 struct Inventory {
-    ItemStack *items; // the items held in the inventory
+    ItemStack* items;
     Uint32 size;
 
     Inventory() {
         size = 0;
         items = NULL;
     }
+    
     Inventory(Uint32 size) {
-        this->size = size;
-        // TODO: Use a better method of item stack allocation
+        assert(size != INFINITE_ITEM_QUANTITY && "Inventory can not be infinitely large");
         items = new ItemStack[size];
+        this->size = size;
     }
 
     void destroy() {
-        if (items) {
-            // TODO: change this 
-            delete[] items;
-            items = NULL;
-        }
+        delete items;
+        size = 0;
+        items = NULL;
+
+    }
+
+    inline ItemStack& get(Uint32 itemIndex) {
+        return items[itemIndex];
+    }
+
+    inline const ItemStack& get(Uint32 itemIndex) const {
+        return items[itemIndex];
     }
 
     /*
     * Get the first available item stack in the inventory,
-    * skipping empty item stacks
+    * skipping empty item stacks.
     */
     ItemStack firstItemStack();
 
@@ -137,6 +199,14 @@ struct Inventory {
     * summing all the quantities of the stacks of the type in the inventory.
     */
     Uint32 itemCount(Item item);
+
+    inline ItemStack& operator[](Uint32 index) {
+        return get(index);
+    }
+
+    inline const ItemStack& operator[](Uint32 index) const {
+        return get(index);
+    }
 };
 
 #endif

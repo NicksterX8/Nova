@@ -42,7 +42,7 @@ struct Player {
         if (entity.Exists(ecs)) {
             auto size = entity.Get<EC::Size>(ecs);
             if (size) {
-                return size->toVec2();
+                return size->vec2();
             }
         }
         return {1, 1};
@@ -52,7 +52,7 @@ struct Player {
         if (entity.Exists(ecs)) {
             auto position = entity.Get<EC::Position>(ecs);
             if (position)
-                return *position;
+                return position->vec2();
         }
         return {0, 0};
         
@@ -62,7 +62,7 @@ struct Player {
         if (entity.Exists(ecs)) {
             auto position = entity.Get<EC::Position>(ecs);
             if (position) {
-                Vec2 oldPosition = *position;
+                Vec2 oldPosition = position->vec2();
                 *position = pos;
                 entityPositionChanged(&chunkmap, ecs, entity, oldPosition);
             }
@@ -131,8 +131,8 @@ struct Player {
 
     void selectHotbarSlot(int index) {
         selectedHotbarStack = index;
-        if (inventory()->items[index].item) {
-            heldItemStack = &inventory()->items[index];
+        if (inventory()->get(index).item) {
+            heldItemStack = &inventory()->get(index);
         }
     }
 

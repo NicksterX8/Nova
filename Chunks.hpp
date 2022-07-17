@@ -34,7 +34,9 @@ struct ChunkData {
     }
 };
 
+// Get the tile from the chunk at the specified row and column.
 #define CHUNK_TILE(chunk_ptr, row, col) ((*chunk_ptr)[row][col])
+// Get the tile from the chunk at the index, row ordered
 #define CHUNK_TILE_INDEX(chunk_ptr, index) ((&(*chunk_ptr)[0][0])[index])
 
 void generateChunk(Chunk* chunk);
@@ -113,12 +115,15 @@ private:
     ChunkData* newEntry(IVec2 position);
 };
 
-IVec2 tileToChunkPosition(Vec2 position);
+inline IVec2 toChunkPosition(Vec2 position) {
+    return position.divided(CHUNKSIZE).floorToIVec();
+}
 
-Tile* getTileAtPosition(const ChunkMap& chunkmap, float x, float y);
 Tile* getTileAtPosition(const ChunkMap& chunkmap, Vec2 position);
-Tile* getTileAtPosition(const ChunkMap& chunkmap, int x, int y);
-Tile* getTileAtPosition(const ChunkMap& chunkmap, IVec2 tilePos);
+
+inline Tile* getTileAtPosition(const ChunkMap& chunkmap, IVec2 tilePos) {
+    return getTileAtPosition(chunkmap, Vec2(tilePos.x, tilePos.y));
+}
 
 bool chunkIsVisible(IVec2 chunkPosition, const SDL_FRect *worldViewport);
 

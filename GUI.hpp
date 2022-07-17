@@ -85,7 +85,7 @@ public:
             for (unsigned int i = 0; i < player->numHotbarSlots; i++) {
                 slots.push_back(hotbarSlot);
 
-                ItemStack item = player->inventory()->items[i];
+                ItemStack item = player->inventory()->get(i);
 
                 // draw slot in hotbarSlot
                 SDL_SetRenderDrawColor(ren, 60, 60, 60, alpha);
@@ -102,7 +102,11 @@ public:
 
                 if (item.item) {
                     // icon
-                    SDL_RenderCopyF(ren, ItemData[item.item].icon, NULL, &innerSlot);
+                    Item itemtype = item.item;
+                    ItemTypeData itemData = ItemData[itemtype];
+                    SDL_Texture* icon = itemData.icon;
+                    Log.Info("icon: %p", icon);
+                    SDL_RenderCopyF(ren, icon, NULL, &innerSlot);
                     // quantity count
                     // dont draw item count over items that can only ever have one count,
                     // its pointless

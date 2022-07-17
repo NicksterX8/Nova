@@ -17,7 +17,7 @@ struct EntityComponent {
 #define ENTITY_TYPE_NAME_SIZE 64
 
 struct EntityTypeEC : EntityComponent<> {
-    char name[ENTITY_TYPE_NAME_SIZE] = "undefined";
+    char name[ENTITY_TYPE_NAME_SIZE];
 
     EntityTypeEC(const char* _name) {
         strcpy(this->name, _name);
@@ -29,23 +29,26 @@ struct Grabable : EntityComponent<> {
 };
 
 struct Health : EntityComponent<> {
-    float healthValue;
+    float health;
 
-    Health(float health) : healthValue(health) {}
+    Health(float Health) : health(Health) {}
 };
 
 struct Growth : EntityComponent<> {
-    float growthValue;
+    float growth;
 
-    Growth(float growth) : growthValue(growth) {}
+    Growth(float Growth) : growth(Growth) {}
 };
 
-struct Position : Vec2, EntityComponent<> {
+struct Position : EntityComponent<> {
+    float x;
+    float y;
+
     Position(float x, float y);
     Position(Vec2 vec);
     
-    Vec2 vec2() const {
-        return {x, y};
+    inline Vec2 vec2() const {
+        return Vec2(x, y);
     }
 };
 
@@ -54,8 +57,11 @@ struct Size : EntityComponent<> {
     float height;
 
     Size(float width, float height);
+    Size(Vec2 vec);
 
-    Vec2 toVec2() const;
+    inline Vec2 vec2() const {
+        return Vec2(width, height);
+    };
 };
 
 struct Render : EntityComponent<false> {
@@ -67,8 +73,6 @@ struct Render : EntityComponent<false> {
 
     Render(SDL_Texture* texture, int layer);
 };
-
-// #define TEXTURE_NAME_SIZE 64
 
 struct Explosion : EntityComponent<> {
     float radius;

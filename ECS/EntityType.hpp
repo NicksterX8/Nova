@@ -44,11 +44,6 @@ public:
         return getter->template Get<T>(*this);
     }
 
-    template<class T, class S>
-    inline void Set(S* setter, const T& value) {
-        setter->template Set<T>(*this, value);
-    }
-
     template<class... Cs, class S>
     bool Has(const S* s) const {
        return s->template EntityHas<Cs...>(*this);
@@ -62,158 +57,17 @@ protected:
 };
 
 template<>
-constexpr SpecialEntity<>::SpecialEntity(Entity entity) : _EntityType<>(entity.id, entity.version) {
-}
+constexpr SpecialEntity<>::SpecialEntity(Entity entity) : _EntityType<>(entity.id, entity.version) {}
 
 
 template<class... Components>
 using EntityType = SpecialEntity<Components...>;
 
-/*
-template<class... Components>
-struct OptionalEntity {
-protected:
-    SpecialEntity<Components...> entity;
-    using E = SpecialEntity<Components...>;
-public:
-
-    constexpr OptionalEntity() : entity(NULL_ENTITY_ID, NULL_ENTITY_VERSION) {}
-
-    // OptionalEntity(Entity entity) : entity(entity) {}
-
-    constexpr OptionalEntity(E entity) : entity(entity) {}
-
-private:
-    template<class... C2, class... C1>
-    static SpecialEntity<C2...>& getEntity(OptionalEntity<C1...>& a) {
-        return *((SpecialEntity<C2...>*)&a);
-    }
-
-    template<class... C2, class... C1>
-    static const SpecialEntity<C2...>& getEntity(const OptionalEntity<C1...>& a) {
-        return *((SpecialEntity<C2...>*)&a);
-    }
-public:
-
-    template<class... C>
-    constexpr OptionalEntity(OptionalEntity<C...> other) : entity(getEntity(other)) {}
-
-    constexpr OptionalEntity(EntityID id, EntityVersion version) : entity(id, version) {}
-
-    E& Unwrap() {
-        assert(entity.IsValid() && "Failed to unwrap invalid entity");
-        return entity;
-    }
-
-    const E& Unwrap() const {
-        assert(entity.IsValid() && "Failed to unwrap invalid entity");
-        return entity;
-    }
-
-    template<class... C>
-    bool Has() const {
-        constexpr ComponentFlags componentFlags = componentSignature<C...>();
-        return IsValid() && ((componentFlags & SpecialEntityStatic::ecs->entityComponents(entity.id)) == componentFlags);
-    }
-
-    bool IsValid() const {
-        return entity.IsValid();
-    }
-
-    bool Exists() const {
-        return (IsValid() && entity.Exists());
-    }
-
-    //operator bool() const {
-     //   return IsValid();
-    //}
-
-    void operator=( const _EntityType<Components...>& entity) {
-        memcpy(this, &entity, sizeof(Entity));
-    }
-
-    bool operator==(const _Entity& base) const {
-        return entity == base;
-    }
-
-    bool operator!=(const _Entity& base) const {
-        return operator==(base);
-    }
-
-    template<class... C>
-    bool operator==(const OptionalEntity<C...>& rhs) const {
-        return entity == getEntity(rhs);
-    }
-
-    template<class... C>
-    bool operator!=(const OptionalEntity<C...>& rhs) const {
-        return !operator==(rhs);
-    }
-};
-*/
-
-/*
-template<class T = SpecialEntity<>>
-struct OptionalEntityT {
-private:
-    T entity;
-public:
-
-    constexpr OptionalEntityT() : entity(NULL_ENTITY_ID, NULL_ENTITY_VERSION) {}
-
-    // OptionalEntity(Entity entity) : entity(entity) {}
-
-    constexpr OptionalEntityT(T entity) : entity(entity) {}
-
-    constexpr OptionalEntityT(EntityID id, EntityVersion version) : entity(id, version) {}
-
-    T& Unwrap() {
-        assert(entity.IsValid() && "Failed to unwrap invalid entity");
-        return entity;
-    }
-
-    const T& Unwrap() const {
-        assert(entity.IsValid() && "Failed to unwrap invalid entity");
-        return entity;
-    }
-
-    template<class... C>
-    bool Has() const {
-        constexpr ComponentFlags componentFlags = componentSignature<C...>();
-        return IsValid() && ((componentFlags & SpecialEntityStatic::ecs->entityComponents(entity.id)) == componentFlags);
-    }
-
-    bool IsValid() const {
-        return entity.IsValid();
-    }
-
-    bool Exists() const {
-        return (IsValid() && entity.Exists());
-    }
-
-    operator bool() const {
-        return IsValid();
-    }
-};
-*/
-
-
 template<class T>
 using OptionalEntityT = T;
-/*
-template<class T>
-struct OptionalEntityT : public T {
-    using T::T;
-};
-*/
 
 template<class... Components>
 using OptionalEntity = SpecialEntity<Components...>;
-/*
-struct OptionalEntity : public SpecialEntity<Components...> {
-    using SpecialEntity<Components...>::SpecialEntity;
-};
-*/
 
 }
 

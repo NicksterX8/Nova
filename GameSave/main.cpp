@@ -87,12 +87,34 @@ public:
         propHeader.location = body.size();
         headers.push_back(propHeader);
 
-        // const size_t* sizePtr = (const size_t*)data;
+        const char* start = (const char*)data;
+        const char* end = &start[size];
 
-        const char* charPtr = (const char*)data;
-        const char* end = &charPtr[size];
+        body.insert(body.end(), start, end);
+    }
 
-        body.insert(body.end(), charPtr, end);
+    void reserveHeader(const char* name) {
+        FilePropertyHeader header;
+        strncpy(header.name, name, 32);
+        header.location = body.size();
+        headers.push_back(header);
+    }
+
+    void back_write(const void* data, size_t size) {
+        const char* start = (const char*)data;
+        const char* end = &start[size];
+
+        body.insert(body.end(), start, end);
+    }
+
+    template<class T>
+    void back_writeValue(const T& value) {
+        back_write(&value, sizeof(T));
+    }
+
+    template<class T>
+    void setT(const char* name, const T* data, size_t count) {
+        set(name, data, sizeof(T) * count);
     }
 
     template<class T>
@@ -192,10 +214,60 @@ void writeComponentPool(FileWriter& ef, const ComponentPool* pool) {
 
     cf.set("componentSize", pool->componentSize);
     cf.set("numComponents", (size_t)pool->size());
-    cf.set("components", pool->components, pool->componentSize * pool->size());
-    cf.set("componentOwners", pool->componentOwners, sizeof(Entity) * pool->size());
+    switch (pool->id) {
+    case getID<EC::Inventory>(): {
+        const EC::Inventory* components = static_cast<EC::Inventory*>(pool->components);
+        cf.reserveHeader("components");
+        for (Uint32 i = 0; i < pool->size(); i++) {
+            const Inventory& inventory = components[i].inventory;
+
+            cf.back_writeValue(inventory.size);
+            cf.back_write(inventory.items, inventory.size * sizeof(ItemStack));
+        }
+        
+        break;}
+    case getID<EC::Render>(): {
+        const EC::Render* components = static_cast<EC::Render*>(pool->components);
+        cf.reserveHeader("components");
+        for (Uint32 i = 0; i < pool->size(); i++) {
+            const EC::Render& render = components[i];
+
+            std::string stringName = Textures.getNameFromTexture(render.texture);
+            const char* tname = stringName.c_str();
+            char name[] = {'\0'};
+            strcpy(name, tname);
+
+            cf.back_write(name, 64);
+            cf.back_writeValue(render.layer);
+        }
+        break;}
+    default:
+        cf.set("components", pool->components, pool->componentSize * pool->size());
+        break;
+    }
+    
+    cf.setT("componentOwners", pool->componentOwners, pool->size());
 
     ef.write(cf, componentNames[pool->id]);
+}
+
+template<class T>
+void copyType(T* dst, const T* src, size_t count) {
+    T valueTest;
+    (void)valueTest;
+    memcpy(dst, src, sizeof(T) * count);
+}
+
+template<class T>
+void readTo(const char* propName, T* dst, size_t count, const char* contents) {
+    const T* prop = readProp<T>(propName, contents);
+    copyType<T>(dst, prop, count);
+}
+
+template<class T>
+T readValue(const char* propName, const char* contents) {
+    const T* prop = readProp<T>(propName, contents);
+    return *prop;
 }
 
 int readComponentPool(const char* source, ComponentPool* pool) {
@@ -206,22 +278,61 @@ int readComponentPool(const char* source, ComponentPool* pool) {
     const char* contents = static_cast<const char*>(
         readProp(componentNames[pool->id], source));
 
-    size_t componentSize = *static_cast<const size_t*>(
-        readProp("componentSize", contents));
+    readTo("componentSize", &pool->componentSize, 1, contents);
+    auto numComponents = readValue<decltype(pool->_size)>("numComponents", contents);
 
-    size_t numComponents = *static_cast<const size_t*>(
-        readProp("numComponents", contents));
+    // NEED TO RESIZE BEFORE COPYING COMPONENTS DATA
+    assert(pool->size() == 0 && "pool written to must not have pre-existing components");
+    pool->resize(numComponents + 10);
 
+
+    readTo("componentOwners", pool->componentOwners, numComponents, contents);
+
+    // Can't use copy type for this one because it uses void pointers
     const void* components = static_cast<const void*>(
         readProp("components", contents));
 
-    const Entity* componentOwners = static_cast<const Entity*>(
-        readProp("componentOwners", contents));
+    switch (pool->id) {
+    case getID<EC::Inventory>(): {
+        const void* component = components;
+        for (Uint32 i = 0; i < numComponents; i++) {
+            Uint32 size = *static_cast<const Uint32*>(component);
+            const ItemStack* items = (const ItemStack*)((const char*)component + sizeof(Uint32));
+
+            Inventory* inventory = &static_cast<EC::Inventory*>(pool->components)[i].inventory;
+            *inventory = Inventory(size);
+            copyType(inventory->items, items, size);
+
+            component = (const char*)component + (sizeof(size) + (sizeof(ItemStack) * size));
+
+            // PROBABLY LEAKING MEMORY ON LOAD BECAUSE OF INVENTORY
+        }
+        
+        break;}
+
+    case getID<EC::Render>(): {
+        const void* component = components;
+        for (Uint32 i = 0; i < numComponents; i++) {
+            // name| 64, layer| 4
+
+            const char* textureName = static_cast<const char*>(component);
+            component = (const char*)component + 64;
+            auto renderLayer = *static_cast<const int*>(component);
+            component = (const char*)component + sizeof(renderLayer);
+
+            SDL_Texture* texture = Textures.getTextureFromName(textureName);
+
+            EC::Render* render = &static_cast<EC::Render*>(pool->components)[i];
+            *render = EC::Render(texture, renderLayer);
+        }
+
+        break;} 
+    default:
+        memcpy(pool->components, components, numComponents * pool->componentSize);
+        break;
+    }
     
-    assert(pool->size() == 0 && "pool written to must not have pre-existing components");
-    pool->resize(numComponents + 10);
-    memcpy(pool->components, components, numComponents * componentSize);
-    memcpy(pool->componentOwners, componentOwners, numComponents * sizeof(Entity));
+    pool->_size = (Uint32)numComponents;
 
     for (Uint32 i = 0; i < MAX_ENTITIES; i++) {
         pool->entityComponentSet[i] = ECS_NULL_INDEX;
@@ -231,8 +342,6 @@ int readComponentPool(const char* source, ComponentPool* pool) {
         EntityID owner = pool->componentOwners[i];
         pool->entityComponentSet[owner] = i;
     }
-
-    pool->_size = (Uint32)numComponents;
 
     for (Uint32 i = 0; i < (Uint32)numComponents; i++) {
         pool->entityComponentSet[pool->componentOwners[i]] = i;
@@ -387,9 +496,10 @@ int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
     size_t numLiveEntities = *readProp<size_t>("numLiveEntities", src);
     size_t maxEntities = *readProp<size_t>("maxEntities", src);
     const Entity *entities = readProp<Entity>("entities", src);
-    const EntityManager::EntityData *entityData = readProp<EntityManager::EntityData>("entityData", src);
-    size_t numFreeEntities = *readProp<size_t>("numFreeEntities", src);
-    const EntityID *freeEntities = readProp<EntityID>("freeEntities", src);
+    const auto entityData = readProp<EntityManager::EntityData>("entityData", src);
+    size_t numFreeEntities = *readProp<decltype(ecs->em->liveEntities)>("numFreeEntities", src);
+    const auto freeEntities = readProp<decltype(ecs->em->freeEntities)::value_type>("freeEntities", src);
+
 
     // validate data
 
@@ -410,8 +520,8 @@ int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
     ecs->em->liveEntities = (Uint32)numLiveEntities;
     ecs->em->freeEntities.clear();
     ecs->em->freeEntities.insert(ecs->em->freeEntities.end(), freeEntities, freeEntities + numFreeEntities);
-    memcpy(ecs->em->entities, entities, maxEntities * sizeof(Entity));
-    memcpy(ecs->em->entityDataList, entityData, maxEntities * sizeof(EntityManager::EntityData));
+    copyType(ecs->em->entities, entities, maxEntities);
+    copyType(ecs->em->entityDataList, entityData, maxEntities);
 
     readComponentPools<COMPONENTS>(src, ecs->em);
 

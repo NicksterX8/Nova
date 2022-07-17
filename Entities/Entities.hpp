@@ -117,33 +117,6 @@ namespace Entities {
             MARK_END_ENTITY_CREATION(ecs);
         }
     };
-
-    /*
-    #define PlayerEntityComponents EC::Health, EC::Nametag, \
-            EC::Rotation, EC::Size, EC::Inventory, \
-            EC::Render, EC::Follow, EC::Position, \
-            CenteredRenderFlagComponent
-    
-    using PlayerEntity = EntityType<PlayerEntityComponents>;
-    PlayerEntity Player(ECS* ecs, Vec2 position);
-    */
-
-    using BulletType = EntityType<EC::Position, EC::Size, EC::Render>;
-    struct Bullet : BulletType {
-        using BulletType::BulletType;
-        Bullet(EntityWorld* ecs, Vec2 position) : BulletType(ecs, "bullet") {
-            Set(ecs, EC::Position(position));
-            Set(ecs, EC::Size({1.0f, 1.0f}));
-            Set(ecs, EC::Render(NULL, RenderLayer::Trees));
-        }
-    };
-
-    inline void test15() {
-        Bullet bullet = Bullet(NULL, {1.0f, 1.0f});
-        EntityType<EC::Position, EC::Size, EC::Render> e = bullet;
-        bullet = e;
-        
-    }
 }
 
 #endif

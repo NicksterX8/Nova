@@ -56,7 +56,7 @@ public:
     * @return The component pool corresponding to the component id. May be null if the size of the component is 0 or for other reasons.
     */
     inline ComponentPool* getPool(ComponentID id) const {
-        if (id > nComponents) {
+        if (id > highestComponentID) {
             Log.Error("EntityManager::getPool id passed is too high, could not get component pool!");
             return NULL;
         }
@@ -65,17 +65,14 @@ public:
 
     template<class T>
     void newComponent() {
-        Uint32 id = getID<T>();
-        assert(id == nComponents);
+        constexpr Uint32 id = getID<T>();
         // make a new pool
-        ComponentPool* pool = NULL;
-        if (sizeof(T) != 0)
-            pool = new ComponentPool(getID<T>(), sizeof(T), 100);
+        ComponentPool* pool = new ComponentPool(getID<T>(), sizeof(T), 100);
         pools[id] = pool;
         nComponents++;
         if (id > highestComponentID)
             highestComponentID = id;
-        if (nComponents > NUM_COMPONENTS) {
+        if (nComponents > NUM_COMPONENTS || highestComponentID > NUM_COMPONENTS) {
             Log.Critical("The number of components in the enity component system is greater than the constant NUM_COMPONENTS!"
                 "number of components in system: %u, NUM_COMPONENTS: %d", nComponents, NUM_COMPONENTS);
         }
@@ -139,7 +136,6 @@ public:
     }
 
     inline bool EntityExists(Entity entity) const {
-        //static_assert(NULL_ENTITY_VERSION < RESERVED_ENTITY_VERSION, "Null entity version entity should not exist");
         return (entity.id < NULL_ENTITY_ID && entity.version >= entityDataList[entity.id].version);
     }
 
@@ -151,14 +147,17 @@ public:
 
     /* Get the name of the component type corresponding to the id */
     const char* getComponentName(ComponentID id) const {
-        if (id > highestComponentID) return NULL;
-        return getPool(id)->name;
+        const ComponentPool* pool = getPool(id);
+        if (pool) return pool->name;
+        return NULL;
     }
 
     /* Get the size of the component pool for the type */
     template<class T>
-    Uint32 componentPoolSize() const {
-        return getPool<T>()->getSize();
+    Uint32 getComponentPoolSize() const {
+        const ComponentPool* pool = getPool<T>();
+        if (pool) return pool->size();
+        return 0;
     }
 
     Entity getEntityByIndex(Uint32 entityIndex) const;
@@ -167,17 +166,21 @@ public:
 
     int Destroy(Entity entity);
 
+    // Get a component of the entity. May be NULL if the entity does not have the component
     template<class T> 
     T* Get(Entity entity) const {
         if (sizeof(T) == 0) return NULL;
 
-        if (EntityExists(entity))
-            return static_cast<T*>(getPool<T>()->get(entity.id));
+        ComponentPool* pool = getPool<T>();
+
+        if (EntityExists(entity) && pool)
+            return static_cast<T*>(pool->get(entity.id));
 
         Log.Error("Attempted to get unowned component \"%s\" of an entity! Returning NULL. Entity: %s", getComponentName<T>(), entity.DebugStr().c_str());
         return NULL;
     }
 
+    // Get a component of the entity. May be NULL if the entity does not have the component
     void* Get(ComponentID componentID, Entity entity) const {
         ComponentPool* pool = getPool(componentID);
         if (EntityExists(entity) && pool)
@@ -194,12 +197,13 @@ public:
             return -1;
         }
 
-        ComponentID ids[] = {0, ((void)0, getID<Components>()) ...};
+        constexpr auto ids = getComponentIDs<Components...>();
         // start at one to account for dummy value
         int code = 0;
-        for (Uint32 i = 1; i < sizeof(ids) / sizeof(ComponentID); i++) {
-            ComponentID id = ids[i];
-            code |= pools[id]->add(entity.id);
+        for (Uint32 i = 0; i < sizeof...(Components); i++) {
+            ComponentPool* pool = getPool(ids[i]);
+            if (pool)
+                code |= pool->add(entity.id);
         }
         entityDataList[entity.id].flags |= componentSignature<Components...>();
         return code;
@@ -252,7 +256,7 @@ public:
             ComponentID id = componentIDs[i];
             if (entityFlags[id]) {
                 code |= pools[id]->remove(entity.id);
-                entityFlags.set(id, 0);
+                entityFlags &= ~(1 << id);
             }
         }
         return code;
@@ -279,17 +283,7 @@ public:
         // remove all components from the entity's flags that are in the passed signature
         entityFlags &= ~componentSignature<Components...>();
         return code;
-    }
-
-    // garbo     
-
-    template<class T, class... EntityComponents> 
-    T* Get(_EntityType<EntityComponents...> entity) {
-        static_assert(componentInComponents<T, EntityComponents...>(),
-            "Entity must have correct type to get a component!");
-
-        return Get<T>(entity);
-    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
 };
 
 }

@@ -204,32 +204,16 @@ ChunkData* ChunkMap::getOrCreateAt(IVec2 position) {
     return chunkData;
 }
 
-IVec2 tileToChunkPosition(Vec2 position) {
-    return position.divided(CHUNKSIZE).floorToIVec();
-}
-
-Tile* getTileAtPosition(const ChunkMap& chunkmap, float x, float y) {
-    int chunkX = (int)floor(x / CHUNKSIZE);
-    int chunkY = (int)floor(y / CHUNKSIZE);
+Tile* getTileAtPosition(const ChunkMap& chunkmap, Vec2 position) {
+    int chunkX = (int)floor(position.x / CHUNKSIZE);
+    int chunkY = (int)floor(position.y / CHUNKSIZE);
     Chunk* chunk = chunkmap.getChunk({chunkX, chunkY});
     if (!chunk) {
         return NULL;
     }
-    int tileX = (int)floor(x - (chunkX * CHUNKSIZE));
-    int tileY = (int)floor(y - (chunkY * CHUNKSIZE));
+    int tileX = (int)floor(position.x - (chunkX * CHUNKSIZE));
+    int tileY = (int)floor(position.y - (chunkY * CHUNKSIZE));
     return &(*chunk)[tileY][tileX];
-}
-
-Tile* getTileAtPosition(const ChunkMap& chunkmap, Vec2 position) {
-    return getTileAtPosition(chunkmap, position.x, position.y);
-}
-
-Tile* getTileAtPosition(const ChunkMap& chunkmap, int x, int y) {
-    return getTileAtPosition(chunkmap, (float)x, (float)y);
-}
-
-Tile* getTileAtPosition(const ChunkMap& chunkmap, IVec2 tilePos) {
-    return getTileAtPosition(chunkmap, (float)tilePos.x, (float)tilePos.y);
 }
 
 bool chunkIsVisible(IVec2 chunkPosition, const SDL_FRect *worldViewport) {

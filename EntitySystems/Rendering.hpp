@@ -148,11 +148,11 @@ public:
             ECS::RequireComponents<EC::Render, EC::Health>
         >>([&](EntityType<EC::Health, EC::Render> entity){
             auto destRect = &ecs.Get<EC::Render>(entity)->destination;
-            SDL_Rect _dest = FC_GetBounds(FreeSans, destRect->x, destRect->y, FC_ALIGN_LEFT, FC_MakeScale(0.5, 0.5), "%.1f", entity.Get<const EC::Health>(&ecs)->healthValue);
+            SDL_Rect _dest = FC_GetBounds(FreeSans, destRect->x, destRect->y, FC_ALIGN_LEFT, FC_MakeScale(0.5, 0.5), "%.1f", entity.Get<const EC::Health>(&ecs)->health);
             auto dest = &_dest;
             if ((dest->x + dest->w > gameViewport->display.x && dest->x < gameViewport->displayRightEdge()) &&
                 (dest->y + dest->h > gameViewport->display.y && dest->y < gameViewport->displayBottomEdge())) {
-                FC_DrawScale(FreeSans, renderer, destRect->x, destRect->y, FC_MakeScale(0.5, 0.5), "%.1f", entity.Get<const EC::Health>(&ecs)->healthValue);
+                FC_DrawScale(FreeSans, renderer, destRect->x, destRect->y, FC_MakeScale(0.5, 0.5), "%.1f", entity.Get<const EC::Health>(&ecs)->health);
             }
     
         });

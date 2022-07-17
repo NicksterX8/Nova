@@ -202,7 +202,7 @@ void runSystem(EntityWorld* ecs) {
 
 static void updateSystems(GameState* state) {
     EntityWorld& ecs = state->ecs;
-    
+
     MotionSystem motionSystem;
     motionSystem.Update(ecs, &state->chunkmap);
 
@@ -264,6 +264,17 @@ int tick(GameState* state) {
     return 0;
 }
 
+void logComponentPoolSizes(const EntityWorld& ecs) {
+    Log.Info("Total number of entities: %u", ecs.EntityCount());
+    for (ECS::ComponentID id = 0; id < ecs.NumComponentPools(); id++) {
+        const ECS::ComponentPool* pool = ecs.GetPool(id);
+        Log.Info("%s || Size: %u", pool->name, pool->size());
+        if (pool->size() > ecs.EntityCount()) {
+            Log.Error("Size is too large!");
+        }
+    }
+}
+
 // Main game loop
 int update(Context ctx) {
     ctx.metadata.tick();
@@ -318,6 +329,9 @@ int update(Context ctx) {
                     break;
                 case '9':
                     GameSave::load(state);
+                    break;
+                case ']':
+                    logComponentPoolSizes(state->ecs);
                     break;
                 }
             default:
