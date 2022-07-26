@@ -1,7 +1,8 @@
 ECS/Entity.o: ECS/Entity.cpp ECS/Entity.hpp ECS/Component.hpp \
-  ECS/../ComponentMetadata/macro.hpp ECS/../ComponentMetadata/getID.hpp \
-  ECS/../Log.hpp /usr/local/include/SDL2/SDL_log.h \
-  /usr/local/include/SDL2/SDL_stdinc.h \
+  ECS/../ComponentMetadata/macro.hpp \
+  ECS/../ComponentMetadata/short-macro.hpp \
+  ECS/../ComponentMetadata/getID.hpp ECS/../Log.hpp \
+  /usr/local/include/SDL2/SDL_log.h /usr/local/include/SDL2/SDL_stdinc.h \
   /usr/local/include/SDL2/SDL_config.h \
   /usr/local/include/SDL2/SDL_platform.h \
   /usr/local/include/SDL2/begin_code.h \
@@ -61,6 +62,8 @@ ECS/Entity.hpp:
 ECS/Component.hpp:
 
 ECS/../ComponentMetadata/macro.hpp:
+
+ECS/../ComponentMetadata/short-macro.hpp:
 
 ECS/../ComponentMetadata/getID.hpp:
 

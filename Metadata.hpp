@@ -9,8 +9,8 @@
 */
 class MetadataTracker {
     double _fps; // actual fps
-    double targetFps; // Desired fps
-    double deltaTime; // the change in miliseconds from the last tick to the current tick
+    double targetFps; // Desired fps, currently unused
+    double deltaTime; // the change in milliseconds from the last tick to the current tick
     double perfCountCurrentTick; // performance count of the tick that has not yet finished
     double perfCountLastTick; // performance count of the last finished tick
     int _ticks; // the number of ticks that have passed

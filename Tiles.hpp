@@ -6,13 +6,11 @@
 #include "Textures.hpp"
 #include <SDL2/SDL.h>
 #include "Items.hpp"
-#include "ECS/EntityType.hpp"
+#include "SECS/Entity.hpp"
 
 extern float TilePixels;
 extern float TileWidth;
 extern float TileHeight;
-
-using ECS::OptionalEntity;
 
 namespace TileTypes {
     enum E: Uint16 {

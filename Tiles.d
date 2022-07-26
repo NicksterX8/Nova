@@ -47,15 +47,12 @@ Tiles.o: Tiles.cpp Tiles.hpp constants.hpp \
   /usr/local/include/SDL2/SDL_misc.h Textures.hpp \
   /usr/local/Cellar/sdl2_image/2.0.5/include/SDL2/SDL_image.h \
   SDL_FontCache/SDL_FontCache.h /usr/local/include/SDL2/SDL_ttf.h \
-  Items.hpp ECS/EntityType.hpp ECS/Entity.hpp ECS/Component.hpp \
-  ECS/../ComponentMetadata/macro.hpp ECS/../ComponentMetadata/getID.hpp \
-  ECS/../Log.hpp ECS/../constants.hpp ECS/ECS.hpp \
-  ECS/../NC/cpp-vectors.hpp NC/vectors.h ECS/../Textures.hpp \
-  ECS/SystemsConstants.hpp ECS/EntityManager.hpp ECS/ComponentPool.hpp \
-  ECS/../ComponentMetadata/component.hpp \
-  ECS/../ComponentMetadata/componentDecl.hpp \
-  ECS/../ComponentMetadata/_componentIDs.hpp \
-  ECS/EntitySystemInterface.hpp
+  Items.hpp SECS/Entity.hpp SECS/../ECS/EntityType.hpp \
+  SECS/../ECS/Entity.hpp SECS/../ECS/Component.hpp \
+  SECS/../ECS/../ComponentMetadata/macro.hpp \
+  SECS/../ECS/../ComponentMetadata/short-macro.hpp \
+  SECS/../ECS/../ComponentMetadata/getID.hpp SECS/../ECS/../Log.hpp \
+  SECS/../ECS/../constants.hpp ECS/Entity.hpp
 
 Tiles.hpp:
 
@@ -171,38 +168,22 @@ SDL_FontCache/SDL_FontCache.h:
 
 Items.hpp:
 
-ECS/EntityType.hpp:
+SECS/Entity.hpp:
+
+SECS/../ECS/EntityType.hpp:
+
+SECS/../ECS/Entity.hpp:
+
+SECS/../ECS/Component.hpp:
+
+SECS/../ECS/../ComponentMetadata/macro.hpp:
+
+SECS/../ECS/../ComponentMetadata/short-macro.hpp:
+
+SECS/../ECS/../ComponentMetadata/getID.hpp:
+
+SECS/../ECS/../Log.hpp:
+
+SECS/../ECS/../constants.hpp:
 
 ECS/Entity.hpp:
-
-ECS/Component.hpp:
-
-ECS/../ComponentMetadata/macro.hpp:
-
-ECS/../ComponentMetadata/getID.hpp:
-
-ECS/../Log.hpp:
-
-ECS/../constants.hpp:
-
-ECS/ECS.hpp:
-
-ECS/../NC/cpp-vectors.hpp:
-
-NC/vectors.h:
-
-ECS/../Textures.hpp:
-
-ECS/SystemsConstants.hpp:
-
-ECS/EntityManager.hpp:
-
-ECS/ComponentPool.hpp:
-
-ECS/../ComponentMetadata/component.hpp:
-
-ECS/../ComponentMetadata/componentDecl.hpp:
-
-ECS/../ComponentMetadata/_componentIDs.hpp:
-
-ECS/EntitySystemInterface.hpp:

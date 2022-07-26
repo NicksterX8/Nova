@@ -2,15 +2,18 @@
 
 namespace Entities {
 
-
+    void throwEntity(EntityWorld* ecs, Entity entity, Vec2 target, float speed) {
+        ecs->Add(entity, EC::Motion(target, speed));
+        if (entity.Has<EC::Rotation>(ecs)) {
+            float rotation = entity.Get<EC::Rotation>(ecs)->degrees;
+            float timeToTarget = target.length() / speed;
+            ecs->Add<EC::AngleMotion>(entity, EC::AngleMotion(rotation + timeToTarget * 30.0f, 30.0f));
+        }
+    }
 
 }
 
-void entityCreated(GameState* state, Entity entity) {
-    
-}
-
-void entitySizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityType<EC::Position, EC::Size> entity, Vec2 oldSize) {
+void entitySizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<EC::Position, EC::Size> entity, Vec2 oldSize) {
     Vec2 newSize = ecs->Get<EC::Size>(entity)->vec2();
     if (oldSize.x == newSize.x && oldSize.y == newSize.y) {
         return;
@@ -66,7 +69,7 @@ void entitySizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityType<EC
     }
 }
 
-void entityPositionChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityType<EC::Position> entity, Vec2 oldPos) {
+void entityPositionChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<EC::Position> entity, Vec2 oldPos) {
     Vec2 newPos = ecs->Get<EC::Position>(entity)->vec2();
     if (oldPos.x == newPos.x && oldPos.y == newPos.y) {
         return;
@@ -141,7 +144,7 @@ void entityPositionChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityTyp
     }
 }
 
-void entityPositionAndSizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityType<EC::Position, EC::Size> entity, Vec2 oldPos, Vec2 oldSize) {
+void entityPositionAndSizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<EC::Position, EC::Size> entity, Vec2 oldPos, Vec2 oldSize) {
     Vec2 newPos = ecs->Get<EC::Position>(entity)->vec2();
     Vec2 newSize = ecs->Get<EC::Size>(entity)->vec2();
     if (oldPos.x == newPos.x && oldPos.y == newPos.y) {

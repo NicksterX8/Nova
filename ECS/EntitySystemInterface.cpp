@@ -9,14 +9,14 @@ EntitySystemInterface::EntitySystemInterface() {
     nEntities = 0;
     reservedEntities = 100;
 
-    entities = (_Entity*)malloc(100 * sizeof(_Entity));
+    entities = (Entity*)malloc(100 * sizeof(Entity));
 }
 
 EntitySystemInterface::EntitySystemInterface(Uint32 reserve) {
     nEntities = 0;
     reservedEntities = reserve;
 
-    entities = (_Entity*)malloc(reserve * sizeof(_Entity));
+    entities = (Entity*)malloc(reserve * sizeof(Entity));
 }
 
 void EntitySystemInterface::AddEntity(Entity entity) {
@@ -52,7 +52,7 @@ int EntitySystemInterface::RemoveEntity(Entity entity) {
 
 void EntitySystemInterface::EntitiesWereRemoved(EntityManager* em) {
     for (Uint32 e = 0; e < nEntities; e++) {
-        _Entity entity = entities[e];
+        Entity entity = entities[e];
         
         if (!em->EntityExists(entity)) {
             RemoveEntityLocally(e);
@@ -65,8 +65,8 @@ void EntitySystemInterface::RemoveAllEntities() {
 }
 
 void EntitySystemInterface::resize(Uint32 reserve) {
-    _Entity *newEntities = (_Entity*)malloc(reserve * sizeof(_Entity));
-    memcpy(newEntities, entities, reservedEntities * sizeof(_Entity));
+    Entity *newEntities = (Entity*)malloc(reserve * sizeof(Entity));
+    memcpy(newEntities, entities, reservedEntities * sizeof(Entity));
     free(entities);
 
     entities = newEntities;

@@ -8,8 +8,6 @@
 
 namespace GameSave {
 
-using namespace ECS;
-
 struct ChunkPositionPair {
     IVec2 position;
     Chunk chunk;
@@ -193,11 +191,7 @@ const T* readProp(const char* propName, const char* src) {
 }
 
 template<class C>
-void writeComponentPool(FileWriter& ef, const ComponentPool* pool) {
-
-    if (!C::Serializable) {
-        Log("non serial component passed!");
-    }
+void writeComponentPool(FileWriter& ef, const ECS::ComponentPool* pool) {
 
     /*
     component name size: 4
@@ -214,6 +208,7 @@ void writeComponentPool(FileWriter& ef, const ComponentPool* pool) {
 
     cf.set("componentSize", pool->componentSize);
     cf.set("numComponents", (size_t)pool->size());
+    /*
     switch (pool->id) {
     case getID<EC::Inventory>(): {
         const EC::Inventory* components = static_cast<EC::Inventory*>(pool->components);
@@ -245,6 +240,10 @@ void writeComponentPool(FileWriter& ef, const ComponentPool* pool) {
         cf.set("components", pool->components, pool->componentSize * pool->size());
         break;
     }
+    */
+    C::Serialize(static_cast<C*>(pool->components), pool->size(), [&cf](ArrayView array){
+        cf.back_write(array.data, array.size);
+    });
     
     cf.setT("componentOwners", pool->componentOwners, pool->size());
 
@@ -270,7 +269,7 @@ T readValue(const char* propName, const char* contents) {
     return *prop;
 }
 
-int readComponentPool(const char* source, ComponentPool* pool) {
+int readComponentPool(const char* source, ECS::ComponentPool* pool) {
     int code = 0;
 
     pool->_size = 0;
@@ -353,14 +352,14 @@ int readComponentPool(const char* source, ComponentPool* pool) {
 
 
 template<class... Components>
-int writeComponentPools(FileWriter& ef, const EntityManager* em) {
+int writeComponentPools(FileWriter& ef, const ECS::EntityManager* em) {
     int dummy[] = {0, ((void)writeComponentPool<Components>(ef, em->getPool<Components>()), 0) ...};
     (void)dummy;
     return 0;
 }
 
 template<class... Components>
-int readComponentPools(const char* source, EntityManager* em) {
+int readComponentPools(const char* source, ECS::EntityManager* em) {
     int codes[] = {0, ( (void)0, readComponentPool(source, em->getPool<Components>()) ) ...};
     int code = codes[0];
     for (size_t i = 1; i < sizeof(codes) / sizeof(int); i++) {
@@ -403,7 +402,7 @@ int writeEverythingToFiles(const char* outputSaveFolderPath, const GameState* st
     ef.set("numLiveEntities", &numLiveEntities, sizeof(size_t));
     ef.set("maxEntities", (size_t)MAX_ENTITIES);
     ef.set("entities", state->ecs.em->entities, sizeof(Entity) * MAX_ENTITIES);
-    ef.set("entityData", state->ecs.em->entityDataList, sizeof(EntityManager::EntityData) * MAX_ENTITIES);
+    ef.set("entityData", state->ecs.em->entityDataList, sizeof(ECS::EntityManager::EntityData) * MAX_ENTITIES);
     ef.set("numFreeEntities", state->ecs.em->freeEntities.size());
     ef.set("freeEntities", &state->ecs.em->freeEntities[0],
         sizeof(EntityID) * state->ecs.em->freeEntities.size());
@@ -496,7 +495,7 @@ int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
     size_t numLiveEntities = *readProp<size_t>("numLiveEntities", src);
     size_t maxEntities = *readProp<size_t>("maxEntities", src);
     const Entity *entities = readProp<Entity>("entities", src);
-    const auto entityData = readProp<EntityManager::EntityData>("entityData", src);
+    const auto entityData = readProp<ECS::EntityManager::EntityData>("entityData", src);
     size_t numFreeEntities = *readProp<decltype(ecs->em->liveEntities)>("numFreeEntities", src);
     const auto freeEntities = readProp<decltype(ecs->em->freeEntities)::value_type>("freeEntities", src);
 
@@ -525,7 +524,7 @@ int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
 
     readComponentPools<COMPONENTS>(src, ecs->em);
 
-    ComponentPool* inventoryECPool = ecs->em->getPool<EC::Inventory>();
+    ECS::ComponentPool* inventoryECPool = ecs->em->getPool<EC::Inventory>();
     for (Uint32 i = 0; i < inventoryECPool->size(); i++) {
         Inventory& inventory = static_cast<EC::Inventory*>(inventoryECPool->atIndex(i))->inventory;
     }

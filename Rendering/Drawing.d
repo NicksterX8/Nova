@@ -52,35 +52,39 @@ Rendering/Drawing.o: Rendering/Drawing.cpp Rendering/Drawing.hpp \
   /usr/local/include/SDL2/SDL_ttf.h Rendering/../NC/cpp-vectors.hpp \
   Rendering/../NC/vectors.h Rendering/../NC/utils.h \
   Rendering/../Tiles.hpp Rendering/../NC/colors.h Rendering/../Items.hpp \
-  Rendering/../ECS/EntityType.hpp Rendering/../ECS/Entity.hpp \
-  Rendering/../ECS/Component.hpp \
-  Rendering/../ECS/../ComponentMetadata/macro.hpp \
-  Rendering/../ECS/../ComponentMetadata/getID.hpp \
-  Rendering/../ECS/../Log.hpp Rendering/../ECS/../constants.hpp \
-  Rendering/../ECS/ECS.hpp Rendering/../ECS/../NC/cpp-vectors.hpp \
-  Rendering/../ECS/../Textures.hpp Rendering/../ECS/SystemsConstants.hpp \
-  Rendering/../ECS/EntityManager.hpp Rendering/../ECS/ComponentPool.hpp \
-  Rendering/../ECS/../ComponentMetadata/component.hpp \
-  Rendering/../ECS/../ComponentMetadata/componentDecl.hpp \
-  Rendering/../ECS/../ComponentMetadata/_componentIDs.hpp \
-  Rendering/../ECS/EntitySystemInterface.hpp Rendering/../Chunks.hpp \
-  Rendering/../Player.hpp Rendering/../Entities/Entities.hpp \
+  Rendering/../SECS/Entity.hpp Rendering/../SECS/../ECS/EntityType.hpp \
+  Rendering/../SECS/../ECS/Entity.hpp \
+  Rendering/../SECS/../ECS/Component.hpp \
+  Rendering/../SECS/../ECS/../ComponentMetadata/macro.hpp \
+  Rendering/../SECS/../ECS/../ComponentMetadata/short-macro.hpp \
+  Rendering/../SECS/../ECS/../ComponentMetadata/getID.hpp \
+  Rendering/../SECS/../ECS/../Log.hpp \
+  Rendering/../SECS/../ECS/../constants.hpp Rendering/../Chunks.hpp \
+  Rendering/../ECS/Entity.hpp Rendering/../Player.hpp \
+  Rendering/../Entities/Entities.hpp \
   Rendering/../Entities/../ECS/ECS.hpp \
+  Rendering/../SECS/../ECS/../NC/cpp-vectors.hpp \
+  Rendering/../SECS/../ECS/../Textures.hpp \
+  Rendering/../SECS/../ECS/SystemsConstants.hpp \
+  Rendering/../SECS/../ECS/EntityManager.hpp \
+  Rendering/../SECS/../ECS/ComponentPool.hpp \
+  Rendering/../SECS/../ECS/../ComponentMetadata/component.hpp \
+  Rendering/../SECS/../ECS/../ComponentMetadata/componentDecl.hpp \
+  Rendering/../SECS/../ECS/../ComponentMetadata/_componentIDs.hpp \
+  Rendering/../SECS/../ECS/EntitySystemInterface.hpp \
   Rendering/../Entities/../EntityComponents/Components.hpp \
   Rendering/../Entities/../EntityComponents/../NC/cpp-vectors.hpp \
   Rendering/../Entities/../EntityComponents/../Items.hpp \
-  Rendering/../Entities/../EntityComponents/../ECS/EntityType.hpp \
   Rendering/../Entities/../EntityComponents/../SECS/ECS.hpp \
-  Rendering/../Entities/../EntityComponents/../SECS/../ECS/ECS.hpp \
-  Rendering/../Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp \
-  Rendering/../Entities/../EntityComponents/../SECS/../ECS/Query.hpp \
-  Rendering/../Entities/../ECS/EntityType.hpp \
+  Rendering/../SECS/../ECS/ECS.hpp Rendering/../SECS/../ECS/Query.hpp \
+  Rendering/../Entities/../EntityComponents/../EntityPrototype.hpp \
   Rendering/../Entities/../Textures.hpp \
   Rendering/../Entities/../SECS/EntityWorld.hpp \
-  Rendering/../Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp \
+  Rendering/../SECS/ECS.hpp \
+  Rendering/../SECS/../EntityComponents/Components.hpp \
   Rendering/../Entities/../NC/cpp-vectors.hpp \
   Rendering/../Entities/Methods.hpp Rendering/../Entities/../Chunks.hpp \
-  Rendering/../GameViewport.hpp
+  Rendering/../ECS/ECS.hpp Rendering/../GameViewport.hpp
 
 Rendering/Drawing.hpp:
 
@@ -206,41 +210,27 @@ Rendering/../NC/colors.h:
 
 Rendering/../Items.hpp:
 
-Rendering/../ECS/EntityType.hpp:
+Rendering/../SECS/Entity.hpp:
 
-Rendering/../ECS/Entity.hpp:
+Rendering/../SECS/../ECS/EntityType.hpp:
 
-Rendering/../ECS/Component.hpp:
+Rendering/../SECS/../ECS/Entity.hpp:
 
-Rendering/../ECS/../ComponentMetadata/macro.hpp:
+Rendering/../SECS/../ECS/Component.hpp:
 
-Rendering/../ECS/../ComponentMetadata/getID.hpp:
+Rendering/../SECS/../ECS/../ComponentMetadata/macro.hpp:
 
-Rendering/../ECS/../Log.hpp:
+Rendering/../SECS/../ECS/../ComponentMetadata/short-macro.hpp:
 
-Rendering/../ECS/../constants.hpp:
+Rendering/../SECS/../ECS/../ComponentMetadata/getID.hpp:
 
-Rendering/../ECS/ECS.hpp:
+Rendering/../SECS/../ECS/../Log.hpp:
 
-Rendering/../ECS/../NC/cpp-vectors.hpp:
-
-Rendering/../ECS/../Textures.hpp:
-
-Rendering/../ECS/SystemsConstants.hpp:
-
-Rendering/../ECS/EntityManager.hpp:
-
-Rendering/../ECS/ComponentPool.hpp:
-
-Rendering/../ECS/../ComponentMetadata/component.hpp:
-
-Rendering/../ECS/../ComponentMetadata/componentDecl.hpp:
-
-Rendering/../ECS/../ComponentMetadata/_componentIDs.hpp:
-
-Rendering/../ECS/EntitySystemInterface.hpp:
+Rendering/../SECS/../ECS/../constants.hpp:
 
 Rendering/../Chunks.hpp:
+
+Rendering/../ECS/Entity.hpp:
 
 Rendering/../Player.hpp:
 
@@ -248,34 +238,52 @@ Rendering/../Entities/Entities.hpp:
 
 Rendering/../Entities/../ECS/ECS.hpp:
 
+Rendering/../SECS/../ECS/../NC/cpp-vectors.hpp:
+
+Rendering/../SECS/../ECS/../Textures.hpp:
+
+Rendering/../SECS/../ECS/SystemsConstants.hpp:
+
+Rendering/../SECS/../ECS/EntityManager.hpp:
+
+Rendering/../SECS/../ECS/ComponentPool.hpp:
+
+Rendering/../SECS/../ECS/../ComponentMetadata/component.hpp:
+
+Rendering/../SECS/../ECS/../ComponentMetadata/componentDecl.hpp:
+
+Rendering/../SECS/../ECS/../ComponentMetadata/_componentIDs.hpp:
+
+Rendering/../SECS/../ECS/EntitySystemInterface.hpp:
+
 Rendering/../Entities/../EntityComponents/Components.hpp:
 
 Rendering/../Entities/../EntityComponents/../NC/cpp-vectors.hpp:
 
 Rendering/../Entities/../EntityComponents/../Items.hpp:
 
-Rendering/../Entities/../EntityComponents/../ECS/EntityType.hpp:
-
 Rendering/../Entities/../EntityComponents/../SECS/ECS.hpp:
 
-Rendering/../Entities/../EntityComponents/../SECS/../ECS/ECS.hpp:
+Rendering/../SECS/../ECS/ECS.hpp:
 
-Rendering/../Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp:
+Rendering/../SECS/../ECS/Query.hpp:
 
-Rendering/../Entities/../EntityComponents/../SECS/../ECS/Query.hpp:
-
-Rendering/../Entities/../ECS/EntityType.hpp:
+Rendering/../Entities/../EntityComponents/../EntityPrototype.hpp:
 
 Rendering/../Entities/../Textures.hpp:
 
 Rendering/../Entities/../SECS/EntityWorld.hpp:
 
-Rendering/../Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp:
+Rendering/../SECS/ECS.hpp:
+
+Rendering/../SECS/../EntityComponents/Components.hpp:
 
 Rendering/../Entities/../NC/cpp-vectors.hpp:
 
 Rendering/../Entities/Methods.hpp:
 
 Rendering/../Entities/../Chunks.hpp:
+
+Rendering/../ECS/ECS.hpp:
 
 Rendering/../GameViewport.hpp:

@@ -43,19 +43,30 @@ int main() {
     output.close();
 
     ofstream macroOut("macro.hpp");
+    ofstream shortMacroOut("short-macro.hpp");
 
     ostringstream macro;
+    ostringstream shortMacro;
+
+    macro << "#include \"short-macro.hpp\"\n";
     macro << "#define COMPONENTS ";
+    shortMacro << "#define COMPONENT_NAMES ";
     for (size_t i = 0; i < components.size(); i++) {
         ComponentInfo component = components[i];
         macro << "EC::" << component.name;
-        if (i != components.size() - 1)
+        shortMacro << component.name;
+        if (i != components.size() - 1) {
             macro << ", ";
+            shortMacro << ", ";
+        }
     }
 
     macroOut << macro.str();
     macroOut << "\n#define NUM_COMPONENTS " << components.size() << "\n";
     macroOut.close();
+
+    shortMacroOut << shortMacro.str();
+    shortMacroOut.close();
 
     ofstream componentDecl("componentDecl.hpp");
     componentDecl << "namespace EC {\n";

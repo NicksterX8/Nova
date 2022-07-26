@@ -13,8 +13,8 @@ enum LogCategory {
 class Logger {
     void logOutputFunction(int category, SDL_LogPriority priority, const char *message) const;
 public:
-    int category = LOG_CATEGORY_MAIN;
-    bool useEscapeCodes = false;
+    int category = LOG_CATEGORY_MAIN; // The log category to use when logging, default is main
+    bool useEscapeCodes = false; // Use ansi escape codes for colors and bolding when logging to console
     static void logOutputFunction(void* logger, int category, SDL_LogPriority priority, const char *message);
 
     #define LOG_PRIORITY(priority) {va_list ap;\

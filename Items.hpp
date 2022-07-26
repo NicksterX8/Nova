@@ -84,58 +84,6 @@ struct ItemStack {
 };
 
 /*
-class ItemPool {
-public:
-    using Address = Sint32;
-    constexpr static Address NullAddress = -1;
-private:
-
-    ItemStack* buffer;
-    Uint32 used;
-    Uint32 reserved;
-    std::unordered_map<Address, Uint32> map;
-    std::vector<Address> freeAddresses;
-    std::vector<Uint32> freeIndices;
-public:
-    ItemStack* get(Address address) const {
-        auto it = map.find(address);
-        if (it != map.end()) {
-            return &buffer[it->second];
-        }        
-
-        return NULL;
-    }
-
-
-    Address alloc(Uint32 size) {
-        if (size == INFINITE_ITEM_QUANTITY) {
-            return NullAddress;
-        }
-
-        if (size + used > reserved) {
-            resize((size+used*2));
-        }
-
-        Uint32 index = freeIndices.back();
-        Address address = freeAddresses.back();
-        freeIndices.pop_back();
-        freeAddresses.pop_back();
-        used += size;
-
-        return address;
-    }
-
-    void deleteArray(Address address) {
-
-    }
-
-    int resize(Uint32 newSize) {
-        
-    }
-};
-*/
-
-/*
 * An inventory storing a number of item stacks
 */
 struct Inventory {

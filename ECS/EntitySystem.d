@@ -1,5 +1,6 @@
 ECS/EntitySystem.o: ECS/EntitySystem.cpp ECS/EntitySystem.hpp \
   ECS/Entity.hpp ECS/Component.hpp ECS/../ComponentMetadata/macro.hpp \
+  ECS/../ComponentMetadata/short-macro.hpp \
   ECS/../ComponentMetadata/getID.hpp ECS/../Log.hpp \
   /usr/local/include/SDL2/SDL_log.h /usr/local/include/SDL2/SDL_stdinc.h \
   /usr/local/include/SDL2/SDL_config.h \
@@ -63,6 +64,8 @@ ECS/Entity.hpp:
 ECS/Component.hpp:
 
 ECS/../ComponentMetadata/macro.hpp:
+
+ECS/../ComponentMetadata/short-macro.hpp:
 
 ECS/../ComponentMetadata/getID.hpp:
 

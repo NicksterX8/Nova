@@ -77,16 +77,9 @@ int drawWorld(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, 
         }
     }
 
-    /*
-    auto renderSystem = state->ecs.System<SimpleRectRenderSystem>();
-    renderSystem->scale = scale;
-    renderSystem->renderer = ren;
-    renderSystem->Update();
-    */
-
     auto renderSystem = SimpleRectRenderSystem(ren, gameViewport);
     renderSystem.scale = scale;
-    renderSystem.Update(state->ecs);
+    renderSystem.Update(state->ecs, state->chunkmap);
 
     using RenderSystemQuery = ECS::EntityQuery<
         ECS::RequireComponents<EC::Render, EC::Position, EC::Size>,
@@ -137,7 +130,7 @@ void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport*
             }
         } else {
             /*
-            forEachEntityInRange(&state->ecs, &state->chunkmap, playerTargetPos, M_SQRT2, [&](EntityType<EC::Position> entity){
+            forEachEntityInRange(&state->ecs, &state->chunkmap, playerTargetPos, M_SQRT2, [&](EntityT<EC::Position> entity){
                 if (entity.Has<EC::Size, EC::Render>()) {
                     Vec2 position = *state->ecs.Get<EC::Position>(entity);
                     auto sizeComponent = state->ecs.Get<EC::Size>(entity);

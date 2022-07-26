@@ -2,7 +2,8 @@
 #include "../ECS/ECS.hpp"
 #include "../EntityComponents/Components.hpp"
 #include "../Tiles.hpp"
-#include "../ECS/EntityType.hpp"
+#include "../SECS/Entity.hpp"
+#include "Methods.hpp"
 
 namespace Entities {
 
@@ -10,51 +11,21 @@ namespace Entities {
     EC::Explosion airstrikeExplosion = EC::Explosion(8, 10000, 1.0f, 30);
 
     Explosive Grenade(EntityWorld* ecs, Vec2 position, Vec2 size) {
-       Explosive grenade = Explosive(ecs, position, size, Textures.grenade, &grenadeExplosion);
-       return grenade;
+        Explosive grenade = Explosive(ecs, position, size, Textures.grenade, grenadeExplosion);
+        return grenade;
     }
 
     Explosive Airstrike(EntityWorld* ecs, Vec2 position, Vec2 size, Vec2 target) {
-       Explosive airstrike = Explosive(ecs, position, size, Textures.grenade, &airstrikeExplosion);
-       throwExplosive(ecs, airstrike, target, 2.0f);
-       return airstrike;
-    }
-
-    void throwExplosive(EntityWorld* ecs, Explosive explosive, Vec2 target, float speed) {
-        ecs->Add(explosive, EC::Motion(target, speed));
-        if (explosive.Has<EC::Rotation>(ecs)) {
-            float rotation = explosive.Get<EC::Rotation>(ecs)->degrees;
-            float timeToTarget = target.length() / speed;
-            ecs->Add<EC::AngleMotion>(explosive, EC::AngleMotion(rotation + timeToTarget * 30.0f, 30.0f));
-        }
+        Explosive airstrike = Explosive(ecs, position, size, Textures.grenade, airstrikeExplosion);
+        throwEntity(ecs, airstrike, target, 2.0f);
+        return airstrike;
     }
 
     Explosive ThrownGrenade(EntityWorld* ecs, Vec2 position, Vec2 target) {
         Explosive grenade = Grenade(ecs, position, {1, 1});
-        throwExplosive(ecs, grenade, target, 0.2f);
+        throwEntity(ecs, grenade, target, 0.2f);
         return grenade;
     }
-
-    /*
-    Entity Tree(EntityWorld* ecs, Vec2 position, Vec2 size) {
-        Entity entity = ecs->New("tree");
-
-
-        ecs->Add<
-        >(entity);
-        
-        ecs->Get<EC::Health>(entity)->healthValue = 100;
-        *ecs->Get<EC::Position>(entity) = EC::Position(position);
-        ecs->Get<EC::Growth>(entity)->growthValue = 0;
-        *ecs->Get<EC::Render>(entity) = EC::Render(Textures.tree, RenderLayer::Trees);
-        ecs->Get<EC::Size>(entity)->width = size.x;
-        ecs->Get<EC::Size>(entity)->height = size.y;
-        Inventory inventory = Inventory(10);
-        ecs->Get<EC::Inventory>(entity)->inventory = inventory;
-        ecs->Get<EC::Nametag>(entity)->setType("Tree");
-        return entity;
-    }
-    */
 
     Entity Chest(EntityWorld* ecs, Vec2 position, int inventorySize, int width, int height) {
         Entity chest = ecs->New("chest");
@@ -90,7 +61,7 @@ namespace Entities {
         return inserter;
     }
 
-    Entity Enemy(EntityWorld* ecs, Vec2 position, EntityType<EC::Position> following) {
+    Entity Enemy(EntityWorld* ecs, Vec2 position, EntityT<EC::Position> following) {
         Entity enemy = ecs->New("enemy");
         ecs->Add<EC::Position>(enemy, position);
         ecs->Add<EC::Health>(enemy, {100.0f});
@@ -102,34 +73,4 @@ namespace Entities {
         ecs->Add<EC::Follow>(enemy, EC::Follow(following, 0.05));
         return enemy;
     }
-
-    /*
-    PlayerEntity Player(ECS* ecs, Vec2 position) {
-        EntityType<> player = ecs->New().cast<>();
-        ecs->Add<EC::Position>(player, position);
-        ecs->Add<EC::Health>(player, {INFINITY});
-        auto nametag = EC::Nametag();
-        strcpy(nametag.type, "Player");
-        ecs->Add<EC::Nametag>(player, nametag);
-        ecs->Add<EC::Rotation>(player, {0.0f});
-        ecs->Add<EC::Size>(player, {0.8f, 0.8f});
-        Inventory inventory = Inventory(PLAYER_INVENTORY_SIZE);
-        ecs->Add<EC::Inventory>(player, {inventory});
-        ecs->Add<EC::Render>(player, EC::Render(Textures.player, RenderLayer::Player));
-        ecs->Add<CenteredRenderFlagComponent>(player);
-        ecs->Add<EC::Follow>(player, EC::Follow(player.cast<EC::Position>(), 1.0f));
-
-        Zombie(ecs, position);
-        Skeleton skelly = Skeleton();
-
-        Entity hidden = Skeleton();
-        skelly = hidden.castType<Skeleton>();
-
-        player.Get<EC::Position>()->x = 100;
-
-        static bool test = assertEntityType<PlayerEntityComponents>(player, ecs);
-
-        return assertCastEntityType<PlayerEntityComponents>(player, ecs);
-    }
-    */
 }

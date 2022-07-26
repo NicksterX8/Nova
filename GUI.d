@@ -50,30 +50,30 @@ GUI.o: GUI.cpp GUI.hpp /usr/local/include/SDL2/SDL.h \
   /usr/local/Cellar/sdl2_image/2.0.5/include/SDL2/SDL_image.h \
   SDL_FontCache/SDL_FontCache.h /usr/local/include/SDL2/SDL_ttf.h \
   NC/cpp-vectors.hpp NC/vectors.h NC/utils.h Tiles.hpp NC/colors.h \
-  Items.hpp ECS/EntityType.hpp ECS/Entity.hpp ECS/Component.hpp \
-  ECS/../ComponentMetadata/macro.hpp ECS/../ComponentMetadata/getID.hpp \
-  ECS/../Log.hpp ECS/../constants.hpp ECS/ECS.hpp \
-  ECS/../NC/cpp-vectors.hpp ECS/../Textures.hpp ECS/SystemsConstants.hpp \
-  ECS/EntityManager.hpp ECS/ComponentPool.hpp \
-  ECS/../ComponentMetadata/component.hpp \
-  ECS/../ComponentMetadata/componentDecl.hpp \
-  ECS/../ComponentMetadata/_componentIDs.hpp \
-  ECS/EntitySystemInterface.hpp Chunks.hpp Player.hpp \
+  Items.hpp SECS/Entity.hpp SECS/../ECS/EntityType.hpp \
+  SECS/../ECS/Entity.hpp SECS/../ECS/Component.hpp \
+  SECS/../ECS/../ComponentMetadata/macro.hpp \
+  SECS/../ECS/../ComponentMetadata/short-macro.hpp \
+  SECS/../ECS/../ComponentMetadata/getID.hpp SECS/../ECS/../Log.hpp \
+  SECS/../ECS/../constants.hpp Chunks.hpp ECS/Entity.hpp Player.hpp \
   Entities/Entities.hpp Entities/../ECS/ECS.hpp \
+  SECS/../ECS/../NC/cpp-vectors.hpp SECS/../ECS/../Textures.hpp \
+  SECS/../ECS/SystemsConstants.hpp SECS/../ECS/EntityManager.hpp \
+  SECS/../ECS/ComponentPool.hpp \
+  SECS/../ECS/../ComponentMetadata/component.hpp \
+  SECS/../ECS/../ComponentMetadata/componentDecl.hpp \
+  SECS/../ECS/../ComponentMetadata/_componentIDs.hpp \
+  SECS/../ECS/EntitySystemInterface.hpp \
   Entities/../EntityComponents/Components.hpp \
   Entities/../EntityComponents/../NC/cpp-vectors.hpp \
   Entities/../EntityComponents/../Items.hpp \
-  Entities/../EntityComponents/../ECS/EntityType.hpp \
-  Entities/../EntityComponents/../SECS/ECS.hpp \
-  Entities/../EntityComponents/../SECS/../ECS/ECS.hpp \
-  Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp \
-  Entities/../EntityComponents/../SECS/../ECS/Query.hpp \
-  Entities/../ECS/EntityType.hpp Entities/../Textures.hpp \
-  Entities/../SECS/EntityWorld.hpp \
-  Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp \
-  Entities/../NC/cpp-vectors.hpp Entities/Methods.hpp \
-  Entities/../Chunks.hpp GameViewport.hpp Rendering/../GameViewport.hpp \
-  NC/SDLContext.h
+  Entities/../EntityComponents/../SECS/ECS.hpp SECS/../ECS/ECS.hpp \
+  SECS/../ECS/Query.hpp \
+  Entities/../EntityComponents/../EntityPrototype.hpp \
+  Entities/../Textures.hpp Entities/../SECS/EntityWorld.hpp SECS/ECS.hpp \
+  SECS/../EntityComponents/Components.hpp Entities/../NC/cpp-vectors.hpp \
+  Entities/Methods.hpp Entities/../Chunks.hpp ECS/ECS.hpp \
+  GameViewport.hpp Rendering/../GameViewport.hpp NC/SDLContext.h
 
 GUI.hpp:
 
@@ -201,41 +201,27 @@ NC/colors.h:
 
 Items.hpp:
 
-ECS/EntityType.hpp:
+SECS/Entity.hpp:
 
-ECS/Entity.hpp:
+SECS/../ECS/EntityType.hpp:
 
-ECS/Component.hpp:
+SECS/../ECS/Entity.hpp:
 
-ECS/../ComponentMetadata/macro.hpp:
+SECS/../ECS/Component.hpp:
 
-ECS/../ComponentMetadata/getID.hpp:
+SECS/../ECS/../ComponentMetadata/macro.hpp:
 
-ECS/../Log.hpp:
+SECS/../ECS/../ComponentMetadata/short-macro.hpp:
 
-ECS/../constants.hpp:
+SECS/../ECS/../ComponentMetadata/getID.hpp:
 
-ECS/ECS.hpp:
+SECS/../ECS/../Log.hpp:
 
-ECS/../NC/cpp-vectors.hpp:
-
-ECS/../Textures.hpp:
-
-ECS/SystemsConstants.hpp:
-
-ECS/EntityManager.hpp:
-
-ECS/ComponentPool.hpp:
-
-ECS/../ComponentMetadata/component.hpp:
-
-ECS/../ComponentMetadata/componentDecl.hpp:
-
-ECS/../ComponentMetadata/_componentIDs.hpp:
-
-ECS/EntitySystemInterface.hpp:
+SECS/../ECS/../constants.hpp:
 
 Chunks.hpp:
+
+ECS/Entity.hpp:
 
 Player.hpp:
 
@@ -243,35 +229,53 @@ Entities/Entities.hpp:
 
 Entities/../ECS/ECS.hpp:
 
+SECS/../ECS/../NC/cpp-vectors.hpp:
+
+SECS/../ECS/../Textures.hpp:
+
+SECS/../ECS/SystemsConstants.hpp:
+
+SECS/../ECS/EntityManager.hpp:
+
+SECS/../ECS/ComponentPool.hpp:
+
+SECS/../ECS/../ComponentMetadata/component.hpp:
+
+SECS/../ECS/../ComponentMetadata/componentDecl.hpp:
+
+SECS/../ECS/../ComponentMetadata/_componentIDs.hpp:
+
+SECS/../ECS/EntitySystemInterface.hpp:
+
 Entities/../EntityComponents/Components.hpp:
 
 Entities/../EntityComponents/../NC/cpp-vectors.hpp:
 
 Entities/../EntityComponents/../Items.hpp:
 
-Entities/../EntityComponents/../ECS/EntityType.hpp:
-
 Entities/../EntityComponents/../SECS/ECS.hpp:
 
-Entities/../EntityComponents/../SECS/../ECS/ECS.hpp:
+SECS/../ECS/ECS.hpp:
 
-Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp:
+SECS/../ECS/Query.hpp:
 
-Entities/../EntityComponents/../SECS/../ECS/Query.hpp:
-
-Entities/../ECS/EntityType.hpp:
+Entities/../EntityComponents/../EntityPrototype.hpp:
 
 Entities/../Textures.hpp:
 
 Entities/../SECS/EntityWorld.hpp:
 
-Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp:
+SECS/ECS.hpp:
+
+SECS/../EntityComponents/Components.hpp:
 
 Entities/../NC/cpp-vectors.hpp:
 
 Entities/Methods.hpp:
 
 Entities/../Chunks.hpp:
+
+ECS/ECS.hpp:
 
 GameViewport.hpp:
 

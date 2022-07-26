@@ -53,36 +53,38 @@ GameSave/main.o: GameSave/main.cpp GameSave/main.hpp \
   /usr/local/include/SDL2/SDL_ttf.h GameSave/../NC/cpp-vectors.hpp \
   GameSave/../NC/vectors.h GameSave/../NC/utils.h GameSave/../Tiles.hpp \
   GameSave/../NC/colors.h GameSave/../Items.hpp \
-  GameSave/../ECS/EntityType.hpp GameSave/../ECS/Entity.hpp \
-  GameSave/../ECS/Component.hpp \
-  GameSave/../ECS/../ComponentMetadata/macro.hpp \
-  GameSave/../ECS/../ComponentMetadata/getID.hpp \
-  GameSave/../ECS/../Log.hpp GameSave/../ECS/../constants.hpp \
-  GameSave/../ECS/ECS.hpp GameSave/../ECS/../NC/cpp-vectors.hpp \
-  GameSave/../ECS/../Textures.hpp GameSave/../ECS/SystemsConstants.hpp \
-  GameSave/../ECS/EntityManager.hpp GameSave/../ECS/ComponentPool.hpp \
-  GameSave/../ECS/../ComponentMetadata/component.hpp \
-  GameSave/../ECS/../ComponentMetadata/componentDecl.hpp \
-  GameSave/../ECS/../ComponentMetadata/_componentIDs.hpp \
-  GameSave/../ECS/EntitySystemInterface.hpp GameSave/../Chunks.hpp \
-  GameSave/../Player.hpp GameSave/../Entities/Entities.hpp \
-  GameSave/../Entities/../ECS/ECS.hpp \
+  GameSave/../SECS/Entity.hpp GameSave/../SECS/../ECS/EntityType.hpp \
+  GameSave/../SECS/../ECS/Entity.hpp \
+  GameSave/../SECS/../ECS/Component.hpp \
+  GameSave/../SECS/../ECS/../ComponentMetadata/macro.hpp \
+  GameSave/../SECS/../ECS/../ComponentMetadata/short-macro.hpp \
+  GameSave/../SECS/../ECS/../ComponentMetadata/getID.hpp \
+  GameSave/../SECS/../ECS/../Log.hpp \
+  GameSave/../SECS/../ECS/../constants.hpp GameSave/../Chunks.hpp \
+  GameSave/../ECS/Entity.hpp GameSave/../Player.hpp \
+  GameSave/../Entities/Entities.hpp GameSave/../Entities/../ECS/ECS.hpp \
+  GameSave/../SECS/../ECS/../NC/cpp-vectors.hpp \
+  GameSave/../SECS/../ECS/../Textures.hpp \
+  GameSave/../SECS/../ECS/SystemsConstants.hpp \
+  GameSave/../SECS/../ECS/EntityManager.hpp \
+  GameSave/../SECS/../ECS/ComponentPool.hpp \
+  GameSave/../SECS/../ECS/../ComponentMetadata/component.hpp \
+  GameSave/../SECS/../ECS/../ComponentMetadata/componentDecl.hpp \
+  GameSave/../SECS/../ECS/../ComponentMetadata/_componentIDs.hpp \
+  GameSave/../SECS/../ECS/EntitySystemInterface.hpp \
   GameSave/../Entities/../EntityComponents/Components.hpp \
   GameSave/../Entities/../EntityComponents/../NC/cpp-vectors.hpp \
   GameSave/../Entities/../EntityComponents/../Items.hpp \
-  GameSave/../Entities/../EntityComponents/../ECS/EntityType.hpp \
   GameSave/../Entities/../EntityComponents/../SECS/ECS.hpp \
-  GameSave/../Entities/../EntityComponents/../SECS/../ECS/ECS.hpp \
-  GameSave/../Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp \
-  GameSave/../Entities/../EntityComponents/../SECS/../ECS/Query.hpp \
-  GameSave/../Entities/../ECS/EntityType.hpp \
+  GameSave/../SECS/../ECS/ECS.hpp GameSave/../SECS/../ECS/Query.hpp \
+  GameSave/../Entities/../EntityComponents/../EntityPrototype.hpp \
   GameSave/../Entities/../Textures.hpp \
-  GameSave/../Entities/../SECS/EntityWorld.hpp \
-  GameSave/../Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp \
+  GameSave/../Entities/../SECS/EntityWorld.hpp GameSave/../SECS/ECS.hpp \
+  GameSave/../SECS/../EntityComponents/Components.hpp \
   GameSave/../Entities/../NC/cpp-vectors.hpp \
   GameSave/../Entities/Methods.hpp GameSave/../Entities/../Chunks.hpp \
-  GameSave/../GameViewport.hpp GameSave/GameSave.hpp GameSave/Chunks.hpp \
-  GameSave/../Log.hpp
+  GameSave/../ECS/ECS.hpp GameSave/../GameViewport.hpp \
+  GameSave/GameSave.hpp GameSave/Chunks.hpp GameSave/../Log.hpp
 
 GameSave/main.hpp:
 
@@ -208,41 +210,27 @@ GameSave/../NC/colors.h:
 
 GameSave/../Items.hpp:
 
-GameSave/../ECS/EntityType.hpp:
+GameSave/../SECS/Entity.hpp:
 
-GameSave/../ECS/Entity.hpp:
+GameSave/../SECS/../ECS/EntityType.hpp:
 
-GameSave/../ECS/Component.hpp:
+GameSave/../SECS/../ECS/Entity.hpp:
 
-GameSave/../ECS/../ComponentMetadata/macro.hpp:
+GameSave/../SECS/../ECS/Component.hpp:
 
-GameSave/../ECS/../ComponentMetadata/getID.hpp:
+GameSave/../SECS/../ECS/../ComponentMetadata/macro.hpp:
 
-GameSave/../ECS/../Log.hpp:
+GameSave/../SECS/../ECS/../ComponentMetadata/short-macro.hpp:
 
-GameSave/../ECS/../constants.hpp:
+GameSave/../SECS/../ECS/../ComponentMetadata/getID.hpp:
 
-GameSave/../ECS/ECS.hpp:
+GameSave/../SECS/../ECS/../Log.hpp:
 
-GameSave/../ECS/../NC/cpp-vectors.hpp:
-
-GameSave/../ECS/../Textures.hpp:
-
-GameSave/../ECS/SystemsConstants.hpp:
-
-GameSave/../ECS/EntityManager.hpp:
-
-GameSave/../ECS/ComponentPool.hpp:
-
-GameSave/../ECS/../ComponentMetadata/component.hpp:
-
-GameSave/../ECS/../ComponentMetadata/componentDecl.hpp:
-
-GameSave/../ECS/../ComponentMetadata/_componentIDs.hpp:
-
-GameSave/../ECS/EntitySystemInterface.hpp:
+GameSave/../SECS/../ECS/../constants.hpp:
 
 GameSave/../Chunks.hpp:
+
+GameSave/../ECS/Entity.hpp:
 
 GameSave/../Player.hpp:
 
@@ -250,35 +238,53 @@ GameSave/../Entities/Entities.hpp:
 
 GameSave/../Entities/../ECS/ECS.hpp:
 
+GameSave/../SECS/../ECS/../NC/cpp-vectors.hpp:
+
+GameSave/../SECS/../ECS/../Textures.hpp:
+
+GameSave/../SECS/../ECS/SystemsConstants.hpp:
+
+GameSave/../SECS/../ECS/EntityManager.hpp:
+
+GameSave/../SECS/../ECS/ComponentPool.hpp:
+
+GameSave/../SECS/../ECS/../ComponentMetadata/component.hpp:
+
+GameSave/../SECS/../ECS/../ComponentMetadata/componentDecl.hpp:
+
+GameSave/../SECS/../ECS/../ComponentMetadata/_componentIDs.hpp:
+
+GameSave/../SECS/../ECS/EntitySystemInterface.hpp:
+
 GameSave/../Entities/../EntityComponents/Components.hpp:
 
 GameSave/../Entities/../EntityComponents/../NC/cpp-vectors.hpp:
 
 GameSave/../Entities/../EntityComponents/../Items.hpp:
 
-GameSave/../Entities/../EntityComponents/../ECS/EntityType.hpp:
-
 GameSave/../Entities/../EntityComponents/../SECS/ECS.hpp:
 
-GameSave/../Entities/../EntityComponents/../SECS/../ECS/ECS.hpp:
+GameSave/../SECS/../ECS/ECS.hpp:
 
-GameSave/../Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp:
+GameSave/../SECS/../ECS/Query.hpp:
 
-GameSave/../Entities/../EntityComponents/../SECS/../ECS/Query.hpp:
-
-GameSave/../Entities/../ECS/EntityType.hpp:
+GameSave/../Entities/../EntityComponents/../EntityPrototype.hpp:
 
 GameSave/../Entities/../Textures.hpp:
 
 GameSave/../Entities/../SECS/EntityWorld.hpp:
 
-GameSave/../Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp:
+GameSave/../SECS/ECS.hpp:
+
+GameSave/../SECS/../EntityComponents/Components.hpp:
 
 GameSave/../Entities/../NC/cpp-vectors.hpp:
 
 GameSave/../Entities/Methods.hpp:
 
 GameSave/../Entities/../Chunks.hpp:
+
+GameSave/../ECS/ECS.hpp:
 
 GameSave/../GameViewport.hpp:
 

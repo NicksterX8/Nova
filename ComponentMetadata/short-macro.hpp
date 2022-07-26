@@ -1,0 +1,1 @@
+#define COMPONENT_NAMES Position, Size, Render, Health, Growth, Explosion, Nametag, Explosive, Inventory, Motion, Dying, Inserter, Rotation, Rotatable, Follow, Immortal, AngleMotion, ItemStack, Transporter, Grabable, EntityTypeEC
