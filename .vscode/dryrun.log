@@ -1,6 +1,0 @@
-make --dry-run --keep-going --print-directory
-make: Entering directory `/Users/nick/Faketorio'
-make: Leaving directory `/Users/nick/Faketorio'
- 
-PlayerControls.d:66: *** missing separator.  Stop.
-
