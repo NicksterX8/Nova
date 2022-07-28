@@ -1,0 +1,9 @@
+**/**.o
+**/**.a
+**/**.d
+Makefile
+Makefile-old
+exe
+test
+a.out
+.vscode
