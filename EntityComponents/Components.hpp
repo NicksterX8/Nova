@@ -44,10 +44,12 @@ template<class T>
 struct Serializable {
     static int Serialize(const T* components, Uint32 count, SerializerOutput output) {
         output(ArrayView(components, sizeof(T) * count));
+        return 0;
     }
 
     static int Deserialize(T* components, Uint32 count, const char* serialized) {
         memcpy(components, serialized, sizeof(T) * count);
+        return 0;
     }
 };
 

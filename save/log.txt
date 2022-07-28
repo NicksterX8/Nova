@@ -1,0 +1,43 @@
+SDL Initialized.
+SDL Render driver: metal
+Failed creating OpenGL context! Error message: The specified window isn't an OpenGL window
+Number of systems: 16
+ID: 0, System: RenderSystem.
+ID: 1, System: RenderPositionSystem.
+ID: 2, System: RenderSizeSystem.
+ID: 3, System: RotationSystem.
+ID: 4, System: MotionSystem.
+ID: 5, System: ExplosivesSystem.
+ID: 6, System: GrowthSystem.
+ID: 7, System: DyingSystem.
+ID: 8, System: InserterSystem.
+ID: 9, System: RotatableSystem.
+ID: 10, System: ExplosionSystem.
+ID: 11, System: HealthSystem.
+ID: 12, System: InventorySystem.
+ID: 13, System: FollowSystem.
+ID: 14, System: PositionSystem.
+ID: 15, System: SimpleRectRenderSystem.
+ID: 0, Component: Position.
+ID: 1, Component: Size.
+ID: 2, Component: Render.
+ID: 3, Component: Health.
+ID: 4, Component: Growth.
+ID: 5, Component: Explosion.
+ID: 6, Component: Nametag.
+ID: 7, Component: Explosive.
+ID: 8, Component: Inventory.
+ID: 9, Component: Motion.
+ID: 10, Component: Dying.
+ID: 11, Component: Inserter.
+ID: 12, Component: Rotation.
+ID: 13, Component: Rotatable.
+ID: 14, Component: Follow.
+ID: 15, Component: Immortal.
+ID: 16, Component: AngleMotion.
+ID: 17, Component: ItemStack.
+ID: 18, Component: Transporter.
+ID: 19, Component: Grabable.
+ID: 20, Component: EntityTypeEC.
+Returning from main update loop.
+Time elapsed: 8.6

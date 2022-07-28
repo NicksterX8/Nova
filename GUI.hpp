@@ -99,14 +99,7 @@ public:
 
                 if (item.item) {
                     // icon
-<<<<<<< HEAD
                     SDL_RenderCopyF(ren, ItemData[item.item].icon, NULL, &innerSlot);
-=======
-                    Item itemtype = item.item;
-                    ItemTypeData itemData = ItemData[itemtype];
-                    SDL_Texture* icon = itemData.icon;
-                    SDL_RenderCopyF(ren, icon, NULL, &innerSlot);
->>>>>>> 6d9c44850d29aefe0135bf265901b96cfbee93f5
                     // quantity count
                     // dont draw item count over items that can only ever have one count,
                     // its pointless

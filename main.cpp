@@ -32,29 +32,11 @@
 #include "Debug.hpp"
 #include "Items.hpp"
 #include "GameSave/main.hpp"
+#include "sdl.hpp"
 
 #ifdef DEBUG
     //#include "Testing.hpp"
 #endif
-
-#define WINDOW_HIGH_DPI 0
-
-SDLContext initSDL() {
-    SDLSettings settings = DefaultSDLSettings;
-    settings.vsync = ENABLE_VSYNC;
-    settings.windowTitle = "Faketorio";
-    settings.windowIconPath = "assets/bad-factorio-logo.png";
-    settings.windowWidth = 1000;
-    settings.windowHeight = 800;
-    if (WINDOW_HIGH_DPI) {
-        settings.allowHighDPI = true;
-    }
-    SDLContext sdlCtx = initSDLAndContext(&settings); // SDL Context
-
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-
-    return sdlCtx;
-}
 
 // load assets and stuff
 int load(SDL_Renderer *ren, float renderScale = 1.0f) {
@@ -252,6 +234,7 @@ void logEntityComponentInfo() {
 }
 
 void initLogging() {
+    Log.init("save/log.txt");
     SDL_LogSetOutputFunction(Logger::logOutputFunction, &Log);
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_WARN);
     SDL_LogSetPriority(LOG_CATEGORY_MAIN, SDL_LOG_PRIORITY_INFO);
@@ -339,7 +322,9 @@ int main(int argc, char** argv) {
 
     delete state;
 
-    quitSDLContext(sdlCtx);
+    Log.destroy();
+
+    quitSDL(&sdlCtx);
 
     return 0;
 }

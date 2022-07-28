@@ -440,19 +440,19 @@ const char* readSource(void* dst, const char* src, size_t size) {
     return src + size;
 }
 
-const char* readFileContents(FILE* file) {
+const char* readFileContents(FILE* file, long* outFileSize=NULL) {
     if (!file) {
         Log.Critical("NULL file passed to readFileContents!");
         return NULL;
     }
     
     char *source = NULL;
-    long fileSize = 0;
     /* Go to the end of the file. */
     if (fseek(file, 0L, SEEK_END) == 0) {
         /* Get the size of the file. */
         long bufsize = ftell(file);
-        fileSize = bufsize;
+        if (outFileSize)
+            *outFileSize = bufsize;
         if (bufsize == -1) {
             Log.Critical("Couldn't get size of file!");
             fclose(file);

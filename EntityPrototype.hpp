@@ -22,11 +22,11 @@ namespace EntityPrototype {
         }
 
         Entity create() {
-
+            return NullEntity;
         }
 
         const char* getName() {
-
+            return NULL;
         }
     };
 }

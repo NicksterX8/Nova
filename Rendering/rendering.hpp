@@ -94,9 +94,8 @@ int drawWorld(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, 
     //if (Metadata.ticks() % 30 == 0)
     //    Log("rendered %d entities", nRenderedEntities);
 
-    int numLinesDrawn = 0;
     if (Debug->settings.drawChunkBorders) {
-        numLinesDrawn = Draw::drawChunkBorders(ren, scale, gameViewport);
+        Draw::drawChunkBorders(ren, scale, gameViewport);
     } 
 
     return numRenderedChunks;
