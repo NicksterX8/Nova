@@ -19,7 +19,7 @@ findPlayerFocusedEntity(const ComponentManager<EC::Position, const EC::Size, con
     int focusedEntityLayer = RenderLayer::Lowest;
     Uint32 focusedEntityRenderIndex = 0;
     forEachEntityNearPoint(ecs, &chunkmap, target,
-    [&](EntityType<EC::Position> entity){
+    [&](EntityT<EC::Position> entity){
         if (!entity.Has<EC::Size, EC::Render>(&ecs)) {
             return 0;
         }

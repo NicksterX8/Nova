@@ -52,17 +52,29 @@ SECS/ECS.o: SECS/ECS.cpp SECS/ECS.hpp SECS/../ECS/ECS.hpp \
   SECS/../ECS/../NC/vectors.h SECS/../ECS/../Textures.hpp \
   /opt/homebrew/Cellar/sdl2_image/2.6.0/include/SDL2/SDL_image.h \
   SECS/../ECS/../SDL_FontCache/SDL_FontCache.h \
+<<<<<<< HEAD
   /opt/homebrew/Cellar/sdl2_ttf/2.20.0/include/SDL2/SDL_ttf.h \
   SECS/../ECS/../Log.hpp SECS/../ECS/Entity.hpp \
   SECS/../ECS/Component.hpp SECS/../ECS/../ComponentMetadata/macro.hpp \
+=======
+  /usr/local/include/SDL2/SDL_ttf.h SECS/../ECS/../Log.hpp \
+  SECS/../ECS/Entity.hpp SECS/../ECS/Component.hpp \
+  SECS/../ECS/../ComponentMetadata/macro.hpp \
+  SECS/../ECS/../ComponentMetadata/short-macro.hpp \
+>>>>>>> 6d9c44850d29aefe0135bf265901b96cfbee93f5
   SECS/../ECS/../ComponentMetadata/getID.hpp \
   SECS/../ECS/SystemsConstants.hpp SECS/../ECS/EntityManager.hpp \
   SECS/../ECS/ComponentPool.hpp \
   SECS/../ECS/../ComponentMetadata/component.hpp \
   SECS/../ECS/../ComponentMetadata/componentDecl.hpp \
   SECS/../ECS/../ComponentMetadata/_componentIDs.hpp \
+<<<<<<< HEAD
   SECS/../ECS/EntitySystemInterface.hpp SECS/../ECS/EntityType.hpp \
   SECS/../ECS/Query.hpp
+=======
+  SECS/../ECS/EntitySystemInterface.hpp SECS/../ECS/Query.hpp \
+  SECS/Entity.hpp SECS/../ECS/EntityType.hpp
+>>>>>>> 6d9c44850d29aefe0135bf265901b96cfbee93f5
 
 SECS/ECS.hpp:
 
@@ -188,6 +200,8 @@ SECS/../ECS/Component.hpp:
 
 SECS/../ECS/../ComponentMetadata/macro.hpp:
 
+SECS/../ECS/../ComponentMetadata/short-macro.hpp:
+
 SECS/../ECS/../ComponentMetadata/getID.hpp:
 
 SECS/../ECS/SystemsConstants.hpp:
@@ -203,6 +217,10 @@ SECS/../ECS/../ComponentMetadata/componentDecl.hpp:
 SECS/../ECS/../ComponentMetadata/_componentIDs.hpp:
 
 SECS/../ECS/EntitySystemInterface.hpp:
+
+SECS/../ECS/Query.hpp:
+
+SECS/Entity.hpp:
 
 SECS/../ECS/EntityType.hpp:
 

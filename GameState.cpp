@@ -300,7 +300,7 @@ bool placeEntityOnTile(EntityWorld* ecs, Tile* tile, Entity entity) {
     return false;
 }
 
-void forEachEntityInRange(const ComponentManager<EC::Position, EC::Size>& ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, std::function<int(EntityType<EC::Position>)> callback) {
+void forEachEntityInRange(const ComponentManager<EC::Position, EC::Size>& ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, std::function<int(EntityT<EC::Position>)> callback) {
     int nCheckedEntities = 0;
     radius = abs(radius);
     float radiusSqrd = radius * radius;
@@ -319,7 +319,7 @@ void forEachEntityInRange(const ComponentManager<EC::Position, EC::Size>& ecs, c
             }
 
             for (size_t e = 0; e < chunkdata->closeEntities.size(); e++) {
-                EntityType<EC::Position> closeEntity = chunkdata->closeEntities[e].cast<EC::Position>();
+                EntityT<EC::Position> closeEntity = chunkdata->closeEntities[e].cast<EC::Position>();
                 if (!ecs.EntityExists(closeEntity)) {
                     Log.Error("Entity in closeEntities is dead!");
                     continue;
@@ -344,7 +344,7 @@ void forEachEntityInRange(const ComponentManager<EC::Position, EC::Size>& ecs, c
     }
 }
 
-void forEachEntityNearPoint(const ComponentManager<EC::Position, const EC::Size>& ecs, const ChunkMap* chunkmap, Vec2 point, std::function<int(EntityType<EC::Position>)> callback) {
+void forEachEntityNearPoint(const ComponentManager<EC::Position, const EC::Size>& ecs, const ChunkMap* chunkmap, Vec2 point, std::function<int(EntityT<EC::Position>)> callback) {
     IVec2 chunkPos = toChunkPosition(point);
     const ChunkData* chunkdata = chunkmap->getChunkData(chunkPos);
     if (!chunkdata) {
@@ -353,7 +353,7 @@ void forEachEntityNearPoint(const ComponentManager<EC::Position, const EC::Size>
     }
 
     for (size_t e = 0; e < chunkdata->closeEntities.size(); e++) {
-        EntityType<EC::Position> closeEntity = chunkdata->closeEntities[e].cast<EC::Position>();
+        EntityT<EC::Position> closeEntity = chunkdata->closeEntities[e].cast<EC::Position>();
         if (callback(closeEntity)) {
             return;
         }
@@ -377,7 +377,7 @@ void forEachChunkContainingBounds(const ChunkMap* chunkmap, Vec2 position, Vec2 
 OptionalEntity<EC::Position, EC::Size>
 findFirstEntityAtPosition(const EntityWorld& ecs, const ChunkMap* chunkmap, Vec2 position) {
     OptionalEntity<EC::Position, EC::Size> foundEntity;
-    forEachEntityNearPoint(ComponentManager<EC::Position, const EC::Render, EC::Size>(&ecs), chunkmap, position, [&](EntityType<EC::Position> entity){
+    forEachEntityNearPoint(ComponentManager<EC::Position, const EC::Render, EC::Size>(&ecs), chunkmap, position, [&](EntityT<EC::Position> entity){
         if (entity.Has<EC::Size>(&ecs)) {
             Vec2 entityPos = ecs.Get<EC::Position>(entity)->vec2();
             Vec2 size = ecs.Get<EC::Size>(entity)->vec2();
@@ -399,9 +399,9 @@ findFirstEntityAtPosition(const EntityWorld& ecs, const ChunkMap* chunkmap, Vec2
 
 OptionalEntity<EC::Position>
 findClosestEntityToPosition(const EntityWorld* ecs, const ChunkMap* chunkmap, Vec2 position) {
-    EntityType<EC::Position> closestEntity = NullEntity;
+    EntityT<EC::Position> closestEntity = NullEntity;
     float closestDistSqrd = INFINITY;
-    forEachEntityNearPoint(ecs, chunkmap, position, [&](EntityType<EC::Position> entity){
+    forEachEntityNearPoint(ecs, chunkmap, position, [&](EntityT<EC::Position> entity){
         Vec2 entityPos = ecs->Get<EC::Position>(entity)->vec2();
         Vec2 delta = entityPos - position;
         float entityDistSqrd = delta.lengthSqrd();
@@ -415,7 +415,7 @@ findClosestEntityToPosition(const EntityWorld* ecs, const ChunkMap* chunkmap, Ve
     return closestEntity;
 }
 
-bool pointInsideEntityBounds(Vec2 point, const EntityType<EC::Position, EC::Size> entity, const ComponentManager<const EC::Position, const EC::Size>& ecs) {
+bool pointInsideEntityBounds(Vec2 point, const EntityT<EC::Position, EC::Size> entity, const ComponentManager<const EC::Position, const EC::Size>& ecs) {
     Vec2 entityPosition = entity.Get<const EC::Position>(&ecs)->vec2();
     Vec2 entitySize = entity.Get<const EC::Size>(&ecs)->vec2();
 

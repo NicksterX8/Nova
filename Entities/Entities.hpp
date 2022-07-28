@@ -3,21 +3,81 @@
 
 #include "../ECS/ECS.hpp"
 #include "../EntityComponents/Components.hpp"
-#include "../ECS/EntityType.hpp"
 #include "../Textures.hpp"
 #include "../SECS/EntityWorld.hpp"
 #include "../NC/cpp-vectors.hpp"
+
+struct EntityNamePrototype {
+    std::string name;
+    std::string displayName;
+};
+
+class EntityPrototypeBase {
+    std::string name;
+    std::string displayName;
+
+    virtual void Serialize() {
+
+    }
+
+    virtual void Destroyed() {
+        
+    }
+
+    virtual void Created() {
+
+    }
+};
+
+struct NamePrototypeComponent : EC::EntityComponent<NamePrototypeComponent> {
+    EntityNamePrototype* prototype;
+
+    static int Serialize(const NamePrototypeComponent* components, Uint32 count, EC::SerializerOutput output) {
+        return 0;
+    }
+
+    static int Deserialize(NamePrototypeComponent* components, Uint32 count, const char* serialized) {
+        return 0;
+    }
+};
+
+
+
+class TreePrototype : EntityPrototypeBase {
+
+};
+
+using ExplosionCreateFunction = Entity(EntityWorld*, Vec2);
+
+using EntityTypeID = Uint32;
+
+namespace EntityIDs {
+    enum IDs {
+        Grenade,
+        Banana
+    };
+}
 
 namespace Entities {
 
     #define MARK_START_ENTITY_CREATION(ecs) {ecs->StartDeferringEvents();}
     #define MARK_END_ENTITY_CREATION(ecs) {ecs->StopDeferringEvents();}
 
-    #define ENTITY_EXPLOSIVE_COMPONENTS 
-    using ExplosiveType = EntityType<EC::Position, EC::Size, EC::Explosive, EC::Render, EC::Rotation>;
+    using ExplosionType = EntityT<EC::Position, EC::Explosion>;
+    struct Explosion : ExplosionType {
+        Explosion(EntityWorld* ecs, Vec2 position, const EC::Explosion& explosionComponent) : ExplosionType(ecs, "explosion") {
+            MARK_START_ENTITY_CREATION(ecs);
+
+            Add<EC::Position>(ecs, position);
+            Add<EC::Explosion>(ecs, explosionComponent);
+
+            MARK_END_ENTITY_CREATION(ecs);
+        }
+    };
+
+    using ExplosiveType = EntityT<EC::Position, EC::Size, EC::Explosive, EC::Render, EC::Rotation>;
     struct Explosive : ExplosiveType {
-        using ExplosiveType::ExplosiveType;
-        Explosive(EntityWorld* ecs, Vec2 position, Vec2 size, SDL_Texture* texture, EC::Explosion* explosion, float startRotation = 0.0f)
+        Explosive(EntityWorld* ecs, Vec2 position, Vec2 size, SDL_Texture* texture, const EC::Explosion& explosion, float startRotation = 0.0f)
         : ExplosiveType(ecs, "explosive") {
             MARK_START_ENTITY_CREATION(ecs);
 
@@ -31,10 +91,6 @@ namespace Entities {
         }
     };
 
-    Entity Explosion(EntityWorld* ecs, float radius, float damage);
-
-    void throwExplosive(EntityWorld* ecs, Explosive explosive, Vec2 target, float speed);
-
     Explosive Grenade(EntityWorld* ecs, Vec2 position, Vec2 size);
     Explosive Airstrike(EntityWorld* ecs, Vec2 position, Vec2 size, Vec2 target);
     Explosive ThrownGrenade(EntityWorld* ecs, Vec2 position, Vec2 target);
@@ -45,14 +101,13 @@ namespace Entities {
 
     Entity Inserter(EntityWorld* ecs, Vec2 position, int reach, IVec2 inputTile, IVec2 outputTile);
 
-    Entity Enemy(EntityWorld* ecs, Vec2 position, EntityType<EC::Position> following);
+    Entity Enemy(EntityWorld* ecs, Vec2 position, EntityT<EC::Position> following);
 
     #define ENTITY_PLAYER_COMPONENTS EC::Health, EC::Nametag,\
         EC::Rotation, EC::Size, EC::Inventory,\
         EC::Render, EC::Position, EC::Immortal
-    struct Player : EntityType<ENTITY_PLAYER_COMPONENTS> {
-        using EntityType<ENTITY_PLAYER_COMPONENTS>::EntityType;
-        Player(EntityWorld* ecs, Vec2 position) : EntityType<ENTITY_PLAYER_COMPONENTS>(ecs, "player") {
+    struct Player : public EntityT<ENTITY_PLAYER_COMPONENTS> {
+        Player(EntityWorld* ecs, Vec2 position) : EntityT<ENTITY_PLAYER_COMPONENTS>(ecs, "player") {
             MARK_START_ENTITY_CREATION(ecs);
 
             Add<EC::Position>(ecs, position);
@@ -70,9 +125,9 @@ namespace Entities {
 
     #define ENTITY_ITEMSTACK_COMPONENTS EC::Position, EC::Size, EC::Render,\
         EC::Grabable, EC::ItemStack
-    struct ItemStack : EntityType<ENTITY_ITEMSTACK_COMPONENTS> {
-        using EntityType<ENTITY_ITEMSTACK_COMPONENTS>::EntityType;
-        ItemStack(EntityWorld* ecs, Vec2 position, ::ItemStack item) : EntityType<ENTITY_ITEMSTACK_COMPONENTS>(ecs, "itemstack") {
+    struct ItemStack : EntityT<ENTITY_ITEMSTACK_COMPONENTS> {
+        //using EntityT<ENTITY_ITEMSTACK_COMPONENTS>::EntityT;
+        ItemStack(EntityWorld* ecs, Vec2 position, ::ItemStack item) : EntityT<ENTITY_ITEMSTACK_COMPONENTS>(ecs, "itemstack") {
             MARK_START_ENTITY_CREATION(ecs);
             Add<EC::Position>(ecs, position);
             Add<EC::Size>(ecs, {0.5f, 0.5f});
@@ -85,8 +140,8 @@ namespace Entities {
 
     #define ENTITY_TRANSPORT_BELT_COMPONENTS EC::Health, EC::Rotation, EC::Rotatable,\
         EC::Render, EC::Position, EC::Size, EC::Transporter
-    struct TransportBelt : EntityType<ENTITY_TRANSPORT_BELT_COMPONENTS> {
-        TransportBelt(EntityWorld* ecs, Vec2 position) : EntityType<ENTITY_TRANSPORT_BELT_COMPONENTS>(ecs, "transport_belt") {
+    struct TransportBelt : EntityT<ENTITY_TRANSPORT_BELT_COMPONENTS> {
+        TransportBelt(EntityWorld* ecs, Vec2 position) : EntityT<ENTITY_TRANSPORT_BELT_COMPONENTS>(ecs, "transport_belt") {
             MARK_START_ENTITY_CREATION(ecs);
             Add<EC::Health>(ecs, {100.0f});
             Add<EC::Position>(ecs, position);
@@ -99,13 +154,13 @@ namespace Entities {
         }
     };
 
-    using TreeType = EntityType<
+    using TreeType = EntityT<
         EC::Health, EC::Growth, EC::Position,
         EC::Render, EC::Size, EC::Nametag,
         EC::Inventory
     >;
     struct Tree : TreeType {
-        using TreeType::TreeType;
+        //using TreeType::TreeType;
         Tree(EntityWorld* ecs, Vec2 position, Vec2 size) : TreeType(ecs, "tree") {
             MARK_START_ENTITY_CREATION(ecs);
             Add(ecs, EC::Health(100.0f));

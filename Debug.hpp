@@ -2,6 +2,7 @@
 #define DEBUG_INCLUDED
 
 #include <string.h>
+#include "constants.hpp"
 
 struct DebugSettings {
     bool drawChunkBorders;

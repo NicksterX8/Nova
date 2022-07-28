@@ -2,11 +2,12 @@
 #define ENTITY_TYPE_INCLUDED
 
 #include "Entity.hpp"
-#include "ECS.hpp"
 #include <assert.h>
+#include <type_traits>
 
 namespace ECS {
 
+/*
 template<class... Components>
 struct SpecialEntity : public _EntityType<Components...> {
     using Self = SpecialEntity<Components...>;
@@ -58,16 +59,19 @@ protected:
 
 template<>
 constexpr SpecialEntity<>::SpecialEntity(Entity entity) : _EntityType<>(entity.id, entity.version) {}
-
-
-template<class... Components>
-using EntityType = SpecialEntity<Components...>;
+*/
 
 template<class T>
-using OptionalEntityT = T;
+struct OptionalEntityT : public T {
+    using T::T;
+
+    OptionalEntityT() : T(NullEntity.castType<T>()) {}
+
+    OptionalEntityT(T entity) : T(entity) {}
+};
 
 template<class... Components>
-using OptionalEntity = SpecialEntity<Components...>;
+using OptionalEntity = EntityType<Components...>;
 
 }
 

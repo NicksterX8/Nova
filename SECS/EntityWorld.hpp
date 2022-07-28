@@ -79,7 +79,7 @@ public:
      * @return A newly created entity.
      */
     template<class... Components>
-    EntityType<Components...> NewType(const char* type) {
+    EntityT<Components...> NewType(const char* type) {
         Entity entity = New(type);
         Add<Components...>(entity);
         return entity;
@@ -326,8 +326,8 @@ public:
 
 /*
 template<class... Components>
-struct EntityCreator : public EntityType<Components...> {
-    using EntityType<Components...>::EntityType;
+struct EntityCreator : public EntityT<Components...> {
+    using EntityT<Components...>::EntityT;
 
 protected:
 
@@ -387,6 +387,10 @@ public:
     template<class... Cs>
     inline bool EntityHas(Entity entity) const {
         return ecs->EntityHas<Cs...>(entity);
+    }
+
+    inline ComponentFlags EntitySignature(Entity entity) const {
+        return ecs->EntitySignature(entity.id);
     }
 
     template<class Q>

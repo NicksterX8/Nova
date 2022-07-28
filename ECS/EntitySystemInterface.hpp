@@ -16,7 +16,7 @@ Uint32 getSystemID() {
 
 class EntitySystemInterface {
 public:
-    _Entity *entities = NULL;
+    Entity *entities = NULL;
     Uint32 nEntities = 0;
     Uint32 reservedEntities = 0;
     
@@ -31,11 +31,11 @@ public:
 
     virtual void Update() = 0;
 
-    void AddEntity(_Entity entity);
+    void AddEntity(Entity entity);
 
     int RemoveEntityLocally(Uint32 localIndex);
 
-    int RemoveEntity(_Entity entity);
+    int RemoveEntity(Entity entity);
 
     void EntitiesWereRemoved(EntityManager* em);
 

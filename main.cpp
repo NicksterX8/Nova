@@ -95,7 +95,7 @@ void placeInserter(ChunkMap& chunkmap, EntityWorld* ecs, Vec2 mouseWorldPos) {
     }
 }
 
-void rotateEntity(const ComponentManager<EC::Rotation, EC::Rotatable>& ecs, EntityType<EC::Rotation, EC::Rotatable> entity, bool counterClockwise) {
+void rotateEntity(const ComponentManager<EC::Rotation, EC::Rotatable>& ecs, EntityT<EC::Rotation, EC::Rotatable> entity, bool counterClockwise) {
     float* rotation = &entity.Get<EC::Rotation>(&ecs)->degrees;
     auto rotatable = entity.Get<EC::Rotatable>(&ecs);
     // left shift switches direction
@@ -214,7 +214,7 @@ void logEntitySystemInfo() {
 }
 
 void logEntityComponentInfo() {
-    const char* componentsStr = TOSTRING((COMPONENTS));
+    const char* componentsStr = TOSTRING((COMPONENT_NAMES));
     int length = strlen(componentsStr);
     char componentsStr2[length];
     strcpy(componentsStr2, componentsStr+1);
@@ -292,9 +292,9 @@ int main(int argc, char** argv) {
     
     state->init(sdlCtx.ren, &gameViewport);
 
-    for (int e = 0; e < 2000; e++) {
+    for (int e = 0; e < 20000; e++) {
         Vec2 pos = {(float)randomInt(-200, 200), (float)randomInt(-200, 200)};
-        //Entity entity = Entities::Tree(&state->ecs, pos, {1, 1});
+        auto tree = Entities::Tree(&state->ecs, pos, {1, 1});
     }
 
     gameViewport = newGameViewport(screenWidth, screenHeight, state->player.getPosition().x, state->player.getPosition().y);

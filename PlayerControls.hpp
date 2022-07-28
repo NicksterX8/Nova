@@ -361,7 +361,7 @@ public:
         // remember that up is negative and down is positive in the coordinate system
         int updownInput = keyboardState[SDL_SCANCODE_S] - keyboardState[SDL_SCANCODE_W]; 
         // might want to move this constant to constants.hpp
-        float speed = PLAYERSPEED;
+        float speed = PLAYER_SPEED;
         if (sidewaysInput && updownInput) {
             speed *= M_SQRT2 / 2.0;
         }

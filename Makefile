@@ -1,7 +1,7 @@
 CXX := g++
 EXT := cpp
 
-CXXFLAGS := -g -Wall -Wextra -std=c++14 -MMD -MP \
+CXXFLAGS := -g -Wall -Wextra -std=c++14 -MMD -MP -O3 \
 	-Wno-missing-field-initializers -Wno-unused-variable -Wno-unused-parameter -Wno-unused-private-field
 
 LIBS = SDL2_gfx/SDL2_gfx.a SDL_FontCache/SDL_FontCache.o NC/utils.o NC/vectors.o \
@@ -30,6 +30,9 @@ OBJ_FILES = $(FILES:=.o)
 DEPEND_FILES = $(FILES:=.d)
 	
 EMSC_OBJ_FILES = $(FILES:=.emsc.o)
+
+remove_depends: 
+	rm -f $(DEPEND_FILES)
 
 APP := exe
 

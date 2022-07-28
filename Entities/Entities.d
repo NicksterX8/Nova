@@ -57,6 +57,7 @@ Entities/Entities.o: Entities/Entities.cpp Entities/Entities.hpp \
   Entities/../ECS/../Log.hpp Entities/../ECS/Entity.hpp \
   Entities/../ECS/Component.hpp \
   Entities/../ECS/../ComponentMetadata/macro.hpp \
+  Entities/../ECS/../ComponentMetadata/short-macro.hpp \
   Entities/../ECS/../ComponentMetadata/getID.hpp \
   Entities/../ECS/SystemsConstants.hpp Entities/../ECS/EntityManager.hpp \
   Entities/../ECS/ComponentPool.hpp \
@@ -67,17 +68,20 @@ Entities/Entities.o: Entities/Entities.cpp Entities/Entities.hpp \
   Entities/../EntityComponents/Components.hpp \
   Entities/../EntityComponents/../NC/cpp-vectors.hpp \
   Entities/../EntityComponents/../Items.hpp \
-  Entities/../EntityComponents/../ECS/EntityType.hpp \
   Entities/../EntityComponents/../SECS/ECS.hpp \
   Entities/../EntityComponents/../SECS/../ECS/ECS.hpp \
-  Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp \
   Entities/../EntityComponents/../SECS/../ECS/Query.hpp \
-  Entities/../ECS/EntityType.hpp Entities/../Textures.hpp \
+  Entities/../EntityComponents/../SECS/Entity.hpp \
+  Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp \
+  Entities/../EntityComponents/../EntityPrototype.hpp \
+  Entities/../ECS/../SECS/Entity.hpp Entities/../Textures.hpp \
   Entities/../SECS/EntityWorld.hpp \
   Entities/../EntityComponents/../SECS/../EntityComponents/Components.hpp \
   Entities/../NC/cpp-vectors.hpp Entities/../Tiles.hpp \
   Entities/../ECS/../NC/colors.h Entities/../ECS/../Items.hpp \
-  Entities/../ECS/../ECS/EntityType.hpp
+  Entities/../SECS/Entity.hpp Entities/Methods.hpp \
+  Entities/../Chunks.hpp Entities/../ECS/../Tiles.hpp \
+  Entities/../ECS/../ECS/Entity.hpp
 
 Entities/Entities.hpp:
 
@@ -203,6 +207,8 @@ Entities/../ECS/Component.hpp:
 
 Entities/../ECS/../ComponentMetadata/macro.hpp:
 
+Entities/../ECS/../ComponentMetadata/short-macro.hpp:
+
 Entities/../ECS/../ComponentMetadata/getID.hpp:
 
 Entities/../ECS/SystemsConstants.hpp:
@@ -225,17 +231,19 @@ Entities/../EntityComponents/../NC/cpp-vectors.hpp:
 
 Entities/../EntityComponents/../Items.hpp:
 
-Entities/../EntityComponents/../ECS/EntityType.hpp:
-
 Entities/../EntityComponents/../SECS/ECS.hpp:
 
 Entities/../EntityComponents/../SECS/../ECS/ECS.hpp:
 
-Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp:
-
 Entities/../EntityComponents/../SECS/../ECS/Query.hpp:
 
-Entities/../ECS/EntityType.hpp:
+Entities/../EntityComponents/../SECS/Entity.hpp:
+
+Entities/../EntityComponents/../SECS/../ECS/EntityType.hpp:
+
+Entities/../EntityComponents/../EntityPrototype.hpp:
+
+Entities/../ECS/../SECS/Entity.hpp:
 
 Entities/../Textures.hpp:
 
@@ -251,4 +259,12 @@ Entities/../ECS/../NC/colors.h:
 
 Entities/../ECS/../Items.hpp:
 
-Entities/../ECS/../ECS/EntityType.hpp:
+Entities/../SECS/Entity.hpp:
+
+Entities/Methods.hpp:
+
+Entities/../Chunks.hpp:
+
+Entities/../ECS/../Tiles.hpp:
+
+Entities/../ECS/../ECS/Entity.hpp:

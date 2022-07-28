@@ -20,11 +20,6 @@ radius(radius), damage(damage), life(life), particleCount(particleCount) {
     life = 0;
 }
 
-Explosive::Explosive(EC::Explosion* explosion):
-explosion(explosion) {
-
-}
-
 void Nametag::setName(const char* name) {
     assert(strlen(name) < MAX_ENTITY_NAME_LENGTH && "entity name too long");
     strcpy(this->name, name);

@@ -14,20 +14,17 @@ namespace Draw {
 
 class Hotbar {
 public:
-    SDL_FRect rect;
-    std::vector<SDL_FRect> slots;
-
-    SDL_FRect area() const {
-        return rect;
-    }
+    SDL_FRect rect; // the rectangle outline of the hotbar, updated every time draw() is called
+    std::vector<SDL_FRect> slots; // the rectangle outlines of the hotbar slots, updated every time draw() is called
 
     SDL_FRect draw(SDL_Renderer* ren, float scale, SDL_Rect viewport, const Player* player) {
+        slots.clear();
+
         unsigned int numSlots = player->numHotbarSlots;
         if (!player->inventory() || numSlots == 0) {
-            return {0, 0, 0, 0};
+            rect = {0, 0, 0, 0};
+            return rect;
         }
-
-        slots.clear();
 
         SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
 
@@ -102,7 +99,14 @@ public:
 
                 if (item.item) {
                     // icon
+<<<<<<< HEAD
                     SDL_RenderCopyF(ren, ItemData[item.item].icon, NULL, &innerSlot);
+=======
+                    Item itemtype = item.item;
+                    ItemTypeData itemData = ItemData[itemtype];
+                    SDL_Texture* icon = itemData.icon;
+                    SDL_RenderCopyF(ren, icon, NULL, &innerSlot);
+>>>>>>> 6d9c44850d29aefe0135bf265901b96cfbee93f5
                     // quantity count
                     // dont draw item count over items that can only ever have one count,
                     // its pointless
@@ -128,7 +132,7 @@ public:
 
         SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_NONE);
 
-        return area();
+        return rect;
     }
 };
 

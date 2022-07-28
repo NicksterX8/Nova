@@ -10,6 +10,7 @@
 #include "../Log.hpp"
 #include "../Rendering/Drawing.hpp"
 #include "../Debug.hpp"
+#include "../constants.hpp"
 
 //using ECS::EntitySystem;
 
@@ -92,13 +93,63 @@ public:
         this->gameViewport = gameViewport;
     }
 
-    using QueriedEntity = EntityType<EC::Render, EC::Size, EC::Position>;
+    using QueriedEntity = EntityT<EC::Render, EC::Size, EC::Position>;
 
+    template<class EntityQueryT = Query>
     inline void ForEach(const ComponentManager<>& ecs, std::function<void(QueriedEntity entity)> callback) {
         ecs.ForEach<Query>(callback);
     }
 
-    void Update(const ComponentManager<EC::Render, const EC::Size, const EC::Position, const EC::Health>& ecs) {
+    void Update(const ComponentManager<EC::Render, const EC::Size, const EC::Position, const EC::Health>& ecs, const ChunkMap& chunkmap) {
+        Uint32 index = 0;
+        std::vector<RenderTarget> renderLayers[NUM_RENDER_LAYERS];
+
+        forEachEntityInBounds(&chunkmap, 
+            Vec2(gameViewport->world.x + gameViewport->world.w/2.0f, gameViewport->world.y + gameViewport->world.h/2.0f), 
+            Vec2(gameViewport->world.w, gameViewport->world.h), 
+        [&](EntityT<EC::Position> entity){
+            if (Query::check(ecs.EntitySignature(entity))) {
+                auto render = ecs.Get<EC::Render>(entity);
+                SDL_FRect* renderDst = &render->destination;
+                Vec2 size = ecs.Get<const EC::Size>(entity)->vec2();
+                renderDst->w = size.x * TileWidth;
+                renderDst->h = size.y * TileHeight;
+                Vec2 position = ecs.Get<const EC::Position>(entity)->vec2();
+                Vec2 dstPosition = gameViewport->worldToPixelPositionF(position);
+                renderDst->x = dstPosition.x - renderDst->w * 0.5f;
+                renderDst->y = dstPosition.y - renderDst->w * 0.5f;
+
+                if (render->texture != NULL) {
+                    renderLayers[render->layer].push_back({render->texture, &render->destination, render->rotation});
+                    render->renderIndex = index++;
+                }
+            }
+        });
+
+        /*
+        Uint32 minPoolSize = ecs.GetPool<EC::Render>()->size();
+        Uint32 positionPoolSize = ecs.GetPool<EC::Position>()->size();
+        Uint32 sizePoolSize = ecs.GetPool<EC::Size>()->size();
+        if (positionPoolSize < minPoolSize) {
+            minPoolSize = positionPoolSize;
+        }
+        if (sizePoolSize < minPoolSize) {
+            minPoolSize = sizePoolSize;
+        }
+
+        EntityT<EC::Render, EC::Position, EC::Size> *entities = malloc(sizeof(Entity) * minPoolSize);
+        */
+
+        forEachEntityInBounds(&chunkmap, 
+            Vec2(gameViewport->world.x + gameViewport->world.w/2.0f, gameViewport->world.y + gameViewport->world.h/2.0f), 
+            Vec2(gameViewport->world.w, gameViewport->world.h), 
+        [&](EntityT<EC::Position> entity){
+            if (Query::check(ecs.EntitySignature(entity))) {
+                
+            }
+        });
+
+        /*
         ForEach(ecs, [&](Entity entity){
             SDL_FRect* renderDst = &ecs.Get<EC::Render>(entity)->destination;
             renderDst->w = ecs.Get<const EC::Size>(entity)->width * TileWidth;
@@ -134,6 +185,7 @@ public:
                 }
             }
         });
+        */
 
         int nRenderedEntities = 0;
         for (int l = 0; l < NUM_RENDER_LAYERS; l++) {
@@ -144,9 +196,10 @@ public:
             }
         }
 
+        /*
         ecs.ForEach<ECS::EntityQuery<
             ECS::RequireComponents<EC::Render, EC::Health>
-        >>([&](EntityType<EC::Health, EC::Render> entity){
+        >>([&](EntityT<EC::Health, EC::Render> entity){
             auto destRect = &ecs.Get<EC::Render>(entity)->destination;
             SDL_Rect _dest = FC_GetBounds(FreeSans, destRect->x, destRect->y, FC_ALIGN_LEFT, FC_MakeScale(0.5, 0.5), "%.1f", entity.Get<const EC::Health>(&ecs)->health);
             auto dest = &_dest;
@@ -156,6 +209,7 @@ public:
             }
     
         });
+        */
 
         if (Debug->settings.drawEntityIDs) {
             int nRenderedIDs = 0;
@@ -249,7 +303,7 @@ public:
             }
         }
 
-        ForEach<EC::Health, EC::Render>([&](EntityType<EC::Health, EC::Render> entity){   
+        ForEach<EC::Health, EC::Render>([&](EntityT<EC::Health, EC::Render> entity){   
             auto destRect = &sys.GetReadOnly<EC::Render>(entity)->destination;
             SDL_Rect _dest = FC_GetBounds(FreeSans, destRect->x, destRect->y, FC_ALIGN_LEFT, FC_MakeScale(0.5, 0.5), "%.1f", entity.Get<EC::Health>()->healthValue);
             auto dest = &_dest;

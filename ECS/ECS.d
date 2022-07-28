@@ -54,8 +54,10 @@ ECS/ECS.o: ECS/ECS.cpp ECS/ECS.hpp \
   ECS/../SDL_FontCache/SDL_FontCache.h \
   /opt/homebrew/Cellar/sdl2_ttf/2.20.0/include/SDL2/SDL_ttf.h \
   ECS/../Log.hpp ECS/Entity.hpp ECS/Component.hpp \
-  ECS/../ComponentMetadata/macro.hpp ECS/../ComponentMetadata/getID.hpp \
-  ECS/SystemsConstants.hpp ECS/EntityManager.hpp ECS/ComponentPool.hpp \
+  ECS/../ComponentMetadata/macro.hpp \
+  ECS/../ComponentMetadata/short-macro.hpp \
+  ECS/../ComponentMetadata/getID.hpp ECS/SystemsConstants.hpp \
+  ECS/EntityManager.hpp ECS/ComponentPool.hpp \
   ECS/../ComponentMetadata/component.hpp \
   ECS/../ComponentMetadata/componentDecl.hpp \
   ECS/../ComponentMetadata/_componentIDs.hpp \
@@ -182,6 +184,8 @@ ECS/Entity.hpp:
 ECS/Component.hpp:
 
 ECS/../ComponentMetadata/macro.hpp:
+
+ECS/../ComponentMetadata/short-macro.hpp:
 
 ECS/../ComponentMetadata/getID.hpp:
 

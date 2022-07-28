@@ -5,7 +5,7 @@
 #include <random>
 #include "../ECS/ECS.hpp"
 #include "../ECS/EntitySystem.hpp"
-#include "../ECS/EntityType.hpp"
+#include "../SECS/Entity.hpp"
 
 #include "../Log.hpp"
 #include "../constants.hpp"
@@ -86,7 +86,7 @@ public:
 private:
 
     void setEntitiesRenderRotation() {
-        ForEach<EC::AngleMotion, EC::Rotation>([&](EntityType<EC::AngleMotion, EC::Rotation> entity){
+        ForEach<EC::AngleMotion, EC::Rotation>([&](EntityT<EC::AngleMotion, EC::Rotation> entity){
             float* rotation = &entity.Get<EC::Rotation>()->degrees;
             auto angleMotion = entity.Get<EC::AngleMotion>();
             if (fabs(*rotation - angleMotion->rotationTarget) < angleMotion->rotationSpeed) {
@@ -184,12 +184,12 @@ public:
     }
 
     void Update() {
-        ForEach<EC::Position, EC::Follow>([&](EntityType<EC::Position, EC::Follow> entity){
+        ForEach<EC::Position, EC::Follow>([&](EntityT<EC::Position, EC::Follow> entity){
             auto followComponent = sys.GetReadWrite<EC::Follow>(entity);
             if (!sys.EntityExists(followComponent->entity)) {
                 return;
             }
-            EntityType<EC::Position> following = followComponent->entity;
+            EntityT<EC::Position> following = followComponent->entity;
             Vec2 target = *sys.GetReadOnly<EC::Position>(following);
 
             EC::Position* position = sys.GetReadWrite<EC::Position>(entity);
@@ -448,8 +448,8 @@ public:
                 Tile* inputTile = getTileAtPosition(*chunkmap, inserter->inputTile);
                 Tile* outputTile = getTileAtPosition(*chunkmap, inserter->outputTile);
                 if (inputTile && outputTile) {
-                    EntityType<> inputEntity = inputTile->entity;
-                    EntityType<> outputEntity = outputTile->entity;
+                    EntityT<> inputEntity = inputTile->entity;
+                    EntityT<> outputEntity = outputTile->entity;
                     if (inputEntity.Has<EC::Inventory>() && outputEntity.Has<EC::Inventory>()) {
                         Inventory inputInventory = sys.GetReadWrite<EC::Inventory>(inputEntity)->inventory;
                         Inventory outputInventory = sys.GetReadWrite<EC::Inventory>(outputEntity)->inventory;

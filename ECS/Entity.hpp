@@ -182,14 +182,7 @@ constexpr bool componentInComponents() {
 }
 
 template<class... Components>
-struct _EntityType;
-
-template<class EntityTypeT, class... Components>
-constexpr bool entityHasComponents() {
-    constexpr ComponentFlags componentsSignature = componentSignature<Components...>();
-    constexpr ComponentFlags entitySignature = EntityTypeT::typeComponentFlags();
-    return entitySignature.hasAll(componentsSignature);
-}
+struct EntityType;
 
 struct EntityBase {
     EntityID id;
@@ -208,9 +201,13 @@ struct EntityBase {
         return !operator==(rhs);
     }
 
-    bool Null() const;
+    inline bool Null() const {
+        return id >= NULL_ENTITY_ID || version == NULL_ENTITY_VERSION;
+    }
 
-    bool NotNull() const;
+    inline bool NotNull() const {
+        return !Null();
+    }
 
     /*
     * Get a string listing the entity's properties, useful for debug logs.
@@ -232,27 +229,64 @@ struct EntityBase {
 };
 
 template<class... Components>
-struct _EntityType : public EntityBase {
-    using Self = _EntityType<Components...>;
-    // using EntityBase::EntityBase;
+struct EntityType : public EntityBase {
+    using Self = EntityType<Components...>;
 
-    constexpr _EntityType(EntityID ID, EntityVersion Version) : EntityBase(ID, Version) {}
+    constexpr EntityType() : EntityBase(NULL_ENTITY_ID, NULL_ENTITY_VERSION) {}
+    constexpr EntityType(EntityID ID, EntityVersion Version) : EntityBase(ID, Version) {}
 
     template<class... C>
-    _EntityType(_EntityType<C...> entity) {
-        static_assert(componentSignature<C...>().hasAll(componentSignature<Components...>()), "need correct components to cast");
+    EntityType(EntityType<C...> entity) {
+        static_assert((componentSignature<C...>().hasAll(componentSignature<Components...>()) || (sizeof...(C) == 0)), "need correct components to cast");
 
         id = entity.id;
         version = entity.version;
     }
+
+    template<class C, class... Vs>
+    EntityType(C* creator, Vs... args) {
+        *this = creator->New(args...).template cast<Components...>();
+    }
+
+    template<class S>
+    inline bool Exists(const S* world) const {
+        return world->EntityExists(*this);
+    }
+
+    template<class T, class S>
+    inline T* Get(const S* getter) {
+        return getter->template Get<T>(*this);
+    }
+
+    template<class T, class S>
+    inline const T* Get(const S* getter) const {
+        return getter->template Get<T>(*this);
+    }
+
+    template<class... Cs, class S>
+    bool Has(const S* s) const {
+       return s->template EntityHas<Cs...>(*this);
+    }
+
+protected:
+    template<class T, class S>
+    int Add(S* s, const T& startValue) {
+        return s->template Add<T>(*this, startValue);
+    }
+public:
 
     constexpr static ComponentFlags typeComponentFlags() {
         return componentSignature<Components...>();
     }
 
     template<class... NewComponents>
-    constexpr _EntityType<NewComponents...>& cast() const {
-        return *((_EntityType<NewComponents...>*)(this));
+    constexpr EntityType<NewComponents...>& cast() const {
+        return *((EntityType<NewComponents...>*)(this));
+    }
+
+    template<class E>
+    constexpr E& castType() const {
+        return *((E*)(this));
     }
 
     constexpr operator Self&() const {
@@ -260,34 +294,7 @@ struct _EntityType : public EntityBase {
     }
 };
 
-struct _Entity : public EntityBase {
-
-    constexpr _Entity() : EntityBase(NULL_ENTITY_ID, NULL_ENTITY_VERSION) {}
-
-    constexpr _Entity(EntityID ID, EntityVersion Version) : EntityBase(ID, Version) {}
-
-    template<class... C>
-    constexpr _Entity(_EntityType<C...> entityType) {
-        id = entityType.id;
-        version = entityType.version;
-    }
-
-    template<class... NewComponents>
-    constexpr inline _EntityType<NewComponents...>& cast() const {
-        return *((_EntityType<NewComponents...>*)(this));
-    }
-
-    template<class Type>
-    constexpr inline Type& castType() const {
-        return *((Type*)(this));
-    }
-
-    constexpr operator _EntityType<>() const {
-        return cast<>();
-    }
-};
-
-typedef _Entity Entity;
+typedef EntityType<> Entity;
 
 constexpr Entity NullEntity = Entity(NULL_ENTITY_ID, NULL_ENTITY_VERSION);
 
