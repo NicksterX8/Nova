@@ -404,7 +404,7 @@ findClosestEntityToPosition(const EntityWorld* ecs, const ChunkMap* chunkmap, Ve
     forEachEntityNearPoint(ecs, chunkmap, position, [&](EntityType<EC::Position> entity){
         Vec2 entityPos = ecs->Get<EC::Position>(entity)->vec2();
         Vec2 delta = entityPos - position;
-        float entityDistSqrd = delta.distSqrd();
+        float entityDistSqrd = delta.lengthSqrd();
         if (entityDistSqrd < closestDistSqrd) {
             closestEntity = entity;
             closestDistSqrd = entityDistSqrd;

@@ -1,20 +1,21 @@
-Log.o: Log.cpp Log.hpp /usr/local/include/SDL2/SDL_log.h \
-  /usr/local/include/SDL2/SDL_stdinc.h \
-  /usr/local/include/SDL2/SDL_config.h \
-  /usr/local/include/SDL2/SDL_platform.h \
-  /usr/local/include/SDL2/begin_code.h \
-  /usr/local/include/SDL2/close_code.h
+Log.o: Log.cpp Log.hpp \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_log.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_stdinc.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_config.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_platform.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/begin_code.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/close_code.h
 
 Log.hpp:
 
-/usr/local/include/SDL2/SDL_log.h:
+/opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_log.h:
 
-/usr/local/include/SDL2/SDL_stdinc.h:
+/opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_stdinc.h:
 
-/usr/local/include/SDL2/SDL_config.h:
+/opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_config.h:
 
-/usr/local/include/SDL2/SDL_platform.h:
+/opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_platform.h:
 
-/usr/local/include/SDL2/begin_code.h:
+/opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/begin_code.h:
 
-/usr/local/include/SDL2/close_code.h:
+/opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/close_code.h:

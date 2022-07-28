@@ -1,11 +1,12 @@
 FILES = SDL2_framerate SDL2_gfxPrimitives SDL2_rotozoom SDL2_imageFilter
 EMSC_CFLAGS =
-CFLAGS = -g -Wall -Werror
+CFLAGS = -g -Wall
 
 SRC_FILES = $(FILES:=.c)
 OBJ_FILES = $(FILES:=.o)
 EMSC_OBJ_FILES = $(FILES:=.emsc.o)
 
+INCLUDE = -I /opt/homebrew/Cellar/sdl2/2.0.22/include
 LIB = SDL2_gfx.a
 EMSC_LIB = SDL2_gfx.emsc.a
 
@@ -35,7 +36,7 @@ compile_emsc: $(EMSC_OBJ_FILES)
 %.emsc.o : %.c
 	emcc $(EMSC_CFLAGS) -c $< -o $@
 %.o : %.c
-	gcc $(CFLAGS) -c $< -o $@
+	gcc $(INCLUDE) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -f $(OBJ_FILES)

@@ -8,11 +8,13 @@ LIBS = SDL2_gfx/SDL2_gfx.a SDL_FontCache/SDL_FontCache.o NC/utils.o NC/vectors.o
 	NC/SDLContext.o
 EMSC_LIBS = NC/utils.emsc.o NC/vectors.emsc.o NC/SDLContext.emsc.o SDL2_gfx/SDL2_gfx.emsc.a SDL_FontCache/SDL_FontCache.emsc.o
 
-INCLUDES = -I /usr/local/Cellar/sdl2/2.0.16/include \
- -I /usr/local/Cellar/sdl2_image/2.0.5/include
+INCLUDES = -I /opt/homebrew/Cellar/sdl2/2.0.22/include \
+ -I /opt/homebrew/Cellar/sdl2_image/2.6.0/include \
+ -I /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2 \
+ -I /opt/homebrew/Cellar/sdl2_ttf/2.20.0/include
 
-LINKS := -L /usr/local/Cellar/sdl2_image/2.0.5/lib
-LINK_FLAGS := -lSDL2 -lSDL2_image -lSDL2_ttf
+LINKS := -L /opt/homebrew/Cellar/sdl2/2.0.22/lib -L /opt/homebrew/Cellar/sdl2_image/2.6.0/lib -L /opt/homebrew/Cellar/sdl2_ttf/2.20.0/lib
+LINK_FLAGS := -lSDL2 -lSDL2_ttf -lSDL2_image
 # -L /usr/local/Cellar/sdl2/2.0.16/lib makes a warning for some reason (not found)
 ARGS =
 
