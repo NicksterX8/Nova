@@ -28,11 +28,13 @@ FILES = main update GameSave/main Entities/Methods Chunks PlayerControls \
 SRC_FILES = $(FILES:=.$(EXT))
 OBJ_FILES = $(FILES:=.o)
 DEPEND_FILES = $(FILES:=.d)
+EMSC_DEPEND_FILES = $(FILES:=.emsc.d)
 	
 EMSC_OBJ_FILES = $(FILES:=.emsc.o)
 
 remove_depends: 
 	rm -f $(DEPEND_FILES)
+	rm -f $(EMSC_DEPEND_FILES)
 
 APP := exe
 
