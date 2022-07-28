@@ -7,3 +7,5 @@ exe
 test
 a.out
 .vscode
+*.dSYM
+*.out
