@@ -47,6 +47,13 @@ void Logger::logOutputFunction(int category, SDL_LogPriority priority, const cha
         printf("%s", consoleMessage);
         break;
     }
+
+    if (outputFile) {
+        char fileMessage[messageLength+1];
+        strncpy(fileMessage, message, messageLength);
+        fileMessage[messageLength] = '\n';
+        fwrite(fileMessage, messageLength+1, 1, outputFile);
+    }
 }
 
 void Logger::logOutputFunction(void* arg, int category, SDL_LogPriority priority, const char *message) {

@@ -6,6 +6,8 @@
 #include <SDL2/SDL_log.h>
 #include <SDL2/SDL_rect.h>
 
+#define GAME_TITLE "Faketorio"
+
 /* Things */
 #define GetTicks SDL_GetTicks
 #define GetPerformanceCounter SDL_GetPerformanceCounter

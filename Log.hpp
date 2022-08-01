@@ -15,7 +15,27 @@ class Logger {
 public:
     int category = LOG_CATEGORY_MAIN; // The log category to use when logging, default is main
     bool useEscapeCodes = false; // Use ansi escape codes for colors and bolding when logging to console
+    bool logToConsole = true;
+    char logOutputFilepath[512] = {'\0', };
+    FILE* outputFile = NULL;
     static void logOutputFunction(void* logger, int category, SDL_LogPriority priority, const char *message);
+
+    int init(const char* outputFilepath) {
+        if (!outputFilepath)
+            return -1;
+        strcpy(logOutputFilepath, outputFilepath);
+        outputFile = fopen(logOutputFilepath, "w+");
+        if (!outputFile)
+            return -1;
+        return 0;
+    }
+
+    void destroy() {
+        if (outputFile) {
+            fclose(outputFile);
+            outputFile = NULL;
+        }
+    }
 
     #define LOG_PRIORITY(priority) {va_list ap;\
         va_start(ap, fmt);\

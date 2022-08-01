@@ -15,6 +15,7 @@
 #include "GameViewport.hpp"
 #include "PlayerControls.hpp"
 #include "GUI.hpp"
+#include "sdl.hpp"
 
 struct Context {
     SDLContext& sdlCtx;

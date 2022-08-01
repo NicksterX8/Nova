@@ -24,6 +24,7 @@ namespace Draw {
 
     void simpleChunk(const Chunk* chunk, SDL_Renderer* renderer, SDL_FRect destination);
 
+    // @return The number of lines drawn on the screen
     int drawChunkBorders(SDL_Renderer* renderer, float scale, const GameViewport* gameViewport);
 }
 
