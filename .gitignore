@@ -9,3 +9,6 @@ a.out
 .vscode
 *.dSYM
 *.out
+*.tmp
+
+save
