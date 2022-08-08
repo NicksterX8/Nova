@@ -15,7 +15,7 @@ public:
     Uint32 _size = 0; // how many used components exist in the components array
     Uint32 reserved = 0; // number of reserved component memory spaces
 
-    void* components = NULL; // array of components
+    Component* components = NULL; // array of components
     EntityID* componentOwners = NULL;
 
     Uint32* entityComponentSet = NULL; // array indexable by entity id to get the index of the component owned by that entity
@@ -31,7 +31,7 @@ public:
     : componentSize(componentSize), id(componentID) {
         if (componentSize != 0) {
             reserved = startSize;
-            components = malloc(startSize * componentSize);
+            components = (Component*)malloc(startSize * componentSize);
             componentOwners = (EntityID*)malloc(startSize * sizeof(EntityID));
             entityComponentSet = (Uint32*)malloc(MAX_ENTITIES * sizeof(Uint32));
             for (Uint32 c = 0; c < MAX_ENTITIES; c++) {
@@ -52,12 +52,12 @@ public:
         strncpy(name, componentName, ECS_MAX_COMPONENT_NAME_SIZE);
     }
 
-    inline void* atIndex(Uint32 index) const {
-        char* componentsData = static_cast<char*>(components);
-        return &componentsData[index * componentSize];
+    inline Component* atIndex(Uint32 index) const {
+        char* componentsData = (char*)components;
+        return (Component*)(&componentsData[index * componentSize]);
     }
 
-    void* get(EntityID entity) const {
+    Component* get(EntityID entity) const {
         Uint32 componentIndex = entityComponentSet[entity];
 
         // this is optimized to just check if index is greater than size rather than two separate checks
@@ -140,10 +140,10 @@ public:
             return 0;
         }
 
-        void* newComponents = realloc(components, newSize * componentSize);
+        Component* newComponents = (Component*)realloc(components, newSize * componentSize);
         if (!newComponents) {
             Log.Warn("ComponentPool(%s)::resize : Realloc returned null!", name);
-            newComponents = malloc(newSize * componentSize);
+            newComponents = (Component*)malloc(newSize * componentSize);
             memcpy(newComponents, components, _size * componentSize);
             free(components);
         }

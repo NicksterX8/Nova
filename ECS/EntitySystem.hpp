@@ -4,7 +4,6 @@
 #include "Entity.hpp"
 #include "Query.hpp"
 #include "EntityManager.hpp"
-#include "EntityType.hpp"
 #include "../constants.hpp"
 #include <vector>
 

@@ -4,21 +4,20 @@
 #include <functional>
  
 using namespace std;
-#include <SDL2/SDL.h>
 
-namespace ECS {
+class Base {};
 
-const int x = 2;
+class Sub : public Base {};
 
-class ECS {
-    static const int x = 3;
-};
-
+int tset(const int* x) {
+    *const_cast<int*>(x) = 2;
 }
 
-using namespace ECS;
-
 int main() {
-    printf("X: %d", ECS::x);
+    int i = 2;
+    const int& x = i;
+    int* ptr = &const_cast<int&>(x);
+    tset(&i);
+    std::cout << "i: " << i << "\n";
     return 0;
 }

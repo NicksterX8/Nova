@@ -54,15 +54,13 @@ struct Serializable {
 };
 
 template<class T>
-struct EntityComponent {
+struct EntityComponent : public ECS::Component {
     private:
         static void testSerialization() {
             T::Serialize(NULL, 0, NULL);
             T::Deserialize(NULL, 0, NULL);
         }
     public:
-
-
 };
 
 #define ENTITY_TYPE_NAME_SIZE 64
