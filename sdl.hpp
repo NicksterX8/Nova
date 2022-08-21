@@ -60,6 +60,7 @@ inline SDLContext initSDL() {
         exit(EXIT_FAILURE);
     }
 
+    /*
     int renFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
     renFlags |= (SDL_RENDERER_PRESENTVSYNC * settings.vsync);
     context.ren = SDL_CreateRenderer(
@@ -80,6 +81,7 @@ inline SDLContext initSDL() {
     SDL_RendererInfo driverInfo;
     SDL_GetRenderDriverInfo(0, &driverInfo);
     Log.Info("SDL Render driver: %s", driverInfo.name);
+    */
 
     SDL_GLContext glContext = SDL_GL_CreateContext(context.win);
     if (!glContext) {
@@ -107,8 +109,11 @@ inline SDLContext initSDL() {
         SDL_FreeSurface(iconSurface);
     }
     
+    /*
     context.scale = getRendererWindowScale(context.win, context.ren);
     SDLPixelScale = context.scale;
+    */
+    context.scale = 1.0f;
 
     SDL_Log("SDL Window Context initialized.");
 
@@ -120,10 +125,12 @@ inline SDLContext initSDL() {
 inline void quitSDL(SDLContext* ctx) {
     if (!ctx) return;
 
+    /*
     if (ctx->ren) {
         SDL_DestroyRenderer(ctx->ren);
         ctx->ren = NULL;
     }
+    */
     if (ctx->win) {
         SDL_DestroyWindow(ctx->win);
         ctx->win = NULL;

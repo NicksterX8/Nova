@@ -356,7 +356,12 @@ int update(Context ctx) {
     *gameViewport = newGameViewport(renWidth, renHeight, focus.x, focus.y);
     playerTargetPos = gameViewport->pixelToWorldPosition(mouse.x, mouse.y);
 
-    render(ctx.sdlCtx.ren, ctx.sdlCtx.scale, ctx.gui, state, gameViewport, playerTargetPos);    
+    RenderContext renderContext = {
+        .glCtx = ctx.sdlCtx.gl,
+        .window = ctx.sdlCtx.win
+    };
+
+    render(renderContext, ctx.sdlCtx.scale, ctx.gui, state, gameViewport, playerTargetPos);    
 
     ctx.lastUpdateMouseState = mouse;
     ctx.lastUpdatePlayerTargetPos = playerTargetPos;

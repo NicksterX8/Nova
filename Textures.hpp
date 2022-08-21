@@ -55,4 +55,8 @@ struct TextureStruct {
 
 extern TextureStruct Textures;
 
+void flipSurface(SDL_Surface* surface);
+
+unsigned int loadGLTexture(const char* filepath);
+
 #endif

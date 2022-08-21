@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <SDL2/SDL.h>
+#include "../gl.h"
 #include "../GameViewport.hpp"
 #include "../GameState.hpp"
 #include "../Tiles.hpp"
@@ -18,7 +19,61 @@
 #include "Drawing.hpp"
 #include "../EntitySystems/Rendering.hpp"
 
+#include <glm/vec2.hpp>
+
 SDL_Texture* screenTexture = NULL;
+
+struct RenderContext {
+    SDL_Window* window = NULL;
+    SDL_GLContext glCtx = NULL;
+    unsigned int textureArray = 0;
+};
+
+float squareVertices[] = {
+    // positions     // texture coords
+     0.5f,   0.5f,   1.0f, 1.0f, // top right
+     0.5f,  -0.5f,   1.0f, 0.0f, // bottom right
+    -0.5f,  -0.5f,   0.0f, 0.0f, // bottom left
+    -0.5f,   0.5f,   0.0f, 1.0f  // top left 
+};
+unsigned int squareIndices[] = {
+    0, 1, 3, // first triangle
+    1, 2, 3  // second triangle
+};
+
+struct ModelData {
+    unsigned int VBO;
+    unsigned int EBO;
+    unsigned int VAO;
+};
+
+ModelData loadSquareModel() {
+    ModelData model;
+    glGenBuffers(1, &model.VBO);
+    glGenBuffers(1, &model.EBO);
+    glGenVertexArrays(1, &model.VAO);
+
+    glBindVertexArray(model.VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, model.VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(squareVertices), squareVertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model.EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(squareIndices), squareIndices, GL_STATIC_DRAW);
+
+    size_t stride = (2 + 2) * sizeof(float);
+
+    /* Link vertex attributes */
+    // position attribute : 2
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (void*)0);
+    glEnableVertexAttribArray(0);
+    // texture attribute : 2
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(2 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
+
+    return model;
+}
 
 int drawWorld(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, GameState* state) {
     int renWidth,renHeight;
@@ -101,6 +156,56 @@ int drawWorld(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, 
     return numRenderedChunks;
 }
 
+int drawWorld2(RenderContext& ren, float scale, const GameViewport* gameViewport, GameState* state) {
+    Vec2 minChunkRelativePos = {gameViewport->world.x / CHUNKSIZE, gameViewport->world.y / CHUNKSIZE};
+    Vec2 maxChunkRelativePos = {gameViewport->worldRightEdge() / CHUNKSIZE, gameViewport->worldBottomEdge() / CHUNKSIZE};
+    IVec2 minChunkPos = {(int)floor(minChunkRelativePos.x), (int)floor(minChunkRelativePos.y)};
+    IVec2 maxChunkPos = {(int)floor(maxChunkRelativePos.x), (int)floor(maxChunkRelativePos.y)};
+    IVec2 viewportChunkSize = {maxChunkPos.x - minChunkPos.x, maxChunkPos.y - minChunkPos.y};
+
+    int numRenderedChunks = (viewportChunkSize.x+1) * (viewportChunkSize.y+1);
+
+    for (int x = minChunkPos.x; x <= maxChunkPos.x; x++) {
+        for (int y = minChunkPos.y; y <= maxChunkPos.y; y++) {
+            const ChunkData* chunkdata = state->chunkmap.getChunkData({x, y});
+            if (!chunkdata) {
+                ChunkData* newChunk = state->chunkmap.createChunk({x, y});
+                generateChunk(newChunk->chunk);
+                chunkdata = newChunk;
+            }
+
+            Vec2 screenDst = gameViewport->worldToPixelPositionF(Vec2(x * CHUNKSIZE, y * CHUNKSIZE));
+            SDL_FRect destination = {
+                screenDst.x,
+                screenDst.y,
+                TileWidth * CHUNKSIZE,
+                TileHeight * CHUNKSIZE
+            };
+            
+            // When zoomed out far, simplify rendering for better performance and less distraction
+            if (TileWidth < 10.0f) {
+
+                //Draw::simpleChunk(chunkdata->chunk, ren, destination);
+            } else {
+                //Draw::chunkExp(chunkdata->chunk, ren, scale, destination);
+                // draw chunk coordinates
+                if (Debug->settings.drawChunkCoordinates) {
+                    //FC_DrawScale(FreeSans, ren, destination.x + 3*scale, destination.y + 2*scale, FC_MakeScale(0.5f,0.5f),
+                    //"%d, %d", x * CHUNKSIZE, y * CHUNKSIZE);
+                }
+
+                if (Debug->settings.drawChunkEntityCount) {
+                    //FC_DrawScale(FreeSans, ren, destination.x + destination.w/2.0f, destination.y + destination.h/2.0f, FC_MakeScale(0.5f,0.5f),
+                    //"%llu", chunkdata->closeEntities.size());
+                }
+            }
+
+        }
+    }
+
+    return numRenderedChunks;
+}
+
 void highlightTargetedTile(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, const GUI* gui, Vec2 playerTargetPos) {
     Vec2 screenPos = gameViewport->worldToPixelPositionF(playerTargetPos.vfloor());
         // only draw tile marker if mouse is actually on the world, not on the GUI
@@ -158,7 +263,8 @@ void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport*
     }      
 }
 
-void render(SDL_Renderer *ren, float scale, GUI* gui, GameState* state, const GameViewport* gameViewport, Vec2 playerTargetPos) {
+void render(RenderContext& ren, float scale, GUI* gui, GameState* state, const GameViewport* gameViewport, Vec2 playerTargetPos) {
+    /*
     // get window size in pixels
     int renWidth;
     int renHeight;
@@ -181,6 +287,21 @@ void render(SDL_Renderer *ren, float scale, GUI* gui, GameState* state, const Ga
     FC_SetDefaultColor(FreeSans, SDL_BLACK);
 
     SDL_RenderPresent(ren);
+    */
+
+    /* Start Rendering */
+    glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    static ModelData squareModel = loadSquareModel();
+
+    glBindVertexArray(squareModel.VAO);
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+    glBindVertexArray(0);
+
+    SDL_GL_SwapWindow(ren.window);
 }
 
 #endif

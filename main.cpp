@@ -6,6 +6,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include "gl.h"
 
 #include "SDL2_gfx/SDL2_gfxPrimitives.h"
 #include "SDL_FontCache/SDL_FontCache.h"
