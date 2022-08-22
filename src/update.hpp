@@ -16,36 +16,66 @@
 #include "GUI.hpp"
 #include "sdl.hpp"
 
-struct Context {
+struct Game;
+struct RenderContext;
+
+void placeInserter(ChunkMap& chunkmap, EntityWorld* ecs, Vec2 mouseWorldPos);
+
+void rotateEntity(const ComponentManager<EC::Rotation, EC::Rotatable>& ecs, EntityT<EC::Rotation, EC::Rotatable> entity, bool counterClockwise);
+
+void setDefaultKeyBindings(Game& ctx, PlayerControls* controls);
+
+struct Game {
     SDLContext& sdlCtx;
     const Uint8 *keyboard;
     GameState* state;
     GUI* gui;
     PlayerControls* playerControls;
-    GameViewport* gameViewport;
-    float& worldScale;
-    MouseState& lastUpdateMouseState;
-    Vec2& lastUpdatePlayerTargetPos;
-    DebugClass& debug;
-    MetadataTracker& metadata;
+    GameViewport gameViewport;
+    float worldScale;
+    MouseState lastUpdateMouseState;
+    Vec2 lastUpdatePlayerTargetPos;
+    DebugClass* debug;
+    MetadataTracker metadata;
+    RenderContext* renderContext;
 
-    Context(SDLContext& sdlContext, GameState* state, GUI* gui, PlayerControls& playerControls, GameViewport* gameViewport,
-    float& worldScale, MouseState& lastUpdateMouseState, Vec2& lastUpdatePlayerTargetPos,
-    DebugClass& debug, MetadataTracker& metadata):
-    sdlCtx(sdlContext), state(state), gui(gui), gameViewport(gameViewport), worldScale(worldScale),
-    lastUpdateMouseState(lastUpdateMouseState), lastUpdatePlayerTargetPos(lastUpdatePlayerTargetPos),
-    debug(debug), metadata(metadata) {
+    Game(SDLContext& sdlContext):
+    sdlCtx(sdlContext), metadata(TARGET_FPS, true) {
+        debug = new DebugClass();
+
         keyboard = SDL_GetKeyboardState(NULL);
-        this->playerControls = &playerControls;
+        state = NULL;
+        gui = NULL;
+        playerControls = NULL;
+        renderContext = NULL;
     }
+
+    void init(int screenWidth, int screenHeight);
+
+    void start();
+
+    void quit();
+
+    void destroy();
+
+    int update();
+#ifdef EMSCRIPTEN
+    static int emscriptenUpdateWrapper(void* param) {
+        Game* game = static_cast<Game*>(param);
+        if (game) {
+            return game->update();
+        } else {
+            // handle error
+            return -1;
+        }
+        
+    }
+#endif
 };
 
 Vec2 getMouseWorldPosition(const GameViewport& gameViewport);
 
 GameViewport newGameViewport(int renderWidth, int renderHeight, float focusX, float focusY);
-
-// Main game loop
-int update(Context ctx);
 
 // update wrapper function to unwrap the void pointer main loop parameter into its properties
 int updateWrapper(void *param);

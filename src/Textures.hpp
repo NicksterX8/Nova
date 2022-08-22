@@ -5,6 +5,9 @@
 #include <SDL2/SDL_image.h>
 #include <string>
 
+#define MY_TEXTURE_ARRAY_WIDTH 128
+#define MY_TEXTURE_ARRAY_HEIGHT 128
+
 #define ASSETS_PATH "assets/"
 #define LOADIMG(var, filename) {\
     var = IMG_LoadTexture(renderer, ASSETS_PATH filename);\
@@ -55,5 +58,43 @@ extern TextureStruct Textures;
 void flipSurface(SDL_Surface* surface);
 
 unsigned int loadGLTexture(const char* filepath);
+
+namespace TextureIDs {
+    namespace Tiles {
+        enum Tile {
+            Grass=0,
+            Sand,
+            Water,
+            SpaceFloor,
+            NumTiles
+        };
+    }
+    enum General {
+        Inserter = Tiles::NumTiles,
+        Chest,
+        Player,
+        Grenade,
+        NumTextures
+    };
+}
+
+typedef unsigned int TextureID;
+
+struct TextureMetaDataStruct {
+    const char* filename = NULL;
+};
+
+extern TextureMetaDataStruct TextureMetaData[TextureIDs::NumTextures];
+
+struct TextureDataStruct {
+    int width;
+    int height;
+};
+extern TextureDataStruct TextureData[TextureIDs::NumTextures];
+
+unsigned int createTextureArray(int width, int height, int depth, SDL_Surface** images);
+int setTextureMetadata();
+unsigned int makeTextureArray(const char* assetsPath);
+
 
 #endif

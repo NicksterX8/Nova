@@ -166,6 +166,10 @@ struct Render : EntityComponent<Render> {
     }
 };
 
+struct NewRender : EntityComponent<NewRender> {
+    
+};
+
 struct Explosion : EntityComponent<Explosion>, Serializable<Explosion> {
     float radius;
     float damage;

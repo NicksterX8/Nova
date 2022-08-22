@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <stdio.h>
+#include <libproc.h>
+#include <unistd.h>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -58,97 +60,6 @@ void setDebugSettings(DebugClass& debug) {
     ds.drawChunkCoordinates = false;
     ds.drawEntityRects = false;
     ds.drawEntityIDs = false;
-}
-
-void placeInserter(ChunkMap& chunkmap, EntityWorld* ecs, Vec2 mouseWorldPos) {
-    Tile* tile = getTileAtPosition(chunkmap, mouseWorldPos);
-    if (tile && !tile->entity.Exists(ecs)) {
-        Vec2 inputPos = {mouseWorldPos.x + 1, mouseWorldPos.y};
-        //Tile* inputTile = getTileAtPosition(chunkmap, inputPos);
-        Vec2 outputPos = {mouseWorldPos.x - 1, mouseWorldPos.y};
-        //Tile* outputTile = getTileAtPosition(chunkmap, outputPos);
-        Entity inserter = Entities::Inserter(ecs, mouseWorldPos.vfloor() + Vec2(0.5f, 0.5f), 1, inputPos.floorToIVec(), outputPos.floorToIVec());
-        placeEntityOnTile(ecs, tile, inserter);
-    }
-}
-
-void rotateEntity(const ComponentManager<EC::Rotation, EC::Rotatable>& ecs, EntityT<EC::Rotation, EC::Rotatable> entity, bool counterClockwise) {
-    float* rotation = &entity.Get<EC::Rotation>(&ecs)->degrees;
-    auto rotatable = entity.Get<EC::Rotatable>(&ecs);
-    // left shift switches direction
-    if (counterClockwise) {
-        *rotation -= rotatable->increment;
-    } else {
-        *rotation += rotatable->increment;
-    }
-    rotatable->rotated = true;
-}
-
-void setDefaultKeyBindings(Context& ctx, PlayerControls* controls) {
-    GameState& state = *ctx.state;
-    Player& player = state.player;
-    EntityWorld& ecs = state.ecs;
-    ChunkMap& chunkmap = state.chunkmap;
-    GameViewport& gameViewport = *ctx.gameViewport;
-    PlayerControls& playerControls = *ctx.playerControls;
-    DebugClass& debug = ctx.debug;
-
-    controls->addKeyBinding(new FunctionKeyBinding('y',
-    [&ecs, &gameViewport, &state, &playerControls](){
-        auto mouse = playerControls.getMouse();
-        Entity zombie = Entities::Enemy(
-            &ecs,
-            gameViewport.pixelToWorldPosition(mouse.x, mouse.y),
-            state.player.entity
-        );
-    }));
-
-    KeyBinding* keyBindings[] = {
-        new ToggleKeyBinding('b', &debug.settings.drawChunkBorders),
-        new ToggleKeyBinding('u', &debug.settings.drawEntityRects),
-        new ToggleKeyBinding('c', &debug.settings.drawChunkCoordinates),
-        new ToggleKeyBinding('[', &debug.settings.drawChunkEntityCount),
-
-        new FunctionKeyBinding('q', [&player](){
-            player.releaseHeldItem();
-        }),
-        new FunctionKeyBinding('c', [&ecs, &gameViewport](){
-            int width = 2;
-            int height = 1;
-            Vec2 position = getMouseWorldPosition(gameViewport).vfloor() + Vec2(width/2.0f, height/2.0f);
-            auto chest = Entities::Chest(&ecs, position, 3, width, height);
-
-        }),
-        new FunctionKeyBinding('l', [&ecs](){
-            // do airstrikes row by row
-            for (int y = -100; y < 100; y += 5) {
-                for (int x = -100; x < 100; x += 5) {
-                    auto airstrike = Entities::Airstrike(&ecs, Vec2(x, y * 2), {3.0f, 3.0f}, Vec2(x, y));
-                }
-            }
-        }),
-        new FunctionKeyBinding('i', [&ecs, &gameViewport, &chunkmap](){
-            placeInserter(chunkmap, &ecs, getMouseWorldPosition(gameViewport));
-        }),
-        new FunctionKeyBinding('r', [&gameViewport, &playerControls, &ecs, &chunkmap](){
-            //player.findFocusedEntity(getMouseWorldPosition(gameViewport));
-            auto focusedEntity = findPlayerFocusedEntity(ecs, chunkmap, getMouseWorldPosition(gameViewport));
-            if (focusedEntity.Has<EC::Rotation, EC::Rotatable>(&ecs))
-                rotateEntity(ComponentManager<EC::Rotation, EC::Rotatable, EC::Position>(&ecs), focusedEntity.cast<EC::Rotation, EC::Rotatable>(), playerControls.keyboardState[SDL_SCANCODE_LSHIFT]);
-        }),
-        new FunctionKeyBinding('5', [&](){
-            const Entity* entities = ecs.GetEntityList();
-            for (int i = ecs.EntityCount()-1; i >= 0; i--) {
-                if (entities[i].id != 0)
-                    ecs.Destroy(entities[i]);
-            }
-        })
-
-    };
-
-    for (size_t i = 0; i < sizeof(keyBindings) / sizeof(KeyBinding*); i++) {
-        controls->addKeyBinding(keyBindings[i]);
-    }
 }
 
 #define STRINGIFY(x) #x
@@ -235,15 +146,39 @@ void initLogging() {
     SDL_LogSetPriority(LOG_CATEGORY_MAIN, SDL_LOG_PRIORITY_INFO);
 }
 
+void initPaths() {
+    char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
+
+    pid_t pid = getpid();
+    int ret = proc_pidpath(pid, pathbuf, sizeof(pathbuf));
+    if (ret <= 0) {
+        fprintf(stderr, "PID %d: proc_pidpath ();\n", pid);
+        fprintf(stderr, "    %s\n", strerror(errno));
+        Log.Error("Failed to get pid path!");
+    } else {
+        printf("proc %d: %s\n", pid, pathbuf);
+
+        int pathlen = strlen(pathbuf);
+
+        char pathToTop[512];
+        size_t pathToTopSize = pathlen - sizeof("build/faketorio");
+        memcpy(pathToTop, pathbuf, pathToTopSize);
+        pathToTop[pathToTopSize] = '\0';
+        Log.Info("path to top: %s", pathToTop);
+        strcpy(assetsPath, str_add(pathToTop, "/assets/"));
+        strcpy(shadersPath, str_add(pathToTop, "/src/Rendering/shaders/"));
+        Log.Info("assets path: %s", assetsPath);
+    }
+}
+
 int main(int argc, char** argv) {
     initLogging();
+
+    initPaths();
 
     DebugClass debug;
     setDebugSettings(debug);
     Debug = &debug;
-
-    MetadataTracker metadata = MetadataTracker(TARGET_FPS, ENABLE_VSYNC);
-    Metadata = &metadata;
 
     Log.useEscapeCodes = true;
     for (int i = 0; i < argc; i++) {
@@ -258,17 +193,22 @@ int main(int argc, char** argv) {
     logEntityComponentInfo();
 
     int screenWidth,screenHeight;
-    SDL_GetRendererOutputSize(sdlCtx.ren, &screenWidth, &screenHeight);
+    SDL_GL_GetDrawableSize(sdlCtx.win, &screenWidth, &screenHeight);
 
-    load(sdlCtx.ren, sdlCtx.scale);
+    //load(sdlCtx.ren, sdlCtx.scale);
     loadTileData();
     loadItemData();
+
+    /*
+
+    RenderContext renderContext(sdlCtx.win, sdlCtx.gl);
+    initRenderContext(&renderContext);
 
     GameViewport gameViewport;
 
     GameState* state = new GameState();
     
-    state->init(sdlCtx.ren, &gameViewport);
+    state->init(NULL, &gameViewport);
 
     for (int e = 0; e < 20000; e++) {
         Vec2 pos = {(float)randomInt(-200, 200), (float)randomInt(-200, 200)};
@@ -316,6 +256,14 @@ int main(int argc, char** argv) {
     unload();
 
     delete state;
+
+    */
+
+    Game* game = new Game(sdlCtx);
+    game->init(screenWidth, screenHeight);
+    game->start();
+    game->quit();
+    game->destroy();
 
     Log.destroy();
 

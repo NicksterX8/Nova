@@ -18,6 +18,7 @@
 
 #include "Drawing.hpp"
 #include "../EntitySystems/Rendering.hpp"
+#include "Shader.hpp"
 
 #include <glm/vec2.hpp>
 
@@ -27,6 +28,12 @@ struct RenderContext {
     SDL_Window* window = NULL;
     SDL_GLContext glCtx = NULL;
     unsigned int textureArray = 0;
+
+    Shader entityShader;
+    Shader tilemapShader;
+
+    RenderContext(SDL_Window* window, SDL_GLContext glContext)
+    : window(window), glCtx(glContext) {}
 };
 
 float squareVertices[] = {
@@ -296,14 +303,56 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, const G
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     static ModelData squareModel = loadSquareModel();
-
     glBindVertexArray(squareModel.VAO);
-
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
     glBindVertexArray(0);
 
+    
+
     SDL_GL_SwapWindow(ren.window);
+}
+
+Shader loadShader(const char* name) {
+    char path[512], vertexPath[512], fragmentPath[512];
+    int shadersPathLen = strlen(shadersPath);
+    memcpy(path, shadersPath, shadersPathLen);
+
+    unsigned int nameLen = 0;
+    char chr = name[0];
+    while(chr != '\0') {
+        path[nameLen+shadersPathLen] = chr;
+        nameLen++;
+        chr = name[nameLen];
+    }
+
+    int baseLen = shadersPathLen + nameLen;
+
+    path[baseLen] = '.';
+    path[baseLen+3] = '\0';
+
+    size_t pathSize = baseLen + 4;
+    memcpy(vertexPath, path, pathSize);
+    memcpy(fragmentPath, path, pathSize);
+    vertexPath[baseLen+1] = 'v';
+    vertexPath[baseLen+2] = 's';
+    fragmentPath[baseLen+1] = 'f';
+    fragmentPath[baseLen+2] = 's';
+ 
+    return Shader(vertexPath, fragmentPath);
+}
+
+int loadShaders(RenderContext* renCtx) {
+    renCtx->entityShader = loadShader("entity");
+    renCtx->tilemapShader = loadShader("tilemap");
+    
+    if (!renCtx->entityShader || !renCtx->tilemapShader) {
+        return -1;
+    }
+    return 0;
+}
+
+int initRenderContext(RenderContext* renCtx) {
+    return loadShaders(renCtx);
 }
 
 #endif

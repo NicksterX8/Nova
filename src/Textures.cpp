@@ -53,7 +53,6 @@ void TextureStruct::unload() {
 
 TextureStruct Textures;
 
-
 void flipSurface(SDL_Surface* surface) {
     SDL_LockSurface(surface);
     
@@ -115,4 +114,111 @@ unsigned int loadGLTexture(const char* filepath) {
         return 0;
     }
     return texture;
+}
+
+unsigned int createTextureArray(int width, int height, int depth, SDL_Surface** images) {
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glTexImage3D(GL_TEXTURE_2D_ARRAY,
+        0,                  // level
+        GL_RGBA8,           // internal format
+        width,height,depth, // width,height,depth
+        0,                  // border?
+        GL_RGBA,            // format
+        GL_UNSIGNED_BYTE,   // type
+        0                   // pointer to data, left empty to be loaded with images
+    );
+    // load images one by one, each on a different layer (depth)
+    for (unsigned int i = 0; i < depth; i++) {
+        SDL_Surface* surface = images[i];
+        if (surface->w > width || surface->h > height) {
+            Log.Error("::createTextureArray : Image passed is too large to fit in texture array! image dimensions: %d,%d; texture array dimensions: %d,%d\n", surface->w, surface->h, width, height);
+            return 0;
+        }
+        SDL_LockSurface(surface);
+        glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target is texture array
+            0,
+            0, 0, i, // all images start at bottom left of texture array
+            surface->w, surface->h, 1, // image is only 1 thick in depth
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            surface->pixels
+        );
+        SDL_UnlockSurface(surface);
+    }
+    return texture;
+}
+
+int setTextureMetadata() {
+    using namespace TextureIDs;
+    TextureMetaDataStruct* tx = TextureMetaData;
+    
+    tx[Player] = {"pixelart/weird-player-guy.png"};
+    tx[Inserter] = {"inserter.png"};
+    tx[Chest] = {"chest.png"};
+    tx[Grenade] = {"grenade.png"};
+
+    tx[Tiles::Grass] = {"tiles/GrassTile.png"};
+    tx[Tiles::Sand] = {"tiles/sand.png"};
+    tx[Tiles::Water] = {"tiles/water.jpg"};
+    tx[Tiles::SpaceFloor] = {"tiles/space-floor.png"};
+
+    // check every texture was set
+    int code = 0;
+    for (unsigned int i = 0; i < NumTextures; i++) {
+        if (tx[i].filename == NULL) {
+            Log.Warn("Texture %d was not set!", i);
+            code = -1;
+        }
+    }
+    return code;
+}
+
+TextureMetaDataStruct TextureMetaData[TextureIDs::NumTextures];
+TextureDataStruct TextureData[TextureIDs::NumTextures];
+
+unsigned int makeTextureArray(const char* assetsPath) {
+    unsigned int depth = TextureIDs::NumTextures;
+
+    SDL_Surface* images[TextureIDs::NumTextures];
+    for (unsigned int i = 0; i < depth; i++) {
+        char path[512];
+        strcat(strcpy(path, assetsPath), TextureMetaData[i].filename);
+        images[i] = IMG_Load(path);
+        TextureData[i].width = images[i]->w;
+        TextureData[i].height = images[i]->h;
+        flipSurface(images[i]);
+    }
+
+    for (unsigned int i = 0; i < depth; i++) {
+        if (images[i]) {
+            if (images[i]->format->format != SDL_PIXELFORMAT_RGBA32) {
+                SDL_Surface* newSurface = SDL_ConvertSurfaceFormat(images[i], SDL_PIXELFORMAT_RGBA32, 0);
+                if (newSurface) {
+                    SDL_FreeSurface(images[i]);
+                    images[i] = newSurface;
+                } else {
+                    printf("Error: Failed to convert surface to proper format!\n");
+                }
+            }
+        } else {
+            printf("Failed to load image %d!\n", i);
+        }
+    }
+
+    unsigned int textureArray = createTextureArray(MY_TEXTURE_ARRAY_WIDTH, MY_TEXTURE_ARRAY_HEIGHT, depth, images);
+    // images can be freed after being loaded into texture array
+    for (unsigned int i = 0; i < depth; i++) {
+        SDL_FreeSurface(images[i]);
+    }
+    if (!textureArray) {
+        Log.Critical("Failed to make texture array!");
+    }
+    return textureArray;
 }

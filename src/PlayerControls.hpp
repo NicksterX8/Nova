@@ -15,8 +15,6 @@
 #include "Entities/Methods.hpp"
 #include "Log.hpp"
 
-struct Context;
-
 struct MouseState {
     int x;
     int y;
@@ -106,10 +104,10 @@ OptionalEntity<EC::Position, EC::Size, EC::Render>
 findPlayerFocusedEntity(const ComponentManager<EC::Position, const EC::Size, const EC::Render>& ecs, const ChunkMap& chunkmap, Vec2 playerMousePos);
 
 class PlayerControls {
-const GameViewport& gameViewport;
-MouseState mouse;
-Vec2 mouseWorldPos;
-std::vector<KeyBinding*> keyBindings;
+    const GameViewport& gameViewport;
+    MouseState mouse;
+    Vec2 mouseWorldPos;
+    std::vector<KeyBinding*> keyBindings;
 public:
     const Uint8* keyboardState;
 
@@ -373,7 +371,7 @@ public:
         movePlayer(state, Vec2(movementX, movementY));
     }
 
-    void update(GameState* state, const GUI* gui, Context* context) {
+    void update(GameState* state, const GUI* gui) {
         Vec2 aimingPosition = gameViewport.pixelToWorldPosition(mouse.x, mouse.y);
 
         if (mouse.leftButtonDown()) {

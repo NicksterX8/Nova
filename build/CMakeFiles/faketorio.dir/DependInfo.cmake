@@ -29,6 +29,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/nick/Faketorio/src/SECS/ECS.cpp" "CMakeFiles/faketorio.dir/src/SECS/ECS.cpp.o" "gcc" "CMakeFiles/faketorio.dir/src/SECS/ECS.cpp.o.d"
   "/Users/nick/Faketorio/src/Textures.cpp" "CMakeFiles/faketorio.dir/src/Textures.cpp.o" "gcc" "CMakeFiles/faketorio.dir/src/Textures.cpp.o.d"
   "/Users/nick/Faketorio/src/Tiles.cpp" "CMakeFiles/faketorio.dir/src/Tiles.cpp.o" "gcc" "CMakeFiles/faketorio.dir/src/Tiles.cpp.o.d"
+  "/Users/nick/Faketorio/src/global.cpp" "CMakeFiles/faketorio.dir/src/global.cpp.o" "gcc" "CMakeFiles/faketorio.dir/src/global.cpp.o.d"
   "/Users/nick/Faketorio/src/main.cpp" "CMakeFiles/faketorio.dir/src/main.cpp.o" "gcc" "CMakeFiles/faketorio.dir/src/main.cpp.o.d"
   "/Users/nick/Faketorio/src/update.cpp" "CMakeFiles/faketorio.dir/src/update.cpp.o" "gcc" "CMakeFiles/faketorio.dir/src/update.cpp.o.d"
   )

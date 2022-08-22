@@ -41,6 +41,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/faketorio.dir/src/Textures.cpp.o.d"
   "CMakeFiles/faketorio.dir/src/Tiles.cpp.o"
   "CMakeFiles/faketorio.dir/src/Tiles.cpp.o.d"
+  "CMakeFiles/faketorio.dir/src/global.cpp.o"
+  "CMakeFiles/faketorio.dir/src/global.cpp.o.d"
   "CMakeFiles/faketorio.dir/src/main.cpp.o"
   "CMakeFiles/faketorio.dir/src/main.cpp.o.d"
   "CMakeFiles/faketorio.dir/src/update.cpp.o"

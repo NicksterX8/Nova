@@ -9508,6 +9508,9 @@ CMakeFiles/faketorio.dir/src/Tiles.cpp.o: ../src/Tiles.cpp \
   ../src/constants.hpp \
   ../src/ECS/Entity.hpp
 
+CMakeFiles/faketorio.dir/src/global.cpp.o: ../src/global.cpp \
+  ../src/global.h
+
 CMakeFiles/faketorio.dir/src/main.cpp.o: ../src/main.cpp \
   ../src/constants.hpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdio.h \
@@ -9909,6 +9912,64 @@ CMakeFiles/faketorio.dir/src/main.cpp.o: ../src/main.cpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/unique_copy.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/unique.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__split_buffer \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/libproc.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/param.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/param.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/param.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/_param.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/stat.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_s_ifmt.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_filesec_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/mount.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/attr.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/ucred.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/bsm/audit.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/port.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/boolean.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine/boolean.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/arm/boolean.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine/vm_types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/arm/vm_types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/time.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_timeval64.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_select.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fsobj_id_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/os/base.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/queue.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fsid_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdbool.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stdbool.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/message.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/kern_return.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine/kern_return.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/arm/kern_return.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/proc_info.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/socket.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/_param.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/net/net_kev.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_sa_family_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_socklen_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_iovec_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/un.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/kern_control.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/event.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/net/if.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/net/if_var.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_timeval32.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/net/route.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/netinet/in.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/netinet6/in6.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/netinet/tcp.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/uuid/uuid.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_uuid_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/os/availability.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/unistd.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/unistd.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_posix_vdisable.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_seek_set.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/select.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/gethostuuid.h \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL.h \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_main.h \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_assert.h \
@@ -9956,13 +10017,10 @@ CMakeFiles/faketorio.dir/src/main.cpp.o: ../src/main.cpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gl3.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gltypes.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/OpenGLAvailability.h \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/os/availability.h \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_opengl.h \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_opengl_glext.h \
   ../src/SDL2_gfx/SDL2_gfxPrimitives.h \
   ../src/NC/SDLContext.h \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdbool.h \
-  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stdbool.h \
   ../src/NC/SDLBuild.h \
   ../src/NC/colors.h \
   ../src/NC/utils.h \
@@ -10087,6 +10145,8 @@ CMakeFiles/faketorio.dir/src/main.cpp.o: ../src/main.cpp \
   ../src/Entities/Methods.hpp \
   ../src/update.hpp \
   ../src/sdl.hpp \
+  ../src/global.h \
+  ../src/utils/MyString.h \
   ../src/GameSave/main.hpp \
   ../src/GameState.hpp
 
@@ -10646,6 +10706,8 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
   ../src/GameViewport.hpp \
   ../src/Log.hpp \
   ../src/sdl.hpp \
+  ../src/global.h \
+  ../src/utils/MyString.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/thread \
   ../src/Rendering/rendering.hpp \
   ../src/gl.h \
@@ -10672,12 +10734,29 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
   ../src/Rendering/Drawing.hpp \
   ../src/Debug.hpp \
   ../src/constants.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  ../src/Rendering/Shader.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/fstream \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/filesystem \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stack \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/deque \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iomanip \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iostream \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
@@ -10693,6 +10772,208 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_matrix.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_geometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_exponential.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_vector_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_vectorize.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_fixes.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_common.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_trigonometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_float.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.inl \
   ../src/GameSave/main.hpp \
   ../src/GameState.hpp \
   ../src/EntitySystems/Rendering.hpp \
@@ -10702,23 +10983,229 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
   ../src/EntityComponents/Components.hpp
 
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1_sized.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1_sized.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/vec1.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float.hpp:
+
+../src/NC/geometry.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.inl:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/cmp.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/types.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_float.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/find_first_of.h:
+
+../src/GameSave/main.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/projected.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/reverse.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_common.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/thread:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_common.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_fixes.hpp:
+
+/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_opengl_glext.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/libkern/_OSByteOrder.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/erase_if_container.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_trigonometric.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/swap_ranges.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_vectorize.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/for_each.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2_precision.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/os/availability.h:
+
+../src/GameViewport.cpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/replace.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_xlocale.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4_sized.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int32_t.h:
+
+../src/SECS/Entity.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/mismatch.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/min_element.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3_precision.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/stdio.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3.hpp:
+
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp:
 
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/identity.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctrans_t.h:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp:
 
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp:
-
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp:
 
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/initializer_list:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iomanip:
+
+../src/Rendering/Shader.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2_precision.hpp:
 
 ../src/sdl.hpp:
 
@@ -10726,13 +11213,117 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 ../src/loadData.hpp:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/bitset:
+
 ../src/NC/SDLBuild.h:
+
+/opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_rect.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/select.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/inplace_merge.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_posix_vdisable.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/unistd.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdint:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine.h:
+
+../src/ECS/Component.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/netinet/tcp.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_timeval32.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/net/if.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/param.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_socklen_t.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_sa_family_t.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/net/net_kev.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/socket.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine/kern_return.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__hash_table:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/message.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fsid_t.h:
+
+/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_rect.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/queue.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/os/base.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gl3.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fsobj_id_t.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_select.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int16_t.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/arm/vm_types.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/bsm/audit.h:
+
+../src/Rendering/Drawing.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/ucred.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/stat.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/arm/boolean.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/mount.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_ct_rune_t.h:
+
+/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/begin_code.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_s_ifmt.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/_param.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_locale.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/param.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/ranges_operations.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/libproc.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/__stddef_max_align_t.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp:
 
 ../src/main.cpp:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/compressed_pair.h:
+
+../src/global.cpp:
+
 ../src/Tiles.cpp:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gltypes.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/search.h:
 
 ../src/gl.h:
 
@@ -10740,7 +11331,11 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 ../src/Textures.cpp:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp:
+
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp:
+
+/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_events.h:
 
 ../src/SECS/ECS.cpp:
 
@@ -10752,21 +11347,33 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 ../src/Metadata.hpp:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/vector:
+
 ../src/Metadata.cpp:
 
-../src/GameViewport.cpp:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/numeric:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_geometric.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/__decay_copy.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/random:
 
 ../src/EntitySystems/Rendering.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/param.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/gethostuuid.h:
 
 ../src/SDL2_gfx/SDL2_framerate.h:
 
 ../src/SDL2_gfx/SDL2_imageFilter.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__tree:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.inl:
 
 ../src/GameSave/GameSave.hpp:
 
@@ -10780,7 +11387,11 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 ../src/GameViewport.hpp:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine/vm_types.h:
+
 ../src/Player.hpp:
+
+../src/Entities/Entities.cpp:
 
 ../src/EntitySystems/Systems.hpp:
 
@@ -10796,6 +11407,8 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 ../src/Entities/Methods.hpp:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/pthread/sched.h:
+
 ../src/SECS/EntityWorld.hpp:
 
 ../src/EntityPrototype.hpp:
@@ -10808,7 +11421,11 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 ../src/Entities/Entities.hpp:
 
-../src/Entities/Entities.cpp:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.inl:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/attr.h:
 
 ../src/ECS/EntitySystemInterface.cpp:
 
@@ -10816,7 +11433,11 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 ../src/ECS/EntitySystem.cpp:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_suseconds_t.h:
+
 ../ComponentMetadata/component.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/compare:
 
 ../src/ECS/ComponentPool.hpp:
 
@@ -10824,11 +11445,25 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 ../src/ECS/SystemsConstants.hpp:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/array:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/proc_info.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/shared_ptr.h:
+
 ../src/Debug.cpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/filesystem:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp:
 
 ../src/NC/vectors.h:
 
 ../src/NC/cpp-vectors.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/wait.h:
 
 ../src/Chunks.hpp:
 
@@ -10838,13 +11473,15 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/nl_types.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/binary_search.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/streambuf:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/_wctype.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/os/availability.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/_time.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.inl:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/_string.h:
 
@@ -10852,13 +11489,29 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/_ctype.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_locale.h:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fd_zero.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/locale.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cerrno:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__errc:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.inl:
+
+../ComponentMetadata/_componentIDs.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/partition.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/replace_if.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.inl:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iostream:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/float.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__bsd_locale_defaults.h:
 
@@ -10868,15 +11521,23 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/ios:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/istream:
+/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_platform.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/bitset:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/istream:
 
 ../src/ECS/Entity.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__split_buffer:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__config_site:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2_precision.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cmath:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/set_union.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_vector_relational.inl:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/unordered_map:
 
@@ -10886,33 +11547,75 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/wctype.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4_precision.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/net/route.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/TargetConditionals.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cctype:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cwctype:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/copy_n.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/prev_permutation.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cwchar:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__string:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_once_t.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stack:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/string_view:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdio:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_symbol_aliasing.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/rel_ops.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4.hpp:
+
+../src/global.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/stable_partition.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/shuffle.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/arm/kern_return.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/_param.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/shift_right.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/sort.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/shift_left.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/time.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/set_symmetric_difference.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_intptr_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/set_difference.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/fstream:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/search_n.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3_sized.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/string.h:
+
 ../ComponentMetadata/componentDecl.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_key_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__random/uniform_int_distribution.h:
 
@@ -10920,11 +11623,7 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/reverse_copy.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/replace_if.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/replace_copy_if.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/replace.h:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp:
 
@@ -10932,29 +11631,45 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/remove_copy_if.h:
 
+../src/update.cpp:
+
 ../src/NC/physics.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/push_heap.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/unary_function.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/partition_copy.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/partition.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/sort_heap.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdlib:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/partial_sort.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/nth_element.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_uuid_t.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/none_of.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/reverse.h:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/exchange.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/mismatch.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/net/if_var.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/minmax_element.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/max.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_blkcnt_t.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x3.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/sift_down.h:
 
@@ -10964,21 +11679,29 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/rotate.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/__decay_copy.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int8_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/generate.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3_precision.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/math.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/for_each_n.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/upper_bound.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.inl:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_endian.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/equal.h:
 
+../ComponentMetadata/macro.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/unwrap_iter.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_cond_t.h:
 
 ../src/SDL2_gfx/SDL2_rotozoom.h:
 
@@ -10986,21 +11709,21 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/lower_bound.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/binary_search.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/any_of.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/unary_negate.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/projected.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/move.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.inl:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/pointer_to_binary_function.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/mem_fun_ref.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/libkern/_OSByteOrder.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_time_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cassert:
 
@@ -11010,11 +11733,13 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/temporary_buffer.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/chrono:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/_mcontext.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/not_fn.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/size.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/types.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/ostreambuf_iterator.h:
 
@@ -11022,7 +11747,19 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/reverse_access.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/prev.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.inl:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/wrap_iter.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4.hpp:
+
+/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_keycode.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3_precision.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/unique_copy.h:
 
@@ -11030,23 +11767,35 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 ../src/Items.cpp:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x3.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/limits.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/move_iterator.h:
 
+/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_clipboard.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/istream_iterator.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/count.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/insert_iterator.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/concepts.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__variant/monostate.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__ranges/access.h:
 
-/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/begin_code.h:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/allocator_traits.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.inl:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/kern_control.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/back_insert_iterator.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/swap_ranges.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/readable_traits.h:
 
@@ -11054,31 +11803,37 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/iter_move.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/concepts.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__function_like.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uint8_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/access.h:
 
+../src/ECS/ECS.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/perfect_forward.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/partition_point.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/pointer_safety.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sched.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gl3.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4_precision.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__config:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int64_t.h:
+
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_atomic.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/advance.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_mach_port_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/generate_n.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/pthread/qos.h:
-
-../src/SECS/Entity.hpp:
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_stdinc.h:
 
@@ -11090,9 +11845,15 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__threading_support:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/errno.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/concepts:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_rwlockattr_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/unwrap_ref.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_in_port_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/min.h:
 
@@ -11100,9 +11861,9 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/_limits.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/limits.h:
+/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_messagebox.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/array:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/limits.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/errno.h:
 
@@ -11110,13 +11871,15 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/climits:
 
-../src/ECS/Component.hpp:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/set_intersection.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/qos.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_timeval64.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__thread/poll_with_backoff.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/bind_front.h:
 
@@ -11125,6 +11888,10 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__node_handle:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/hash.h:
+
+../src/utils/MyString.h:
+
+../src/constants.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/next_permutation.h:
 
@@ -11142,12 +11909,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/is_sorted.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/shared_ptr.h:
-
-../ComponentMetadata/macro.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/allocator_traits.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/function.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/default_searcher.h:
@@ -11158,15 +11919,11 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_gamecontroller.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/compressed_pair.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/tuple:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/binary_negate.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/comp.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/search.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/functional:
 
@@ -11182,33 +11939,31 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/pointer_traits.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/concepts:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/is_heap_until.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/iterator_traits.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec3.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/_stdio.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/wrap_iter.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/initializer_list:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/binary_function.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/ctype.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/compare:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/swap.h:
 
 ../src/Log.hpp:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/common_iterator.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__undef_macros:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/addressof.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/is_heap.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/wctype.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_in_port_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/piecewise_construct.h:
 
@@ -11216,43 +11971,57 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iterator:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/inttypes.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__ranges/enable_view.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/pair.h:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/string:
 
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/__stddef_max_align_t.h:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/pair.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/integer_sequence.h:
 
 ../src/Log.cpp:
 
-/opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_rect.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/istreambuf_iterator.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/exchange.h:
 
 ../src/ECS/Query.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__ranges/enable_borrowed_range.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/declval.h:
+
+/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_version.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/as_const.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_intmax_t.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__tuple:
+
+/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_touch.h:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stdarg.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/new:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/unistd.h:
+
 ../src/GameState.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/default_sentinel.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/remove_copy.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/deque:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/sstream:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/errno.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdlib:
+/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_main.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/lexicographical_compare.h:
 
@@ -11266,25 +12035,29 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/allocator_arg_t.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/max_element.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/ostream_iterator.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/math.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/reference_wrapper.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/pthread/sched.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/operations.h:
 
-../src/update.cpp:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3_sized.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/boolean.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fd_setsize.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__mbstate_t.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/string:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4_precision.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/un.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_exponential.inl:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/variant:
 
@@ -11296,27 +12069,29 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /opt/homebrew/Cellar/sdl2_image/2.6.0/include/SDL2/SDL_image.h:
 
+../src/SDL2_gfx/SDL2_gfxPrimitives.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/unique.h:
 
 ../src/Textures.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/empty.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/sstream:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_ssize_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_attr_t.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/float.h:
-
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_locale.h:
+
+/opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_log.h:
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_system.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/remove.h:
 
-/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_version.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.inl:
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_metal.h:
 
@@ -11324,23 +12099,21 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_log.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_int16_t.h:
+
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_loadso.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/limits.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/min_element.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/cmp.h:
-
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_hints.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/errno.h:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/netinet6/in6.h:
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_filesystem.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/thread:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_timeval.h:
+
+/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_rwops.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/adjacent_find.h:
 
@@ -11350,15 +12123,9 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/arm/_structs.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__hash_table:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_cond_t.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_mutexattr_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/rotate_copy.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/inttypes.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_uintptr_t.h:
 
@@ -11366,23 +12133,29 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_joystick.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uint8_t.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3_precision.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/half_positive.h:
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_mouse.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2_precision.hpp:
+
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_video.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x2.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/equal_range.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/__wctype.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_iovec_t.h:
+
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/arm_neon.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/remove_copy.h:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/event.h:
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_audio.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/unary_function.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/is_sorted_until.h:
 
@@ -11392,13 +12165,11 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/copy_backward.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/cdefs.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/stable_sort.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/addressof.h:
-
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_endian.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_key_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stdbool.h:
 
@@ -11406,19 +12177,27 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_pixels.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/optional:
+
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_misc.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/uuid/uuid.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/float.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/inplace_merge.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.inl:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/stdio.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_matrix.inl:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/move_backward.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_errno_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_clock_t.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_nl_item.h:
 
@@ -11430,11 +12209,19 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/uninitialized_algorithms.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x2.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/version:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_stdio.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/merge.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/ratio:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_mbstate_t.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/float.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_sigset_t.h:
 
@@ -11444,17 +12231,21 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/inttypes.h:
 
-/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_rect.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctrans_t.h:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/netinet/in.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/__wctype.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/mutex:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/malloc/_malloc.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_timespec.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/string.h:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/clamp.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/time.h:
 
@@ -11468,17 +12259,17 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_rune_t.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/clamp.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__nullptr:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/pthread/pthread_impl.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_wchar_t.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/alloca.h:
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_cpuinfo.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/replace_copy.h:
-
-/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_rwops.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_short.h:
 
@@ -11492,17 +12283,13 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/find.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/partition_point.h:
-
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stddef.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/prev_permutation.h:
+../src/Tiles.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fd_set.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/count_if.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/malloc/_malloc.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uintmax_t.h:
 
@@ -11516,11 +12303,13 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/fill_n.h:
 
-/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_main.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_ucontext.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_sigaltstack.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine/boolean.h:
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_error.h:
 
@@ -11528,23 +12317,13 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/_inttypes.h:
 
-/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_platform.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/_mcontext.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/copy_n.h:
-
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_timer.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/signal.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/wait.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_wctype.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stddef.h:
-
-../src/SDL2_gfx/SDL2_gfxPrimitives.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_caddr_t.h:
 
@@ -11552,35 +12331,31 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/close_code.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/move.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/strings.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/pop_heap.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x3_precision.hpp:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/rel_ops.h:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/pop_heap.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_rwlock_t.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/optional:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_once_t.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_condattr_t.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/binary_function.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_blkcnt_t.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types.h:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/kern_return.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctype_t.h:
+
+../src/ECS/EntitySystem.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__debug:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_int32_t.h:
 
-../ComponentMetadata/_componentIDs.hpp:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__bit_reference:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/ostream:
 
@@ -11592,17 +12367,13 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_uid_t.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uint16_t.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fd_isset.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_pid_t.h:
 
-../src/GameSave/main.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/set_union.h:
-
-/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_touch.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_time_t.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x2.inl:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fd_def.h:
 
@@ -11616,25 +12387,19 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_gid_t.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_filesec_t.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_blksize_t.h:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/appleapiopts.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/common_iterator.h:
-
-/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_opengl_glext.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/types.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/pthread.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/count.h:
-
 ../src/ECS/EntityManager.cpp:
-
-../src/ECS/ECS.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_dev_t.h:
 
@@ -11642,11 +12407,7 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/iter_swap.h:
 
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/float.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/is_transparent.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_intmax_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/wchar.h:
 
@@ -11654,13 +12415,15 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_char.h:
 
-../src/Tiles.hpp:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/arch.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_null.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/find_if_not.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/port.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_wint_t.h:
 
@@ -11668,21 +12431,19 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uint32_t.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/TargetConditionals.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fd_clr.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/memory:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/erase_if_container.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x2.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1_precision.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/counted_iterator.h:
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_render.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/stdint.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int32_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional_base:
 
@@ -11691,6 +12452,8 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_va_list.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_in_addr_t.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/in_place.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_ctype.h:
 
@@ -11702,10 +12465,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/endian.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/__wctype.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int16_t.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_ino_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/algorithm:
@@ -11714,35 +12473,21 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_surface.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__config_site:
-
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/type_traits:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/chrono:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iosfwd:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_mbstate_t.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4_precision.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstddef:
-
-/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_events.h:
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stdint.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/mem_fn.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uint16_t.h:
-
-/opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_log.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/advance.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/construct_at.h:
-
-../src/NC/geometry.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uint64_t.h:
 
@@ -11754,69 +12499,63 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/locale:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_ct_rune_t.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_intptr_t.h:
-
-../src/constants.hpp:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4_sized.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/find_end.h:
 
 ../src/SDL2_gfx/SDL2_gfx.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/vector:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/partial_sort_copy.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp:
+
+../src/PlayerControls.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/incrementable_traits.h:
 
-/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_messagebox.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x4.hpp:
 
-../src/PlayerControls.cpp:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/Availability.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_seek_set.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.inl:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_key_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_off_t.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_xlocale.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/AvailabilityMacros.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fsfilcnt_t.h:
 
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.inl:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdint.h:
-
-../src/Rendering/Drawing.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/minmax.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/find_if.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_int16_t.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_useconds_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_id_t.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/sort.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/for_each.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_int8_t.h:
 
 ../src/Debug.hpp:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int64_t.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_stdio.h:
-
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_quit.h:
 
-/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_thread.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3_precision.hpp:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/find_first_of.h:
+/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_thread.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/invoke.h:
 
@@ -11824,15 +12563,13 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 ../src/GUI.cpp:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/pthread/pthread_impl.h:
-
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_hidapi.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/ranges_operations.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/identity.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.inl:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/types.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp:
 
 ../src/Chunks.cpp:
 
@@ -11844,9 +12581,7 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/_types.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdint:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_symbol_aliasing.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/limits:
 
@@ -11854,17 +12589,13 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fsblkcnt_t.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/copy_if.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/pointer_to_unary_function.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__bit_reference:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fd_zero.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/_wchar.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/cdefs.h:
 
 ../src/SDL2_gfx/SDL2_gfxPrimitives_font.h:
 
@@ -11874,17 +12605,9 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/alloca.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/in_place.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/weak_result_type.h:
 
-/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_keycode.h:
-
-../src/ECS/EntitySystem.hpp:
-
-/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_clipboard.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/distance.h:
 
@@ -11898,13 +12621,9 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/all_of.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/Availability.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/comp_ref_type.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/bind.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_suseconds_t.h:
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_shape.h:
 

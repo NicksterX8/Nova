@@ -7,6 +7,7 @@
 #include <SDL2/SDL_rect.h>
 
 #define GAME_TITLE "Faketorio"
+#define WINDOW_TITLE "Faketiorio"
 
 /* Things */
 #define GetTicks SDL_GetTicks

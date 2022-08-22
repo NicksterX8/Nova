@@ -2,21 +2,24 @@
 #define SDL_HPP
 
 #include <SDL2/SDL.h>
+#include "NC/SDLContext.h"
+#include "constants.hpp"
+#include "global.h"
+#include "utils/MyString.h"
 
 #define WINDOW_HIGH_DPI 1
 
 typedef struct SDLContext {
     SDL_Window *win;
-    SDL_Renderer* ren;
     SDL_GLContext gl;
     float scale;
 } SDLContext;
 
 inline SDLContext initSDL() {
-    SDLSettings settings = DefaultSDLSettings;
-    settings.vsync = ENABLE_VSYNC;
-    settings.windowTitle = "Faketorio";
-    settings.windowIconPath = "assets/bad-factorio-logo.png";
+    NC_SDLSettings settings = NC_DefaultSDLSettings;
+    settings.vsync = true;
+    settings.windowTitle = WINDOW_TITLE;
+    settings.windowIconPath = str_add(assetsPath, "bad-factorio-logo.png");
     settings.windowWidth = 1000;
     settings.windowHeight = 800;
     if (WINDOW_HIGH_DPI) {
@@ -30,8 +33,6 @@ inline SDLContext initSDL() {
     }
 
     SDLContext context;
-
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 
     const char* windowTitle = settings.windowTitle;
     if (!settings.windowTitle) {
@@ -60,33 +61,11 @@ inline SDLContext initSDL() {
         exit(EXIT_FAILURE);
     }
 
-    /*
-    int renFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE;
-    renFlags |= (SDL_RENDERER_PRESENTVSYNC * settings.vsync);
-    context.ren = SDL_CreateRenderer(
-        context.win,
-        -1,
-        renFlags
-    );
-    if (!context.ren) {
-        Log.Critical("Error creating renderer. Error: %s", SDL_GetError());
-        exit(EXIT_FAILURE);
-    }
-    if (SDL_RenderTargetSupported(context.ren) == SDL_FALSE) {
-        Log.Critical("Renderer does not support render targets!");
-    }
-    SDL_Log("SDL Renderer created.");
-    
-
-    SDL_RendererInfo driverInfo;
-    SDL_GetRenderDriverInfo(0, &driverInfo);
-    Log.Info("SDL Render driver: %s", driverInfo.name);
-    */
-
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GLContext glContext = SDL_GL_CreateContext(context.win);
     if (!glContext) {
         Log.Error("Failed creating OpenGL context! Error message: %s", SDL_GetError());
-        //exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
 
     /* set window icon */
@@ -125,12 +104,6 @@ inline SDLContext initSDL() {
 inline void quitSDL(SDLContext* ctx) {
     if (!ctx) return;
 
-    /*
-    if (ctx->ren) {
-        SDL_DestroyRenderer(ctx->ren);
-        ctx->ren = NULL;
-    }
-    */
     if (ctx->win) {
         SDL_DestroyWindow(ctx->win);
         ctx->win = NULL;

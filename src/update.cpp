@@ -57,6 +57,97 @@ GameViewport newGameViewport(int renderWidth, int renderHeight, float focusX, fl
     return newViewport;
 }
 
+void placeInserter(ChunkMap& chunkmap, EntityWorld* ecs, Vec2 mouseWorldPos) {
+    Tile* tile = getTileAtPosition(chunkmap, mouseWorldPos);
+    if (tile && !tile->entity.Exists(ecs)) {
+        Vec2 inputPos = {mouseWorldPos.x + 1, mouseWorldPos.y};
+        //Tile* inputTile = getTileAtPosition(chunkmap, inputPos);
+        Vec2 outputPos = {mouseWorldPos.x - 1, mouseWorldPos.y};
+        //Tile* outputTile = getTileAtPosition(chunkmap, outputPos);
+        Entity inserter = Entities::Inserter(ecs, mouseWorldPos.vfloor() + Vec2(0.5f, 0.5f), 1, inputPos.floorToIVec(), outputPos.floorToIVec());
+        placeEntityOnTile(ecs, tile, inserter);
+    }
+}
+
+void rotateEntity(const ComponentManager<EC::Rotation, EC::Rotatable>& ecs, EntityT<EC::Rotation, EC::Rotatable> entity, bool counterClockwise) {
+    float* rotation = &entity.Get<EC::Rotation>(&ecs)->degrees;
+    auto rotatable = entity.Get<EC::Rotatable>(&ecs);
+    // left shift switches direction
+    if (counterClockwise) {
+        *rotation -= rotatable->increment;
+    } else {
+        *rotation += rotatable->increment;
+    }
+    rotatable->rotated = true;
+}
+
+void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
+    GameState& state = *ctx.state;
+    Player& player = state.player;
+    EntityWorld& ecs = state.ecs;
+    ChunkMap& chunkmap = state.chunkmap;
+    GameViewport& gameViewport = ctx.gameViewport;
+    PlayerControls& playerControls = *ctx.playerControls;
+    DebugClass& debug = *ctx.debug;
+
+    controls->addKeyBinding(new FunctionKeyBinding('y',
+    [&ecs, &gameViewport, &state, &playerControls](){
+        auto mouse = playerControls.getMouse();
+        Entity zombie = Entities::Enemy(
+            &ecs,
+            gameViewport.pixelToWorldPosition(mouse.x, mouse.y),
+            state.player.entity
+        );
+    }));
+
+    KeyBinding* keyBindings[] = {
+        new ToggleKeyBinding('b', &debug.settings.drawChunkBorders),
+        new ToggleKeyBinding('u', &debug.settings.drawEntityRects),
+        new ToggleKeyBinding('c', &debug.settings.drawChunkCoordinates),
+        new ToggleKeyBinding('[', &debug.settings.drawChunkEntityCount),
+
+        new FunctionKeyBinding('q', [&player](){
+            player.releaseHeldItem();
+        }),
+        new FunctionKeyBinding('c', [&ecs, &gameViewport](){
+            int width = 2;
+            int height = 1;
+            Vec2 position = getMouseWorldPosition(gameViewport).vfloor() + Vec2(width/2.0f, height/2.0f);
+            auto chest = Entities::Chest(&ecs, position, 3, width, height);
+
+        }),
+        new FunctionKeyBinding('l', [&ecs](){
+            // do airstrikes row by row
+            for (int y = -100; y < 100; y += 5) {
+                for (int x = -100; x < 100; x += 5) {
+                    auto airstrike = Entities::Airstrike(&ecs, Vec2(x, y * 2), {3.0f, 3.0f}, Vec2(x, y));
+                }
+            }
+        }),
+        new FunctionKeyBinding('i', [&ecs, &gameViewport, &chunkmap](){
+            placeInserter(chunkmap, &ecs, getMouseWorldPosition(gameViewport));
+        }),
+        new FunctionKeyBinding('r', [&gameViewport, &playerControls, &ecs, &chunkmap](){
+            //player.findFocusedEntity(getMouseWorldPosition(gameViewport));
+            auto focusedEntity = findPlayerFocusedEntity(ecs, chunkmap, getMouseWorldPosition(gameViewport));
+            if (focusedEntity.Has<EC::Rotation, EC::Rotatable>(&ecs))
+                rotateEntity(ComponentManager<EC::Rotation, EC::Rotatable, EC::Position>(&ecs), focusedEntity.cast<EC::Rotation, EC::Rotatable>(), playerControls.keyboardState[SDL_SCANCODE_LSHIFT]);
+        }),
+        new FunctionKeyBinding('5', [&](){
+            const Entity* entities = ecs.GetEntityList();
+            for (int i = ecs.EntityCount()-1; i >= 0; i--) {
+                if (entities[i].id != 0)
+                    ecs.Destroy(entities[i]);
+            }
+        })
+
+    };
+
+    for (size_t i = 0; i < sizeof(keyBindings) / sizeof(KeyBinding*); i++) {
+        controls->addKeyBinding(keyBindings[i]);
+    }
+}
+
 /*
 bool canRunConcurrently(
     ECS::ComponentAccessType* accessArrayA, ECS::ComponentAccessType* accessArrayB,
@@ -275,32 +366,23 @@ void logComponentPoolSizes(const EntityWorld& ecs) {
     }
 }
 
-// Main game loop
-int update(Context ctx) {
-    ctx.metadata.tick();
+int Game::update() {
+    metadata.tick();
 
     bool quit = false;
 
     int renWidth;
     int renHeight;
-    SDL_GetRendererOutputSize(ctx.sdlCtx.ren, &renWidth, &renHeight);
-    //*ctx.gameViewport = newGameViewport(renWidth, renHeight, state->player.x, state->player.y);
+    SDL_GL_GetDrawableSize(sdlCtx.win, &renWidth, &renHeight);
 
-    GameViewport* gameViewport = ctx.gameViewport;
-    GameState* state = ctx.state;
-
-    updateTilePixels(ctx.worldScale);
-
-    //Vec2 focus = state->player.getPosition();
-    //*gameViewport = newGameViewport(renWidth, renHeight, focus.x, focus.y);
+    updateTilePixels(worldScale);
 
     // get user input state for this update
     SDL_PumpEvents();
     MouseState mouse = getMouseState();
-    Vec2 playerTargetPos = gameViewport->pixelToWorldPosition(mouse.x, mouse.y);
+    Vec2 playerTargetPos = gameViewport.pixelToWorldPosition(mouse.x, mouse.y);
     // handle events //
-    PlayerControls& playerControls = *ctx.playerControls;
-    playerControls.updateState();
+    playerControls->updateState();
 
     SDL_Event event;
     while (SDL_PollEvent(&event) != 0) {
@@ -310,17 +392,17 @@ int update(Context ctx) {
                 break;
             case SDL_WINDOWEVENT:
                 if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                    SDL_GetRendererOutputSize(ctx.sdlCtx.ren, &renWidth, &renHeight);
+                    SDL_GL_GetDrawableSize(sdlCtx.win, &renWidth, &renHeight);
                 }
                 break;
             case SDL_MOUSEWHEEL:
-                ctx.worldScale += event.wheel.preciseY / 50.0f;
-                if (ctx.worldScale < 0.1f) {
-                    ctx.worldScale = 0.1f;
-                } else if (ctx.worldScale > 8) {
-                    ctx.worldScale = 8;
+                worldScale += event.wheel.preciseY / 50.0f;
+                if (worldScale < 0.1f) {
+                    worldScale = 0.1f;
+                } else if (worldScale > 8) {
+                    worldScale = 8;
                 }
-                updateTilePixels(ctx.worldScale);
+                updateTilePixels(worldScale);
                 break;
             case SDL_KEYDOWN:
                 switch (event.key.keysym.sym) {
@@ -338,33 +420,27 @@ int update(Context ctx) {
                 break;
         }
 
-        playerControls.handleEvent(event, state, ctx.gui);
+        playerControls->handleEvent(event, state, gui);
     }
 
-    playerControls.update(state, ctx.gui, &ctx);
-
-    if (playerTargetPos != ctx.lastUpdatePlayerTargetPos) {
-        playerControls.playerMouseTargetMoved(mouse, ctx.lastUpdateMouseState, state, ctx.gui);
+    playerControls->update(state, gui);
+    if (playerTargetPos != lastUpdatePlayerTargetPos) {
+        playerControls->playerMouseTargetMoved(mouse, lastUpdateMouseState, state, gui);
     }
 
     // these two functions should be combined
-    playerControls.doPlayerMovementTick(ctx.state);
-    tick(ctx.state);
+    playerControls->doPlayerMovementTick(state);
+    tick(state);
 
     // update to new state from tick
     Vec2 focus = state->player.getPosition();
-    *gameViewport = newGameViewport(renWidth, renHeight, focus.x, focus.y);
-    playerTargetPos = gameViewport->pixelToWorldPosition(mouse.x, mouse.y);
+    gameViewport = newGameViewport(renWidth, renHeight, focus.x, focus.y);
+    playerTargetPos = gameViewport.pixelToWorldPosition(mouse.x, mouse.y);
 
-    RenderContext renderContext = {
-        .glCtx = ctx.sdlCtx.gl,
-        .window = ctx.sdlCtx.win
-    };
+    render(*renderContext, sdlCtx.scale, gui, state, &gameViewport, playerTargetPos);    
 
-    render(renderContext, ctx.sdlCtx.scale, ctx.gui, state, gameViewport, playerTargetPos);    
-
-    ctx.lastUpdateMouseState = mouse;
-    ctx.lastUpdatePlayerTargetPos = playerTargetPos;
+    lastUpdateMouseState = mouse;
+    lastUpdatePlayerTargetPos = playerTargetPos;
 
     if (quit) {
         Log("Returning from main update loop.");
@@ -373,8 +449,60 @@ int update(Context ctx) {
     return 0; 
 }
 
-// update wrapper function to unwrap the void pointer main loop parameter into its properties
-int updateWrapper(void *param) {
-    struct Context *ctx = (struct Context*)param;
-    return update(*ctx);
+void Game::init(int screenWidth, int screenHeight) {
+    this->state = new GameState();
+    this->state->init(NULL, &gameViewport);
+    for (int e = 0; e < 20000; e++) {
+        Vec2 pos = {(float)randomInt(-200, 200), (float)randomInt(-200, 200)};
+        auto tree = Entities::Tree(&state->ecs, pos, {1, 1});
+    }
+
+    this->gameViewport = newGameViewport(screenWidth, screenHeight, state->player.getPosition().x, state->player.getPosition().y);
+    this->renderContext = new RenderContext(sdlCtx.win, sdlCtx.gl);
+    initRenderContext(this->renderContext);
+    this->worldScale = 1.0f;
+    this->playerControls = new PlayerControls(gameViewport);
+    SDL_Point mousePos = SDLGetMousePixelPosition();
+    this->lastUpdateMouseState = {
+        .x = mousePos.x,
+        .y = mousePos.y,
+        .buttons = SDLGetMouseButtons()
+    };
+
+    setDefaultKeyBindings(*this, playerControls);
+}
+
+void Game::destroy() {
+    delete this->debug;
+    delete this->playerControls;
+    delete this->renderContext;
+}
+
+void Game::start() {
+    // GameSave::load()
+
+    Log.Info("Starting!");
+
+    if (metadata.vsyncEnabled) {
+        metadata.setTargetFps(60);
+    } else {
+        metadata.setTargetFps(TARGET_FPS);
+    }
+    metadata.start();
+#ifdef EMSCRIPTEN
+    emscripten_set_main_loop_arg(emscriptenUpdateWrapper, this, 0, 1);
+#else
+    int code;
+    do {
+        code = update();
+    } while (code == 0);
+#endif
+    this->quit();
+}
+
+void Game::quit() {
+    Log.Info("Quitting!");
+    double secondsElapsed = metadata.end();
+    Log.Info("Time elapsed: %.1f", secondsElapsed);
+    // GameSave::save()
 }
