@@ -9,3 +9,11 @@ a.out
 .vscode
 *.dSYM
 *.out
+*.tmp
+
+CMakeLists.txt
+
+compile.sh
+
+build
+save
