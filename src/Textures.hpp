@@ -7,6 +7,7 @@
 
 #define MY_TEXTURE_ARRAY_WIDTH 128
 #define MY_TEXTURE_ARRAY_HEIGHT 128
+#define MY_TEXTURE_ARRAY_UNIT 0
 
 #define ASSETS_PATH "assets/"
 #define LOADIMG(var, filename) {\
@@ -59,26 +60,34 @@ void flipSurface(SDL_Surface* surface);
 
 unsigned int loadGLTexture(const char* filepath);
 
+typedef Uint32 TextureID;
+
 namespace TextureIDs {
+    enum Extra : TextureID {
+        Null=0,
+    };
     namespace Tiles {
-        enum Tile {
-            Grass=0,
+        enum Tile : TextureID {
+            Grass = Null+1,
             Sand,
             Water,
             SpaceFloor,
-            NumTiles
+            Wall,
+            lastTile
         };
     }
-    enum General {
-        Inserter = Tiles::NumTiles,
+    enum General : TextureID {
+        Inserter = Tiles::lastTile,
         Chest,
-        Player,
         Grenade,
-        NumTextures
+        Player,
+        Tree,
+        Last
     };
-}
 
-typedef unsigned int TextureID;
+    constexpr TextureID First = Null+1;
+    constexpr TextureID NumTextures = Last-1;
+}
 
 struct TextureMetaDataStruct {
     const char* filename = NULL;

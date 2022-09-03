@@ -15,6 +15,7 @@
 #include "PlayerControls.hpp"
 #include "GUI.hpp"
 #include "sdl.hpp"
+#include "Camera.hpp"
 
 struct Game;
 struct RenderContext;
@@ -29,9 +30,9 @@ struct Game {
     SDLContext& sdlCtx;
     const Uint8 *keyboard;
     GameState* state;
+    Camera camera;
     GUI* gui;
     PlayerControls* playerControls;
-    GameViewport gameViewport;
     float worldScale;
     MouseState lastUpdateMouseState;
     Vec2 lastUpdatePlayerTargetPos;
@@ -73,7 +74,7 @@ struct Game {
 #endif
 };
 
-Vec2 getMouseWorldPosition(const GameViewport& gameViewport);
+Vec2 getMouseWorldPosition(const Camera& camera);
 
 GameViewport newGameViewport(int renderWidth, int renderHeight, float focusX, float focusY);
 

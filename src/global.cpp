@@ -1,4 +1,7 @@
 #include "global.h"
 
-char assetsPath[256] = {'\0'};
-char shadersPath[256] = {'\0'};
+namespace FilePaths {
+    char assets[GLOBAL_FILEPATH_SIZE] = {'\0',};
+    char shaders[GLOBAL_FILEPATH_SIZE] = {'\0',};
+    char save[GLOBAL_FILEPATH_SIZE] = {'\0',};
+}

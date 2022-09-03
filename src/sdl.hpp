@@ -6,6 +6,8 @@
 #include "constants.hpp"
 #include "global.h"
 #include "utils/MyString.h"
+#include "gl.h"
+#include "Log.hpp"
 
 #define WINDOW_HIGH_DPI 1
 
@@ -19,7 +21,7 @@ inline SDLContext initSDL() {
     NC_SDLSettings settings = NC_DefaultSDLSettings;
     settings.vsync = true;
     settings.windowTitle = WINDOW_TITLE;
-    settings.windowIconPath = str_add(assetsPath, "bad-factorio-logo.png");
+    settings.windowIconPath = str_add(FilePaths::assets, "bad-factorio-logo.png");
     settings.windowWidth = 1000;
     settings.windowHeight = 800;
     if (WINDOW_HIGH_DPI) {
@@ -39,6 +41,8 @@ inline SDLContext initSDL() {
         Log.Error("Window title setting is null.");
         windowTitle = "NULL";
     }
+
+    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
     int winFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL;
     winFlags |= (SDL_WINDOW_ALLOW_HIGHDPI * settings.allowHighDPI);
@@ -93,10 +97,20 @@ inline SDLContext initSDL() {
     SDLPixelScale = context.scale;
     */
     context.scale = 1.0f;
+    SDLPixelScale = 2.0f;
 
     SDL_Log("SDL Window Context initialized.");
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+    if (settings.vsync)
+        SDL_GL_SetSwapInterval(1);
+    else
+        SDL_GL_SetSwapInterval(0); // swap frames immediately
+
+    //glEnable(GL_MULTISAMPLE);
+
+    //glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
 
     return context;
 }
@@ -104,13 +118,14 @@ inline SDLContext initSDL() {
 inline void quitSDL(SDLContext* ctx) {
     if (!ctx) return;
 
+    if (ctx->gl) {
+        // for some reason this seg faults
+        //SDL_GL_DeleteContext(ctx->gl);
+        ctx->gl = NULL;
+    }
     if (ctx->win) {
         SDL_DestroyWindow(ctx->win);
         ctx->win = NULL;
-    }
-    if (ctx->gl) {
-        SDL_GL_DeleteContext(ctx->gl);
-        ctx->gl = NULL;
     }
 
     Log.Info("SDL quit!");

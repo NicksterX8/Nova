@@ -25,7 +25,8 @@
 #define DEFAULT_TILE_PIXEL_SIZE 32.0f
 #define TILE_PIXEL_VERTICAL_SCALE 1
 
-const float PLAYER_SPEED = 0.3;
+const float PLAYER_SPEED = 0.3f;
+const float PLAYER_ROTATION_SPEED = 0.5f;
 
 #define TARGET_FPS 60
 #define ENABLE_VSYNC 1

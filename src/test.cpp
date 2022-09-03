@@ -2,22 +2,21 @@
 #include "math.h"
 #include "stdlib.h"
 #include <functional>
+#include <math.h>
+#include <algorithm>
  
-using namespace std;
+using std::cout;
 
-class Base {};
+void thing(int size) {
+    int arr[size];
 
-class Sub : public Base {};
-
-int tset(const int* x) {
-    *const_cast<int*>(x) = 2;
+    cout << "sizeof arr " << sizeof(arr) << "\n";
 }
 
 int main() {
-    int i = 2;
-    const int& x = i;
-    int* ptr = &const_cast<int&>(x);
-    tset(&i);
-    std::cout << "i: " << i << "\n";
+
+    thing(4);
+    cout << "result2: " << std::max(1.0, (double)NAN) << "\n";
+
     return 0;
 }

@@ -26,7 +26,7 @@ findPlayerFocusedEntity(const ComponentManager<EC::Position, const EC::Size, con
 
         auto render = entity.Get<const EC::Render>(&ecs);
         int entityLayer = render->layer;
-        Uint32 entityRenderIndex = render->renderIndex;
+        Uint32 entityRenderIndex = 0;
 
         if (pointInsideEntityBounds(target, entity.cast<EC::Position, EC::Size>(), ecs)) {
             if (entityLayer > focusedEntityLayer || (entityLayer == focusedEntityLayer && entityRenderIndex > focusedEntityRenderIndex)) {

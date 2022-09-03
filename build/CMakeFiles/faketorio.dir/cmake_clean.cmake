@@ -35,6 +35,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/faketorio.dir/src/PlayerControls.cpp.o.d"
   "CMakeFiles/faketorio.dir/src/Rendering/Drawing.cpp.o"
   "CMakeFiles/faketorio.dir/src/Rendering/Drawing.cpp.o.d"
+  "CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.o"
+  "CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.o.d"
   "CMakeFiles/faketorio.dir/src/SECS/ECS.cpp.o"
   "CMakeFiles/faketorio.dir/src/SECS/ECS.cpp.o.d"
   "CMakeFiles/faketorio.dir/src/Textures.cpp.o"

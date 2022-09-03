@@ -140,7 +140,7 @@ void logEntityComponentInfo() {
 }
 
 void initLogging() {
-    Log.init("save/log.txt");
+    Log.init(str_add(FilePaths::save, "log.txt"));
     SDL_LogSetOutputFunction(Logger::logOutputFunction, &Log);
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_WARN);
     SDL_LogSetPriority(LOG_CATEGORY_MAIN, SDL_LOG_PRIORITY_INFO);
@@ -154,27 +154,24 @@ void initPaths() {
     if (ret <= 0) {
         fprintf(stderr, "PID %d: proc_pidpath ();\n", pid);
         fprintf(stderr, "    %s\n", strerror(errno));
-        Log.Error("Failed to get pid path!");
+        printf("Error: Failed to get pid path!\n");
     } else {
-        printf("proc %d: %s\n", pid, pathbuf);
-
         int pathlen = strlen(pathbuf);
 
         char pathToTop[512];
         size_t pathToTopSize = pathlen - sizeof("build/faketorio");
         memcpy(pathToTop, pathbuf, pathToTopSize);
         pathToTop[pathToTopSize] = '\0';
-        Log.Info("path to top: %s", pathToTop);
-        strcpy(assetsPath, str_add(pathToTop, "/assets/"));
-        strcpy(shadersPath, str_add(pathToTop, "/src/Rendering/shaders/"));
-        Log.Info("assets path: %s", assetsPath);
+        printf("path to top: %s\n", pathToTop);
+        strcpy(FilePaths::assets, str_add(pathToTop, "/assets/"));
+        strcpy(FilePaths::shaders, str_add(pathToTop, "/src/Rendering/shaders/"));
+        strcpy(FilePaths::save, str_add(pathToTop, "/save/"));
     }
 }
 
 int main(int argc, char** argv) {
-    initLogging();
-
     initPaths();
+    initLogging();
 
     DebugClass debug;
     setDebugSettings(debug);
@@ -198,66 +195,6 @@ int main(int argc, char** argv) {
     //load(sdlCtx.ren, sdlCtx.scale);
     loadTileData();
     loadItemData();
-
-    /*
-
-    RenderContext renderContext(sdlCtx.win, sdlCtx.gl);
-    initRenderContext(&renderContext);
-
-    GameViewport gameViewport;
-
-    GameState* state = new GameState();
-    
-    state->init(NULL, &gameViewport);
-
-    for (int e = 0; e < 20000; e++) {
-        Vec2 pos = {(float)randomInt(-200, 200), (float)randomInt(-200, 200)};
-        auto tree = Entities::Tree(&state->ecs, pos, {1, 1});
-    }
-
-    gameViewport = newGameViewport(screenWidth, screenHeight, state->player.getPosition().x, state->player.getPosition().y);
-    float worldScale = 1.0f;
-    SDL_Point mousePos = SDLGetMousePixelPosition();
-    MouseState lastUpdateMouseState = {
-        mousePos.x,
-        mousePos.y,
-        SDLGetMouseButtons()
-    };
-    Vec2 lastUpdatePlayerTargetPos = gameViewport.pixelToWorldPosition(mousePos.x, mousePos.y);
-    GUI gui;
-    PlayerControls playerControls = PlayerControls(gameViewport); // player related event handler
-    Context context = Context(
-        sdlCtx,
-        state,
-        &gui,
-        playerControls,
-        &gameViewport,
-        worldScale,
-        lastUpdateMouseState,
-        lastUpdatePlayerTargetPos,
-        debug,
-        metadata
-    );
-
-    setDefaultKeyBindings(context, &playerControls);
-
-    if (metadata.vsyncEnabled) {
-        metadata.setTargetFps(60);
-    } else {
-        metadata.setTargetFps(TARGET_FPS);
-    }
-    metadata.start();
-    NC_SetMainLoop(updateWrapper, &context);
-    double secondsElapsed = metadata.end();
-    Log("Time elapsed: %.1f", secondsElapsed);
-
-    // GameSave::save(state);
-
-    unload();
-
-    delete state;
-
-    */
 
     Game* game = new Game(sdlCtx);
     game->init(screenWidth, screenHeight);

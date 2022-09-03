@@ -18,9 +18,9 @@
 #include "EntityComponents/Components.hpp"
 #include "ECS/ECS.hpp"
 
-Vec2 getMouseWorldPosition(const GameViewport& gameViewport) {
+Vec2 getMouseWorldPosition(const Camera& camera) {
     SDL_Point pixelPosition = SDLGetMousePixelPosition();
-    return gameViewport.pixelToWorldPosition(pixelPosition.x, pixelPosition.y);
+    return camera.pixelToWorld(pixelPosition.x, pixelPosition.y);
 }
 
 static void updateTilePixels(float scale) {
@@ -34,29 +34,6 @@ static void updateTilePixels(float scale) {
     TileHeight = TileWidth * TILE_PIXEL_VERTICAL_SCALE;
 }
 
-GameViewport newGameViewport(int renderWidth, int renderHeight, float focusX, float focusY) {
-    SDL_Rect display = {
-        0,
-        0,
-        renderWidth,
-        renderHeight
-    };
-    float worldWidth = ((float)display.w / TileWidth);
-    float worldHeight = ((float)display.h / TileHeight);
-    SDL_FRect world = {
-        focusX - worldWidth/2.0f,
-        focusY - worldHeight/2.0f,
-        worldWidth,
-        worldHeight
-    };
-
-    GameViewport newViewport = GameViewport(
-        display,
-        world
-    );
-    return newViewport;
-}
-
 void placeInserter(ChunkMap& chunkmap, EntityWorld* ecs, Vec2 mouseWorldPos) {
     Tile* tile = getTileAtPosition(chunkmap, mouseWorldPos);
     if (tile && !tile->entity.Exists(ecs)) {
@@ -64,7 +41,7 @@ void placeInserter(ChunkMap& chunkmap, EntityWorld* ecs, Vec2 mouseWorldPos) {
         //Tile* inputTile = getTileAtPosition(chunkmap, inputPos);
         Vec2 outputPos = {mouseWorldPos.x - 1, mouseWorldPos.y};
         //Tile* outputTile = getTileAtPosition(chunkmap, outputPos);
-        Entity inserter = Entities::Inserter(ecs, mouseWorldPos.vfloor() + Vec2(0.5f, 0.5f), 1, inputPos.floorToIVec(), outputPos.floorToIVec());
+        Entity inserter = Entities::Inserter(ecs, Vec2(floor(mouseWorldPos.x), floor(mouseWorldPos.y)) + Vec2(0.5f, 0.5f), 1, vecFloori(inputPos), vecFloor(outputPos));
         placeEntityOnTile(ecs, tile, inserter);
     }
 }
@@ -86,16 +63,16 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
     Player& player = state.player;
     EntityWorld& ecs = state.ecs;
     ChunkMap& chunkmap = state.chunkmap;
-    GameViewport& gameViewport = ctx.gameViewport;
+    Camera& camera = ctx.camera;
     PlayerControls& playerControls = *ctx.playerControls;
     DebugClass& debug = *ctx.debug;
 
     controls->addKeyBinding(new FunctionKeyBinding('y',
-    [&ecs, &gameViewport, &state, &playerControls](){
+    [&ecs, &camera, &state, &playerControls](){
         auto mouse = playerControls.getMouse();
         Entity zombie = Entities::Enemy(
             &ecs,
-            gameViewport.pixelToWorldPosition(mouse.x, mouse.y),
+            camera.pixelToWorld(mouse.x, mouse.y),
             state.player.entity
         );
     }));
@@ -109,10 +86,10 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
         new FunctionKeyBinding('q', [&player](){
             player.releaseHeldItem();
         }),
-        new FunctionKeyBinding('c', [&ecs, &gameViewport](){
+        new FunctionKeyBinding('c', [&ecs, &camera](){
             int width = 2;
             int height = 1;
-            Vec2 position = getMouseWorldPosition(gameViewport).vfloor() + Vec2(width/2.0f, height/2.0f);
+            Vec2 position = vecFloor(getMouseWorldPosition(camera)) + Vec2(width/2.0f, height/2.0f);
             auto chest = Entities::Chest(&ecs, position, 3, width, height);
 
         }),
@@ -124,12 +101,12 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
                 }
             }
         }),
-        new FunctionKeyBinding('i', [&ecs, &gameViewport, &chunkmap](){
-            placeInserter(chunkmap, &ecs, getMouseWorldPosition(gameViewport));
+        new FunctionKeyBinding('i', [&ecs, &camera, &chunkmap](){
+            placeInserter(chunkmap, &ecs, getMouseWorldPosition(camera));
         }),
-        new FunctionKeyBinding('r', [&gameViewport, &playerControls, &ecs, &chunkmap](){
+        new FunctionKeyBinding('r', [&camera, &playerControls, &ecs, &chunkmap](){
             //player.findFocusedEntity(getMouseWorldPosition(gameViewport));
-            auto focusedEntity = findPlayerFocusedEntity(ecs, chunkmap, getMouseWorldPosition(gameViewport));
+            auto focusedEntity = findPlayerFocusedEntity(ecs, chunkmap, getMouseWorldPosition(camera));
             if (focusedEntity.Has<EC::Rotation, EC::Rotatable>(&ecs))
                 rotateEntity(ComponentManager<EC::Rotation, EC::Rotatable, EC::Position>(&ecs), focusedEntity.cast<EC::Rotation, EC::Rotatable>(), playerControls.keyboardState[SDL_SCANCODE_LSHIFT]);
         }),
@@ -380,7 +357,7 @@ int Game::update() {
     // get user input state for this update
     SDL_PumpEvents();
     MouseState mouse = getMouseState();
-    Vec2 playerTargetPos = gameViewport.pixelToWorldPosition(mouse.x, mouse.y);
+    Vec2 playerTargetPos = camera.pixelToWorld(mouse.x, mouse.y);
     // handle events //
     playerControls->updateState();
 
@@ -393,6 +370,9 @@ int Game::update() {
             case SDL_WINDOWEVENT:
                 if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
                     SDL_GL_GetDrawableSize(sdlCtx.win, &renWidth, &renHeight);
+                    glViewport(0, 0, renWidth, renHeight);
+                    camera.pixelWidth = renWidth;
+                    camera.pixelHeight = renHeight;
                 }
                 break;
             case SDL_MOUSEWHEEL:
@@ -434,10 +414,16 @@ int Game::update() {
 
     // update to new state from tick
     Vec2 focus = state->player.getPosition();
-    gameViewport = newGameViewport(renWidth, renHeight, focus.x, focus.y);
-    playerTargetPos = gameViewport.pixelToWorldPosition(mouse.x, mouse.y);
+    //gameViewport = newGameViewport(renWidth, renHeight, focus.x, focus.y);
+    playerTargetPos = camera.pixelToWorld(mouse.x, mouse.y);
 
-    render(*renderContext, sdlCtx.scale, gui, state, &gameViewport, playerTargetPos);    
+    camera.position.x = focus.x;
+    camera.position.y = focus.y;
+    //camera.rotation = state->player.entity.Get<EC::Rotation>(&state->ecs)->degrees;
+    camera.baseScale = TilePixels;
+    camera.zoom = 1.0f;
+
+    render(*renderContext, sdlCtx.scale, gui, state, camera, playerTargetPos);    
 
     lastUpdateMouseState = mouse;
     lastUpdatePlayerTargetPos = playerTargetPos;
@@ -450,18 +436,20 @@ int Game::update() {
 }
 
 void Game::init(int screenWidth, int screenHeight) {
+    this->gui = new GUI();
+
     this->state = new GameState();
-    this->state->init(NULL, &gameViewport);
-    for (int e = 0; e < 20000; e++) {
+    this->state->init();
+    for (int e = 0; e < 2000; e++) {
         Vec2 pos = {(float)randomInt(-200, 200), (float)randomInt(-200, 200)};
         auto tree = Entities::Tree(&state->ecs, pos, {1, 1});
     }
 
-    this->gameViewport = newGameViewport(screenWidth, screenHeight, state->player.getPosition().x, state->player.getPosition().y);
     this->renderContext = new RenderContext(sdlCtx.win, sdlCtx.gl);
+    setTextureMetadata();
     initRenderContext(this->renderContext);
     this->worldScale = 1.0f;
-    this->playerControls = new PlayerControls(gameViewport);
+    this->playerControls = new PlayerControls(this->camera);
     SDL_Point mousePos = SDLGetMousePixelPosition();
     this->lastUpdateMouseState = {
         .x = mousePos.x,
@@ -470,6 +458,13 @@ void Game::init(int screenWidth, int screenHeight) {
     };
 
     setDefaultKeyBindings(*this, playerControls);
+
+    int displayWidth,displayHeight;
+    SDL_GL_GetDrawableSize(sdlCtx.win, &displayWidth, &displayHeight);
+    glViewport(0, 0, displayWidth, displayHeight);
+    this->camera = Camera(TilePixels, glm::vec3(0.0f), displayWidth, displayHeight);
+
+    renderInit(*renderContext);
 }
 
 void Game::destroy() {

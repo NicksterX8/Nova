@@ -32,7 +32,7 @@ void TextureStruct::TileStruct::unload() {
 int TextureStruct::load(SDL_Renderer* renderer) {
     int code = 0;
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-    LOADIMG(player, "pixelart/weird-player-guy.png");
+    LOADIMG(player, "player.png");
     LOADIMG(tree, "tree.png");
     LOADIMG(grenade, "grenade.png")
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
@@ -138,7 +138,7 @@ unsigned int createTextureArray(int width, int height, int depth, SDL_Surface** 
     for (unsigned int i = 0; i < depth; i++) {
         SDL_Surface* surface = images[i];
         if (surface->w > width || surface->h > height) {
-            Log.Error("::createTextureArray : Image passed is too large to fit in texture array! image dimensions: %d,%d; texture array dimensions: %d,%d\n", surface->w, surface->h, width, height);
+            Log.Error("createTextureArray : Image passed is too large to fit in texture array! image dimensions: %d,%d; texture array dimensions: %d,%d\n", surface->w, surface->h, width, height);
             return 0;
         }
         SDL_LockSurface(surface);
@@ -152,6 +152,7 @@ unsigned int createTextureArray(int width, int height, int depth, SDL_Surface** 
         );
         SDL_UnlockSurface(surface);
     }
+   // glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
     return texture;
 }
 
@@ -159,19 +160,23 @@ int setTextureMetadata() {
     using namespace TextureIDs;
     TextureMetaDataStruct* tx = TextureMetaData;
     
-    tx[Player] = {"pixelart/weird-player-guy.png"};
+    tx[Null] = {NULL};
+    tx[Player] = {"player.png"};
     tx[Inserter] = {"inserter.png"};
     tx[Chest] = {"chest.png"};
-    tx[Grenade] = {"grenade.png"};
+    tx[Grenade] = {"chest.png"};
+    tx[Tree] = {"tree.png"};
 
     tx[Tiles::Grass] = {"tiles/GrassTile.png"};
     tx[Tiles::Sand] = {"tiles/sand.png"};
-    tx[Tiles::Water] = {"tiles/water.jpg"};
+    tx[Tiles::Water] = {"tiles/error.png"};
     tx[Tiles::SpaceFloor] = {"tiles/space-floor.png"};
+    tx[Tiles::Wall] = {"tiles/wall.png"};
 
     // check every texture was set
     int code = 0;
-    for (unsigned int i = 0; i < NumTextures; i++) {
+    // start at 1 to skip null texture
+    for (unsigned int i = 1; i < NumTextures; i++) {
         if (tx[i].filename == NULL) {
             Log.Warn("Texture %d was not set!", i);
             code = -1;
@@ -188,11 +193,24 @@ unsigned int makeTextureArray(const char* assetsPath) {
 
     SDL_Surface* images[TextureIDs::NumTextures];
     for (unsigned int i = 0; i < depth; i++) {
+        TextureID textureID = i + TextureIDs::First;
         char path[512];
-        strcat(strcpy(path, assetsPath), TextureMetaData[i].filename);
+        strcpy(path, assetsPath);
+        if (!TextureMetaData[textureID].filename) {
+            Log.Error("Texture metadata %d is NULL!", i);
+            images[i] = NULL;
+            continue;
+        }
+        strcat(path, TextureMetaData[textureID].filename);
         images[i] = IMG_Load(path);
-        TextureData[i].width = images[i]->w;
-        TextureData[i].height = images[i]->h;
+        if (!images[i]) {
+            Log.Error("Failed to load image for texture array (path: %s)", path);
+            TextureData[textureID].width = 0;
+            TextureData[textureID].height = 0;
+            continue;
+        }
+        TextureData[textureID].width = images[i]->w;
+        TextureData[textureID].height = images[i]->h;
         flipSurface(images[i]);
     }
 

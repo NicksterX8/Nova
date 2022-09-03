@@ -26,7 +26,7 @@ struct GameState {
     ~GameState();
 
     void free();
-    void init(SDL_Renderer*, GameViewport*);
+    void init();
 };
 
 /*

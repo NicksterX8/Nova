@@ -16,11 +16,15 @@ struct ChunkData {
     IVec2 position; // chunk position aka floor(tilePosition / CHUNKSIZE), NOT tile position
     std::vector<Entity> closeEntities; // entities that are at least partially inside the chunk
     Chunk* chunk; // pointer to chunk tiles
+    unsigned int vbo;
 
     ChunkData(Chunk* chunk, IVec2 position);
 
-    int tilePositionX() const; // Get the X position of this chunk relative to tiles' positions
-    int tilePositionY() const; // Get the Y position of this chunk relative to tiles' positions
+    int tileX() const {return position.x * CHUNKSIZE;} // Get the X position of this chunk relative to tiles' positions
+    int tileY() const {return position.y * CHUNKSIZE;} // Get the Y position of this chunk relative to tiles' positions
+    Vec2 tilePosition() const {
+        return position * CHUNKSIZE;
+    }
 
     inline bool removeCloseEntity(Entity entity) {
         for (unsigned int e = 0; e < closeEntities.size(); e++) {
@@ -67,7 +71,14 @@ public:
 
 #define CHUNKPOOL_SIZE 100
 
-typedef std::unordered_map<IVec2, ChunkData*, IVec2::Hash> ChunkUnorderedMap;
+struct IVec2Hash {
+    size_t operator()(const IVec2& point) const {
+        size_t hash = std::hash<int>()(((point.x - 32768) << 16) + (point.y - 32768));
+        return hash;
+    }
+};
+
+typedef std::unordered_map<IVec2, ChunkData*, IVec2Hash> ChunkUnorderedMap;
 class ChunkMap {
     ChunkUnorderedMap map;
     std::vector<ChunkPool> chunkPools;
@@ -116,7 +127,7 @@ private:
 };
 
 inline IVec2 toChunkPosition(Vec2 position) {
-    return position.divided(CHUNKSIZE).floorToIVec();
+    return vecFloori(position / (float)CHUNKSIZE);
 }
 
 Tile* getTileAtPosition(const ChunkMap& chunkmap, Vec2 position);

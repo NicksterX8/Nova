@@ -1,1 +1,2 @@
-make compile
+cd build
+make

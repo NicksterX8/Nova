@@ -9,10 +9,9 @@ Size::Size(float width, float height)
 : width(width), height(height) {}
 Size::Size(Vec2 vec) : width(vec.x), height(vec.y) {}
 
-Render::Render(SDL_Texture* texture, int layer)
-: texture(texture), layer(layer) {
-    rotation = 0;
-    renderIndex = 0;
+Render::Render(TextureID texture, int layer) {
+    this->layer = layer;
+    this->texture = texture;
 }
 
 Explosion::Explosion(float radius, float damage, float life, int particleCount):

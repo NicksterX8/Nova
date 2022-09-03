@@ -109,7 +109,7 @@ struct Player {
             // instead of the top left corner
             *ecs->Get<EC::Motion>(sand) = 
                 EC::Motion({aimingPosition.x - 0.5f, aimingPosition.y - 0.5f}, 2);
-            *ecs->Get<EC::Render>(sand) = EC::Render(Textures.Tiles.sand, RenderLayer::Particles);
+            *ecs->Get<EC::Render>(sand) = EC::Render(TextureIDs::Tiles::Sand, RenderLayer::Particles);
             MARK_END_ENTITY_CREATION(ecs);
             return true;
         }

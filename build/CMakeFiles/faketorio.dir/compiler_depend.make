@@ -507,6 +507,27 @@ CMakeFiles/faketorio.dir/src/Chunks.cpp.o: ../src/Chunks.cpp \
   ../src/Chunks.hpp \
   ../src/NC/cpp-vectors.hpp \
   ../src/NC/vectors.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/ECS/Entity.hpp
 
 CMakeFiles/faketorio.dir/src/Debug.cpp.o: ../src/Debug.cpp \
@@ -1134,6 +1155,27 @@ CMakeFiles/faketorio.dir/src/ECS/ECS.cpp.o: ../src/ECS/ECS.cpp \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_rect.h \
   ../src/NC/cpp-vectors.hpp \
   ../src/NC/vectors.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/Textures.hpp \
   /opt/homebrew/Cellar/sdl2_image/2.6.0/include/SDL2/SDL_image.h \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL.h \
@@ -1596,6 +1638,27 @@ CMakeFiles/faketorio.dir/src/ECS/EntityManager.cpp.o: ../src/ECS/EntityManager.c
   /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_rwops.h \
   ../src/NC/cpp-vectors.hpp \
   ../src/NC/vectors.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/Log.hpp \
   ../src/ECS/Entity.hpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/array \
@@ -2131,6 +2194,27 @@ CMakeFiles/faketorio.dir/src/ECS/EntitySystem.cpp.o: ../src/ECS/EntitySystem.cpp
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__split_buffer \
   ../src/NC/cpp-vectors.hpp \
   ../src/NC/vectors.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/Textures.hpp \
   /opt/homebrew/Cellar/sdl2_image/2.6.0/include/SDL2/SDL_image.h \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL.h \
@@ -2558,6 +2642,27 @@ CMakeFiles/faketorio.dir/src/ECS/EntitySystemInterface.cpp.o: ../src/ECS/EntityS
   /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_rwops.h \
   ../src/NC/cpp-vectors.hpp \
   ../src/NC/vectors.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/Log.hpp \
   ../src/ECS/Entity.hpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/array \
@@ -3056,6 +3161,27 @@ CMakeFiles/faketorio.dir/src/Entities/Entities.cpp.o: ../src/Entities/Entities.c
   /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_rect.h \
   ../src/NC/cpp-vectors.hpp \
   ../src/NC/vectors.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/Textures.hpp \
   /opt/homebrew/Cellar/sdl2_image/2.6.0/include/SDL2/SDL_image.h \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL.h \
@@ -3476,6 +3602,27 @@ CMakeFiles/faketorio.dir/src/Entities/Methods.cpp.o: ../src/Entities/Methods.cpp
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/pointer_to_unary_function.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/ranges_operations.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/unary_negate.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/Items.hpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/unordered_map \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/is_transparent.h \
@@ -4000,6 +4147,27 @@ CMakeFiles/faketorio.dir/src/EntityComponents/Components.cpp.o: ../src/EntityCom
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/pointer_to_unary_function.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/ranges_operations.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/unary_negate.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/Items.hpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/unordered_map \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/is_transparent.h \
@@ -4640,6 +4808,27 @@ CMakeFiles/faketorio.dir/src/GUI.cpp.o: ../src/GUI.cpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctrans_t.h \
   ../src/NC/cpp-vectors.hpp \
   ../src/NC/vectors.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/NC/utils.h \
   ../src/Tiles.hpp \
   ../src/NC/colors.h \
@@ -4712,9 +4901,244 @@ CMakeFiles/faketorio.dir/src/GUI.cpp.o: ../src/GUI.cpp \
   ../src/ECS/ECS.hpp \
   ../src/GameViewport.hpp \
   ../src/GameViewport.hpp \
+  ../src/sdl.hpp \
   ../src/NC/SDLContext.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdbool.h \
-  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stdbool.h
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stdbool.h \
+  ../src/global.h \
+  ../src/utils/MyString.h \
+  ../src/gl.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gl3.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gltypes.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/OpenGLAvailability.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/os/availability.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_opengl.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_opengl_glext.h \
+  ../src/Log.hpp \
+  ../src/Camera.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_matrix.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_geometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_exponential.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_vector_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_vectorize.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_fixes.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_common.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_trigonometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  ../src/Rendering/utils.hpp \
+  ../src/Rendering/Shader.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/fstream \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/filesystem \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stack \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/deque \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iomanip \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iostream \
+  ../src/gl.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_float.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.inl \
+  ../src/Log.hpp
 
 CMakeFiles/faketorio.dir/src/GameSave/main.cpp.o: ../src/GameSave/main.cpp \
   ../src/GameSave/main.hpp \
@@ -5182,6 +5606,27 @@ CMakeFiles/faketorio.dir/src/GameSave/main.cpp.o: ../src/GameSave/main.cpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctrans_t.h \
   ../src/NC/cpp-vectors.hpp \
   ../src/NC/vectors.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/NC/utils.h \
   ../src/Tiles.hpp \
   ../src/NC/colors.h \
@@ -5725,6 +6170,27 @@ CMakeFiles/faketorio.dir/src/GameState.cpp.o: ../src/GameState.cpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctrans_t.h \
   ../src/NC/cpp-vectors.hpp \
   ../src/NC/vectors.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/NC/utils.h \
   ../src/Tiles.hpp \
   ../src/NC/colors.h \
@@ -5812,6 +6278,244 @@ CMakeFiles/faketorio.dir/src/GameState.cpp.o: ../src/GameState.cpp \
   ../src/Rendering/Drawing.hpp \
   ../src/GameState.hpp \
   ../src/GameViewport.hpp \
+  ../src/sdl.hpp \
+  ../src/NC/SDLContext.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdbool.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stdbool.h \
+  ../src/global.h \
+  ../src/utils/MyString.h \
+  ../src/gl.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gl3.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gltypes.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/OpenGLAvailability.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/os/availability.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_opengl.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_opengl_glext.h \
+  ../src/Log.hpp \
+  ../src/Camera.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_matrix.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_geometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_exponential.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_vector_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_vectorize.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_fixes.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_common.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_trigonometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  ../src/Rendering/utils.hpp \
+  ../src/Rendering/Shader.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/fstream \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/filesystem \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stack \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/deque \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iomanip \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iostream \
+  ../src/gl.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_float.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.inl \
+  ../src/Log.hpp \
   ../src/Debug.hpp \
   ../src/constants.hpp \
   ../src/EntitySystems/Systems.hpp \
@@ -6079,6 +6783,27 @@ CMakeFiles/faketorio.dir/src/GameViewport.cpp.o: ../src/GameViewport.cpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/pointer_to_unary_function.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/ranges_operations.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/unary_negate.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/constants.hpp \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_log.h \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_stdinc.h \
@@ -7415,6 +8140,27 @@ CMakeFiles/faketorio.dir/src/PlayerControls.cpp.o: ../src/PlayerControls.cpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctrans_t.h \
   ../src/NC/cpp-vectors.hpp \
   ../src/NC/vectors.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/NC/utils.h \
   ../src/Tiles.hpp \
   ../src/NC/colors.h \
@@ -7497,6 +8243,240 @@ CMakeFiles/faketorio.dir/src/PlayerControls.cpp.o: ../src/PlayerControls.cpp \
   ../src/Rendering/Drawing.hpp \
   ../src/GameState.hpp \
   ../src/GameViewport.hpp \
+  ../src/sdl.hpp \
+  ../src/global.h \
+  ../src/utils/MyString.h \
+  ../src/gl.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gl3.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gltypes.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/OpenGLAvailability.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/os/availability.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_opengl.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_opengl_glext.h \
+  ../src/Log.hpp \
+  ../src/Camera.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_matrix.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_geometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_exponential.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_vector_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_vectorize.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_fixes.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_common.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_trigonometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  ../src/Rendering/utils.hpp \
+  ../src/Rendering/Shader.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/fstream \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/filesystem \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stack \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/deque \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iomanip \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iostream \
+  ../src/gl.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_float.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.inl \
   ../src/Log.hpp
 
 CMakeFiles/faketorio.dir/src/Rendering/Drawing.cpp.o: ../src/Rendering/Drawing.cpp \
@@ -7965,6 +8945,27 @@ CMakeFiles/faketorio.dir/src/Rendering/Drawing.cpp.o: ../src/Rendering/Drawing.c
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctrans_t.h \
   ../src/NC/cpp-vectors.hpp \
   ../src/NC/vectors.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/NC/utils.h \
   ../src/Tiles.hpp \
   ../src/NC/colors.h \
@@ -8036,7 +9037,987 @@ CMakeFiles/faketorio.dir/src/Rendering/Drawing.cpp.o: ../src/Rendering/Drawing.c
   ../src/Entities/Methods.hpp \
   ../src/Chunks.hpp \
   ../src/ECS/ECS.hpp \
-  ../src/GameViewport.hpp
+  ../src/GameViewport.hpp \
+  ../src/sdl.hpp \
+  ../src/NC/SDLContext.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdbool.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stdbool.h \
+  ../src/global.h \
+  ../src/utils/MyString.h \
+  ../src/gl.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gl3.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gltypes.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/OpenGLAvailability.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/os/availability.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_opengl.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_opengl_glext.h \
+  ../src/Log.hpp \
+  ../src/Camera.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_matrix.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_geometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_exponential.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_vector_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_vectorize.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_fixes.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_common.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_trigonometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  ../src/Rendering/utils.hpp \
+  ../src/Rendering/Shader.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/fstream \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/filesystem \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stack \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/deque \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iomanip \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iostream \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_float.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.inl
+
+CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.o: ../src/Rendering/utils.cpp \
+  ../src/Rendering/utils.hpp \
+  ../src/sdl.hpp \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_main.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_stdinc.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_config.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_platform.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/AvailabilityMacros.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/Availability.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/AvailabilityVersions.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/AvailabilityInternal.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/TargetConditionals.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/begin_code.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/close_code.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/appleapiopts.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/cdefs.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_symbol_aliasing.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_posix_availability.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/_types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int8_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int16_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int32_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int64_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_int8_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_int16_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_int32_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_int64_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_intptr_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_uintptr_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/_types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/endian.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/endian.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_endian.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/libkern/_OSByteOrder.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/libkern/arm/OSByteOrder.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdint.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__config \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__config_site \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/pthread.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stdint.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/stdint.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uint8_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uint16_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uint32_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uint64_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_intmax_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uintmax_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/arch.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_char.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_short.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_int.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_caddr_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_dev_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_blkcnt_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_blksize_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_gid_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_in_addr_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_in_port_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_ino_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_ino64_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_key_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_mode_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_nlink_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_id_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_pid_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_off_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_uid_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_clock_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_size_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_ssize_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_time_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_useconds_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_suseconds_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_rsize_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_errno_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fd_def.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fd_setsize.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fd_set.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fd_clr.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fd_zero.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fd_isset.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fd_copy.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_attr_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_cond_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_condattr_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_mutex_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_mutexattr_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_once_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_rwlock_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_rwlockattr_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_key_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fsblkcnt_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fsfilcnt_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdio.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/stdio.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_stdio.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_va_list.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_null.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/stdio.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_ctermid.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdlib.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/stdlib.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/wait.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/signal.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/signal.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/signal.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/_mcontext.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/_mcontext.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine/_structs.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/arm/_structs.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_sigaltstack.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_ucontext.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_sigset_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/resource.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_timeval.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/alloca.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_ct_rune_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_rune_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_wchar_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/malloc/_malloc.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stddef.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stddef.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/__stddef_max_align_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__nullptr \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stdarg.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/string.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/string.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/strings.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/wchar.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/wchar.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_mbstate_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/time.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_timespec.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_wctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/__wctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_wint_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctype_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/ctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/ctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_ctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/runetype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/inttypes.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/inttypes.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/inttypes.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/math.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/math.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/type_traits \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstddef \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/version \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/forward.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/move.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__undef_macros \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/limits \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/float.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/float.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/float.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_assert.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_atomic.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_audio.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_error.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_endian.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_mutex.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_thread.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_rwops.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_clipboard.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_cpuinfo.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/arm_neon.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_events.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_video.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_pixels.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_rect.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_surface.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_blendmode.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_keyboard.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_keycode.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_scancode.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_mouse.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_joystick.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_gamecontroller.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_sensor.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_quit.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_gesture.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_touch.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_filesystem.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_haptic.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_hidapi.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_hints.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_loadso.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_log.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_messagebox.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_metal.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_power.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_render.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_shape.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_system.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_timer.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_version.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_locale.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_misc.h \
+  ../src/NC/SDLContext.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdbool.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stdbool.h \
+  /opt/homebrew/Cellar/sdl2_image/2.6.0/include/SDL2/SDL_image.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL.h \
+  ../src/constants.hpp \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_log.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_rect.h \
+  ../src/global.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cassert \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/assert.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdint \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
+  ../src/NC/cpp-vectors.hpp \
+  ../src/NC/vectors.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/functional \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/search.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/comp.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/iterator_traits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/incrementable_traits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/concepts \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/invoke.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/weak_result_type.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/binary_function.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/unary_function.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional_base \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/operations.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/reference_wrapper.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/addressof.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/allocator_arg_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/uses_allocator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/exception \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__availability \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdlib \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/new \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/typeinfo \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/utility \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__debug \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iosfwd \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__mbstate_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__tuple \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/as_const.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/cmp.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/declval.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/exchange.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/in_place.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/integer_sequence.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/pair.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/unwrap_ref.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/piecewise_construct.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/rel_ops.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/swap.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/to_underlying.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/compare \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/initializer_list \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/readable_traits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/binary_negate.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/bind_front.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/perfect_forward.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/tuple \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/bind.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/binder1st.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/binder2nd.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/default_searcher.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/function.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/allocator_traits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/construct_at.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/pointer_traits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/compressed_pair.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/shared_ptr.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/allocation_guard.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/allocator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdexcept \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/unique_ptr.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/hash.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstring \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/auto_ptr.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/atomic \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__thread/poll_with_backoff.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/chrono \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/ctime \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/ratio \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/climits \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/limits.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/limits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/limits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/limits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/limits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/_limits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/syslimits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__threading_support \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/errno.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/errno.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/errno.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/pthread/sched.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/pthread/pthread_impl.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/pthread/qos.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/qos.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_mach_port_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sched.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/memory \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/pointer_safety.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/raw_storage_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iterator \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/access.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/advance.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__function_like.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/concepts.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/iter_move.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/back_insert_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/common_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/iter_swap.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__ranges/access.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__ranges/enable_borrowed_range.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/__decay_copy.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/variant \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__variant/monostate.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/counted_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/default_sentinel.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/data.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/distance.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/empty.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/erase_if_container.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/front_insert_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/insert_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/istreambuf_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/istream_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/move_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/next.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/ostreambuf_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/ostream_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/prev.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/projected.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/reverse_access.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/reverse_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/size.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/wrap_iter.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/temporary_buffer.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/uninitialized_algorithms.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/identity.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/mem_fn.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/mem_fun_ref.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/not_fn.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/pointer_to_binary_function.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/pointer_to_unary_function.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/ranges_operations.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/unary_negate.h \
+  ../src/utils/MyString.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/string \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/algorithm \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__bits \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/adjacent_find.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/all_of.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/any_of.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/binary_search.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/lower_bound.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/half_positive.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/comp_ref_type.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/clamp.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/copy.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/unwrap_iter.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/copy_backward.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/copy_if.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/copy_n.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/count.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/count_if.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/equal.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/equal_range.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/upper_bound.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/fill_n.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/fill.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/find.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/find_end.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/find_first_of.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/find_if.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/find_if_not.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/for_each.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/for_each_n.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/generate_n.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/generate.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/includes.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/inplace_merge.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/min.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/min_element.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/move.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/rotate.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/move_backward.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/swap_ranges.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/is_heap.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/is_heap_until.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/is_partitioned.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/is_permutation.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/is_sorted.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/is_sorted_until.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/iter_swap.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/lexicographical_compare.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/make_heap.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/sift_down.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/max.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/max_element.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/merge.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/minmax.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/minmax_element.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/mismatch.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/next_permutation.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/reverse.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/none_of.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/nth_element.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/sort.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/partial_sort.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/sort_heap.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/pop_heap.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/partial_sort_copy.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/partition.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/partition_copy.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/partition_point.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/prev_permutation.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/push_heap.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/remove.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/remove_copy.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/remove_copy_if.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/remove_if.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/replace.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/replace_copy.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/replace_copy_if.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/replace_if.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/reverse_copy.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/rotate_copy.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/sample.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__random/uniform_int_distribution.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/search_n.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/set_difference.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/set_intersection.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/set_symmetric_difference.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/set_union.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/shift_left.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/shift_right.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/shuffle.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/stable_partition.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/stable_sort.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/transform.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/unique_copy.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/unique.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdio \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/string_view \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__ranges/enable_view.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__string \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cwchar \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cwctype \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cctype \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/wctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/wctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctrans_t.h \
+  ../src/gl.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gl3.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gltypes.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/OpenGLAvailability.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/os/availability.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_opengl.h \
+  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_opengl_glext.h \
+  ../src/Log.hpp \
+  ../src/Rendering/Shader.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/fstream \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__locale \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/mutex \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__mutex_base \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/system_error \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__errc \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cerrno \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/locale.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/locale.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_locale.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_xlocale.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/_ctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/__wctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/_inttypes.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/_stdio.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/_stdlib.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/_string.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/_time.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/_wchar.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/_wctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/istream \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/ostream \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/bitset \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__bit_reference \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/ios \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/locale \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/streambuf \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/nl_types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_nl_item.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__bsd_locale_defaults.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/filesystem \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stack \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/deque \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__split_buffer \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iomanip \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/sstream \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iostream \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_matrix.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_geometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cmath \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_exponential.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_vector_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_vectorize.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_fixes.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_common.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_trigonometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_float.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.inl \
+  ../src/Camera.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp
 
 CMakeFiles/faketorio.dir/src/SECS/ECS.cpp.o: ../src/SECS/ECS.cpp \
   ../src/SECS/ECS.hpp \
@@ -8495,6 +10476,27 @@ CMakeFiles/faketorio.dir/src/SECS/ECS.cpp.o: ../src/SECS/ECS.cpp \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_rect.h \
   ../src/NC/cpp-vectors.hpp \
   ../src/NC/vectors.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/Textures.hpp \
   /opt/homebrew/Cellar/sdl2_image/2.6.0/include/SDL2/SDL_image.h \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL.h \
@@ -9509,7 +11511,285 @@ CMakeFiles/faketorio.dir/src/Tiles.cpp.o: ../src/Tiles.cpp \
   ../src/ECS/Entity.hpp
 
 CMakeFiles/faketorio.dir/src/global.cpp.o: ../src/global.cpp \
-  ../src/global.h
+  ../src/global.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cassert \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__config \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__config_site \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/pthread.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/assert.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/cdefs.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_symbol_aliasing.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_posix_availability.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdlib.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/stdlib.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/Availability.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/AvailabilityVersions.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/AvailabilityInternal.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/_types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/_types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/wait.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_pid_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_id_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/signal.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/appleapiopts.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/signal.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/signal.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/_mcontext.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/_mcontext.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine/_structs.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/arm/_structs.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/types.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int8_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int16_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int32_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int64_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_int8_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_int16_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_int32_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_int64_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_intptr_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_uintptr_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_attr_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_sigaltstack.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_ucontext.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_sigset_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_size_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_uid_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/resource.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdint.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stdint.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/stdint.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uint8_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uint16_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uint32_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uint64_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_intmax_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uintmax_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_timeval.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/endian.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/endian.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_endian.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/libkern/_OSByteOrder.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/libkern/arm/OSByteOrder.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/arch.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/alloca.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_ct_rune_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_rune_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_wchar_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_null.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/malloc/_malloc.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_dev_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_mode_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstddef \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/version \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stddef.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/__stddef_max_align_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__nullptr \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdint \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/type_traits \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/forward.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/move.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__undef_macros \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/limits \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
+  ../src/NC/cpp-vectors.hpp \
+  ../src/NC/vectors.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/math.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/math.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/functional \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/search.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/comp.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/iterator_traits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/incrementable_traits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/concepts \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/invoke.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/weak_result_type.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/binary_function.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/unary_function.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional_base \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/operations.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/reference_wrapper.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/addressof.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/allocator_arg_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/uses_allocator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/exception \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__availability \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdlib \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/new \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/typeinfo \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/utility \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__debug \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iosfwd \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__mbstate_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/wchar.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stddef.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/wchar.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_mbstate_t.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/stdarg.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdio.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/stdio.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_stdio.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_va_list.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/stdio.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_ctermid.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_off_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_ssize_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/time.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_clock_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_time_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_timespec.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_wctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/__wctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_wint_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctype_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/ctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/ctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_ctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/runetype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__tuple \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/as_const.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/cmp.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/declval.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/exchange.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/in_place.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/integer_sequence.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/pair.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/unwrap_ref.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/piecewise_construct.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/rel_ops.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/swap.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/to_underlying.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/compare \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/initializer_list \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/readable_traits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/binary_negate.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/bind_front.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/perfect_forward.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/tuple \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/bind.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/binder1st.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/binder2nd.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/default_searcher.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/function.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/allocator_traits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/construct_at.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/pointer_traits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/compressed_pair.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/shared_ptr.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/allocation_guard.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/allocator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdexcept \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/unique_ptr.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/hash.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstring \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/string.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/string.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/strings.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/auto_ptr.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/atomic \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__thread/poll_with_backoff.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/chrono \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/ctime \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/ratio \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/climits \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/limits.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/limits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/limits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/limits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/limits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/_limits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/syslimits.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__threading_support \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/errno.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/errno.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/errno.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/pthread/sched.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/pthread/pthread_impl.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_cond_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_condattr_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_key_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_mutex_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_mutexattr_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_once_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_rwlock_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_rwlockattr_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/pthread/qos.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/qos.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_mach_port_t.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sched.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/memory \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/pointer_safety.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/raw_storage_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iterator \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/access.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/advance.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__function_like.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/concepts.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/iter_move.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/back_insert_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/common_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/iter_swap.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__ranges/access.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__ranges/enable_borrowed_range.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/__decay_copy.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/variant \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__variant/monostate.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/counted_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/default_sentinel.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/data.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/distance.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/empty.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/erase_if_container.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/front_insert_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/insert_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/istreambuf_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/istream_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/move_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/next.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/ostreambuf_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/ostream_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/prev.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/projected.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/reverse_access.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/reverse_iterator.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/size.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/wrap_iter.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/temporary_buffer.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/uninitialized_algorithms.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/identity.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/mem_fn.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/mem_fun_ref.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/not_fn.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/pointer_to_binary_function.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/pointer_to_unary_function.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/ranges_operations.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/unary_negate.h
 
 CMakeFiles/faketorio.dir/src/main.cpp.o: ../src/main.cpp \
   ../src/constants.hpp \
@@ -10026,6 +12306,27 @@ CMakeFiles/faketorio.dir/src/main.cpp.o: ../src/main.cpp \
   ../src/NC/utils.h \
   ../src/NC/cpp-vectors.hpp \
   ../src/NC/vectors.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/Textures.hpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/string \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdio \
@@ -10127,6 +12428,233 @@ CMakeFiles/faketorio.dir/src/main.cpp.o: ../src/main.cpp \
   ../src/Rendering/Drawing.hpp \
   ../src/GameState.hpp \
   ../src/GameViewport.hpp \
+  ../src/sdl.hpp \
+  ../src/global.h \
+  ../src/utils/MyString.h \
+  ../src/Camera.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_matrix.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_geometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_exponential.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_vector_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_vectorize.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_fixes.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_common.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_trigonometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  ../src/Rendering/utils.hpp \
+  ../src/Rendering/Shader.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/fstream \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/filesystem \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stack \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/deque \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iomanip \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iostream \
+  ../src/gl.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_float.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/exponential.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/vec1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.inl \
+  ../src/Log.hpp \
   ../src/loadData.hpp \
   ../src/EntityComponents/Components.hpp \
   ../src/EntitySystems/Rendering.hpp \
@@ -10145,8 +12673,7 @@ CMakeFiles/faketorio.dir/src/main.cpp.o: ../src/main.cpp \
   ../src/Entities/Methods.hpp \
   ../src/update.hpp \
   ../src/sdl.hpp \
-  ../src/global.h \
-  ../src/utils/MyString.h \
+  ../src/Camera.hpp \
   ../src/GameSave/main.hpp \
   ../src/GameState.hpp
 
@@ -10621,6 +13148,27 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/array \
   ../src/NC/cpp-vectors.hpp \
   ../src/NC/vectors.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
   ../src/NC/utils.h \
   ../src/Tiles.hpp \
   ../src/NC/colors.h \
@@ -10704,12 +13252,9 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
   ../src/Rendering/Drawing.hpp \
   ../src/GameState.hpp \
   ../src/GameViewport.hpp \
-  ../src/Log.hpp \
   ../src/sdl.hpp \
   ../src/global.h \
   ../src/utils/MyString.h \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/thread \
-  ../src/Rendering/rendering.hpp \
   ../src/gl.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gl3.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gltypes.h \
@@ -10717,65 +13262,13 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/os/availability.h \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_opengl.h \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_opengl_glext.h \
-  ../src/Tiles.hpp \
-  ../src/Metadata.hpp \
-  ../src/Textures.hpp \
-  ../src/Debug.hpp \
-  ../src/GUI.hpp \
-  ../src/NC/colors.h \
-  ../src/SDL2_gfx/SDL2_gfxPrimitives.h \
   ../src/Log.hpp \
-  ../src/EntitySystems/Rendering.hpp \
-  ../src/ECS/EntitySystem.hpp \
-  ../src/ECS/Query.hpp \
-  ../src/ECS/ECS.hpp \
-  ../src/GameViewport.hpp \
-  ../src/Log.hpp \
-  ../src/Rendering/Drawing.hpp \
-  ../src/Debug.hpp \
-  ../src/constants.hpp \
-  ../src/Rendering/Shader.hpp \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/fstream \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/filesystem \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stack \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/deque \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iomanip \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iostream \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/simd/platform.h \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.inl \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.inl \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float2_precision.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2_sized.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
+  ../src/Camera.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec3.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3_precision.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3_precision.hpp \
@@ -10787,6 +13280,15 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3_sized.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4_precision.hpp \
@@ -10877,12 +13379,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x4_precision.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4_precision.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.inl \
-  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.inl \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
@@ -10890,6 +13386,9 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.inl \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.inl \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_trigonometric.inl \
@@ -10904,6 +13403,19 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp \
+  ../src/Rendering/utils.hpp \
+  ../src/Rendering/Shader.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/fstream \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/filesystem \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stack \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/deque \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iomanip \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iostream \
+  ../src/gl.h \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.hpp \
+  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.inl \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp \
@@ -10974,6 +13486,27 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.inl \
+  ../src/Log.hpp \
+  ../src/sdl.hpp \
+  ../src/Camera.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/thread \
+  ../src/Rendering/rendering.hpp \
+  ../src/Tiles.hpp \
+  ../src/Metadata.hpp \
+  ../src/Textures.hpp \
+  ../src/Debug.hpp \
+  ../src/GUI.hpp \
+  ../src/NC/colors.h \
+  ../src/SDL2_gfx/SDL2_gfxPrimitives.h \
+  ../src/EntitySystems/Rendering.hpp \
+  ../src/ECS/EntitySystem.hpp \
+  ../src/ECS/Query.hpp \
+  ../src/ECS/ECS.hpp \
+  ../src/GameViewport.hpp \
+  ../src/Log.hpp \
+  ../src/Rendering/Drawing.hpp \
+  ../src/Debug.hpp \
+  ../src/constants.hpp \
   ../src/GameSave/main.hpp \
   ../src/GameState.hpp \
   ../src/EntitySystems/Rendering.hpp \
@@ -10983,277 +13516,37 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
   ../src/EntityComponents/Components.hpp
 
 
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1_sized.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1_sized.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1_precision.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1_precision.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/vec1.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.inl:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.inl:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.inl:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double_precision.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float_precision.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.inl:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.inl:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float.hpp:
-
-../src/NC/geometry.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.inl:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/cmp.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/types.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_float.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/find_first_of.h:
-
-../src/GameSave/main.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/projected.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.inl:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.inl:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.inl:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.inl:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/reverse.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_common.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/thread:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_common.inl:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_fixes.hpp:
-
-/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_opengl_glext.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/libkern/_OSByteOrder.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3_precision.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3_precision.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/erase_if_container.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_trigonometric.inl:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2_precision.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4_precision.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/swap_ranges.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_vectorize.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/for_each.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4_precision.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2_precision.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/os/availability.h:
-
-../src/GameViewport.cpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/replace.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4_precision.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.inl:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_xlocale.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.inl:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2_precision.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4_sized.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int32_t.h:
-
-../src/SECS/Entity.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/mismatch.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/min_element.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4_precision.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4_precision.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3_precision.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/stdio.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3_precision.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/identity.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctrans_t.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.inl:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/initializer_list:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iomanip:
-
-../src/Rendering/Shader.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2_precision.hpp:
-
-../src/sdl.hpp:
+../src/Rendering/rendering.hpp:
 
 ../src/update.hpp:
 
 ../src/loadData.hpp:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/bitset:
-
-../src/NC/SDLBuild.h:
-
-/opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_rect.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/select.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/inplace_merge.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2.hpp:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_seek_set.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_posix_vdisable.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/unistd.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdint:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/netinet6/in6.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine.h:
-
-../src/ECS/Component.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/netinet/tcp.h:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/netinet/in.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_timeval32.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/net/if.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/param.h:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/event.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_socklen_t.h:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/kern_control.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/un.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_sa_family_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/net/net_kev.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/socket.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine/kern_return.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__hash_table:
 
@@ -11301,17 +13594,9 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/param.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/ranges_operations.h:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_socklen_t.h:
 
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/libproc.h:
-
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/__stddef_max_align_t.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp:
-
-../src/main.cpp:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/param.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/compressed_pair.h:
 
@@ -11319,25 +13604,7 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 ../src/Tiles.cpp:
 
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gltypes.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/search.h:
-
-../src/gl.h:
-
-../src/Rendering/rendering.hpp:
-
 ../src/Textures.cpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp:
-
-/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_events.h:
-
-../src/SECS/ECS.cpp:
 
 ../src/Rendering/Drawing.cpp:
 
@@ -11351,15 +13618,15 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 ../src/Metadata.cpp:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x2_precision.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/os/availability.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x2.hpp:
+
+../src/GameViewport.cpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/numeric:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_geometric.inl:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/__decay_copy.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/random:
 
 ../src/EntitySystems/Rendering.hpp:
 
@@ -11373,17 +13640,255 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__tree:
 
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.inl:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_ssize_t.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1.hpp:
+
+../src/Camera.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/max_element.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.inl:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine/boolean.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float_precision.hpp:
+
+../src/PlayerControls.cpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/incrementable_traits.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.hpp:
+
+../src/NC/geometry.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.inl:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/cmp.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/types.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_geometric.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_float.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/find_first_of.h:
+
+../src/GameSave/main.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/projected.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/quaternion.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iomanip:
+
+../src/Rendering/Shader.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/matrix_transform.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/trigonometric.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/constants.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1_sized.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_constants.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine/kern_return.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_projection.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/reverse.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_common.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/thread:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_common.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_fixes.hpp:
+
+/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_opengl_glext.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/libkern/_OSByteOrder.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec1.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x3_precision.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdint.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x3.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/erase_if_container.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_trigonometric.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double4x2_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_clip_space.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x4.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/swap_ranges.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/_vectorize.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/for_each.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x4_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x3.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x3.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x2.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/inplace_merge.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double3x2.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/replace.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x4_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x4.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/__decay_copy.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/random:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_geometric.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x4.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_xlocale.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x3.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x3.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float2x2.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4_sized.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_int32_t.h:
+
+../src/SECS/Entity.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint4.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/mismatch.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/min_element.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float4_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool4_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec4.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/matrix.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x4.inl:
 
 ../src/GameSave/GameSave.hpp:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/OpenGLAvailability.h:
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec4.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/initializer_list:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x4.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3_precision.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/stdio.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float3.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3_precision.hpp:
+
+../src/main.cpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_time_t.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cassert:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/__stddef_max_align_t.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool3.hpp:
 
 ../src/GameSave/main.cpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/OpenGLAvailability.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/geometric.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/gltypes.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/search.h:
+
+../src/gl.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdbool.h:
 
 ../src/NC/SDLContext.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_double2x2_precision.hpp:
+
+../src/sdl.hpp:
 
 ../src/GameViewport.hpp:
 
@@ -11421,17 +13926,13 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 ../src/Entities/Entities.hpp:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/attr.h:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types.h:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_transform.inl:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/attr.h:
-
 ../src/ECS/EntitySystemInterface.cpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp:
-
-../src/ECS/EntitySystem.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_suseconds_t.h:
 
@@ -11453,6 +13954,50 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 ../src/Debug.cpp:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_int_sized.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/libproc.h:
+
+../src/ECS/ECS.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/perfect_forward.h:
+
+../src/Rendering/utils.cpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/ranges_operations.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int2.hpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/identity.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctrans_t.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2_precision.hpp:
+
+/opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_events.h:
+
+../src/SECS/ECS.cpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint3.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double2.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/compute_vector_relational.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.inl:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/setup.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/qualifier.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec2.hpp:
+
+../src/ECS/EntitySystem.cpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2.hpp:
+
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/filesystem:
@@ -11468,6 +14013,8 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 ../src/Chunks.hpp:
 
 ../ComponentMetadata/getID.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.inl:
 
 ../ComponentMetadata/short-macro.hpp:
 
@@ -11493,6 +14040,8 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/locale.h:
 
+../src/Rendering/utils.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cerrno:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x2.hpp:
@@ -11501,6 +14050,8 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_relational.inl:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iostream:
+
 ../ComponentMetadata/_componentIDs.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/partition.h:
@@ -11508,8 +14059,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/replace_if.h:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat3x4.inl:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/iostream:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/float.h:
 
@@ -11524,6 +14073,10 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_platform.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/istream:
+
+../src/NC/SDLBuild.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/bitset:
 
 ../src/ECS/Entity.hpp:
 
@@ -11546,10 +14099,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/map:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/wctype.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4_precision.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/net/route.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/TargetConditionals.h:
 
@@ -11585,19 +14134,15 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/shuffle.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/arm/kern_return.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/_param.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/shift_right.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/sort.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/shift_left.h:
 
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.hpp:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/time.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat2x4.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/set_symmetric_difference.h:
 
@@ -11624,6 +14169,8 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/reverse_copy.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/replace_copy_if.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_quat.inl:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool2_precision.hpp:
 
@@ -11721,12 +14268,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/mem_fun_ref.h:
 
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_time_t.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cassert:
-
 ../src/ECS/ECS.cpp:
 
 ../src/NC/colors.h:
@@ -11738,6 +14279,10 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/_mcontext.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/not_fn.h:
+
+../src/Chunks.cpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/size.h:
 
@@ -11791,8 +14336,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_vec3.inl:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/kern_control.h:
-
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x2.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/back_insert_iterator.h:
@@ -11808,10 +14351,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_uint8_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/access.h:
-
-../src/ECS/ECS.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/perfect_forward.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/partition_point.h:
 
@@ -11845,6 +14384,10 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__threading_support:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_key_t.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.inl:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/errno.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/concepts:
@@ -11870,6 +14413,10 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/limits.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/climits:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/netinet/tcp.h:
+
+../src/ECS/Component.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/set_intersection.h:
 
@@ -11979,9 +14526,17 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/pair.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/counted_iterator.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1_precision.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__utility/integer_sequence.h:
 
 ../src/Log.cpp:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/select.h:
+
+/opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_rect.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/istreambuf_iterator.h:
 
@@ -12017,6 +14572,10 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/deque:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/net/route.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double4_precision.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/sstream:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/errno.h:
@@ -12035,27 +14594,21 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__memory/allocator_arg_t.h:
 
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/max_element.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/ostream_iterator.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/reference_wrapper.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/operations.h:
 
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3_sized.hpp:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/boolean.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int3_sized.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fd_setsize.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__mbstate_t.h:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float4x4_precision.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/un.h:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/func_exponential.inl:
 
@@ -12064,6 +14617,8 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/assert.h:
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1_precision.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdlib.h:
 
@@ -12076,10 +14631,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 ../src/Textures.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/empty.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_ssize_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_pthread/_pthread_attr_t.h:
 
@@ -12106,8 +14657,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/limits.h:
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_hints.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/netinet6/in6.h:
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_filesystem.h:
 
@@ -12147,13 +14696,11 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/equal_range.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/__wctype.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_iovec_t.h:
 
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/arm_neon.h:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/xlocale/__wctype.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/event.h:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/13.1.6/include/arm_neon.h:
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_audio.h:
 
@@ -12180,10 +14727,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/optional:
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_misc.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/uuid/uuid.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/float.h:
 
@@ -12233,8 +14776,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vector_relational.hpp:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/netinet/in.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/__wctype.h:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/detail/type_mat4x3.hpp:
@@ -12245,6 +14786,8 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_timespec.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double1.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/clamp.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/time.h:
@@ -12253,6 +14796,8 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/stdio.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_trigonometric.inl:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/wchar.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/locale.h:
@@ -12260,6 +14805,10 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_rune_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__nullptr:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/types.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.inl:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/pthread/pthread_impl.h:
 
@@ -12307,10 +14856,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_sigaltstack.h:
 
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_transform.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine/boolean.h:
-
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_error.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine/_structs.h:
@@ -12320,6 +14865,8 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_timer.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/signal.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_float.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_wctype.h:
 
@@ -12415,6 +14962,8 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_u_char.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint1_sized.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/arch.h:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_double3.hpp:
@@ -12436,10 +14985,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/memory:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x2.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_float1_precision.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/counted_iterator.h:
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_render.h:
 
@@ -12507,23 +15052,11 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/partial_sort_copy.h:
 
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_relational.hpp:
-
-../src/PlayerControls.cpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/incrementable_traits.h:
-
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat3x4.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/Availability.h:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/common.hpp:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_seek_set.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.inl:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_key_t.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_off_t.h:
 
@@ -12532,10 +15065,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/sys/_types/_fsfilcnt_t.h:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.hpp:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/epsilon.inl:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdint.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/minmax.h:
 
@@ -12557,6 +15086,10 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_thread.h:
 
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_bool1_precision.hpp:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_double.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/invoke.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__iterator/front_insert_iterator.h:
@@ -12565,21 +15098,25 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_hidapi.h:
 
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/quaternion_common.inl:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/_param.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/types.h:
-
-/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_int1.hpp:
-
-../src/Chunks.cpp:
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/arm/kern_return.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/_types.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/stdio.h:
 
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/uuid/uuid.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat2x3.hpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/arm/_mcontext.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/machine/_types.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/mach/machine.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdint:
 
 /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/matrix_float3x3.hpp:
 
@@ -12622,6 +15159,8 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/all_of.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__algorithm/comp_ref_type.h:
+
+/opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/vec1.hpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/bind.h:
 

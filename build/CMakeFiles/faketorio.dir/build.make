@@ -293,10 +293,24 @@ CMakeFiles/faketorio.dir/src/Rendering/Drawing.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/faketorio.dir/src/Rendering/Drawing.cpp.s"
 	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/nick/Faketorio/src/Rendering/Drawing.cpp -o CMakeFiles/faketorio.dir/src/Rendering/Drawing.cpp.s
 
+CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.o: CMakeFiles/faketorio.dir/flags.make
+CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.o: ../src/Rendering/utils.cpp
+CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.o: CMakeFiles/faketorio.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.o -MF CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.o.d -o CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.o -c /Users/nick/Faketorio/src/Rendering/utils.cpp
+
+CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.i"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/nick/Faketorio/src/Rendering/utils.cpp > CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.i
+
+CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.s"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/nick/Faketorio/src/Rendering/utils.cpp -o CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.s
+
 CMakeFiles/faketorio.dir/src/GameSave/main.cpp.o: CMakeFiles/faketorio.dir/flags.make
 CMakeFiles/faketorio.dir/src/GameSave/main.cpp.o: ../src/GameSave/main.cpp
 CMakeFiles/faketorio.dir/src/GameSave/main.cpp.o: CMakeFiles/faketorio.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/faketorio.dir/src/GameSave/main.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/faketorio.dir/src/GameSave/main.cpp.o"
 	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/faketorio.dir/src/GameSave/main.cpp.o -MF CMakeFiles/faketorio.dir/src/GameSave/main.cpp.o.d -o CMakeFiles/faketorio.dir/src/GameSave/main.cpp.o -c /Users/nick/Faketorio/src/GameSave/main.cpp
 
 CMakeFiles/faketorio.dir/src/GameSave/main.cpp.i: cmake_force
@@ -310,7 +324,7 @@ CMakeFiles/faketorio.dir/src/GameSave/main.cpp.s: cmake_force
 CMakeFiles/faketorio.dir/src/EntityComponents/Components.cpp.o: CMakeFiles/faketorio.dir/flags.make
 CMakeFiles/faketorio.dir/src/EntityComponents/Components.cpp.o: ../src/EntityComponents/Components.cpp
 CMakeFiles/faketorio.dir/src/EntityComponents/Components.cpp.o: CMakeFiles/faketorio.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/faketorio.dir/src/EntityComponents/Components.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building CXX object CMakeFiles/faketorio.dir/src/EntityComponents/Components.cpp.o"
 	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/faketorio.dir/src/EntityComponents/Components.cpp.o -MF CMakeFiles/faketorio.dir/src/EntityComponents/Components.cpp.o.d -o CMakeFiles/faketorio.dir/src/EntityComponents/Components.cpp.o -c /Users/nick/Faketorio/src/EntityComponents/Components.cpp
 
 CMakeFiles/faketorio.dir/src/EntityComponents/Components.cpp.i: cmake_force
@@ -324,7 +338,7 @@ CMakeFiles/faketorio.dir/src/EntityComponents/Components.cpp.s: cmake_force
 CMakeFiles/faketorio.dir/src/Entities/Entities.cpp.o: CMakeFiles/faketorio.dir/flags.make
 CMakeFiles/faketorio.dir/src/Entities/Entities.cpp.o: ../src/Entities/Entities.cpp
 CMakeFiles/faketorio.dir/src/Entities/Entities.cpp.o: CMakeFiles/faketorio.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building CXX object CMakeFiles/faketorio.dir/src/Entities/Entities.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building CXX object CMakeFiles/faketorio.dir/src/Entities/Entities.cpp.o"
 	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/faketorio.dir/src/Entities/Entities.cpp.o -MF CMakeFiles/faketorio.dir/src/Entities/Entities.cpp.o.d -o CMakeFiles/faketorio.dir/src/Entities/Entities.cpp.o -c /Users/nick/Faketorio/src/Entities/Entities.cpp
 
 CMakeFiles/faketorio.dir/src/Entities/Entities.cpp.i: cmake_force
@@ -338,7 +352,7 @@ CMakeFiles/faketorio.dir/src/Entities/Entities.cpp.s: cmake_force
 CMakeFiles/faketorio.dir/src/Entities/Methods.cpp.o: CMakeFiles/faketorio.dir/flags.make
 CMakeFiles/faketorio.dir/src/Entities/Methods.cpp.o: ../src/Entities/Methods.cpp
 CMakeFiles/faketorio.dir/src/Entities/Methods.cpp.o: CMakeFiles/faketorio.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building CXX object CMakeFiles/faketorio.dir/src/Entities/Methods.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building CXX object CMakeFiles/faketorio.dir/src/Entities/Methods.cpp.o"
 	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/faketorio.dir/src/Entities/Methods.cpp.o -MF CMakeFiles/faketorio.dir/src/Entities/Methods.cpp.o.d -o CMakeFiles/faketorio.dir/src/Entities/Methods.cpp.o -c /Users/nick/Faketorio/src/Entities/Methods.cpp
 
 CMakeFiles/faketorio.dir/src/Entities/Methods.cpp.i: cmake_force
@@ -352,7 +366,7 @@ CMakeFiles/faketorio.dir/src/Entities/Methods.cpp.s: cmake_force
 CMakeFiles/faketorio.dir/src/ECS/ECS.cpp.o: CMakeFiles/faketorio.dir/flags.make
 CMakeFiles/faketorio.dir/src/ECS/ECS.cpp.o: ../src/ECS/ECS.cpp
 CMakeFiles/faketorio.dir/src/ECS/ECS.cpp.o: CMakeFiles/faketorio.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building CXX object CMakeFiles/faketorio.dir/src/ECS/ECS.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building CXX object CMakeFiles/faketorio.dir/src/ECS/ECS.cpp.o"
 	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/faketorio.dir/src/ECS/ECS.cpp.o -MF CMakeFiles/faketorio.dir/src/ECS/ECS.cpp.o.d -o CMakeFiles/faketorio.dir/src/ECS/ECS.cpp.o -c /Users/nick/Faketorio/src/ECS/ECS.cpp
 
 CMakeFiles/faketorio.dir/src/ECS/ECS.cpp.i: cmake_force
@@ -366,7 +380,7 @@ CMakeFiles/faketorio.dir/src/ECS/ECS.cpp.s: cmake_force
 CMakeFiles/faketorio.dir/src/ECS/EntityManager.cpp.o: CMakeFiles/faketorio.dir/flags.make
 CMakeFiles/faketorio.dir/src/ECS/EntityManager.cpp.o: ../src/ECS/EntityManager.cpp
 CMakeFiles/faketorio.dir/src/ECS/EntityManager.cpp.o: CMakeFiles/faketorio.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building CXX object CMakeFiles/faketorio.dir/src/ECS/EntityManager.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building CXX object CMakeFiles/faketorio.dir/src/ECS/EntityManager.cpp.o"
 	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/faketorio.dir/src/ECS/EntityManager.cpp.o -MF CMakeFiles/faketorio.dir/src/ECS/EntityManager.cpp.o.d -o CMakeFiles/faketorio.dir/src/ECS/EntityManager.cpp.o -c /Users/nick/Faketorio/src/ECS/EntityManager.cpp
 
 CMakeFiles/faketorio.dir/src/ECS/EntityManager.cpp.i: cmake_force
@@ -380,7 +394,7 @@ CMakeFiles/faketorio.dir/src/ECS/EntityManager.cpp.s: cmake_force
 CMakeFiles/faketorio.dir/src/ECS/EntitySystem.cpp.o: CMakeFiles/faketorio.dir/flags.make
 CMakeFiles/faketorio.dir/src/ECS/EntitySystem.cpp.o: ../src/ECS/EntitySystem.cpp
 CMakeFiles/faketorio.dir/src/ECS/EntitySystem.cpp.o: CMakeFiles/faketorio.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building CXX object CMakeFiles/faketorio.dir/src/ECS/EntitySystem.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building CXX object CMakeFiles/faketorio.dir/src/ECS/EntitySystem.cpp.o"
 	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/faketorio.dir/src/ECS/EntitySystem.cpp.o -MF CMakeFiles/faketorio.dir/src/ECS/EntitySystem.cpp.o.d -o CMakeFiles/faketorio.dir/src/ECS/EntitySystem.cpp.o -c /Users/nick/Faketorio/src/ECS/EntitySystem.cpp
 
 CMakeFiles/faketorio.dir/src/ECS/EntitySystem.cpp.i: cmake_force
@@ -394,7 +408,7 @@ CMakeFiles/faketorio.dir/src/ECS/EntitySystem.cpp.s: cmake_force
 CMakeFiles/faketorio.dir/src/ECS/EntitySystemInterface.cpp.o: CMakeFiles/faketorio.dir/flags.make
 CMakeFiles/faketorio.dir/src/ECS/EntitySystemInterface.cpp.o: ../src/ECS/EntitySystemInterface.cpp
 CMakeFiles/faketorio.dir/src/ECS/EntitySystemInterface.cpp.o: CMakeFiles/faketorio.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building CXX object CMakeFiles/faketorio.dir/src/ECS/EntitySystemInterface.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Building CXX object CMakeFiles/faketorio.dir/src/ECS/EntitySystemInterface.cpp.o"
 	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/faketorio.dir/src/ECS/EntitySystemInterface.cpp.o -MF CMakeFiles/faketorio.dir/src/ECS/EntitySystemInterface.cpp.o.d -o CMakeFiles/faketorio.dir/src/ECS/EntitySystemInterface.cpp.o -c /Users/nick/Faketorio/src/ECS/EntitySystemInterface.cpp
 
 CMakeFiles/faketorio.dir/src/ECS/EntitySystemInterface.cpp.i: cmake_force
@@ -423,6 +437,7 @@ faketorio_OBJECTS = \
 "CMakeFiles/faketorio.dir/src/GameState.cpp.o" \
 "CMakeFiles/faketorio.dir/src/SECS/ECS.cpp.o" \
 "CMakeFiles/faketorio.dir/src/Rendering/Drawing.cpp.o" \
+"CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.o" \
 "CMakeFiles/faketorio.dir/src/GameSave/main.cpp.o" \
 "CMakeFiles/faketorio.dir/src/EntityComponents/Components.cpp.o" \
 "CMakeFiles/faketorio.dir/src/Entities/Entities.cpp.o" \
@@ -451,6 +466,7 @@ faketorio: CMakeFiles/faketorio.dir/src/PlayerControls.cpp.o
 faketorio: CMakeFiles/faketorio.dir/src/GameState.cpp.o
 faketorio: CMakeFiles/faketorio.dir/src/SECS/ECS.cpp.o
 faketorio: CMakeFiles/faketorio.dir/src/Rendering/Drawing.cpp.o
+faketorio: CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.o
 faketorio: CMakeFiles/faketorio.dir/src/GameSave/main.cpp.o
 faketorio: CMakeFiles/faketorio.dir/src/EntityComponents/Components.cpp.o
 faketorio: CMakeFiles/faketorio.dir/src/Entities/Entities.cpp.o
@@ -462,7 +478,7 @@ faketorio: CMakeFiles/faketorio.dir/src/ECS/EntitySystemInterface.cpp.o
 faketorio: CMakeFiles/faketorio.dir/build.make
 faketorio: ../src/NC/NC.a
 faketorio: CMakeFiles/faketorio.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Linking CXX executable faketorio"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/nick/Faketorio/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Linking CXX executable faketorio"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/faketorio.dir/link.txt --verbose=$(VERBOSE)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold "Signing executable..."
 	cd /Users/nick/Faketorio && codesign -s - -v -f --entitlements /Users/nick/debug.plist /Users/nick/Faketorio/build/faketorio

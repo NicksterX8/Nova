@@ -1,14 +1,12 @@
 #version 330 core
 
 out vec4 FragColor;
-in vec2 TexCoord;
+in vec3 TexCoord;
 
 uniform sampler2DArray texArray;
 
-uniform int texLayer;
-
 void main() {
-    FragColor = texture(texArray, vec3(TexCoord.x, TexCoord.y, texLayer));
+    FragColor = texture(texArray, vec3(TexCoord.xy, TexCoord.z-1));
     if (FragColor.a < 0.1) {
         discard;
     }

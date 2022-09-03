@@ -19,69 +19,14 @@
 #include "Drawing.hpp"
 #include "../EntitySystems/Rendering.hpp"
 #include "Shader.hpp"
+#include "../Camera.hpp"
+#include "utils.hpp"
 
 #include <glm/vec2.hpp>
 
 SDL_Texture* screenTexture = NULL;
 
-struct RenderContext {
-    SDL_Window* window = NULL;
-    SDL_GLContext glCtx = NULL;
-    unsigned int textureArray = 0;
-
-    Shader entityShader;
-    Shader tilemapShader;
-
-    RenderContext(SDL_Window* window, SDL_GLContext glContext)
-    : window(window), glCtx(glContext) {}
-};
-
-float squareVertices[] = {
-    // positions     // texture coords
-     0.5f,   0.5f,   1.0f, 1.0f, // top right
-     0.5f,  -0.5f,   1.0f, 0.0f, // bottom right
-    -0.5f,  -0.5f,   0.0f, 0.0f, // bottom left
-    -0.5f,   0.5f,   0.0f, 1.0f  // top left 
-};
-unsigned int squareIndices[] = {
-    0, 1, 3, // first triangle
-    1, 2, 3  // second triangle
-};
-
-struct ModelData {
-    unsigned int VBO;
-    unsigned int EBO;
-    unsigned int VAO;
-};
-
-ModelData loadSquareModel() {
-    ModelData model;
-    glGenBuffers(1, &model.VBO);
-    glGenBuffers(1, &model.EBO);
-    glGenVertexArrays(1, &model.VAO);
-
-    glBindVertexArray(model.VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, model.VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(squareVertices), squareVertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model.EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(squareIndices), squareIndices, GL_STATIC_DRAW);
-
-    size_t stride = (2 + 2) * sizeof(float);
-
-    /* Link vertex attributes */
-    // position attribute : 2
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (void*)0);
-    glEnableVertexAttribArray(0);
-    // texture attribute : 2
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(2 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(0);
-
-    return model;
-}
-
+/*
 int drawWorld(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, GameState* state) {
     int renWidth,renHeight;
     SDL_GetRendererOutputSize(ren, &renWidth, &renHeight);
@@ -165,7 +110,7 @@ int drawWorld(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, 
     return numRenderedChunks;
 }
 
-int drawWorld2(RenderContext& ren, float scale, const GameViewport* gameViewport, GameState* state) {
+int drawWorld2(RenderContext& ren, float scale, GameState* state, GameViewport* gameViewport) {
     Vec2 minChunkRelativePos = {gameViewport->world.x / CHUNKSIZE, gameViewport->world.y / CHUNKSIZE};
     Vec2 maxChunkRelativePos = {gameViewport->worldRightEdge() / CHUNKSIZE, gameViewport->worldBottomEdge() / CHUNKSIZE};
     IVec2 minChunkPos = {(int)floor(minChunkRelativePos.x), (int)floor(minChunkRelativePos.y)};
@@ -215,6 +160,7 @@ int drawWorld2(RenderContext& ren, float scale, const GameViewport* gameViewport
     return numRenderedChunks;
 }
 
+
 void highlightTargetedTile(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, const GUI* gui, Vec2 playerTargetPos) {
     Vec2 screenPos = gameViewport->worldToPixelPositionF(playerTargetPos.vfloor());
         // only draw tile marker if mouse is actually on the world, not on the GUI
@@ -242,7 +188,7 @@ void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport*
                 Draw::thickRect(ren, &entityRect, round(scale * 2));
             }
         } else {
-            /*
+            *
             forEachEntityInRange(&state->ecs, &state->chunkmap, playerTargetPos, M_SQRT2, [&](EntityT<EC::Position> entity){
                 if (entity.Has<EC::Size, EC::Render>()) {
                     Vec2 position = *state->ecs.Get<EC::Position>(entity);
@@ -261,7 +207,7 @@ void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport*
                 }
                 return 0;
             });
-            */
+            *
             auto focusedEntity = findPlayerFocusedEntity(&state->ecs, state->chunkmap, playerTargetPos);
             if (focusedEntity != NullEntity) {
                 SDL_FRect* entityRect = &focusedEntity.Get<EC::Render>(&state->ecs)->destination;
@@ -271,51 +217,172 @@ void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport*
         }
     }      
 }
+*/
 
-void render(RenderContext& ren, float scale, GUI* gui, GameState* state, const GameViewport* gameViewport, Vec2 playerTargetPos) {
-    /*
-    // get window size in pixels
-    int renWidth;
-    int renHeight;
-    SDL_GetRendererOutputSize(ren, &renWidth, &renHeight);
+struct TilemapVertex {
+    glm::vec2 pos;
+    glm::vec3 texCoord;
+};
 
-    SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
-    SDL_RenderClear(ren);
+namespace Render {
+    constexpr int numChunkVerts = CHUNKSIZE * CHUNKSIZE * 4;
+    constexpr int numChunkFloats = numChunkVerts * sizeof(TilemapVertex) / sizeof(float);
+    constexpr int numChunkIndices = 6 * CHUNKSIZE * CHUNKSIZE;
+}
 
-    SDL_RenderSetClipRect(ren, &gameViewport->display);
-    int numRenderedChunks = drawWorld(ren, scale, gameViewport, state);
-    if (state->player.heldItemStack && ItemData[state->player.heldItemStack->item].flags & Items::Placeable)
-        highlightTargetedTile(ren, scale, gameViewport, gui, playerTargetPos);
-    highlightTargetedEntity(ren, scale, gameViewport, gui, state, playerTargetPos);
-    SDL_RenderSetClipRect(ren, NULL);
+void renderChunk(RenderContext& ren, ChunkData& chunkdata, ModelData& chunkModel) {
+    glBindBuffer(GL_ARRAY_BUFFER, chunkModel.VBO);
+    void* vertexBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+    float* chunkVerts = static_cast<float*>(vertexBuffer);
     
-    gui->draw(ren, scale, gameViewport->display, &state->player);
+    Vec2 startPos = chunkdata.tilePosition();
 
-    FC_SetDefaultColor(FreeSans, SDL_RED);
-    FC_DrawScale(FreeSans, ren, 5, 5, FC_MakeScale(0.75 * scale, 0.75 * scale), "FPS: %f", Metadata->fps());
-    FC_SetDefaultColor(FreeSans, SDL_BLACK);
+    const float tileWidth = 1.0f;
+    const float tileHeight = 1.0f;
 
-    SDL_RenderPresent(ren);
-    */
+    for (int row = 0; row < CHUNKSIZE; row++) {
+        for (int col = 0; col < CHUNKSIZE; col++) {
+            unsigned int index = row * CHUNKSIZE + col;
+            TileType type = (*chunkdata.chunk)[row][col].type;
+            
+            float x = startPos.x + col * tileWidth;
+            float y = startPos.y + row * tileHeight;
+            float x2 = x + tileWidth;
+            float y2 = y + tileHeight;
 
+            TextureID texture = TileTypeData[type].background;
+            float texMaxX = ((float)TextureData[texture].width)  / MY_TEXTURE_ARRAY_WIDTH;
+            float texMaxY = ((float)TextureData[texture].height) / MY_TEXTURE_ARRAY_HEIGHT;
+            if (texMaxX < 0.9f) {
+                texMaxX -= 0.00001f;
+            }
+            if (texMaxY < 0.9f) {
+                texMaxY -= 0.00001f;
+            }
+            float tex = static_cast<float>(texture);
+            const float tileVerts[] = {
+                x,  y,
+                0.0f, 0.0f, tex,
+
+                x,  y2,
+                0.0f, texMaxY, tex,
+
+                x2, y2,
+                texMaxX, texMaxY, tex,
+
+                x2, y,
+                texMaxX, 0.0f, tex
+            };
+            static_assert(sizeof(tileVerts) == 4 * sizeof(TilemapVertex), "incorrect number of floats in vertex data");
+
+            memcpy(&chunkVerts[index * 20], tileVerts, sizeof(tileVerts));
+        }
+    }
+
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+
+    glDrawElements(GL_TRIANGLES, Render::numChunkIndices, GL_UNSIGNED_INT, 0);
+}
+
+void renderInit(RenderContext& ren) {
+    const VertexAttribute attributes[] = {
+        {2, GL_FLOAT, sizeof(GLfloat)},
+        {3, GL_FLOAT, sizeof(GLfloat)}
+    };
+    ren.chunkModel = makeModel(
+        Render::numChunkVerts * sizeof(TilemapVertex), NULL, GL_DYNAMIC_DRAW,
+        Render::numChunkIndices * sizeof(GLuint), NULL, GL_DYNAMIC_DRAW,
+        attributes, sizeof(attributes) / sizeof(VertexAttribute)
+    );
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ren.chunkModel.EBO);
+    GLuint* chunkIndexBuffer = static_cast<GLuint*>(glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY));
+
+    for (GLuint i = 0; i < CHUNKSIZE*CHUNKSIZE; i++) {
+        GLuint first = i*4;
+        GLuint ind = i * 6;
+        chunkIndexBuffer[ind+0] = first+0;
+        chunkIndexBuffer[ind+1] = first+1;
+        chunkIndexBuffer[ind+2] = first+3;
+        chunkIndexBuffer[ind+3] = first+1;
+        chunkIndexBuffer[ind+4] = first+2;
+        chunkIndexBuffer[ind+5] = first+3; 
+    }
+
+    glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+
+    glActiveTexture(GL_TEXTURE0 + MY_TEXTURE_ARRAY_UNIT);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, ren.textureArray);
+}
+
+void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera& camera, Vec2 playerTargetPos) {
     /* Start Rendering */
-    glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    static ModelData squareModel = loadSquareModel();
-    glBindVertexArray(squareModel.VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
+    auto camTransform = camera.getTransformMatrix();
+    ren.tilemapShader.use();
+    ren.tilemapShader.setMat4("transform", camTransform);
 
+    auto& chunkModel = ren.chunkModel;
+
+    glBindVertexArray(chunkModel.VAO);
+
+    Vec2 cameraMin = toVec2(camera.minCorner());
+    Vec2 cameraMax = toVec2(camera.maxCorner());
+
+    Vec2 minChunkRelativePos = {cameraMin.x / CHUNKSIZE, cameraMin.y / CHUNKSIZE};
+    Vec2 maxChunkRelativePos = {cameraMax.x / CHUNKSIZE, cameraMax.y / CHUNKSIZE};
+    IVec2 minChunkPos = {(int)floor(minChunkRelativePos.x), (int)floor(minChunkRelativePos.y)};
+    IVec2 maxChunkPos = {(int)floor(maxChunkRelativePos.x), (int)floor(maxChunkRelativePos.y)};
+    IVec2 viewportChunkSize = {maxChunkPos.x - minChunkPos.x, maxChunkPos.y - minChunkPos.y};
+
+    int numRenderedChunks = (viewportChunkSize.x+1) * (viewportChunkSize.y+1);
+
+    for (int x = minChunkPos.x; x <= maxChunkPos.x; x++) {
+        for (int y = minChunkPos.y; y <= maxChunkPos.y; y++) {
+            ChunkData* chunkdata = state->chunkmap.getChunkData({x, y});
+            if (!chunkdata) {
+                ChunkData* newChunk = state->chunkmap.createChunk({x, y});
+                generateChunk(newChunk->chunk);
+                chunkdata = newChunk;
+            }
+            renderChunk(ren, *chunkdata, chunkModel);
+        }
+    }
+
+    Draw::ColoredPoint points[4] = {
+        {{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.f}},
+    };
+
+    auto r1 = camera.minCorner();
+    Tile* tile = getTileAtPosition(state->chunkmap, IVec2(r1.x, r1.y));
+    if (tile) {
+        tile->type = TileTypes::Sand;
+    }
     
+    auto r2 = camera.pixelToWorld({camera.pixelWidth/2.0f, camera.pixelHeight/2.0f});
+    auto r3 = camera.maxCorner();
 
+    points[1] = {glm::vec3(r1.x + 1, r1.y + 1, 0.0f), {0, 1, 0, 1}};
+    points[2] = {glm::vec3(r3.x - 1, r3.y - 1, 0.0f), {0, 1, 0, 1}};
+    points[3] = {glm::vec3(getMouseWorldPosition(camera), 0.0f), {0, 1, 1, 1}};
+
+    ren.pointShader.use();
+    ren.pointShader.setMat4("transform", camTransform);
+    Draw::coloredPoints(camera, sizeof(points) / sizeof(Draw::ColoredPoint), points, 10.0f);
+
+    static RenderSystem renderSystem = RenderSystem();
+    
+    renderSystem.Update(state->ecs, state->chunkmap, ren, camera);
+    
     SDL_GL_SwapWindow(ren.window);
 }
 
 Shader loadShader(const char* name) {
     char path[512], vertexPath[512], fragmentPath[512];
-    int shadersPathLen = strlen(shadersPath);
-    memcpy(path, shadersPath, shadersPathLen);
+    int shadersPathLen = strlen(FilePaths::shaders);
+    memcpy(path, FilePaths::shaders, shadersPathLen);
 
     unsigned int nameLen = 0;
     char chr = name[0];
@@ -344,6 +411,7 @@ Shader loadShader(const char* name) {
 int loadShaders(RenderContext* renCtx) {
     renCtx->entityShader = loadShader("entity");
     renCtx->tilemapShader = loadShader("tilemap");
+    renCtx->pointShader = loadShader("point");
     
     if (!renCtx->entityShader || !renCtx->tilemapShader) {
         return -1;
@@ -352,7 +420,13 @@ int loadShaders(RenderContext* renCtx) {
 }
 
 int initRenderContext(RenderContext* renCtx) {
-    return loadShaders(renCtx);
+    int code = loadShaders(renCtx);
+    renCtx->textureArray = makeTextureArray(FilePaths::assets);
+    renCtx->tilemapShader.use();
+    renCtx->tilemapShader.setInt("texArray", MY_TEXTURE_ARRAY_UNIT);
+    renCtx->entityShader.use();
+    renCtx->entityShader.setInt("texArray", MY_TEXTURE_ARRAY_UNIT);
+    return code;
 }
 
 #endif

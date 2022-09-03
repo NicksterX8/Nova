@@ -89,7 +89,6 @@ public:
 
     template<class... Components>
     void init() {
-        pools = new ComponentPool*[sizeof...(Components)];
         pools = (ComponentPool**)calloc(sizeof...(Components), sizeof(ComponentPool*));
         newComponents<Components...>();
 

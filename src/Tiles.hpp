@@ -39,7 +39,7 @@ typedef TileTypes::Flags TileTypeFlag;
 
 struct TileTypeDataStruct {
     Color color;
-    SDL_Texture* background;
+    TextureID background;
     Uint32 flags;
 
     TileTypes::MineableTile mineable;

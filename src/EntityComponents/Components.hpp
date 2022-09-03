@@ -124,46 +124,11 @@ struct Size : EntityComponent<Size>, Serializable<Size> {
     };
 };
 
-struct Render : EntityComponent<Render> {
-    SDL_Texture* texture;
-    SDL_FRect destination;
-    float rotation;
+struct Render : EntityComponent<Render>, Serializable<Render> {
+    TextureID texture;
     int layer;
-    Uint32 renderIndex;
 
-    Render(SDL_Texture* texture, int layer);
-
-    static int Serialize(const Render* components, Uint32 count, SerializerOutput output) {
-        for (Uint32 i = 0; i < count; i++) {
-            const EC::Render& render = components[i];
-
-            std::string stringName = Textures.getNameFromTexture(render.texture);
-            const char* tname = stringName.c_str();
-            char name[] = {'\0'};
-            strcpy(name, tname);
-
-            output(ArrayView(name, 64));
-            output(ArrayView(render.layer));
-        }
-        return 0;
-    }
-
-    static int Deserialize(Render* components, Uint32 count, const char* serialized) {
-        const void* component = serialized;
-        for (Uint32 i = 0; i < count; i++) {
-            // name| 64, layer| 4
-
-            const char* textureName = static_cast<const char*>(component);
-            component = (const char*)component + 64;
-            auto renderLayer = *static_cast<const int*>(component);
-            component = (const char*)component + sizeof(renderLayer);
-
-            SDL_Texture* texture = Textures.getTextureFromName(textureName);
-
-            components[i] = EC::Render(texture, renderLayer);
-        }
-        return 0;
-    }
+    Render(TextureID, int);
 };
 
 struct NewRender : EntityComponent<NewRender> {
