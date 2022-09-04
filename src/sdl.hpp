@@ -92,10 +92,6 @@ inline SDLContext initSDL() {
         SDL_FreeSurface(iconSurface);
     }
     
-    /*
-    context.scale = getRendererWindowScale(context.win, context.ren);
-    SDLPixelScale = context.scale;
-    */
     context.scale = 1.0f;
     SDLPixelScale = 2.0f;
 
@@ -106,11 +102,6 @@ inline SDLContext initSDL() {
         SDL_GL_SetSwapInterval(1);
     else
         SDL_GL_SetSwapInterval(0); // swap frames immediately
-
-    //glEnable(GL_MULTISAMPLE);
-
-    //glEnable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
 
     return context;
 }

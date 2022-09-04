@@ -12,8 +12,4 @@ namespace FilePaths {
     extern char save[GLOBAL_FILEPATH_SIZE];
 }
 
-inline Vec2 toVec2(glm::vec2 vec) {
-    return Vec2(vec.x, vec.y);
-}
-
 #endif

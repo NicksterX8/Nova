@@ -10,47 +10,18 @@
 #include <SDL2/SDL_image.h>
 #include "gl.h"
 
-#include "SDL2_gfx/SDL2_gfxPrimitives.h"
-
-#include "NC/SDLContext.h"
-#include "NC/SDLBuild.h"
-#include "NC/colors.h"
-#include "NC/utils.h"
-#include "NC/cpp-vectors.hpp"
-
-#include "Textures.hpp"
-#include "GameState.hpp"
-#include "PlayerControls.hpp"
-#include "GameViewport.hpp"
 #include "GUI.hpp"
 #include "Debug.hpp"
 #include "loadData.hpp"
 
-#include "EntityComponents/Components.hpp"
-#include "Entities/Entities.hpp"
-#include "EntitySystems/Rendering.hpp"
-#include "EntitySystems/Systems.hpp"
 #include "update.hpp"
 #include "Debug.hpp"
-#include "Items.hpp"
 #include "GameSave/main.hpp"
 #include "sdl.hpp"
 
 #ifdef DEBUG
     //#include "Testing.hpp"
 #endif
-
-// load assets and stuff
-int load(SDL_Renderer *ren, float renderScale = 1.0f) {
-    int code = 0;
-    code |= Textures.load(ren);
-    return code;
-}
-
-// unload assets and stuff
-void unload() {
-    Textures.unload();
-}
 
 void setDebugSettings(DebugClass& debug) {
     // shorten name for easier typing while keeping default settings

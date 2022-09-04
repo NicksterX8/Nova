@@ -8,7 +8,6 @@
 #include "GameState.hpp"
 #include "Debug.hpp"
 #include "Metadata.hpp"
-#include "GameViewport.hpp"
 #include "NC/physics.h"
 #include "GUI.hpp"
 #include "Entities/Entities.hpp"

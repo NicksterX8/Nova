@@ -6285,7 +6285,6 @@ CMakeFiles/faketorio.dir/src/GameState.cpp.o
  /Users/nick/Faketorio/src/ECS/EntitySystem.hpp
  /Users/nick/Faketorio/src/ECS/Query.hpp
  /Users/nick/Faketorio/src/ECS/ECS.hpp
- /Users/nick/Faketorio/src/GameViewport.hpp
  /Users/nick/Faketorio/src/Log.hpp
  /Users/nick/Faketorio/src/Rendering/Drawing.hpp
  /Users/nick/Faketorio/src/GameState.hpp
@@ -12323,11 +12322,29 @@ CMakeFiles/faketorio.dir/src/main.cpp.o
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/OpenGLAvailability.h
  /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_opengl.h
  /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_opengl_glext.h
- /Users/nick/Faketorio/src/SDL2_gfx/SDL2_gfxPrimitives.h
- /Users/nick/Faketorio/src/NC/SDLContext.h
- /Users/nick/Faketorio/src/NC/SDLBuild.h
- /Users/nick/Faketorio/src/NC/colors.h
- /Users/nick/Faketorio/src/NC/utils.h
+ /Users/nick/Faketorio/src/GUI.hpp
+ /Users/nick/Faketorio/src/Items.hpp
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/unordered_map
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/is_transparent.h
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__hash_table
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cmath
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__node_handle
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/optional
+ /Users/nick/Faketorio/src/Rendering/Drawing.hpp
+ /Users/nick/Faketorio/src/GameState.hpp
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/array
+ /Users/nick/Faketorio/src/Textures.hpp
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/string
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdio
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/string_view
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__ranges/enable_view.h
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__string
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cwchar
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cwctype
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cctype
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/wctype.h
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/wctype.h
+ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctrans_t.h
  /Users/nick/Faketorio/src/NC/cpp-vectors.hpp
  /Users/nick/Faketorio/src/NC/vectors.h
  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp
@@ -12351,28 +12368,9 @@ CMakeFiles/faketorio.dir/src/main.cpp.o
  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp
  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp
  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp
- /Users/nick/Faketorio/src/Textures.hpp
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/string
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdio
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/string_view
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__ranges/enable_view.h
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__string
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cwchar
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cwctype
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cctype
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/wctype.h
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/wctype.h
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctrans_t.h
- /Users/nick/Faketorio/src/GameState.hpp
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/unordered_map
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/is_transparent.h
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__hash_table
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cmath
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__node_handle
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/optional
- /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/array
+ /Users/nick/Faketorio/src/NC/utils.h
  /Users/nick/Faketorio/src/Tiles.hpp
- /Users/nick/Faketorio/src/Items.hpp
+ /Users/nick/Faketorio/src/NC/colors.h
  /Users/nick/Faketorio/src/SECS/Entity.hpp
  /Users/nick/Faketorio/src/ECS/Entity.hpp
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/bitset
@@ -12441,18 +12439,9 @@ CMakeFiles/faketorio.dir/src/main.cpp.o
  /Users/nick/Faketorio/src/Chunks.hpp
  /Users/nick/Faketorio/src/ECS/ECS.hpp
  /Users/nick/Faketorio/src/GameViewport.hpp
- /Users/nick/Faketorio/src/PlayerControls.hpp
- /Users/nick/Faketorio/src/Debug.hpp
- /Users/nick/Faketorio/src/Metadata.hpp
- /Users/nick/Faketorio/src/NC/physics.h
- /Users/nick/Faketorio/src/NC/geometry.h
- /Users/nick/Faketorio/src/NC/lines.h
- /Users/nick/Faketorio/src/NC/polygons.h
- /Users/nick/Faketorio/src/GUI.hpp
- /Users/nick/Faketorio/src/Rendering/Drawing.hpp
- /Users/nick/Faketorio/src/GameState.hpp
  /Users/nick/Faketorio/src/GameViewport.hpp
  /Users/nick/Faketorio/src/sdl.hpp
+ /Users/nick/Faketorio/src/NC/SDLContext.h
  /Users/nick/Faketorio/src/global.h
  /Users/nick/Faketorio/src/utils/MyString.h
  /Users/nick/Faketorio/src/Camera.hpp
@@ -12679,23 +12668,18 @@ CMakeFiles/faketorio.dir/src/main.cpp.o
  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp
  /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.inl
  /Users/nick/Faketorio/src/Log.hpp
- /Users/nick/Faketorio/src/loadData.hpp
- /Users/nick/Faketorio/src/EntityComponents/Components.hpp
- /Users/nick/Faketorio/src/EntitySystems/Rendering.hpp
- /Users/nick/Faketorio/src/ECS/EntitySystem.hpp
- /Users/nick/Faketorio/src/ECS/Query.hpp
- /Users/nick/Faketorio/src/ECS/ECS.hpp
- /Users/nick/Faketorio/src/GameViewport.hpp
- /Users/nick/Faketorio/src/Log.hpp
- /Users/nick/Faketorio/src/Rendering/Drawing.hpp
  /Users/nick/Faketorio/src/Debug.hpp
- /Users/nick/Faketorio/src/constants.hpp
- /Users/nick/Faketorio/src/EntitySystems/Systems.hpp
+ /Users/nick/Faketorio/src/loadData.hpp
+ /Users/nick/Faketorio/src/update.hpp
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/random
  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/numeric
- /Users/nick/Faketorio/src/SECS/Entity.hpp
- /Users/nick/Faketorio/src/Entities/Methods.hpp
- /Users/nick/Faketorio/src/update.hpp
+ /Users/nick/Faketorio/src/GameState.hpp
+ /Users/nick/Faketorio/src/PlayerControls.hpp
+ /Users/nick/Faketorio/src/Metadata.hpp
+ /Users/nick/Faketorio/src/NC/physics.h
+ /Users/nick/Faketorio/src/NC/geometry.h
+ /Users/nick/Faketorio/src/NC/lines.h
+ /Users/nick/Faketorio/src/NC/polygons.h
  /Users/nick/Faketorio/src/sdl.hpp
  /Users/nick/Faketorio/src/Camera.hpp
  /Users/nick/Faketorio/src/GameSave/main.hpp
@@ -13527,7 +13511,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o
  /Users/nick/Faketorio/src/ECS/EntitySystem.hpp
  /Users/nick/Faketorio/src/ECS/Query.hpp
  /Users/nick/Faketorio/src/ECS/ECS.hpp
- /Users/nick/Faketorio/src/GameViewport.hpp
  /Users/nick/Faketorio/src/Log.hpp
  /Users/nick/Faketorio/src/Rendering/Drawing.hpp
  /Users/nick/Faketorio/src/Debug.hpp

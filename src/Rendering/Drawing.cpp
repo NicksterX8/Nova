@@ -42,19 +42,6 @@ void Draw::debugVLine(SDL_Renderer* renderer, float x, float y1, float y2, float
     }
 }
 
-void Draw::player(const Player* player, SDL_Renderer* renderer, Vec2 offset) {
-    float width = 1.0f * TileWidth;
-    float height = 1.0f * TileHeight;
-    Vec2 playerPosition = player->getPosition();
-    SDL_FRect destination = {
-        playerPosition.x * TileWidth + offset.x - width/2.0f,
-        playerPosition.y * TileHeight + offset.y - height/2.0f,
-        width,
-        height
-    };
-    SDL_RenderCopyF(renderer, Textures.player, NULL, &destination);
-}
-
 int Draw::drawChunkBorders(SDL_Renderer* renderer, float scale, const GameViewport* gameViewport) {
     float distanceToChunkX = fmod(gameViewport->world.x, CHUNKSIZE);
     float firstChunkX = gameViewport->world.x - distanceToChunkX;

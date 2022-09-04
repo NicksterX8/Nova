@@ -6273,7 +6273,6 @@ CMakeFiles/faketorio.dir/src/GameState.cpp.o: ../src/GameState.cpp \
   ../src/ECS/EntitySystem.hpp \
   ../src/ECS/Query.hpp \
   ../src/ECS/ECS.hpp \
-  ../src/GameViewport.hpp \
   ../src/Log.hpp \
   ../src/Rendering/Drawing.hpp \
   ../src/GameState.hpp \
@@ -12299,11 +12298,29 @@ CMakeFiles/faketorio.dir/src/main.cpp.o: ../src/main.cpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenGL.framework/Headers/OpenGLAvailability.h \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/SDL2/SDL_opengl.h \
   /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_opengl_glext.h \
-  ../src/SDL2_gfx/SDL2_gfxPrimitives.h \
-  ../src/NC/SDLContext.h \
-  ../src/NC/SDLBuild.h \
-  ../src/NC/colors.h \
-  ../src/NC/utils.h \
+  ../src/GUI.hpp \
+  ../src/Items.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/unordered_map \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/is_transparent.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__hash_table \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cmath \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__node_handle \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/optional \
+  ../src/Rendering/Drawing.hpp \
+  ../src/GameState.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/array \
+  ../src/Textures.hpp \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/string \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdio \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/string_view \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__ranges/enable_view.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__string \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cwchar \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cwctype \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cctype \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/wctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/wctype.h \
+  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctrans_t.h \
   ../src/NC/cpp-vectors.hpp \
   ../src/NC/vectors.h \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/vec2.hpp \
@@ -12327,28 +12344,9 @@ CMakeFiles/faketorio.dir/src/main.cpp.o: ../src/main.cpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2_sized.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/vector_uint2.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/ext/scalar_uint_sized.hpp \
-  ../src/Textures.hpp \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/string \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cstdio \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/string_view \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__ranges/enable_view.h \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__string \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cwchar \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cwctype \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cctype \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/wctype.h \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/wctype.h \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/_types/_wctrans_t.h \
-  ../src/GameState.hpp \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/unordered_map \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__functional/is_transparent.h \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__hash_table \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/cmath \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/__node_handle \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/optional \
-  /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/array \
+  ../src/NC/utils.h \
   ../src/Tiles.hpp \
-  ../src/Items.hpp \
+  ../src/NC/colors.h \
   ../src/SECS/Entity.hpp \
   ../src/ECS/Entity.hpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/bitset \
@@ -12417,18 +12415,9 @@ CMakeFiles/faketorio.dir/src/main.cpp.o: ../src/main.cpp \
   ../src/Chunks.hpp \
   ../src/ECS/ECS.hpp \
   ../src/GameViewport.hpp \
-  ../src/PlayerControls.hpp \
-  ../src/Debug.hpp \
-  ../src/Metadata.hpp \
-  ../src/NC/physics.h \
-  ../src/NC/geometry.h \
-  ../src/NC/lines.h \
-  ../src/NC/polygons.h \
-  ../src/GUI.hpp \
-  ../src/Rendering/Drawing.hpp \
-  ../src/GameState.hpp \
   ../src/GameViewport.hpp \
   ../src/sdl.hpp \
+  ../src/NC/SDLContext.h \
   ../src/global.h \
   ../src/utils/MyString.h \
   ../src/Camera.hpp \
@@ -12655,23 +12644,18 @@ CMakeFiles/faketorio.dir/src/main.cpp.o: ../src/main.cpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/mat4x3.hpp \
   /opt/homebrew/Cellar/glm/0.9.9.8/include/glm/gtc/type_ptr.inl \
   ../src/Log.hpp \
-  ../src/loadData.hpp \
-  ../src/EntityComponents/Components.hpp \
-  ../src/EntitySystems/Rendering.hpp \
-  ../src/ECS/EntitySystem.hpp \
-  ../src/ECS/Query.hpp \
-  ../src/ECS/ECS.hpp \
-  ../src/GameViewport.hpp \
-  ../src/Log.hpp \
-  ../src/Rendering/Drawing.hpp \
   ../src/Debug.hpp \
-  ../src/constants.hpp \
-  ../src/EntitySystems/Systems.hpp \
+  ../src/loadData.hpp \
+  ../src/update.hpp \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/random \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/numeric \
-  ../src/SECS/Entity.hpp \
-  ../src/Entities/Methods.hpp \
-  ../src/update.hpp \
+  ../src/GameState.hpp \
+  ../src/PlayerControls.hpp \
+  ../src/Metadata.hpp \
+  ../src/NC/physics.h \
+  ../src/NC/geometry.h \
+  ../src/NC/lines.h \
+  ../src/NC/polygons.h \
   ../src/sdl.hpp \
   ../src/Camera.hpp \
   ../src/GameSave/main.hpp \
@@ -13502,7 +13486,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
   ../src/ECS/EntitySystem.hpp \
   ../src/ECS/Query.hpp \
   ../src/ECS/ECS.hpp \
-  ../src/GameViewport.hpp \
   ../src/Log.hpp \
   ../src/Rendering/Drawing.hpp \
   ../src/Debug.hpp \
@@ -14073,8 +14056,6 @@ CMakeFiles/faketorio.dir/src/update.cpp.o: ../src/update.cpp \
 /opt/homebrew/Cellar/sdl2/2.0.22/include/sdl2/SDL_platform.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/istream:
-
-../src/NC/SDLBuild.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/usr/include/c++/v1/bitset:
 

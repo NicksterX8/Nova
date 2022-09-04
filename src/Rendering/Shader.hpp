@@ -77,6 +77,10 @@ struct Shader {
         glUseProgram(id); 
     }
 
+    void destroy() {
+        glDeleteProgram(id);
+    }
+
     operator bool() const {
         return (id != 0);
     }

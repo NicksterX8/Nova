@@ -6,19 +6,26 @@
 #include "../Camera.hpp"
 
 struct ModelData {
-    unsigned int VBO;
-    unsigned int EBO;
-    unsigned int VAO;
+    GLuint VBO;
+    GLuint EBO;
+    GLuint VAO;
+
+    void destroy() {
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+        glDeleteVertexArrays(1, &VAO);
+    }
 };
 
 struct RenderContext {
     SDL_Window* window = NULL;
     SDL_GLContext glCtx = NULL;
-    unsigned int textureArray = 0;
+    GLuint textureArray = 0;
 
     Shader entityShader;
     Shader tilemapShader;
     Shader pointShader;
+    Shader quadShader;
 
     ModelData chunkModel;
 

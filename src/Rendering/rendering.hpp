@@ -284,7 +284,55 @@ void renderChunk(RenderContext& ren, ChunkData& chunkdata, ModelData& chunkModel
     glDrawElements(GL_TRIANGLES, Render::numChunkIndices, GL_UNSIGNED_INT, 0);
 }
 
+Shader loadShader(const char* name) {
+    char path[512], vertexPath[512], fragmentPath[512];
+    int shadersPathLen = strlen(FilePaths::shaders);
+    memcpy(path, FilePaths::shaders, shadersPathLen);
+
+    unsigned int nameLen = 0;
+    char chr = name[0];
+    while(chr != '\0') {
+        path[nameLen+shadersPathLen] = chr;
+        nameLen++;
+        chr = name[nameLen];
+    }
+
+    int baseLen = shadersPathLen + nameLen;
+
+    path[baseLen] = '.';
+    path[baseLen+3] = '\0';
+
+    size_t pathSize = baseLen + 4;
+    memcpy(vertexPath, path, pathSize);
+    memcpy(fragmentPath, path, pathSize);
+    vertexPath[baseLen+1] = 'v';
+    vertexPath[baseLen+2] = 's';
+    fragmentPath[baseLen+1] = 'f';
+    fragmentPath[baseLen+2] = 's';
+ 
+    return Shader(vertexPath, fragmentPath);
+}
+
+int loadShaders(RenderContext& ren) {
+    ren.entityShader = loadShader("entity");
+    ren.tilemapShader = loadShader("tilemap");
+    ren.pointShader = loadShader("point");
+    ren.quadShader = loadShader("quad");
+    
+    return 0;
+}
+
 void renderInit(RenderContext& ren) {
+    loadShaders(ren);
+    ren.textureArray = makeTextureArray(FilePaths::assets);
+    ren.tilemapShader.use();
+    ren.tilemapShader.setInt("texArray", MY_TEXTURE_ARRAY_UNIT);
+    ren.entityShader.use();
+    ren.entityShader.setInt("texArray", MY_TEXTURE_ARRAY_UNIT);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+    glEnable(GL_PROGRAM_POINT_SIZE);
+
     const VertexAttribute attributes[] = {
         {2, GL_FLOAT, sizeof(GLfloat)},
         {3, GL_FLOAT, sizeof(GLfloat)}
@@ -315,6 +363,14 @@ void renderInit(RenderContext& ren) {
     glBindTexture(GL_TEXTURE_2D_ARRAY, ren.textureArray);
 }
 
+void renderQuit(RenderContext& ren) {
+    ren.entityShader.destroy();
+    ren.tilemapShader.destroy();
+    ren.pointShader.destroy();
+    ren.chunkModel.destroy();
+    glDeleteTextures(1, &ren.textureArray);
+}
+
 void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera& camera, Vec2 playerTargetPos) {
     /* Start Rendering */
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -328,8 +384,8 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
 
     glBindVertexArray(chunkModel.VAO);
 
-    Vec2 cameraMin = toVec2(camera.minCorner());
-    Vec2 cameraMax = toVec2(camera.maxCorner());
+    Vec2 cameraMin = camera.minCorner();
+    Vec2 cameraMax = camera.maxCorner();
 
     Vec2 minChunkRelativePos = {cameraMin.x / CHUNKSIZE, cameraMin.y / CHUNKSIZE};
     Vec2 maxChunkRelativePos = {cameraMax.x / CHUNKSIZE, cameraMax.y / CHUNKSIZE};
@@ -351,82 +407,58 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
         }
     }
 
-    Draw::ColoredPoint points[4] = {
-        {{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.f}},
-    };
+    static RenderSystem renderSystem = RenderSystem();
+    renderSystem.Update(state->ecs, state->chunkmap, ren, camera);
 
+    std::vector<Draw::ColoredPoint> points;
+    points.push_back({{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.5f}, 15.0f});
     auto r1 = camera.minCorner();
-    Tile* tile = getTileAtPosition(state->chunkmap, IVec2(r1.x, r1.y));
-    if (tile) {
-        tile->type = TileTypes::Sand;
-    }
-    
     auto r2 = camera.pixelToWorld({camera.pixelWidth/2.0f, camera.pixelHeight/2.0f});
     auto r3 = camera.maxCorner();
+    points.push_back({glm::vec3(r1.x + 1, r1.y + 1, 0.0f), {0, 1, 0, 1}, 8.0f});
+    points.push_back({glm::vec3(r3.x - 1, r3.y - 1, 0.0f), {0, 1, 0, 1}, 8.0f});
+    points.push_back({glm::vec3(getMouseWorldPosition(camera), 0.0f), {0, 1, 1, 1}, 9.0f});
 
-    points[1] = {glm::vec3(r1.x + 1, r1.y + 1, 0.0f), {0, 1, 0, 1}};
-    points[2] = {glm::vec3(r3.x - 1, r3.y - 1, 0.0f), {0, 1, 0, 1}};
-    points[3] = {glm::vec3(getMouseWorldPosition(camera), 0.0f), {0, 1, 1, 1}};
+    // only need blending for points and stuff, not entities or tilemap
+    glEnable(GL_BLEND);
+    glDisable(GL_DEPTH_TEST);
 
     ren.pointShader.use();
     ren.pointShader.setMat4("transform", camTransform);
-    Draw::coloredPoints(camera, sizeof(points) / sizeof(Draw::ColoredPoint), points, 10.0f);
+    Draw::coloredPoints(points.size(), &points[0]);
 
-    static RenderSystem renderSystem = RenderSystem();
-    
-    renderSystem.Update(state->ecs, state->chunkmap, ren, camera);
+    ren.quadShader.use();
+    ren.quadShader.setMat4("transform", camTransform);
+    std::vector<Draw::ColorVertex> quadPoints{
+        {{0, 0, 0.5}, {0, 1, 0, 1}},
+        {{1, 0, 0.5}, {0, 1, 0, 1}},
+        {{1, 1, 0.5}, {0, 1, 0, 1}},
+        {{0, 1, 0.5}, {0, 1, 0, 1}},
+        
+        {{0, 0, 0.6}, {1, 0, 1, 1}},
+        {{0.8, 0, 0.6}, {0, 1, 1, 1}},
+        {{0.8, 0.8, 0.6}, {1, 1, 0, 1}},
+        {{0, 0.8, 0.6}, {0, 1, 0, 1}}
+    };
+    Draw::coloredQuads(quadPoints.size() / 4, &quadPoints[0]);
+
+    glm::vec3 linePoints[] = {
+        {-1, -1, 0},
+        {1, 1, 0}
+    };
+    glm::vec4 lineColors[] = {
+        {1, 1, 0, 1}
+    };
+    GLfloat lineWidths[] = {
+        0.01f
+    };
+    Draw::lines(1, linePoints, lineColors, lineWidths);
+
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
     
     SDL_GL_SwapWindow(ren.window);
 }
 
-Shader loadShader(const char* name) {
-    char path[512], vertexPath[512], fragmentPath[512];
-    int shadersPathLen = strlen(FilePaths::shaders);
-    memcpy(path, FilePaths::shaders, shadersPathLen);
-
-    unsigned int nameLen = 0;
-    char chr = name[0];
-    while(chr != '\0') {
-        path[nameLen+shadersPathLen] = chr;
-        nameLen++;
-        chr = name[nameLen];
-    }
-
-    int baseLen = shadersPathLen + nameLen;
-
-    path[baseLen] = '.';
-    path[baseLen+3] = '\0';
-
-    size_t pathSize = baseLen + 4;
-    memcpy(vertexPath, path, pathSize);
-    memcpy(fragmentPath, path, pathSize);
-    vertexPath[baseLen+1] = 'v';
-    vertexPath[baseLen+2] = 's';
-    fragmentPath[baseLen+1] = 'f';
-    fragmentPath[baseLen+2] = 's';
- 
-    return Shader(vertexPath, fragmentPath);
-}
-
-int loadShaders(RenderContext* renCtx) {
-    renCtx->entityShader = loadShader("entity");
-    renCtx->tilemapShader = loadShader("tilemap");
-    renCtx->pointShader = loadShader("point");
-    
-    if (!renCtx->entityShader || !renCtx->tilemapShader) {
-        return -1;
-    }
-    return 0;
-}
-
-int initRenderContext(RenderContext* renCtx) {
-    int code = loadShaders(renCtx);
-    renCtx->textureArray = makeTextureArray(FilePaths::assets);
-    renCtx->tilemapShader.use();
-    renCtx->tilemapShader.setInt("texArray", MY_TEXTURE_ARRAY_UNIT);
-    renCtx->entityShader.use();
-    renCtx->entityShader.setInt("texArray", MY_TEXTURE_ARRAY_UNIT);
-    return code;
-}
 
 #endif

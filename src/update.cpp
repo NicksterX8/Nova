@@ -348,9 +348,8 @@ int Game::update() {
 
     bool quit = false;
 
-    int renWidth;
-    int renHeight;
-    SDL_GL_GetDrawableSize(sdlCtx.win, &renWidth, &renHeight);
+    int drawableWidth,drawableHeight;
+    SDL_GL_GetDrawableSize(sdlCtx.win, &drawableWidth, &drawableHeight);
 
     updateTilePixels(worldScale);
 
@@ -369,10 +368,10 @@ int Game::update() {
                 break;
             case SDL_WINDOWEVENT:
                 if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                    SDL_GL_GetDrawableSize(sdlCtx.win, &renWidth, &renHeight);
-                    glViewport(0, 0, renWidth, renHeight);
-                    camera.pixelWidth = renWidth;
-                    camera.pixelHeight = renHeight;
+                    SDL_GL_GetDrawableSize(sdlCtx.win, &drawableWidth, &drawableHeight);
+                    glViewport(0, 0, drawableWidth, drawableHeight);
+                    camera.pixelWidth = drawableWidth;
+                    camera.pixelHeight = drawableHeight;
                 }
                 break;
             case SDL_MOUSEWHEEL:
@@ -413,12 +412,11 @@ int Game::update() {
     tick(state);
 
     // update to new state from tick
-    Vec2 focus = state->player.getPosition();
-    //gameViewport = newGameViewport(renWidth, renHeight, focus.x, focus.y);
     playerTargetPos = camera.pixelToWorld(mouse.x, mouse.y);
-
+    Vec2 focus = state->player.getPosition();
     camera.position.x = focus.x;
     camera.position.y = focus.y;
+    // dont rotate camera cause it doesn't work right now
     //camera.rotation = state->player.entity.Get<EC::Rotation>(&state->ecs)->degrees;
     camera.baseScale = TilePixels;
     camera.zoom = 1.0f;
@@ -447,7 +445,6 @@ void Game::init(int screenWidth, int screenHeight) {
 
     this->renderContext = new RenderContext(sdlCtx.win, sdlCtx.gl);
     setTextureMetadata();
-    initRenderContext(this->renderContext);
     this->worldScale = 1.0f;
     this->playerControls = new PlayerControls(this->camera);
     SDL_Point mousePos = SDLGetMousePixelPosition();
@@ -465,6 +462,16 @@ void Game::init(int screenWidth, int screenHeight) {
     this->camera = Camera(TilePixels, glm::vec3(0.0f), displayWidth, displayHeight);
 
     renderInit(*renderContext);
+}
+
+void Game::quit() {
+    Log.Info("Quitting!");
+
+    renderQuit(*renderContext);
+
+    double secondsElapsed = metadata.end();
+    Log.Info("Time elapsed: %.1f", secondsElapsed);
+    // GameSave::save()
 }
 
 void Game::destroy() {
@@ -493,11 +500,4 @@ void Game::start() {
     } while (code == 0);
 #endif
     this->quit();
-}
-
-void Game::quit() {
-    Log.Info("Quitting!");
-    double secondsElapsed = metadata.end();
-    Log.Info("Time elapsed: %.1f", secondsElapsed);
-    // GameSave::save()
 }
