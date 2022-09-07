@@ -25,7 +25,7 @@ struct RenderContext {
     Shader entityShader;
     Shader tilemapShader;
     Shader pointShader;
-    Shader quadShader;
+    Shader colorShader;
 
     ModelData chunkModel;
 

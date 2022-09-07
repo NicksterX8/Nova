@@ -6,13 +6,13 @@
 #include "NC/SDLContext.h"
 #include <SDL2/SDL.h>
 #include "GameState.hpp"
-#include "Debug.hpp"
-#include "Metadata.hpp"
+#include "utils/Debug.hpp"
+#include "utils/Metadata.hpp"
 #include "NC/physics.h"
-#include "GUI.hpp"
+#include "GUI/GUI.hpp"
 #include "Entities/Entities.hpp"
 #include "Entities/Methods.hpp"
-#include "Log.hpp"
+#include "utils/Log.hpp"
 
 struct MouseState {
     int x;
@@ -103,11 +103,12 @@ OptionalEntity<EC::Position, EC::Size, EC::Render>
 findPlayerFocusedEntity(const ComponentManager<EC::Position, const EC::Size, const EC::Render>& ecs, const ChunkMap& chunkmap, Vec2 playerMousePos);
 
 class PlayerControls {
+public:
     Camera& camera;
     MouseState mouse;
     Vec2 mouseWorldPos;
     std::vector<KeyBinding*> keyBindings;
-public:
+
     const Uint8* keyboardState;
 
     PlayerControls(Camera& camera): camera(camera) {
@@ -322,6 +323,14 @@ public:
                     auto itemEntity = Entities::ItemStack(&state->ecs, mouseWorldPos, dropStack);
                 }
             break;} 
+            case 'h': {
+                static bool wireframeModeEnabled = false;
+                if (!wireframeModeEnabled)
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                else
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                wireframeModeEnabled ^= 1;
+            break;}
             case SDLK_SPACE: {
 
             break;}

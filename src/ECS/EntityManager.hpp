@@ -11,7 +11,7 @@
 #include <string>
 #include "../constants.hpp"
 #include "../NC/cpp-vectors.hpp"
-#include "../Log.hpp"
+#include "../utils/Log.hpp"
 
 #include "Entity.hpp"
 #include "Component.hpp"

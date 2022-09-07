@@ -91,7 +91,7 @@ void GameState::init() {
     ecs.testInitialization();
     */
 
-    player = Player(&ecs);
+    player = Player(&ecs, Vec2(0, 0));
 
     ItemStack startInventory[] = {
         {Items::SpaceFloor, INFINITE_ITEM_QUANTITY},

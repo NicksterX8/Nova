@@ -7,7 +7,7 @@
 #include "../ECS/EntitySystem.hpp"
 #include "../SECS/Entity.hpp"
 
-#include "../Log.hpp"
+#include "../utils/Log.hpp"
 #include "../constants.hpp"
 #include "../Entities/Methods.hpp"
 

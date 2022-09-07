@@ -16,7 +16,6 @@
 #include "Chunks.hpp"
 #include "Player.hpp"
 #include "ECS/ECS.hpp"
-#include "GameViewport.hpp"
 
 struct GameState {
     ChunkMap chunkmap;

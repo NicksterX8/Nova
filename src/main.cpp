@@ -1,5 +1,5 @@
 #include "constants.hpp"
-#include "Log.hpp"
+#include "utils/Log.hpp"
 
 #include <vector>
 #include <stdio.h>
@@ -8,30 +8,20 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include "gl.h"
+#include "sdl_gl.hpp"
 
-#include "GUI.hpp"
-#include "Debug.hpp"
+#include "GUI/GUI.hpp"
+#include "utils/Debug.hpp"
 #include "loadData.hpp"
 
-#include "update.hpp"
-#include "Debug.hpp"
+#include "Game.hpp"
+#include "utils/Debug.hpp"
 #include "GameSave/main.hpp"
 #include "sdl.hpp"
 
 #ifdef DEBUG
     //#include "Testing.hpp"
 #endif
-
-void setDebugSettings(DebugClass& debug) {
-    // shorten name for easier typing while keeping default settings
-    DebugSettings& ds = debug.settings;
-
-    ds.drawChunkBorders = false;
-    ds.drawChunkCoordinates = false;
-    ds.drawEntityRects = false;
-    ds.drawEntityIDs = false;
-}
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -105,7 +95,7 @@ void logEntityComponentInfo() {
     }
 
     for (int i = 0; i < NUM_COMPONENTS; i++) {
-        Log("ID: %d, Component: %s.", i, &componentsList[i * 256]);
+        //Log("ID: %d, Component: %s.", i, &componentsList[i * 256]);
         componentNames[i] = &componentsList[i * 256];
     }
 }
@@ -120,6 +110,8 @@ void initLogging() {
 void initPaths() {
     char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
 
+    char* basePath = SDL_GetBasePath();
+
     pid_t pid = getpid();
     int ret = proc_pidpath(pid, pathbuf, sizeof(pathbuf));
     if (ret <= 0) {
@@ -127,26 +119,28 @@ void initPaths() {
         fprintf(stderr, "    %s\n", strerror(errno));
         printf("Error: Failed to get pid path!\n");
     } else {
-        int pathlen = strlen(pathbuf);
+        #define LOG printf
 
-        char pathToTop[512];
-        size_t pathToTopSize = pathlen - sizeof("build/faketorio");
-        memcpy(pathToTop, pathbuf, pathToTopSize);
-        pathToTop[pathToTopSize] = '\0';
-        printf("path to top: %s\n", pathToTop);
-        strcpy(FilePaths::assets, str_add(pathToTop, "/assets/"));
-        strcpy(FilePaths::shaders, str_add(pathToTop, "/src/Rendering/shaders/"));
-        strcpy(FilePaths::save, str_add(pathToTop, "/save/"));
+        char upperPath[512]; strcpy(upperPath, pathbuf);
+        upperPath[std::string(pathbuf).find_last_of('/')] = '\0';
+
+        auto filePrefix = str_add(upperPath, "/resources/");
+        strcpy(FilePaths::base, filePrefix);
+        strcpy(FilePaths::assets, str_add(filePrefix, "assets/"));
+        strcpy(FilePaths::shaders, str_add(filePrefix, "shaders/"));
+        strcpy(FilePaths::save, str_add(filePrefix, "save/"));
+
+        LOG("Assets path: %s\n", FilePaths::assets);
+        LOG("Shaders path: %s\n", FilePaths::shaders);
     }
+
+    LOG("Path to executable: %s\n", pathbuf);
+    LOG("Base path: %s\n", basePath);
 }
 
 int main(int argc, char** argv) {
     initPaths();
     initLogging();
-
-    DebugClass debug;
-    setDebugSettings(debug);
-    Debug = &debug;
 
     Log.useEscapeCodes = true;
     for (int i = 0; i < argc; i++) {
@@ -157,7 +151,7 @@ int main(int argc, char** argv) {
 
     SDLContext sdlCtx = initSDL();
 
-    logEntitySystemInfo();
+    //logEntitySystemInfo();
     logEntityComponentInfo();
 
     int screenWidth,screenHeight;

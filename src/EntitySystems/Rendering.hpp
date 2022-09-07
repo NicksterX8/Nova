@@ -6,9 +6,9 @@
 #include "../ECS/EntitySystem.hpp"
 #include "../ECS/Query.hpp"
 #include "../ECS/ECS.hpp"
-#include "../Log.hpp"
+#include "../utils/Log.hpp"
 #include "../Rendering/Drawing.hpp"
-#include "../Debug.hpp"
+#include "../utils/Debug.hpp"
 #include "../constants.hpp"
 
 //using ECS::EntitySystem;
@@ -110,7 +110,7 @@ public:
         glBufferData(GL_ARRAY_BUFFER, bufferSize, NULL, GL_STREAM_DRAW);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesPerBatch * sizeof(GLuint), NULL, GL_STATIC_DRAW);
- checkOpenGLErrors();
+ 
         // position
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
         glEnableVertexAttribArray(0);
@@ -120,7 +120,7 @@ public:
         // rotation
         glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 1 * sizeof(GLfloat), (void*)(((size_t)positionEntityVertexSize + texCoordEntityVertexSize) * entitiesPerBatch));
         glEnableVertexAttribArray(2);
- checkOpenGLErrors();
+ 
         glBindVertexArray(0);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
@@ -166,7 +166,7 @@ public:
         GLfloat* vertexBuffer = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
         if (!vertexBuffer) {
             Log.Error("Oh no a bunch more bad stuff happened!");
-            checkOpenGLErrors();
+            
             return {NULL,NULL,NULL};
         }
         VertexDataArrays buffer;
@@ -195,7 +195,7 @@ public:
         };
 
         glBindBuffer(GL_ARRAY_BUFFER, model.VBO);
-        checkOpenGLErrors();
+        
 
         VertexDataArrays buffer = mapVertexBuffer();
 

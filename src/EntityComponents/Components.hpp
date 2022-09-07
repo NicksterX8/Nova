@@ -5,7 +5,7 @@
 #include "../NC/cpp-vectors.hpp"
 #include "../Items.hpp"
 #include "../SECS/ECS.hpp"
-#include "../EntityPrototype.hpp"
+#include "../SECS/EntityPrototype.hpp"
 
 struct ArrayView {
     const void* data;

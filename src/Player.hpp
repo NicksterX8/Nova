@@ -34,8 +34,8 @@ struct Player {
 
     Player() {}
 
-    Player(EntityWorld* ecs) : ecs(ecs) {
-        entity = Entities::Player(ecs, Vec2(0.0, 0.0));
+    Player(EntityWorld* ecs, Vec2 startPosition) : ecs(ecs) {
+        entity = Entities::Player(ecs, startPosition);
     }
 
     Vec2 getSize() const {

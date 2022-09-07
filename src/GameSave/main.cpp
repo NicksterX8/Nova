@@ -3,7 +3,7 @@
 #include "GameSave.hpp"
 #include "Chunks.hpp"
 #include "../GameState.hpp"
-#include "../Log.hpp"
+#include "../utils/Log.hpp"
 #include <map>
 
 namespace GameSave {

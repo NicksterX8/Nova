@@ -4,17 +4,16 @@
 #include <vector>
 
 #include <SDL2/SDL.h>
-#include "../gl.h"
-#include "../GameViewport.hpp"
+#include "../sdl_gl.hpp"
 #include "../GameState.hpp"
 #include "../Tiles.hpp"
-#include "../Metadata.hpp"
+#include "../utils/Metadata.hpp"
 #include "../Textures.hpp"
-#include "../Debug.hpp"
-#include "../GUI.hpp"
+#include "../utils/Debug.hpp"
+#include "../GUI/GUI.hpp"
 #include "../NC/colors.h"
 #include "../SDL2_gfx/SDL2_gfxPrimitives.h"
-#include "../Log.hpp"
+#include "../utils/Log.hpp"
 
 #include "Drawing.hpp"
 #include "../EntitySystems/Rendering.hpp"
@@ -23,8 +22,6 @@
 #include "utils.hpp"
 
 #include <glm/vec2.hpp>
-
-SDL_Texture* screenTexture = NULL;
 
 /*
 int drawWorld(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, GameState* state) {
@@ -317,7 +314,7 @@ int loadShaders(RenderContext& ren) {
     ren.entityShader = loadShader("entity");
     ren.tilemapShader = loadShader("tilemap");
     ren.pointShader = loadShader("point");
-    ren.quadShader = loadShader("quad");
+    ren.colorShader = loadShader("color");
     
     return 0;
 }
@@ -371,6 +368,39 @@ void renderQuit(RenderContext& ren) {
     glDeleteTextures(1, &ren.textureArray);
 }
 
+std::vector<Draw::ColorVertex>* makeDemoQuads(SDL_Window* window) {
+    int drawableWidth,drawableHeight;
+    SDL_GL_GetDrawableSize(window, &drawableWidth, &drawableHeight);
+
+    std::vector<Draw::ColorVertex>& quadPoints = *new std::vector<Draw::ColorVertex>{
+        {{200, 100, 0.5}, {0, 1, 0, 1}},
+        {{200, 200, 0.5}, {0, 1, 0, 1}},
+        {{400, 200, 0.5}, {0, 1, 0, 1}},
+        {{400, 100, 0.5}, {0, 1, 0, 1}},
+        
+        {{0, drawableHeight, 0.6}, {1, 0, 1, 1}},
+        {{50, drawableHeight, 0.6}, {0, 1, 1, 1}},
+        {{50, drawableHeight-50, 0.6}, {1, 1, 0, 1}},
+        {{0, drawableHeight-50, 0.6}, {0, 1, 0, 1}},
+
+        {{2, 1, 0.5}, {0, 1, 0, 1}},
+        {{2, 2, 0.5}, {0, 1, 1, 1}},
+        {{4, 2, 0.5}, {1, 1, 0, 1}},
+        {{4, 1, 0.5}, {0, 1, 0, 1}}
+    };
+
+    for (int i = 0; i < 500; i++) {
+        Vec2 min = {randomInt(-100, 100), randomInt(-100, 100)};
+        Vec2 max = min + Vec2{randomInt(1, 3), randomInt(1, 3)};
+        quadPoints.push_back({glm::vec3(min.x, min.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
+        quadPoints.push_back({glm::vec3(min.x, max.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
+        quadPoints.push_back({glm::vec3(max.x, max.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
+        quadPoints.push_back({glm::vec3(max.x, min.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
+    }
+
+    return &quadPoints;
+}
+
 void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera& camera, Vec2 playerTargetPos) {
     /* Start Rendering */
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -407,6 +437,9 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
         }
     }
 
+    int numRenderedTiles = numRenderedChunks * CHUNKSIZE*CHUNKSIZE;
+    Log.Info("num rendered tiles: %d", numRenderedTiles);
+
     static RenderSystem renderSystem = RenderSystem();
     renderSystem.Update(state->ecs, state->chunkmap, ren, camera);
 
@@ -419,28 +452,34 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
     points.push_back({glm::vec3(r3.x - 1, r3.y - 1, 0.0f), {0, 1, 0, 1}, 8.0f});
     points.push_back({glm::vec3(getMouseWorldPosition(camera), 0.0f), {0, 1, 1, 1}, 9.0f});
 
+    static Draw::ColorQuadRenderBuffer quadRenderer = Draw::ColorQuadRenderBuffer();
+    static auto& quadPoints = *makeDemoQuads(ren.window);
+
+    int drawableWidth,drawableHeight;
+    SDL_GL_GetDrawableSize(ren.window, &drawableWidth, &drawableHeight);
+
+    glm::mat4 quadTransform;
+    glm::mat4 screenTransform = glm::ortho(0.0f, (float)drawableWidth, 0.0f, (float)drawableHeight);
+    if (Debug->settings.drawChunkBorders) {
+        quadTransform = screenTransform;
+    } else {
+        quadTransform = camTransform;
+    }
+
+    ren.colorShader.use();
+    ren.colorShader.setMat4("transform", quadTransform);
+
     // only need blending for points and stuff, not entities or tilemap
     glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
     glDisable(GL_DEPTH_TEST);
 
     ren.pointShader.use();
     ren.pointShader.setMat4("transform", camTransform);
     Draw::coloredPoints(points.size(), &points[0]);
-
-    ren.quadShader.use();
-    ren.quadShader.setMat4("transform", camTransform);
-    std::vector<Draw::ColorVertex> quadPoints{
-        {{0, 0, 0.5}, {0, 1, 0, 1}},
-        {{1, 0, 0.5}, {0, 1, 0, 1}},
-        {{1, 1, 0.5}, {0, 1, 0, 1}},
-        {{0, 1, 0.5}, {0, 1, 0, 1}},
-        
-        {{0, 0, 0.6}, {1, 0, 1, 1}},
-        {{0.8, 0, 0.6}, {0, 1, 1, 1}},
-        {{0.8, 0.8, 0.6}, {1, 1, 0, 1}},
-        {{0, 0.8, 0.6}, {0, 1, 0, 1}}
-    };
-    Draw::coloredQuads(quadPoints.size() / 4, &quadPoints[0]);
+    
+    if (Debug->settings.drawEntityRects)
+        Draw::coloredQuads(quadRenderer, quadPoints.size() / 4, &quadPoints[0]);
 
     glm::vec3 linePoints[] = {
         {-1, -1, 0},
@@ -452,7 +491,26 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
     GLfloat lineWidths[] = {
         0.01f
     };
-    Draw::lines(1, linePoints, lineColors, lineWidths);
+    Draw::thickLines(quadRenderer, 1, linePoints, lineColors, lineWidths);
+
+    Draw::chunkBorders(quadRenderer, camera, {1, 0, 0, 1}, 4.0f, 0.5f);
+
+    quadRenderer.flush();
+
+    ren.colorShader.setMat4("transform", screenTransform);
+
+    SDL_FRect quadRect = {
+        30, 30,
+        400, 400
+    };
+
+    Draw::ColorQuadRenderBuffer::UniformQuad2D quadVerts = {
+        {{quadRect.x, quadRect.y}, {quadRect.x+quadRect.w, quadRect.y}, {quadRect.x+quadRect.w, quadRect.y+quadRect.h}, {quadRect.x, quadRect.y+quadRect.h}},
+        {0.5, 0.5, 0.5, 0.8}
+    };
+    quadRenderer.bufferUniform(1, &quadVerts, 1.0f);
+
+    quadRenderer.flush();
 
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);

@@ -1,6 +1,6 @@
 #include "Textures.hpp"
-#include "gl.h"
-#include "Log.hpp"
+#include "sdl_gl.hpp"
+#include "utils/Log.hpp"
 
 void flipSurface(SDL_Surface* surface) {
     SDL_LockSurface(surface);
@@ -139,6 +139,7 @@ TextureDataStruct TextureData[TextureIDs::NumTextures];
 
 unsigned int makeTextureArray(const char* assetsPath) {
     unsigned int depth = TextureIDs::NumTextures;
+    int fail = 0;
 
     SDL_Surface* images[TextureIDs::NumTextures];
     for (unsigned int i = 0; i < depth; i++) {
@@ -156,6 +157,7 @@ unsigned int makeTextureArray(const char* assetsPath) {
             Log.Error("Failed to load image for texture array (path: %s)", path);
             TextureData[textureID].width = 0;
             TextureData[textureID].height = 0;
+            fail = 1;
             continue;
         }
         TextureData[textureID].width = images[i]->w;
@@ -174,12 +176,13 @@ unsigned int makeTextureArray(const char* assetsPath) {
                     printf("Error: Failed to convert surface to proper format!\n");
                 }
             }
-        } else {
-            printf("Failed to load image %d!\n", i);
         }
     }
 
-    unsigned int textureArray = createTextureArray(MY_TEXTURE_ARRAY_WIDTH, MY_TEXTURE_ARRAY_HEIGHT, depth, images);
+    GLuint textureArray = 0;
+    if (!fail) {
+        textureArray = createTextureArray(MY_TEXTURE_ARRAY_WIDTH, MY_TEXTURE_ARRAY_HEIGHT, depth, images);
+    }
     // images can be freed after being loaded into texture array
     for (unsigned int i = 0; i < depth; i++) {
         SDL_FreeSurface(images[i]);

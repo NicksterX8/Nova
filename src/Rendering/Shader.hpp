@@ -6,13 +6,13 @@
 #include <sstream>
 #include <iostream>
 
-#include "../gl.h"
+#include "../sdl_gl.hpp"
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "../Log.hpp"
+#include "../utils/Log.hpp"
 
 struct Shader {
-    unsigned int id;
+    GLuint id;
 
     Shader() : id(0) {}
 
@@ -29,6 +29,7 @@ struct Shader {
         fShaderFile.open(fragmentPath);
         if (!vShaderFile) {
             Log.Error("Failed to open vertex shader for reading. Path: %s", vertexPath);
+            Log.Error("str error: %s", strerror(errno));
             return;
         }
         if (!fShaderFile) {
@@ -99,8 +100,12 @@ struct Shader {
         glUniform1f(glGetUniformLocation(id, name), value); 
     }
 
-    void setVec3(const char* name, float x, float y, float z) {
-        glUniform3f(glGetUniformLocation(id, name), x, y, z);
+    void setVec3(const char* name, glm::vec3 vec3) {
+        glUniform3f(glGetUniformLocation(id, name), vec3.x, vec3.y, vec3.z);
+    }
+
+    void setVec2(const char* name, glm::vec2 vec2) {
+        glUniform2f(glGetUniformLocation(id, name), vec2.x, vec2.y);
     }
 
     void setMat4(const char* name, const glm::mat4& mat4) {

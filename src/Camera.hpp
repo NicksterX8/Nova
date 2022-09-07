@@ -45,16 +45,25 @@ struct Camera {
     }
 
     glm::vec2 pixelToWorld(glm::vec2 pixel) const {
-        pixel.y = pixelHeight - pixel.y;
-        glm::vec2 scaled = {(pixel.x - pixelWidth/2.0f) / scale() * 2, (pixel.y - pixelHeight/2.0f) / scale() * 2};
+        /*
+
+        */
+        glm::vec2 scaled = {(pixel.x - pixelWidth/2.0f) / scale() * 2, -(pixel.y - pixelHeight/2.0f) / scale() * 2};
         float s = sin(glm::radians(rotation));
         float c = cos(glm::radians(rotation));
-        auto rotated = glm::vec2(scaled.x * c - scaled.y * s, scaled.x * s + scaled.y * c);
-        return glm::vec2(position.x, position.y) + rotated;
+        glm::vec2 rotated = {scaled.x * c - scaled.y * s, scaled.x * s + scaled.y * c};
+        return rotated + glm::vec2(position);
     }
 
     glm::vec2 pixelToWorld(int x, int y) const {
         return pixelToWorld({x, y});
+    }
+
+    glm::vec2 worldToPixel(glm::vec2 worldPos) const {
+        glm::vec2 delta = worldPos - glm::vec2(position);
+        // TODO: do rotation
+        glm::vec2 scaled = delta * scale() / 2.0f;
+        return scaled + glm::vec2(position);
     }
 
     glm::vec2 minCorner() const {
@@ -62,14 +71,11 @@ struct Camera {
     }
 
     glm::vec2 maxCorner() const {
-        /*
+        glm::vec2 scaled = {viewWidth(), viewHeight()};
         float s = sin(glm::radians(rotation));
         float c = cos(glm::radians(rotation));
-        auto p = glm::vec2(position.x + viewWidth(), position.y + viewHeight());
-        auto rotated = glm::vec2(p.x * c - p.y * s, p.x * s + p.y * c);
-        return rotated;
-        */
-        return pixelToWorld({pixelWidth, 0});
+        auto rotated = glm::vec2(scaled.x * c - scaled.y * s, scaled.x * s + scaled.y * c);
+        return glm::vec2(position.x, position.y) + rotated;
     }
 
     glm::mat4 getTransformMatrix() const {

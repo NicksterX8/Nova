@@ -6,8 +6,8 @@
 #include "constants.hpp"
 #include "global.h"
 #include "utils/MyString.h"
-#include "gl.h"
-#include "Log.hpp"
+#include "sdl_gl.hpp"
+#include "utils/Log.hpp"
 
 #define WINDOW_HIGH_DPI 1
 
@@ -18,15 +18,21 @@ typedef struct SDLContext {
 } SDLContext;
 
 inline SDLContext initSDL() {
-    NC_SDLSettings settings = NC_DefaultSDLSettings;
-    settings.vsync = true;
-    settings.windowTitle = WINDOW_TITLE;
-    settings.windowIconPath = str_add(FilePaths::assets, "bad-factorio-logo.png");
-    settings.windowWidth = 1000;
-    settings.windowHeight = 800;
+    bool vsync = true;
+    const char* windowTitle = WINDOW_TITLE;
+    auto windowIconPath = str_add(FilePaths::assets, "bad-factorio-logo.png");
+
+    SDL_Rect windowRect = {
+        0, 0,
+        800, 800
+    };
+
+    bool allowHighDPI = false;
+#ifdef WINDOW_HIGH_DPI
     if (WINDOW_HIGH_DPI) {
-        settings.allowHighDPI = true;
+        allowHighDPI = true;
     }
+#endif
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_TIMER)) {
         Log.Error("Failed initializing SDL. MSG: %s", SDL_GetError());
@@ -36,20 +42,12 @@ inline SDLContext initSDL() {
 
     SDLContext context;
 
-    const char* windowTitle = settings.windowTitle;
-    if (!settings.windowTitle) {
-        Log.Error("Window title setting is null.");
-        windowTitle = "NULL";
-    }
-
-    //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-
     int winFlags = SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL;
-    winFlags |= (SDL_WINDOW_ALLOW_HIGHDPI * settings.allowHighDPI);
+    winFlags |= (SDL_WINDOW_ALLOW_HIGHDPI * allowHighDPI);
     context.win = SDL_CreateWindow(
         windowTitle,
-        settings.windowX, settings.windowY,
-        settings.windowWidth, settings.windowHeight,
+        windowRect.x, windowRect.y,
+        windowRect.w, windowRect.h,
         winFlags
     );
 
@@ -74,8 +72,8 @@ inline SDLContext initSDL() {
 
     /* set window icon */
     SDL_Surface* iconSurface = NULL;
-    if (settings.windowIconPath) {
-        iconSurface = IMG_Load(settings.windowIconPath);
+    if (windowIconPath) {
+        iconSurface = IMG_Load(windowIconPath);
     } else {
         SDL_Log("No window icon path set when initializing SDL. Defaulting to SDL logo.");
         iconSurface = SDL_CreateRGBSurfaceFrom(
@@ -86,7 +84,7 @@ inline SDLContext initSDL() {
         );
     }
     if (!iconSurface) {
-        SDL_Log("Error creating window icon. Error: %s, Window icon path: %s\n", SDL_GetError(), settings.windowIconPath);
+        SDL_Log("Error creating window icon. Error: %s, Window icon path: %s\n", SDL_GetError(), (char*)windowIconPath);
     } else {
         SDL_SetWindowIcon(context.win, iconSurface);
         SDL_FreeSurface(iconSurface);
@@ -98,7 +96,7 @@ inline SDLContext initSDL() {
     SDL_Log("SDL Window Context initialized.");
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-    if (settings.vsync)
+    if (vsync)
         SDL_GL_SetSwapInterval(1);
     else
         SDL_GL_SetSwapInterval(0); // swap frames immediately
