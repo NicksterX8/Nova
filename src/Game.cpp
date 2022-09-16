@@ -361,6 +361,7 @@ int Game::update() {
 
     SDL_Event event;
     while (SDL_PollEvent(&event) != 0) {
+        static bool enteringText = false;
         switch(event.type) {
             case SDL_QUIT:
                 quit = true;
@@ -384,6 +385,7 @@ int Game::update() {
                 break;
             case SDL_KEYDOWN:
                 switch (event.key.keysym.sym) {
+                
                 case '7':
                     GameSave::save(state);
                     break;
@@ -426,7 +428,7 @@ int Game::update() {
     lastUpdatePlayerTargetPos = playerTargetPos;
 
     if (quit) {
-        Log("Returning from main update loop.");
+        Log(Info, "Returning from main update loop.");
         return 1;
     }
     return 0; 

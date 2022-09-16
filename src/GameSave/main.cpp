@@ -563,14 +563,14 @@ int readEverythingFromFiles(const char* inputSaveFolderPath, GameState* state) {
 
 int save(const GameState* state) {
     int code = writeEverythingToFiles("save/", state);
-    Log("Saved!");
+    Log(Info, "Saved!");
     return code;
 }
 
 int load(GameState* state) {
     int code = readEverythingFromFiles("save/", state);
     state->player.releaseHeldItem();
-    Log("Loaded!");
+    Log(Info, "Loaded!");
     return code;
 }
 

@@ -28,7 +28,7 @@
 #define AT __FILE__ ":" TOSTRING(__LINE__)
 
 void logEntitySystemInfo() {
-    Log("Number of systems: %d", NUM_SYSTEMS);
+    Log(Info, "Number of systems: %d", NUM_SYSTEMS);
     const char* systemsStr = TOSTRING((SYSTEMS));
     int length = strlen(systemsStr);
     char systemsStr2[length];
@@ -58,7 +58,7 @@ void logEntitySystemInfo() {
     }
 
     for (int i = 0; i < NUM_SYSTEMS; i++) {
-        Log("ID: %d, System: %s.", i, systemsList[i]);
+        Log(Info, "ID: %d, System: %s.", i, systemsList[i]);
     }
 }
 
@@ -103,9 +103,11 @@ void logEntityComponentInfo() {
 void initLogging() {
     Log.init(str_add(FilePaths::save, "log.txt"));
     SDL_LogSetOutputFunction(Logger::logOutputFunction, &Log);
-    SDL_LogSetAllPriority(SDL_LOG_PRIORITY_WARN);
-    SDL_LogSetPriority(LOG_CATEGORY_MAIN, SDL_LOG_PRIORITY_INFO);
+    SDL_LogSetAllPriority(SDL_LOG_PRIORITY_ERROR);
+    SDL_LogSetPriority(LogCategory::Main, SDL_LOG_PRIORITY_INFO);
 }
+
+#define LOG(...) printf(__VA_ARGS__)
 
 void initPaths() {
     char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
@@ -119,7 +121,6 @@ void initPaths() {
         fprintf(stderr, "    %s\n", strerror(errno));
         printf("Error: Failed to get pid path!\n");
     } else {
-        #define LOG printf
 
         char upperPath[512]; strcpy(upperPath, pathbuf);
         upperPath[std::string(pathbuf).find_last_of('/')] = '\0';
@@ -139,15 +140,19 @@ void initPaths() {
 }
 
 int main(int argc, char** argv) {
-    initPaths();
-    initLogging();
-
     Log.useEscapeCodes = true;
-    for (int i = 0; i < argc; i++) {
+    for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--no-color-codes") == 0) {
             Log.useEscapeCodes = false;
         }
     }
+
+    initPaths();
+    initLogging();
+
+    Log(Critical, "ayo bud. my name is %s and im %d years old\n", "nick", 12);
+
+    printf("argv[0]: %s\n", argv[0]);
 
     SDLContext sdlCtx = initSDL();
 

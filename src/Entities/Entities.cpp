@@ -17,7 +17,7 @@ namespace Entities {
 
     Explosive Airstrike(EntityWorld* ecs, Vec2 position, Vec2 size, Vec2 target) {
         Explosive airstrike = Explosive(ecs, position, size, TextureIDs::Grenade, airstrikeExplosion);
-        throwEntity(ecs, airstrike, target, 2.0f);
+        throwEntity(ecs, airstrike, target, 0.2f);
         return airstrike;
     }
 

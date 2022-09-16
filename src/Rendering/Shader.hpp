@@ -11,6 +11,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "../utils/Log.hpp"
 
+extern GLuint usedShader;
+
 struct Shader {
     GLuint id;
 
@@ -18,64 +20,18 @@ struct Shader {
 
     // constructor generates the shader on the fly
     // ------------------------------------------------------------------------
-    Shader(const char* vertexPath, const char* fragmentPath) {
-        // 1. retrieve the vertex/fragment source code from filePath
-        std::string vertexCode;
-        std::string fragmentCode;
-        std::ifstream vShaderFile;
-        std::ifstream fShaderFile;
-        // open files
-        vShaderFile.open(vertexPath);
-        fShaderFile.open(fragmentPath);
-        if (!vShaderFile) {
-            Log.Error("Failed to open vertex shader for reading. Path: %s", vertexPath);
-            Log.Error("str error: %s", strerror(errno));
-            return;
-        }
-        if (!fShaderFile) {
-            Log.Error("Failed to open fragment shader for reading. Path: %s", fragmentPath);
-            return;
-        }
+    Shader(const char* vertexPath, const char* fragmentPath);
 
-        std::stringstream vShaderStream, fShaderStream;
-        // read file's buffer contents into streams
-        vShaderStream << vShaderFile.rdbuf();
-        fShaderStream << fShaderFile.rdbuf();
-        // close file handlers
-        vShaderFile.close();
-        fShaderFile.close();
-        // convert stream into string
-        vertexCode   = vShaderStream.str();
-        fragmentCode = fShaderStream.str();
-
-        const char* vShaderCode = vertexCode.c_str();
-        const char* fShaderCode = fragmentCode.c_str();
-        // 2. compile shaders
-        unsigned int vertex, fragment;
-        // vertex shader
-        vertex = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertex, 1, &vShaderCode, NULL);
-        glCompileShader(vertex);
-        checkCompileErrors(vertex, "Vertex");
-        // fragment Shader
-        fragment = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragment, 1, &fShaderCode, NULL);
-        glCompileShader(fragment);
-        checkCompileErrors(fragment, "Fragment");
-        // shader Program
-        id = glCreateProgram();
-        glAttachShader(id, vertex);
-        glAttachShader(id, fragment);
-        glLinkProgram(id);
-        checkCompileErrors(id, "Program");
-        // delete the shaders as they're linked into our program now and are no longer needed
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
-    }
     // activate the shader
     // ------------------------------------------------------------------------
-    void use() { 
-        glUseProgram(id); 
+    void use() const { 
+        // not sure if this check is actually worth doing.
+        // It may depend on the implementation whether it takes a long time to check if a shader program is already being used or not
+        // so it could save time to check ourselves.
+        if (usedShader != id) {
+            glUseProgram(id);
+            usedShader = id;
+        }
     }
 
     void destroy() {
@@ -86,30 +42,40 @@ struct Shader {
         return (id != 0);
     }
 
+    GLint getLoc(const char* name) const;
+
     // utility uniform functions
     // ------------------------------------------------------------------------
-    void setBool(const char* name, bool value) const {         
-        glUniform1i(glGetUniformLocation(id, name), (GLint)value); 
+    void setBool(const char* name, bool value) {         
+        glUniform1i(getLoc(name), (GLint)value); 
     }
     // ------------------------------------------------------------------------
-    void setInt(const char* name, int value) const { 
-        glUniform1i(glGetUniformLocation(id, name), value); 
+    void setInt(const char* name, int value) {
+        glUniform1i(getLoc(name), value); 
     }
     // ------------------------------------------------------------------------
-    void setFloat(const char* name, float value) const { 
-        glUniform1f(glGetUniformLocation(id, name), value); 
+    void setFloat(const char* name, float value) { 
+        glUniform1f(getLoc(name), value); 
     }
 
     void setVec3(const char* name, glm::vec3 vec3) {
-        glUniform3f(glGetUniformLocation(id, name), vec3.x, vec3.y, vec3.z);
+        glUniform3f(getLoc(name), vec3.x, vec3.y, vec3.z);
     }
 
     void setVec2(const char* name, glm::vec2 vec2) {
-        glUniform2f(glGetUniformLocation(id, name), vec2.x, vec2.y);
+        glUniform2f(getLoc(name), vec2.x, vec2.y);
     }
 
     void setMat4(const char* name, const glm::mat4& mat4) {
-        glUniformMatrix4fv(glGetUniformLocation(id, name), 1, GL_FALSE, glm::value_ptr(mat4));
+        glUniformMatrix4fv(getLoc(name), 1, GL_FALSE, glm::value_ptr(mat4));
+    }
+
+    // getters
+
+    GLint getInt(const char* name) const {
+        GLint value;
+        glGetUniformiv(id, getLoc(name), &value);
+        return value;
     }
 
 private:

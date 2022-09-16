@@ -108,11 +108,15 @@ public:
     MouseState mouse;
     Vec2 mouseWorldPos;
     std::vector<KeyBinding*> keyBindings;
+    std::vector<std::string> enteredText;
+    bool enteringText;
 
     const Uint8* keyboardState;
 
     PlayerControls(Camera& camera): camera(camera) {
         keyboardState = SDL_GetKeyboardState(NULL);
+        enteringText = false;
+        enteredText.push_back(std::string());
     }
 
     ~PlayerControls() {
@@ -260,7 +264,7 @@ public:
                     OptionalEntity<> selectedEntity = state->player.selectedEntity;
                     if (selectedEntity.Has<EC::Render, EC::EntityTypeEC>(&state->ecs)) {
                         const char* name = selectedEntity.Get<EC::EntityTypeEC>(&state->ecs)->name;
-                        Log("name: %s", name);
+                        Log(Info, "name: %s", name);
                     }
                     if (selectedEntity.Has<EC::Grabable, EC::ItemStack>(&state->ecs)) {
                         ItemStack itemGrabbed = selectedEntity.Get<EC::ItemStack>(&state->ecs)->item;
@@ -276,7 +280,7 @@ public:
 
                 auto tileEntity = findTileEntityAtPosition(state, worldPos);
                 if (tileEntity.Exists(&state->ecs)) {
-                    Log("Removing entity at %d,%d", (int)floor(worldPos.x), (int)floor(worldPos.y));
+                    Log(Info, "Removing entity at %d,%d", (int)floor(worldPos.x), (int)floor(worldPos.y));
                         removeEntityOnTile(&state->ecs, selectedTile);
                 }
 
@@ -294,7 +298,8 @@ public:
     }
 
     void handleKeydown(const SDL_KeyboardEvent& event, GameState* state) {
-        switch (event.keysym.sym) {
+        const SDL_Keycode keycode = event.keysym.sym;
+        switch (keycode) {
             case 'e': {
                 auto tileEntity = findTileEntityAtPosition(state, mouseWorldPos);
                 if (tileEntity != NullEntity) {
@@ -334,6 +339,9 @@ public:
             case SDLK_SPACE: {
 
             break;}
+            case '[':
+                enteringText = !enteringText;
+            break;
             default:
                 break;
         }
@@ -342,6 +350,25 @@ public:
             if (event.keysym.sym == i + '0') {
                 state->player.selectHotbarSlot(i - 1);
             }
+        }
+
+        if (enteringText) {
+            if (keycode == SDLK_RETURN || keycode == SDLK_RETURN2) {
+                enteredText.push_back(std::string());
+            }
+            else if (keycode < 256) {
+                char enteredChar = static_cast<char>(event.keysym.sym);
+                char enteredString[2] = {enteredChar, '\0'};
+
+                enteredText.back().append(enteredString);
+            }
+
+            Log.Info("entered text:");
+            for (auto& str : enteredText) {
+                Log(Debug, "%s", str.c_str());
+                Log(Info, "%s", str.c_str());
+            }
+            
         }
     }
 

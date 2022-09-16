@@ -126,7 +126,7 @@ void loadItemData() {
         .stackSize = 1,
         .usable = {
             .onUse = [](){
-                Log("Hello from on use");
+                Log(Info, "Hello from on use");
                 return true;
             }
         }

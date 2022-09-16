@@ -23,6 +23,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/nick/Faketorio/src/Items.cpp" "CMakeFiles/faketorio.dir/src/Items.cpp.o" "gcc" "CMakeFiles/faketorio.dir/src/Items.cpp.o.d"
   "/Users/nick/Faketorio/src/PlayerControls.cpp" "CMakeFiles/faketorio.dir/src/PlayerControls.cpp.o" "gcc" "CMakeFiles/faketorio.dir/src/PlayerControls.cpp.o.d"
   "/Users/nick/Faketorio/src/Rendering/Drawing.cpp" "CMakeFiles/faketorio.dir/src/Rendering/Drawing.cpp.o" "gcc" "CMakeFiles/faketorio.dir/src/Rendering/Drawing.cpp.o.d"
+  "/Users/nick/Faketorio/src/Rendering/Shader.cpp" "CMakeFiles/faketorio.dir/src/Rendering/Shader.cpp.o" "gcc" "CMakeFiles/faketorio.dir/src/Rendering/Shader.cpp.o.d"
   "/Users/nick/Faketorio/src/Rendering/utils.cpp" "CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.o" "gcc" "CMakeFiles/faketorio.dir/src/Rendering/utils.cpp.o.d"
   "/Users/nick/Faketorio/src/SECS/ECS.cpp" "CMakeFiles/faketorio.dir/src/SECS/ECS.cpp.o" "gcc" "CMakeFiles/faketorio.dir/src/SECS/ECS.cpp.o.d"
   "/Users/nick/Faketorio/src/Textures.cpp" "CMakeFiles/faketorio.dir/src/Textures.cpp.o" "gcc" "CMakeFiles/faketorio.dir/src/Textures.cpp.o.d"

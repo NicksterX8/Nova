@@ -5,6 +5,28 @@
 #include "Shader.hpp"
 #include "../Camera.hpp"
 
+struct FontFace;
+
+struct vao_vbo_t {
+    GLuint vao;
+    GLuint vbo;
+};
+
+struct vao_vbo_ebo_t {
+    GLuint vao;
+    GLuint vbo;
+    GLuint ebo;
+};
+
+namespace TextureUnits {
+    enum E {
+        MyTextureArray=0,
+        Text=1
+    };
+}
+
+using TextureUnit = TextureUnits::E;
+
 struct ModelData {
     GLuint VBO;
     GLuint EBO;
@@ -26,6 +48,9 @@ struct RenderContext {
     Shader tilemapShader;
     Shader pointShader;
     Shader colorShader;
+    Shader textShader;
+
+    FontFace* font;
 
     ModelData chunkModel;
 

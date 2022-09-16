@@ -1,1 +1,1 @@
-make deploy
+make build_it

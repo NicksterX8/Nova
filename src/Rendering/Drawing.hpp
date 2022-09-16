@@ -200,18 +200,7 @@ namespace Draw {
     static_assert(sizeof(ColorVertex) == sizeof(GLfloat) * 7, "no struct padding");
     static_assert(sizeof(ColoredPoint) == sizeof(GLfloat) * 8, "no struct padding");
 
-    struct buffersVAOVBO {
-        GLuint vao;
-        GLuint vbo;
-    };
-
-    struct buffersVAOVBOEBO {
-        GLuint vao;
-        GLuint vbo;
-        GLuint ebo;
-    };
-
-    inline buffersVAOVBO makePointVertexAttribArray() {
+    inline vao_vbo_t makePointVertexAttribArray() {
         unsigned int vbo,vao;
         glGenBuffers(1, &vbo);
         glGenVertexArrays(1, &vao);

@@ -7,7 +7,6 @@
 
 #define MY_TEXTURE_ARRAY_WIDTH 128
 #define MY_TEXTURE_ARRAY_HEIGHT 128
-#define MY_TEXTURE_ARRAY_UNIT 0
 
 void flipSurface(SDL_Surface* surface);
 

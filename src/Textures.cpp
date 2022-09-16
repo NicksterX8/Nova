@@ -28,7 +28,6 @@ void flipSurface(SDL_Surface* surface) {
 unsigned int loadGLTexture(const char* filepath) {
     unsigned int texture;
     glGenTextures(1, &texture);  
-    glActiveTexture(GL_TEXTURE0 + 1);
     glBindTexture(GL_TEXTURE_2D, texture);
     // set the texture wrapping/filtering options (on the currently bound texture object)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);	
@@ -88,7 +87,7 @@ unsigned int createTextureArray(int width, int height, int depth, SDL_Surface** 
         SDL_Surface* surface = images[i];
         if (surface->w > width || surface->h > height) {
             Log.Error("createTextureArray : Image passed is too large to fit in texture array! image dimensions: %d,%d; texture array dimensions: %d,%d\n", surface->w, surface->h, width, height);
-            return 0;
+            continue;
         }
         SDL_LockSurface(surface);
         glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target is texture array
@@ -113,7 +112,7 @@ int setTextureMetadata() {
     tx[Player] = {"player.png"};
     tx[Inserter] = {"inserter.png"};
     tx[Chest] = {"chest.png"};
-    tx[Grenade] = {"chest.png"};
+    tx[Grenade] = {"grenade.png"};
     tx[Tree] = {"tree.png"};
 
     tx[Tiles::Grass] = {"tiles/GrassTile.png"};

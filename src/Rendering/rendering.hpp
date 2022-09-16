@@ -20,6 +20,7 @@
 #include "Shader.hpp"
 #include "../Camera.hpp"
 #include "utils.hpp"
+#include "text.hpp"
 
 #include <glm/vec2.hpp>
 
@@ -315,20 +316,33 @@ int loadShaders(RenderContext& ren) {
     ren.tilemapShader = loadShader("tilemap");
     ren.pointShader = loadShader("point");
     ren.colorShader = loadShader("color");
+    ren.textShader = loadShader("text");
     
     return 0;
 }
 
 void renderInit(RenderContext& ren) {
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::Text);
+
+    initFreetype();
+    ren.font = new FontFace();
+    *ren.font = loadFontFace(str_add(FilePaths::assets, "fonts/FreeSans.ttf"), 48);
+
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureArray);
+
     loadShaders(ren);
     ren.textureArray = makeTextureArray(FilePaths::assets);
     ren.tilemapShader.use();
-    ren.tilemapShader.setInt("texArray", MY_TEXTURE_ARRAY_UNIT);
+    ren.tilemapShader.setInt("texArray", TextureUnit::MyTextureArray);
     ren.entityShader.use();
-    ren.entityShader.setInt("texArray", MY_TEXTURE_ARRAY_UNIT);
+    ren.entityShader.setInt("texArray", TextureUnit::MyTextureArray);
+    ren.textShader.use();
+    ren.textShader.setInt("text", TextureUnit::Text);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
     glEnable(GL_PROGRAM_POINT_SIZE);
+
+    checkOpenGLErrors();
 
     const VertexAttribute attributes[] = {
         {2, GL_FLOAT, sizeof(GLfloat)},
@@ -354,16 +368,20 @@ void renderInit(RenderContext& ren) {
         chunkIndexBuffer[ind+5] = first+3; 
     }
 
+    checkOpenGLErrors();
+
     glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 
-    glActiveTexture(GL_TEXTURE0 + MY_TEXTURE_ARRAY_UNIT);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, ren.textureArray);
+    checkOpenGLErrors();
 }
 
 void renderQuit(RenderContext& ren) {
+    doneFreetype();
+
     ren.entityShader.destroy();
     ren.tilemapShader.destroy();
     ren.pointShader.destroy();
+    ren.textShader.destroy();
     ren.chunkModel.destroy();
     glDeleteTextures(1, &ren.textureArray);
 }
@@ -402,9 +420,14 @@ std::vector<Draw::ColorVertex>* makeDemoQuads(SDL_Window* window) {
 }
 
 void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera& camera, Vec2 playerTargetPos) {
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureArray);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, ren.textureArray);
+
     /* Start Rendering */
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    checkOpenGLErrors();
 
     auto camTransform = camera.getTransformMatrix();
     ren.tilemapShader.use();
@@ -438,7 +461,7 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
     }
 
     int numRenderedTiles = numRenderedChunks * CHUNKSIZE*CHUNKSIZE;
-    Log.Info("num rendered tiles: %d", numRenderedTiles);
+    //Log.Info("num rendered tiles: %d", numRenderedTiles);
 
     static RenderSystem renderSystem = RenderSystem();
     renderSystem.Update(state->ecs, state->chunkmap, ren, camera);
@@ -474,9 +497,10 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
     glDisable(GL_DEPTH_TEST);
 
-    ren.pointShader.use();
-    ren.pointShader.setMat4("transform", camTransform);
-    Draw::coloredPoints(points.size(), &points[0]);
+    //ren.pointShader.use();
+    //ren.pointShader.setMat4("transform", camTransform);
+    //Draw::coloredPoints(points.size(), &points[0]);
+
     
     if (Debug->settings.drawEntityRects)
         Draw::coloredQuads(quadRenderer, quadPoints.size() / 4, &quadPoints[0]);
@@ -495,15 +519,10 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
 
     Draw::chunkBorders(quadRenderer, camera, {1, 0, 0, 1}, 4.0f, 0.5f);
 
-    quadRenderer.flush();
-
-    ren.colorShader.setMat4("transform", screenTransform);
-
     SDL_FRect quadRect = {
         30, 30,
         400, 400
     };
-
     Draw::ColorQuadRenderBuffer::UniformQuad2D quadVerts = {
         {{quadRect.x, quadRect.y}, {quadRect.x+quadRect.w, quadRect.y}, {quadRect.x+quadRect.w, quadRect.y+quadRect.h}, {quadRect.x, quadRect.y+quadRect.h}},
         {0.5, 0.5, 0.5, 0.8}
@@ -512,10 +531,23 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
 
     quadRenderer.flush();
 
+    checkOpenGLErrors();
+
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::Text);
+
+    ren.textShader.use();
+    ren.textShader.setMat4("transform", screenTransform);
+    ren.textShader.setInt("text", TextureUnit::Text);
+    
+    renderText(ren.textShader, *ren.font, "hello\nworld!\nWhats up guys  \n\n!", glm::vec2{100, 100}, 1.0f, glm::vec3{1, 0, 0});
+    renderText(ren.textShader, *ren.font, "Howdy\tpal!", glm::vec2(drawableWidth/2.0f, drawableHeight/2.0f), 1.5f, glm::vec3(0, 0, 0));
+
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
     
     SDL_GL_SwapWindow(ren.window);
+
+    checkOpenGLErrors();
 }
 
 
