@@ -1,9 +1,6 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-#include <glm/vec2.hpp>
-#include "NC/cpp-vectors.hpp"
-
 #define GLOBAL_FILEPATH_SIZE 1024
 
 namespace FilePaths {

@@ -8,8 +8,7 @@
 #include <SDL2/SDL.h>
 #include "constants.hpp"
 #include "Textures.hpp"
-#include "NC/cpp-vectors.hpp"
-#include "NC/utils.h"
+#include "utils/Vectors.hpp"
 #include "SDL2_gfx/SDL2_gfx.h"
 #include "Tiles.hpp"
 #include "Player.hpp"
@@ -403,7 +402,7 @@ findClosestEntityToPosition(const EntityWorld* ecs, const ChunkMap* chunkmap, Ve
     forEachEntityNearPoint(ecs, chunkmap, position, [&](EntityT<EC::Position> entity){
         Vec2 entityPos = ecs->Get<EC::Position>(entity)->vec2();
         Vec2 delta = entityPos - position;
-        float entityDistSqrd = glm::length(delta);
+        float entityDistSqrd = delta.x*delta.x + delta.y*delta.y;
         if (entityDistSqrd < closestDistSqrd) {
             closestEntity = entity;
             closestDistSqrd = entityDistSqrd;

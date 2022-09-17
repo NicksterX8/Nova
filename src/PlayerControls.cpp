@@ -3,8 +3,8 @@
 MouseState getMouseState() {
     int mouseX,mouseY;
     Uint32 buttons = SDL_GetMouseState(&mouseX,&mouseY);
-    mouseX *= SDLPixelScale;
-    mouseY *= SDLPixelScale;
+    mouseX *= SDL::pixelScale;
+    mouseY *= SDL::pixelScale;
     return {
         mouseX,
         mouseY,

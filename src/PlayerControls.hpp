@@ -3,12 +3,10 @@
 
 #include <vector>
 #include <functional>
-#include "NC/SDLContext.h"
 #include <SDL2/SDL.h>
 #include "GameState.hpp"
 #include "utils/Debug.hpp"
 #include "utils/Metadata.hpp"
-#include "NC/physics.h"
 #include "GUI/GUI.hpp"
 #include "Entities/Entities.hpp"
 #include "Entities/Methods.hpp"
@@ -20,10 +18,10 @@ struct MouseState {
     Uint32 buttons;
 
     void updateState(MouseState* mouseState) {
-        SDL_Point pos = SDLGetMousePixelPosition();
+        SDL_Point pos = SDL::getMousePixelPosition();
         mouseState->x = pos.x;
         mouseState->y = pos.y;
-        mouseState->buttons = SDLGetMouseButtons();
+        mouseState->buttons = SDL::getMouseButtons();
     }
 
     bool leftButtonDown() const {
@@ -203,7 +201,7 @@ public:
     void handleClick(const SDL_MouseButtonEvent& event, GameState* state, const GUI* gui) {
         // mouse event coordinates are reported in pixel points, which are not representative of actual pixels
         // on high DPI displays, so we scale it by the pixel scale to get actual pixels.
-        SDL_Point mousePos = {(int)(event.x * SDLPixelScale), (int)(event.y * SDLPixelScale)};
+        SDL_Point mousePos = {(int)(event.x * SDL::pixelScale), (int)(event.y * SDL::pixelScale)};
         Vec2 worldPos = camera.pixelToWorld(mousePos.x, mousePos.y);
         bool clickInDisplay = SDL_PointInRect(&mousePos, &camera.displayViewport);
         bool clickOnGUI = gui->pointInArea(mousePos);
@@ -407,6 +405,7 @@ public:
         if (sidewaysInput || updownInput) {
             glm::vec2 moveVector = glm::normalize(glm::vec2(sidewaysInput, updownInput));
             float angle = glm::radians(state->player.entity.Get<EC::Rotation>(&state->ecs)->degrees);
+            /* no */ angle = 0.0f;
             glm::vec2 movement = glm::vec2(
                 moveVector.x * cos(angle) - moveVector.y * sin(angle),
                 moveVector.x * sin(angle) + moveVector.y * cos(angle)

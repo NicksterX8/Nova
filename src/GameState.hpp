@@ -9,8 +9,7 @@
 #include <SDL2/SDL.h>
 #include "constants.hpp"
 #include "Textures.hpp"
-#include "NC/cpp-vectors.hpp"
-#include "NC/utils.h"
+#include "utils/Vectors.hpp"
 
 #include "Tiles.hpp"
 #include "Chunks.hpp"

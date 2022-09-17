@@ -5,7 +5,7 @@
 #include "../EntityComponents/Components.hpp"
 #include "../Textures.hpp"
 #include "../SECS/EntityWorld.hpp"
-#include "../NC/cpp-vectors.hpp"
+#include "../utils/Vectors.hpp"
 
 struct EntityNamePrototype {
     std::string name;

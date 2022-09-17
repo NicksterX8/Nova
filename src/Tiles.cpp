@@ -1,6 +1,5 @@
 #include "Tiles.hpp"
 #include "constants.hpp"
-#include "NC/colors.h"
 #include "Textures.hpp"
 #include <SDL2/SDL.h>
 #include "Items.hpp"

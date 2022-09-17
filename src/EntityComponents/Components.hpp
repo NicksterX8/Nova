@@ -2,7 +2,7 @@
 #define COMPONENTS_INCLUDED
 
 #include <SDL2/SDL.h>
-#include "../NC/cpp-vectors.hpp"
+#include "../utils/Vectors.hpp"
 #include "../Items.hpp"
 #include "../SECS/ECS.hpp"
 #include "../SECS/EntityPrototype.hpp"

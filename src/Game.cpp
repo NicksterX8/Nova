@@ -3,7 +3,6 @@
 #include <thread>
 #include <vector>
 
-#include "NC/utils.h"
 #include "utils/Log.hpp"
 #include "utils/Debug.hpp"
 #include "GUI/GUI.hpp"
@@ -18,7 +17,7 @@
 #include "ECS/ECS.hpp"
 
 Vec2 getMouseWorldPosition(const Camera& camera) {
-    SDL_Point pixelPosition = SDLGetMousePixelPosition();
+    SDL_Point pixelPosition = SDL::getMousePixelPosition();
     return camera.pixelToWorld(pixelPosition.x, pixelPosition.y);
 }
 
@@ -28,8 +27,8 @@ static void updateTilePixels(float scale) {
     } else if (scale < 0) {
         scale = -scale;
     }
-    TilePixels = DEFAULT_TILE_PIXEL_SIZE * SDLPixelScale * scale;
-    TileWidth = DEFAULT_TILE_PIXEL_SIZE * SDLPixelScale * scale;
+    TilePixels = DEFAULT_TILE_PIXEL_SIZE * SDL::pixelScale * scale;
+    TileWidth = DEFAULT_TILE_PIXEL_SIZE * SDL::pixelScale * scale;
     TileHeight = TileWidth * TILE_PIXEL_VERTICAL_SCALE;
 }
 
@@ -208,57 +207,7 @@ void playBackCommandBuffer(EntityWorld* ecs, ECS::EntityCommandBuffer* buffer) {
     //}
     //buffer->commands.clear();
 }
-
-template<std::size_t NSystems>
-void runConcurrently(EntityWorld* ecs, std::array<ECS::EntitySystem*, NSystems> systems) {
-    constexpr int N = NSystems;
-
-    static_assert(N > 1, "Can not run one or less systems concurrently!");
-
-    ECS::ComponentAccessType access[NUM_COMPONENTS] = {0};
-    bool fail = false;
-    for (int i = 0; i < N-1; i++) {
-        for (int c = 0; c < NUM_COMPONENTS; c++) {
-           access[c] |= systems[i]->sys.componentAccess[c];
-        }
-
-        if (true) {
-            
-        } else {
-            fail = true;
-            break;
-        }
-    }
-
-#ifdef EMSCRIPTEN
-    fail = true;
-#endif
-
-    if (fail) {
-        Log.Critical("Failed to run group concurrently! Running sequentially.");
-        for (int i = 0; i < N; i++) {
-            systemJob(systems[i]);
-        }
-
-    } else {
-        std::thread threads[N]; 
-        for (int i = 0; i < N; i++) {
-            threads[i] = std::thread(systemJob, systems[i]);
-        }
-        
-        for (int i = 0; i < N; i++) {
-            threads[i].join();
-        }
-    }
-
-    for (int i = 0; i < N; i++) {
-        playBackCommandBuffer(ecs, systems[i]->commandBuffer);
-    }
-
-    return;
-}
 */
-
 /*
 template<class S>
 void runSystem(EntityWorld* ecs) {
@@ -417,12 +366,12 @@ int Game::update() {
     Vec2 focus = state->player.getPosition();
     camera.position.x = focus.x;
     camera.position.y = focus.y;
-    // dont rotate camera cause it doesn't work right now
-    //camera.rotation = state->player.entity.Get<EC::Rotation>(&state->ecs)->degrees;
     camera.baseScale = TilePixels;
     camera.zoom = 1.0f;
 
-    render(*renderContext, sdlCtx.scale, gui, state, camera, playerTargetPos);    
+    float scale = SDL::pixelScale;
+
+    render(*renderContext, scale, gui, state, camera, playerTargetPos);    
 
     lastUpdateMouseState = mouse;
     lastUpdatePlayerTargetPos = playerTargetPos;
@@ -449,11 +398,11 @@ void Game::init(int screenWidth, int screenHeight) {
     setTextureMetadata();
     this->worldScale = 1.0f;
     this->playerControls = new PlayerControls(this->camera);
-    SDL_Point mousePos = SDLGetMousePixelPosition();
+    SDL_Point mousePos = SDL::getMousePixelPosition();
     this->lastUpdateMouseState = {
         .x = mousePos.x,
         .y = mousePos.y,
-        .buttons = SDLGetMouseButtons()
+        .buttons = SDL::getMouseButtons()
     };
 
     setDefaultKeyBindings(*this, playerControls);

@@ -10,7 +10,7 @@
 #include <vector>
 #include <string>
 #include "../constants.hpp"
-#include "../NC/cpp-vectors.hpp"
+#include "../utils/Vectors.hpp"
 #include "../utils/Log.hpp"
 
 #include "Entity.hpp"

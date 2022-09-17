@@ -6,8 +6,6 @@
 #include <SDL2/SDL.h>
 #include <math.h>
 
-#include "NC/SDLContext.h"
-
 #include "constants.hpp"
 #include "Textures.hpp"
 #include "GameState.hpp"

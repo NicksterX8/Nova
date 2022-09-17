@@ -2,7 +2,6 @@
 #define TILES_INCLUDED
 
 #include "constants.hpp"
-#include "NC/colors.h"
 #include "Textures.hpp"
 #include <SDL2/SDL.h>
 #include "Items.hpp"

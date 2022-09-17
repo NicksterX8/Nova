@@ -21,7 +21,7 @@ void loadTileData() {
     }
 
     Data[Empty] = {
-        SDL_WHITE,
+        {255, 255, 255, 255},
         TextureIDs::Null,
         Walkable
     };

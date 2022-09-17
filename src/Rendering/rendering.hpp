@@ -5,13 +5,13 @@
 
 #include <SDL2/SDL.h>
 #include "../sdl_gl.hpp"
+#include "../utils/random.hpp"
 #include "../GameState.hpp"
 #include "../Tiles.hpp"
 #include "../utils/Metadata.hpp"
 #include "../Textures.hpp"
 #include "../utils/Debug.hpp"
 #include "../GUI/GUI.hpp"
-#include "../NC/colors.h"
 #include "../SDL2_gfx/SDL2_gfxPrimitives.h"
 #include "../utils/Log.hpp"
 

@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include "Tiles.hpp"
 #include "constants.hpp"
-#include "NC/cpp-vectors.hpp"
+#include "utils/Vectors.hpp"
 #include "ECS/Entity.hpp"
 
 using ECS::Entity;

@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "../constants.hpp"
-#include "../NC/cpp-vectors.hpp"
+#include "../utils/Vectors.hpp"
 #include "../Textures.hpp"
 #include "../utils/Log.hpp"
 
