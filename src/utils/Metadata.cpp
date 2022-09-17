@@ -1,5 +1,5 @@
 #include "Metadata.hpp"
-#include "constants.hpp"
+#include "../constants.hpp"
 
 MetadataTracker::MetadataTracker(double targetFps, bool vsync) {
     _fps = 0.0;

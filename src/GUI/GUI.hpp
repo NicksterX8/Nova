@@ -1,15 +1,12 @@
 #ifndef GUI_INCLUDED
 #define GUI_INCLUDED
 
+#include "../sdl_gl.hpp"
 #include <vector>
-#include "Items.hpp"
-
-#include <vector>
-#include <SDL2/SDL.h>
-#include "constants.hpp"
-#include "Rendering/Drawing.hpp"
-#include "Player.hpp"
-#include "NC/SDLContext.h"
+#include "../Items.hpp"
+#include "../constants.hpp"
+#include "../Rendering/Drawing.hpp"
+#include "../Player.hpp"
 
 namespace Draw {
     void itemStack(SDL_Renderer* renderer, float scale, ItemStack item, SDL_Rect* destination);

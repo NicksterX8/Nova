@@ -3,7 +3,7 @@
 #include "GameSave.hpp"
 #include "Chunks.hpp"
 #include "../GameState.hpp"
-#include "../Log.hpp"
+#include "../utils/Log.hpp"
 #include <map>
 
 namespace GameSave {
@@ -308,24 +308,6 @@ int readComponentPool(const char* source, ECS::ComponentPool* pool) {
         }
         
         break;}
-
-    case getID<EC::Render>(): {
-        const void* component = components;
-        for (Uint32 i = 0; i < numComponents; i++) {
-            // name| 64, layer| 4
-
-            const char* textureName = static_cast<const char*>(component);
-            component = (const char*)component + 64;
-            auto renderLayer = *static_cast<const int*>(component);
-            component = (const char*)component + sizeof(renderLayer);
-
-            SDL_Texture* texture = Textures.getTextureFromName(textureName);
-
-            EC::Render* render = &static_cast<EC::Render*>(pool->components)[i];
-            *render = EC::Render(texture, renderLayer);
-        }
-
-        break;} 
     default:
         memcpy(pool->components, components, numComponents * pool->componentSize);
         break;
@@ -581,14 +563,14 @@ int readEverythingFromFiles(const char* inputSaveFolderPath, GameState* state) {
 
 int save(const GameState* state) {
     int code = writeEverythingToFiles("save/", state);
-    Log("Saved!");
+    Log(Info, "Saved!");
     return code;
 }
 
 int load(GameState* state) {
     int code = readEverythingFromFiles("save/", state);
     state->player.releaseHeldItem();
-    Log("Loaded!");
+    Log(Info, "Loaded!");
     return code;
 }
 

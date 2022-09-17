@@ -6,16 +6,13 @@
 #include "NC/SDLContext.h"
 #include <SDL2/SDL.h>
 #include "GameState.hpp"
-#include "Debug.hpp"
-#include "Metadata.hpp"
-#include "GameViewport.hpp"
+#include "utils/Debug.hpp"
+#include "utils/Metadata.hpp"
 #include "NC/physics.h"
-#include "GUI.hpp"
+#include "GUI/GUI.hpp"
 #include "Entities/Entities.hpp"
 #include "Entities/Methods.hpp"
-#include "Log.hpp"
-
-struct Context;
+#include "utils/Log.hpp"
 
 struct MouseState {
     int x;
@@ -106,15 +103,20 @@ OptionalEntity<EC::Position, EC::Size, EC::Render>
 findPlayerFocusedEntity(const ComponentManager<EC::Position, const EC::Size, const EC::Render>& ecs, const ChunkMap& chunkmap, Vec2 playerMousePos);
 
 class PlayerControls {
-const GameViewport& gameViewport;
-MouseState mouse;
-Vec2 mouseWorldPos;
-std::vector<KeyBinding*> keyBindings;
 public:
+    Camera& camera;
+    MouseState mouse;
+    Vec2 mouseWorldPos;
+    std::vector<KeyBinding*> keyBindings;
+    std::vector<std::string> enteredText;
+    bool enteringText;
+
     const Uint8* keyboardState;
 
-    PlayerControls(const GameViewport& gameViewport): gameViewport(gameViewport) {
+    PlayerControls(Camera& camera): camera(camera) {
         keyboardState = SDL_GetKeyboardState(NULL);
+        enteringText = false;
+        enteredText.push_back(std::string());
     }
 
     ~PlayerControls() {
@@ -130,7 +132,7 @@ public:
     */
     void updateState() {
         this->mouse = getMouseState();
-        mouseWorldPos = gameViewport.pixelToWorldPosition(mouse.x, mouse.y);
+        mouseWorldPos = camera.pixelToWorld(glm::vec2(mouse.x, mouse.y));
     }
 
     void addKeyBinding(KeyBinding* keyBinding) {
@@ -142,17 +144,17 @@ public:
     }
 
     bool pixelInWorld(int x, int y, const GUI* gui) {
-        Vec2 worldPos = gameViewport.pixelToWorldPosition(x, y);
+        Vec2 worldPos = camera.pixelToWorld(x, y);
         SDL_Point pos = {x, y};
-        bool clickInDisplay = SDL_PointInRect(&pos, &gameViewport.display);
+        bool clickInDisplay = SDL_PointInRect(&pos, &camera.displayViewport);
         bool clickOnGUI = gui->pointInArea(pos);
         bool clickInWorld = clickInDisplay && !clickOnGUI;
         return clickInWorld;
     }
 
     void playerMouseTargetMoved(const MouseState& mouseState, const MouseState& prevMouseState, GameState* state, const GUI* gui) {
-        Vec2 newWorldPos = gameViewport.pixelToWorldPosition(mouseState.x, mouseState.y);
-        Vec2 prevWorldPos = gameViewport.pixelToWorldPosition(prevMouseState.x, prevMouseState.y);
+        Vec2 newWorldPos = camera.pixelToWorld(mouseState.x, mouseState.y);
+        Vec2 prevWorldPos = camera.pixelToWorld(prevMouseState.x, prevMouseState.y);
 
         if (mouseState.buttons & SDL_BUTTON_LMASK) {
             // only do it if the isnt in the gui either currently or previously
@@ -179,8 +181,8 @@ public:
 
     void leftMouseHeld(const MouseState& mouse, GameState* state, const GUI* gui) {
         SDL_Point mousePos = {mouse.x, mouse.y};
-        if (SDL_PointInRect(&mousePos, &gameViewport.display)) {
-            SDL_Point relMousePos = {mousePos.x - gameViewport.display.x, mousePos.y - gameViewport.display.y};
+        if (SDL_PointInRect(&mousePos, &camera.displayViewport)) {
+            SDL_Point relMousePos = {mousePos.x - camera.displayViewport.x, mousePos.y - camera.displayViewport.y};
             if (!gui->pointInArea(relMousePos)) {
                 // do something
             }
@@ -202,16 +204,16 @@ public:
         // mouse event coordinates are reported in pixel points, which are not representative of actual pixels
         // on high DPI displays, so we scale it by the pixel scale to get actual pixels.
         SDL_Point mousePos = {(int)(event.x * SDLPixelScale), (int)(event.y * SDLPixelScale)};
-        Vec2 worldPos = gameViewport.pixelToWorldPosition(mousePos.x, mousePos.y);
-        bool clickInDisplay = SDL_PointInRect(&mousePos, &gameViewport.display);
+        Vec2 worldPos = camera.pixelToWorld(mousePos.x, mousePos.y);
+        bool clickInDisplay = SDL_PointInRect(&mousePos, &camera.displayViewport);
         bool clickOnGUI = gui->pointInArea(mousePos);
         bool clickInWorld = clickInDisplay && !clickOnGUI;
         Tile* selectedTile = getTileAtPosition(state->chunkmap, worldPos);
         if (event.button == SDL_BUTTON_LEFT) {
 
             // make sure mouse is within display viewport
-            //if ((relativeMousePos.x >= 0 && relativeMousePos.x <= gameViewport.display.w) &&
-            //    (relativeMousePos.y >= 0 && relativeMousePos.y <= gameViewport.display.h)) {
+            //if ((relativeMousePos.x >= 0 && relativeMousePos.x <= camera.displayViewport.w) &&
+            //    (relativeMousePos.y >= 0 && relativeMousePos.y <= camera.displayViewport.h)) {
             if (clickInDisplay) {
                 // first check for GUI clicks
                 if (clickOnGUI) {
@@ -262,7 +264,7 @@ public:
                     OptionalEntity<> selectedEntity = state->player.selectedEntity;
                     if (selectedEntity.Has<EC::Render, EC::EntityTypeEC>(&state->ecs)) {
                         const char* name = selectedEntity.Get<EC::EntityTypeEC>(&state->ecs)->name;
-                        Log("name: %s", name);
+                        Log(Info, "name: %s", name);
                     }
                     if (selectedEntity.Has<EC::Grabable, EC::ItemStack>(&state->ecs)) {
                         ItemStack itemGrabbed = selectedEntity.Get<EC::ItemStack>(&state->ecs)->item;
@@ -278,7 +280,7 @@ public:
 
                 auto tileEntity = findTileEntityAtPosition(state, worldPos);
                 if (tileEntity.Exists(&state->ecs)) {
-                    Log("Removing entity at %d,%d", (int)floor(worldPos.x), (int)floor(worldPos.y));
+                    Log(Info, "Removing entity at %d,%d", (int)floor(worldPos.x), (int)floor(worldPos.y));
                         removeEntityOnTile(&state->ecs, selectedTile);
                 }
 
@@ -296,7 +298,8 @@ public:
     }
 
     void handleKeydown(const SDL_KeyboardEvent& event, GameState* state) {
-        switch (event.keysym.sym) {
+        const SDL_Keycode keycode = event.keysym.sym;
+        switch (keycode) {
             case 'e': {
                 auto tileEntity = findTileEntityAtPosition(state, mouseWorldPos);
                 if (tileEntity != NullEntity) {
@@ -314,7 +317,7 @@ public:
                 }
             break;}
             case 'o': {
-                auto belt = Entities::TransportBelt(&state->ecs, mouseWorldPos.vfloor());
+                auto belt = Entities::TransportBelt(&state->ecs, Vec2(floor(mouseWorldPos.x), floor(mouseWorldPos.y)));
                 Entities::tryOccupyTile(belt, &state->chunkmap, &state->ecs);
             break;}
             case 'z': {
@@ -325,9 +328,20 @@ public:
                     auto itemEntity = Entities::ItemStack(&state->ecs, mouseWorldPos, dropStack);
                 }
             break;} 
+            case 'h': {
+                static bool wireframeModeEnabled = false;
+                if (!wireframeModeEnabled)
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                else
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                wireframeModeEnabled ^= 1;
+            break;}
             case SDLK_SPACE: {
 
             break;}
+            case '[':
+                enteringText = !enteringText;
+            break;
             default:
                 break;
         }
@@ -336,6 +350,25 @@ public:
             if (event.keysym.sym == i + '0') {
                 state->player.selectHotbarSlot(i - 1);
             }
+        }
+
+        if (enteringText) {
+            if (keycode == SDLK_RETURN || keycode == SDLK_RETURN2) {
+                enteredText.push_back(std::string());
+            }
+            else if (keycode < 256) {
+                char enteredChar = static_cast<char>(event.keysym.sym);
+                char enteredString[2] = {enteredChar, '\0'};
+
+                enteredText.back().append(enteredString);
+            }
+
+            Log.Info("entered text:");
+            for (auto& str : enteredText) {
+                Log(Debug, "%s", str.c_str());
+                Log(Info, "%s", str.c_str());
+            }
+            
         }
     }
 
@@ -359,8 +392,9 @@ public:
 
     void doPlayerMovementTick(GameState* state) {
         int sidewaysInput = keyboardState[SDL_SCANCODE_D] - keyboardState[SDL_SCANCODE_A];
-        // remember that up is negative and down is positive in the coordinate system
-        int updownInput = keyboardState[SDL_SCANCODE_S] - keyboardState[SDL_SCANCODE_W]; 
+        int updownInput = keyboardState[SDL_SCANCODE_W] - keyboardState[SDL_SCANCODE_S];
+
+        int rotationInput = keyboardState[SDL_SCANCODE_E] - keyboardState[SDL_SCANCODE_Q];
         // might want to move this constant to constants.hpp
         float speed = PLAYER_SPEED;
         if (sidewaysInput && updownInput) {
@@ -370,11 +404,23 @@ public:
         float movementX = sidewaysInput * speed;
         float movementY = updownInput * speed;
 
-        movePlayer(state, Vec2(movementX, movementY));
+        if (sidewaysInput || updownInput) {
+            glm::vec2 moveVector = glm::normalize(glm::vec2(sidewaysInput, updownInput));
+            float angle = glm::radians(state->player.entity.Get<EC::Rotation>(&state->ecs)->degrees);
+            glm::vec2 movement = glm::vec2(
+                moveVector.x * cos(angle) - moveVector.y * sin(angle),
+                moveVector.x * sin(angle) + moveVector.y * cos(angle)
+            ) * PLAYER_SPEED;
+
+            movePlayer(state, {movement.x, movement.y});
+        }
+
+        auto playerRotation = state->player.entity.Get<EC::Rotation>(&state->ecs);
+        playerRotation->degrees += rotationInput * PLAYER_ROTATION_SPEED;
     }
 
-    void update(GameState* state, const GUI* gui, Context* context) {
-        Vec2 aimingPosition = gameViewport.pixelToWorldPosition(mouse.x, mouse.y);
+    void update(GameState* state, const GUI* gui) {
+        Vec2 aimingPosition = camera.pixelToWorld({mouse.x, mouse.y});
 
         if (mouse.leftButtonDown()) {
             leftMouseHeld(mouse, state, gui);
@@ -386,7 +432,7 @@ public:
         if (keyboardState[SDL_SCANCODE_G]) {
             Tile* selectedTile = getTileAtPosition(state->chunkmap, aimingPosition);
             if (selectedTile->entity.Exists(&state->ecs)) {
-                Entity chest = Entities::Chest(&state->ecs, aimingPosition.vfloor(), 32, 1, 1);
+                Entity chest = Entities::Chest(&state->ecs, {floor(aimingPosition.x), floor(aimingPosition.y)}, 32, 1, 1);
                 placeEntityOnTile(&state->ecs, selectedTile, chest);
             }
             

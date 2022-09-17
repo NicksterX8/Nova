@@ -1,22 +1,24 @@
 #include "Log.hpp"
 
-void Logger::logOutputFunction(int category, SDL_LogPriority priority, const char *message) const {
+void Logger::logOutputFunction(LogCategory category, LogPriority priority, const char *message) const {
     const char* fg = "";
     const char* prefix = "";
+    char end = '\n';
     const char* effect = "";
     switch (priority) {
-    case SDL_LOG_PRIORITY_DEBUG:
+    using namespace LogPriorities;
+    case Debug:
         fg = "33";
         break;
-    case SDL_LOG_PRIORITY_INFO:
+    case LogPriority::Info:
         fg = "";
         break;
-    case SDL_LOG_PRIORITY_ERROR:
+    case LogPriority::Error:
         prefix = "ERROR: ";
         fg = "31";
         effect = "1";
         break;
-    case SDL_LOG_PRIORITY_CRITICAL:
+    case LogPriority::Critical:
         prefix = "CRITICAL: ";
         fg = "91";
         effect = "1";
@@ -32,16 +34,17 @@ void Logger::logOutputFunction(int category, SDL_LogPriority priority, const cha
 
     char consoleMessage[messageLength + 128];
     if (useEscapeCodes)
-        sprintf(consoleMessage, "\033[%s;0;%sm%s\033[0m\n", effect, fg, text);
+        sprintf(consoleMessage, "\033[%s;0;%sm%s\033[0m%c", effect, fg, text, end);
     else
-        sprintf(consoleMessage, "%s\n", text);
+        sprintf(consoleMessage, "%s%c", text, end);
 
     switch (category) {
-    case LOG_CATEGORY_MAIN:
+    using namespace LogCategories;
+    case Main:
         printf("%s", consoleMessage);
         break;
-    case LOG_CATEGORY_TEST:
-        //printf("test message");
+    case Test:
+        printf("test message\n");
         break;
     default:
         printf("%s", consoleMessage);
@@ -58,7 +61,17 @@ void Logger::logOutputFunction(int category, SDL_LogPriority priority, const cha
 
 void Logger::logOutputFunction(void* arg, int category, SDL_LogPriority priority, const char *message) {
     Logger* logger = static_cast<Logger*>(arg);
-    logger->logOutputFunction(category, priority, message);
+    logger->logOutputFunction((LogCategory)category, (LogPriority)priority, message);
 }
 
 Logger Log;
+
+void logAt(const char* file, int line, LogCategory category, LogPriority priority, const char* fmt, ...) {
+    va_list ap;
+    char message[MAX_LOG_MESSAGE_LENGTH];
+
+    va_start(ap, fmt);
+    vsnprintf(message, MAX_LOG_MESSAGE_LENGTH, fmt, ap);
+    SDL_LogMessage((SDL_LogCategory)category, (SDL_LogPriority)priority, "%s:%d - %s", file, line, message);
+    va_end(ap);
+}

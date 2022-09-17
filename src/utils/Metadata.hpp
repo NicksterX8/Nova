@@ -1,7 +1,7 @@
 #ifndef METADATA_INCLUDED
 #define METADATA_INCLUDED
 
-#include "constants.hpp"
+#include "../constants.hpp"
 #include <SDL2/SDL.h>
 
 /*

@@ -2,22 +2,30 @@
 #include "math.h"
 #include "stdlib.h"
 #include <functional>
+#include <math.h>
+#include <algorithm>
  
-using namespace std;
+using std::cout;
 
-class Base {};
+void thing(int size) {
+    int arr[size];
 
-class Sub : public Base {};
+    cout << "sizeof arr " << sizeof(arr) << "\n";
+}
 
-int tset(const int* x) {
-    *const_cast<int*>(x) = 2;
+int func(int a) {
+    return a;
 }
 
 int main() {
-    int i = 2;
-    const int& x = i;
-    int* ptr = &const_cast<int&>(x);
-    tset(&i);
-    std::cout << "i: " << i << "\n";
+
+    int x = -1;
+    if ((x = func(0))) {
+        cout << "0";
+    }
+    if ((x = func(1))) {
+        cout << "1";
+    }
+
     return 0;
 }

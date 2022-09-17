@@ -7,7 +7,7 @@
 #include "../ECS/EntitySystem.hpp"
 #include "../SECS/Entity.hpp"
 
-#include "../Log.hpp"
+#include "../utils/Log.hpp"
 #include "../constants.hpp"
 #include "../Entities/Methods.hpp"
 
@@ -46,8 +46,8 @@ public:
             Vec2 position = *sys.GetReadOnly<EC::Position>(entity);
             Vec2 size = sys.GetReadOnly<EC::Size>(entity)->vec2();
 
-            IVec2 minChunkPosition = toChunkPosition(position - size.scaled(0.5f));
-            IVec2 maxChunkPosition = toChunkPosition(position + size.scaled(0.5f));
+            IVec2 minChunkPosition = toChunkPosition(position - size * 0.5f);
+            IVec2 maxChunkPosition = toChunkPosition(position + size * 0.5f);
             for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
                 for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
                     IVec2 chunkPosition = {col, row};
@@ -152,9 +152,9 @@ public:
             auto positionComponent = ecs.Get<EC::Position>(entity);
             Vec2 position = positionComponent->vec2();
             Vec2 target = ecs.Get<EC::Motion>(entity)->target;
-            Vec2 delta = {target.x - position.x, target.y - position.y};
+            Vec2 delta = target - position;
             float speed = ecs.Get<EC::Motion>(entity)->speed;
-            Vec2 unit = delta.norm().scaled(speed);
+            Vec2 unit = glm::normalize(delta) * speed;
 
             if (delta.length() < speed) {
                 positionComponent->x = target.x;
@@ -194,7 +194,7 @@ public:
 
             EC::Position* position = sys.GetReadWrite<EC::Position>(entity);
             Vec2 delta = {target.x - position->x, target.y - position->y};
-            Vec2 unit = delta.norm().scaled(followComponent->speed);
+            Vec2 unit = delta.norm() * followComponent->speed;
 
             if (delta.length() < followComponent->speed) {
                 position->x = target.x;

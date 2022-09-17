@@ -6,7 +6,7 @@
 
 TileTypeDataStruct defaultTileTypeData = {
     .color = {0, 0, 0, 255},
-    .background = NULL,
+    .background = TextureIDs::Null,
     .flags = 0,
     .mineable = {
         .item = 0
@@ -22,32 +22,32 @@ void loadTileData() {
 
     Data[Empty] = {
         SDL_WHITE,
-        Textures.Tiles.error,
+        TextureIDs::Null,
         Walkable
     };
     TileTypeData[Grass] = {
         {92, 156, 55, 255},
-        Textures.Tiles.grass,
+        TextureIDs::Tiles::Grass,
         Walkable
     };
     TileTypeData[Sand] = {
         {232, 230, 104, 255},
-        Textures.Tiles.sand,
+        TextureIDs::Tiles::Sand,
         Walkable
     };
     TileTypeData[Water] = {
         {15, 125, 210, 255},
-        Textures.Tiles.water,
+        TextureIDs::Tiles::Water,
         0
     };
     TileTypeData[Space] = {
         {0, 0, 0, 255},
-        NULL,
+        TextureIDs::Null,
         0
     };
     TileTypeData[SpaceFloor] = {
         .color = {230, 230, 230, 255},
-        .background = Textures.Tiles.spaceFloor,
+        .background = TextureIDs::Tiles::SpaceFloor,
         .flags = Walkable | Mineable,
         .mineable = {
             .item = Items::SpaceFloor
@@ -55,7 +55,7 @@ void loadTileData() {
     };
     TileTypeData[Wall] = {
         .color = {130, 130, 130, 255},
-        .background = Textures.Tiles.wall,
+        .background = TextureIDs::Tiles::Wall,
         .flags = Mineable,
         .mineable = {
             .item = Items::Wall
@@ -64,7 +64,7 @@ void loadTileData() {
 }
 
 ItemTypeData defaultItemData = {
-    .icon = NULL,
+    .icon = TextureIDs::Null,
     .flags = 0,
     .stackSize = 1,
     .placeable = {
@@ -79,12 +79,12 @@ void loadItemData() {
     }
 
     ItemData[0] = {
-        .icon = NULL,
+        .icon = TextureIDs::Null,
         .flags = 0,
         .stackSize = 0
     };
     ItemData[SpaceFloor] = {
-        .icon = Textures.Tiles.spaceFloor,
+        .icon = TextureIDs::Tiles::SpaceFloor,
         .flags = Placeable,
         .stackSize = 64,
         .placeable = {
@@ -92,7 +92,7 @@ void loadItemData() {
         }
     };
     ItemData[Grass] = {
-        .icon = Textures.Tiles.grass,
+        .icon = TextureIDs::Tiles::Grass,
         .flags = Placeable,
         .stackSize = 64,
         .placeable = {
@@ -100,7 +100,7 @@ void loadItemData() {
         }
     };
     ItemData[Sand] = {
-        .icon = Textures.Tiles.sand,
+        .icon = TextureIDs::Tiles::Sand,
         .flags = Placeable,
         .stackSize = 64,
         .placeable = {
@@ -108,7 +108,7 @@ void loadItemData() {
         }
     };
     ItemData[Wall] = {
-        .icon = Textures.Tiles.wall,
+        .icon = TextureIDs::Tiles::Wall,
         .flags = Placeable,
         .stackSize = 32,
         .placeable = {
@@ -116,17 +116,17 @@ void loadItemData() {
         }
     };
     ItemData[Grenade] = {
-        .icon = Textures.grenade,
+        .icon = TextureIDs::Grenade,
         .flags = Usable,
         .stackSize = 64
     };
     ItemData[SandGun] = {
-        .icon = Textures.Tiles.sand,
+        .icon = TextureIDs::Tiles::Sand,
         .flags = Usable,
         .stackSize = 1,
         .usable = {
             .onUse = [](){
-                Log("Hello from on use");
+                Log(Info, "Hello from on use");
                 return true;
             }
         }

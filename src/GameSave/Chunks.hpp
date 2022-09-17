@@ -2,7 +2,7 @@
 #define GAMESAVE_CHUNKS_INCLUDED
 
 #include "../Chunks.hpp"
-#include "../Log.hpp"
+#include "../utils/Log.hpp"
 #include <stdio.h>
 
 namespace GameSave {

@@ -6,10 +6,9 @@
 #include "../ECS/EntitySystem.hpp"
 #include "../ECS/Query.hpp"
 #include "../ECS/ECS.hpp"
-#include "../GameViewport.hpp"
-#include "../Log.hpp"
+#include "../utils/Log.hpp"
 #include "../Rendering/Drawing.hpp"
-#include "../Debug.hpp"
+#include "../utils/Debug.hpp"
 #include "../constants.hpp"
 
 //using ECS::EntitySystem;
@@ -72,25 +71,82 @@ private:
 };
 */
 
-class SimpleRectRenderSystem {
+
+const GLuint quadIndices[6] = {
+    0, 1, 3,   // first triangle
+    1, 2, 3    // second triangle
+};
+
+class RenderSystem {
 public:
     typedef ECS::EntityQuery<
         ECS::RequireComponents<EC::Render, EC::Size, EC::Position>
     > Query;
 
-    SDL_Renderer* renderer = NULL;
     float scale = 1.0f;
-    const GameViewport* gameViewport = NULL;
 
-    struct RenderTarget {
-        SDL_Texture* texture;
-        const SDL_FRect* destination;
-        float degreesRotation;
-    };
+    ModelData model;
+    const GLuint entitiesPerBatch = 1000;
+    const GLuint verticesPerEntity = 4;
+    const GLuint indicesPerEntity = 6;
+    const GLuint verticesPerBatch = entitiesPerBatch*verticesPerEntity;
+    const GLuint indicesPerBatch = entitiesPerBatch*indicesPerEntity;
+    const GLuint vertexSize = 7 * sizeof(GLfloat);
+    const GLuint positionEntityVertexSize = verticesPerEntity * 3 * sizeof(GLfloat);
+    const GLuint texCoordEntityVertexSize = verticesPerEntity * 3 * sizeof(GLfloat);
+    const GLuint rotationEntityVertexSize = verticesPerEntity * 1 * sizeof(GLfloat);
+    const size_t bufferSize = verticesPerBatch * vertexSize;
 
-    SimpleRectRenderSystem(SDL_Renderer* renderer, const GameViewport* gameViewport) {
-        this->renderer = renderer;
-        this->gameViewport = gameViewport;
+    RenderSystem() {
+        GLuint vbo,ebo,vao;
+        glGenBuffers(1, &vbo);
+        glGenBuffers(1, &ebo);
+        glGenVertexArrays(1, &vao);
+
+
+        glBindVertexArray(vao);
+
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, bufferSize, NULL, GL_STREAM_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesPerBatch * sizeof(GLuint), NULL, GL_STATIC_DRAW);
+ 
+        // position
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+        glEnableVertexAttribArray(0);
+        // texture coord
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)((size_t)positionEntityVertexSize * entitiesPerBatch));
+        glEnableVertexAttribArray(1);
+        // rotation
+        glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 1 * sizeof(GLfloat), (void*)(((size_t)positionEntityVertexSize + texCoordEntityVertexSize) * entitiesPerBatch));
+        glEnableVertexAttribArray(2);
+ 
+        glBindVertexArray(0);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        void* elementBuffer = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+        if (!elementBuffer) {
+            Log.Error("bad things happened!!!");
+            return;
+        }
+        GLuint* indices = static_cast<GLuint*>(elementBuffer);
+
+        for (GLuint i = 0; i < entitiesPerBatch; i++) {
+            GLuint ind = i * 6;
+            GLuint first = i*4;
+            indices[ind+0] = first+0;
+            indices[ind+1] = first+1;
+            indices[ind+2] = first+3;
+            indices[ind+3] = first+1;
+            indices[ind+4] = first+2;
+            indices[ind+5] = first+3;
+        }
+
+        glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+
+        model.VAO = vao;
+        model.VBO = vbo;
+        model.EBO = ebo;
     }
 
     using QueriedEntity = EntityT<EC::Render, EC::Size, EC::Position>;
@@ -100,10 +156,152 @@ public:
         ecs.ForEach<Query>(callback);
     }
 
-    void Update(const ComponentManager<EC::Render, const EC::Size, const EC::Position, const EC::Health>& ecs, const ChunkMap& chunkmap) {
+    struct VertexDataArrays {
+        GLfloat* positions;
+        GLfloat* texCoords;
+        GLfloat* rotations;
+    };
+
+    VertexDataArrays mapVertexBuffer() {
+        GLfloat* vertexBuffer = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+        if (!vertexBuffer) {
+            Log.Error("Oh no a bunch more bad stuff happened!");
+            
+            return {NULL,NULL,NULL};
+        }
+        VertexDataArrays buffer;
+        buffer.positions = vertexBuffer;
+        buffer.texCoords = vertexBuffer + 3 * verticesPerBatch;
+        buffer.rotations = vertexBuffer + 6 * verticesPerBatch;
+        return buffer;
+    }
+
+    void Update(const ComponentManager<EC::Render, const EC::Size, const EC::Position, const EC::Health, const EC::Rotation>& ecs, const ChunkMap& chunkmap, RenderContext& ren, Camera& camera) {
+        Shader& shader = ren.entityShader;
+        shader.use();
+        auto camTransform = camera.getTransformMatrix();
+        shader.setMat4("transform", camTransform);
+
+        auto cameraMin = camera.minCorner();
+        auto cameraMax = camera.maxCorner();
+        Vec2 cameraSize = {camera.viewWidth(), camera.viewHeight()};
+
+        static float shaderSetAngle = 0.0f;
+
+        struct EntityVertex {
+            glm::vec3 pos;
+            glm::vec3 texCoord;
+            float rotation;
+        };
+
+        glBindBuffer(GL_ARRAY_BUFFER, model.VBO);
         
-        Uint32 index = 0;
-        std::vector<RenderTarget> renderLayers[NUM_RENDER_LAYERS];
+
+        VertexDataArrays buffer = mapVertexBuffer();
+
+        int entityCounter = 0, entitiesRenderered = 0;
+        
+        glBindVertexArray(model.VAO);
+        forEachEntityInBounds(ecs, &chunkmap, 
+            Vec2(camera.position.x, camera.position.y),
+            cameraSize*2.0f, 
+        [&](EntityT<EC::Position> entity){
+            if (Query::check(ecs.EntitySignature(entity))) {
+                auto position =  ecs.Get<const EC::Position>(entity)->vec2();
+                auto renderEC =  ecs.Get<const EC::Render>(entity);
+                auto size     = *ecs.Get<const EC::Size>(entity);
+
+                float rotation = 0.0f;
+                if (ecs.EntityHas<EC::Rotation>(entity)) {
+                    rotation = ecs.Get<const EC::Rotation>(entity)->degrees;
+                }
+
+                float texMaxX = (float)TextureData[renderEC->texture].width  / MY_TEXTURE_ARRAY_WIDTH;
+                float texMaxY = (float)TextureData[renderEC->texture].height / MY_TEXTURE_ARRAY_HEIGHT;
+                float w = size.width  / 2.0f;
+                float h = size.height / 2.0f;
+                float tex = static_cast<float>(renderEC->texture);
+                glm::vec3 p = glm::vec3(position.x, position.y, renderEC->layer * 0.1f);
+                
+                const GLfloat vertexPositions[12] = {
+                    p.x-w,   p.y-h,   p.z,
+                    p.x-w,   p.y+h,   p.z,
+                    p.x+w,   p.y+h,   p.z,
+                    p.x+w,   p.y-h,   p.z,
+                };
+                const GLfloat vertexTexCoords[12] = {
+                    0.0f,     0.0f,     tex,
+                    0.0f,     texMaxY,  tex,
+                    texMaxX,  texMaxY,  tex,
+                    texMaxX,  0.0f,     tex
+                };
+                const GLfloat vertexRotations[4] = {
+                    rotation,
+                    rotation,
+                    rotation,
+                    rotation
+                };
+
+                memcpy(&buffer.positions[entityCounter * 12], vertexPositions, 12 * sizeof(GLfloat));
+                memcpy(&buffer.texCoords[entityCounter * 12], vertexTexCoords, 12 * sizeof(GLfloat));
+                memcpy(&buffer.rotations[entityCounter *  4], vertexRotations,  4 * sizeof(GLfloat));
+                
+                entityCounter++;
+                entitiesRenderered++;
+
+                if (entityCounter == entitiesPerBatch) {
+                    // 6 indices per entity
+                    glUnmapBuffer(GL_ARRAY_BUFFER); // put vertex data into effect
+                    glDrawElements(GL_TRIANGLES, entityCounter*indicesPerEntity, GL_UNSIGNED_INT, 0); // draw a batch of entities
+                    entityCounter = 0;
+                    // have to remap vertex buffer after unmapping
+                    buffer = mapVertexBuffer();
+                }
+            }
+        });
+
+        glUnmapBuffer(GL_ARRAY_BUFFER); // put vertex data into effect
+
+        // number of entities wasn't exactly divisible by entitiesPerBatch, so we have some left to do
+        if (entityCounter > 0) {
+            glDrawElements(GL_TRIANGLES, entityCounter*indicesPerEntity, GL_UNSIGNED_INT, 0); // draw a batch of entities
+        }
+        
+        //Log.Info("entities rendererd: %d", entitiesRenderered);
+        /*
+
+        ForEach(ecs, [&](Entity entity){
+            Vec2 position = ecs.Get<const EC::Position>(entity)->vec2();
+            if (Vec2{position.x - camera.position.x, position.y - camera.position.y}.length() > 80.0f) {
+                return;
+            } 
+            auto renderEC = ecs.Get<const EC::Render>(entity);
+            auto size = *ecs.Get<const EC::Size>(entity);
+            if (ecs.EntityHas<EC::Rotation>(entity)) {
+                float angleDegrees = ecs.Get<const EC::Rotation>(entity)->degrees;
+                shader.setFloat("angle", glm::radians(angleDegrees));
+            }
+
+            shader.setInt("texLayer", renderEC->texture);
+
+            float texMaxX = (float)TextureData[renderEC->texture].width  / MY_TEXTURE_ARRAY_WIDTH;
+            float texMaxY = (float)TextureData[renderEC->texture].height / MY_TEXTURE_ARRAY_HEIGHT;
+            float w = size.width  / 2.0f;
+            float h = size.height / 2.0f;
+            glm::vec3 p = glm::vec3(position.x, position.y, renderEC->layer * 0.1f);
+            const GLfloat vertices[20] = {
+                p.x-w,   p.y-h, p.z,    0.0f,     0.0f,
+                p.x-w,   p.y+h, p.z,    0.0f,     texMaxY,
+                p.x+w,   p.y+h, p.z,    texMaxX,  texMaxY,
+                p.x+w,   p.y-h, p.z,    texMaxX,  0.0f
+            };
+
+            glBindBuffer(GL_ARRAY_BUFFER, model.VBO);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        });
+        */
         /*
         forEachEntityInBounds(&chunkmap, 
             Vec2(gameViewport->world.x + gameViewport->world.w/2.0f, gameViewport->world.y + gameViewport->world.h/2.0f), 
@@ -126,6 +324,8 @@ public:
                 }
             }
         });
+*/
+        /*
 
 
         forEachEntityInBounds(&chunkmap, 
@@ -204,7 +404,6 @@ public:
         if (Debug->settings.drawEntityIDs) {
             int nRenderedIDs = 0;
             ecs.ForEach<Query>([&](Entity entity){
-                auto destRect = &ecs.Get<EC::Render>(entity)->destination;
                 // TODO: TEXT RENDER
                 /*
                 SDL_Rect _dest = FC_GetBounds(FreeSans, destRect->x, destRect->y, FC_ALIGN_LEFT, FC_MakeScale(0.5, 0.5), "%u", entity.id);
@@ -219,14 +418,16 @@ public:
             Log.Info("rendered %d ids", nRenderedIDs);
         }
 
+        /*
         if (Debug->settings.drawEntityRects) {
             for (int l = 0; l < NUM_RENDER_LAYERS; l++) {
                 std::vector<RenderTarget>& renderLayer = renderLayers[l];
                 for (auto target : renderLayer) {
-                    Draw::debugRect(renderer, target.destination, scale);
+                    //Draw::debugRect(renderer, target.destination, scale);
                 }
             }
         }
+        */
     }
 };
 /*

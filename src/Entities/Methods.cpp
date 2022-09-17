@@ -24,10 +24,10 @@ void entitySizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<EC::P
         oldSizeIsNan = true;
     }
     Vec2 pos = ecs->Get<EC::Position>(entity)->vec2();
-    IVec2 oldMinChunkPosition = toChunkPosition(pos - oldSize.scaled(0.5f));
-    IVec2 oldMaxChunkPosition = toChunkPosition(pos + oldSize.scaled(0.5f));
-    IVec2 newMinChunkPosition = toChunkPosition(pos - newSize.scaled(0.5f));
-    IVec2 newMaxChunkPosition = toChunkPosition(pos + newSize.scaled(0.5f));
+    IVec2 oldMinChunkPosition = toChunkPosition(pos - oldSize * 0.5f);
+    IVec2 oldMaxChunkPosition = toChunkPosition(pos + oldSize * 0.5f);
+    IVec2 newMinChunkPosition = toChunkPosition(pos - newSize * 0.5f);
+    IVec2 newMaxChunkPosition = toChunkPosition(pos + newSize * 0.5f);
     IVec2 minChunkPosition = {
         (oldMinChunkPosition.x < newMinChunkPosition.x) ? oldMaxChunkPosition.x : newMaxChunkPosition.x,
         (oldMinChunkPosition.y < newMinChunkPosition.y) ? oldMaxChunkPosition.y : newMaxChunkPosition.y
@@ -83,10 +83,10 @@ void entityPositionChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<E
 
     if (ecs->EntityHas<EC::Size>(entity)) {
         Vec2 size = ecs->Get<EC::Size>(entity)->vec2();
-        IVec2 oldMinChunkPosition = toChunkPosition(oldPos - size.scaled(0.5f));
-        IVec2 oldMaxChunkPosition = toChunkPosition(oldPos + size.scaled(0.5f));
-        IVec2 newMinChunkPosition = toChunkPosition(newPos - size.scaled(0.5f));
-        IVec2 newMaxChunkPosition = toChunkPosition(newPos + size.scaled(0.5f));
+        IVec2 oldMinChunkPosition = toChunkPosition(oldPos - size * 0.5f);
+        IVec2 oldMaxChunkPosition = toChunkPosition(oldPos + size * 0.5f);
+        IVec2 newMinChunkPosition = toChunkPosition(newPos - size * 0.5f);
+        IVec2 newMaxChunkPosition = toChunkPosition(newPos + size * 0.5f);
         IVec2 minChunkPosition = {
             (oldMinChunkPosition.x < newMinChunkPosition.x) ? oldMinChunkPosition.x : newMinChunkPosition.x,
             (oldMinChunkPosition.y < newMinChunkPosition.y) ? oldMinChunkPosition.y : newMinChunkPosition.y
@@ -154,10 +154,10 @@ void entityPositionAndSizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, En
         return;
     }
 
-    IVec2 oldMinChunkPosition = toChunkPosition(oldPos - oldSize.scaled(0.5f));
-    IVec2 oldMaxChunkPosition = toChunkPosition(oldPos + oldSize.scaled(0.5f));
-    IVec2 newMinChunkPosition = toChunkPosition(newPos - newSize.scaled(0.5f));
-    IVec2 newMaxChunkPosition = toChunkPosition(newPos + newSize.scaled(0.5f));
+    IVec2 oldMinChunkPosition = toChunkPosition(oldPos - oldSize * 0.5f);
+    IVec2 oldMaxChunkPosition = toChunkPosition(oldPos + oldSize * 0.5f);
+    IVec2 newMinChunkPosition = toChunkPosition(newPos - newSize * 0.5f);
+    IVec2 newMaxChunkPosition = toChunkPosition(newPos + newSize * 0.5f);
     IVec2 minChunkPosition = {
         (oldMinChunkPosition.x < newMinChunkPosition.x) ? oldMinChunkPosition.x : newMinChunkPosition.x,
         (oldMinChunkPosition.y < newMinChunkPosition.y) ? oldMinChunkPosition.y : newMinChunkPosition.y

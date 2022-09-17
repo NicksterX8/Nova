@@ -1,7 +1,7 @@
 #ifndef ENTITY_PROTOTYPE_INCLUDED
 #define ENTITY_PROTOTYPE_INCLUDED
 
-#include "SECS/Entity.hpp"
+#include "Entity.hpp"
 
 #include <stdint.h>
 
