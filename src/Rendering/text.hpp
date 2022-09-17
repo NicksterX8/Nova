@@ -43,13 +43,24 @@ void loadFontFaceCharacters(FT_Face face, Character* firstCharacter, unsigned ch
     }
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
+
+    FT_GlyphSlot slot = face->glyph;
+
+    FT_Error error;
     
     for (unsigned char c = firstChar; c <= lastChar; c++) {
         // load character glyph 
-        if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-            Log.Error("Failed to load glyph %c", c);
+        if ((error = FT_Load_Char(face, c, FT_LOAD_RENDER))) {
+            Log.Error("Failed to load glyph charcter \'%c\'. Error: %s", c, FT_Error_String(error));
             continue;
         }
+
+        if (c != ' ')
+            if ((error = FT_Render_Glyph(slot, FT_RENDER_MODE_SDF))) {
+                LogGory(Main, Error, "Failed to load SDF glyph character \'%c\'. Error: %s", c, FT_Error_String(error));
+                continue;
+            }
+
         // generate texture
         GLuint texture;
         glGenTextures(1, &texture);
@@ -58,24 +69,24 @@ void loadFontFaceCharacters(FT_Face face, Character* firstCharacter, unsigned ch
             GL_TEXTURE_2D,
             0,
             GL_RED,
-            face->glyph->bitmap.width,
-            face->glyph->bitmap.rows,
+            slot->bitmap.width,
+            slot->bitmap.rows,
             0,
             GL_RED,
             GL_UNSIGNED_BYTE,
-            face->glyph->bitmap.buffer
+            slot->bitmap.buffer
         );
         // set texture options
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        // now store character for later use
+        // now store character for later use3
         firstCharacter[c-firstChar] = Character{
             texture, 
-            glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-            glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-            (unsigned int)face->glyph->advance.x
+            glm::ivec2(slot->bitmap.width, slot->bitmap.rows),
+            glm::ivec2(slot->bitmap_left, slot->bitmap_top),
+            (unsigned int)slot->advance.x
         };
 
         checkOpenGLErrors();

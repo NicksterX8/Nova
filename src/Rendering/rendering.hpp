@@ -316,7 +316,7 @@ int loadShaders(RenderContext& ren) {
     ren.tilemapShader = loadShader("tilemap");
     ren.pointShader = loadShader("point");
     ren.colorShader = loadShader("color");
-    ren.textShader = loadShader("text");
+    ren.textShader = loadShader("sdf");
     
     return 0;
 }
@@ -326,7 +326,7 @@ void renderInit(RenderContext& ren) {
 
     initFreetype();
     ren.font = new FontFace();
-    *ren.font = loadFontFace(str_add(FilePaths::assets, "fonts/FreeSans.ttf"), 48);
+    *ren.font = loadFontFace(str_add(FilePaths::assets, "fonts/FreeSans.ttf"), 64);
 
     glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureArray);
 
@@ -338,6 +338,7 @@ void renderInit(RenderContext& ren) {
     ren.entityShader.setInt("texArray", TextureUnit::MyTextureArray);
     ren.textShader.use();
     ren.textShader.setInt("text", TextureUnit::Text);
+    ren.textShader.setFloat("minD", 0.4f);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
     glEnable(GL_PROGRAM_POINT_SIZE);
@@ -525,7 +526,7 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
     };
     Draw::ColorQuadRenderBuffer::UniformQuad2D quadVerts = {
         {{quadRect.x, quadRect.y}, {quadRect.x+quadRect.w, quadRect.y}, {quadRect.x+quadRect.w, quadRect.y+quadRect.h}, {quadRect.x, quadRect.y+quadRect.h}},
-        {0.5, 0.5, 0.5, 0.8}
+        {0.5, 0.5, 0.5, 1.0}
     };
     quadRenderer.bufferUniform(1, &quadVerts, 1.0f);
 
@@ -535,12 +536,18 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
 
     glActiveTexture(GL_TEXTURE0 + TextureUnit::Text);
 
-    ren.textShader.use();
-    ren.textShader.setMat4("transform", screenTransform);
-    ren.textShader.setInt("text", TextureUnit::Text);
-    
-    renderText(ren.textShader, *ren.font, "hello\nworld!\nWhats up guys  \n\n!", glm::vec2{100, 100}, 1.0f, glm::vec3{1, 0, 0});
-    renderText(ren.textShader, *ren.font, "Howdy\tpal!", glm::vec2(drawableWidth/2.0f, drawableHeight/2.0f), 1.5f, glm::vec3(0, 0, 0));
+    auto textShader = ren.textShader;
+    textShader.use();
+    textShader.setMat4("transform", screenTransform);
+    textShader.setInt("text", TextureUnit::Text);
+    //textShader.setFloat("minD", (Metadata->ticks() % 240) / 240.0f);
+    textShader.setFloat("thickness", 0.5f);
+    textShader.setFloat("soft", 0.01f);
+
+    glDepthMask(GL_FALSE);
+    renderText(ren.textShader, *ren.font, "hello\nworld!\nWhats up guys  \n\n!", glm::vec2{100, 100}, camera.scale() / 10, glm::vec3{1, 0, 0});
+    renderText(ren.textShader, *ren.font, "Howdy\tpal!", glm::vec2(drawableWidth/2.0f, drawableHeight/2.0f), camera.scale() / 10, glm::vec3(0, 0, 0));
+    glDepthMask(GL_TRUE);
 
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);

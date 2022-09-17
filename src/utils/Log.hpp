@@ -109,7 +109,7 @@ enum class space {
 };
 
 #define LogBase(category, priority, ...) logAt(__FILE__, __LINE__, category, priority, __VA_ARGS__)
-#define LogMessage(category_enum_name, priority_enum_name, ...) logAt(__FILE__, __LINE__, LogCategory::category_enum_name, LogPriority::priority_enum_name, __VA_ARGS__)
+#define LogGory(category_enum_name, priority_enum_name, ...) logAt(__FILE__, __LINE__, LogCategory::category_enum_name, LogPriority::priority_enum_name, __VA_ARGS__)
 #define Log(priority_enum_name, ...) LogBase(Log.category, LogPriority::priority_enum_name, __VA_ARGS__)
 //#define Log(...) LogBase(Log.category, LogPriority::Info, __VA_ARGS__)
 

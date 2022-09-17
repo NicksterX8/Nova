@@ -13,10 +13,19 @@ void thing(int size) {
     cout << "sizeof arr " << sizeof(arr) << "\n";
 }
 
+int func(int a) {
+    return a;
+}
+
 int main() {
 
-    thing(4);
-    cout << "result2: " << std::max(1.0, (double)NAN) << "\n";
+    int x = -1;
+    if ((x = func(0))) {
+        cout << "0";
+    }
+    if ((x = func(1))) {
+        cout << "1";
+    }
 
     return 0;
 }
