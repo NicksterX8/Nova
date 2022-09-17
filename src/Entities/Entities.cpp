@@ -11,13 +11,13 @@ namespace Entities {
     EC::Explosion airstrikeExplosion = EC::Explosion(8, 10000, 1.0f, 30);
 
     Explosive Grenade(EntityWorld* ecs, Vec2 position, Vec2 size) {
-        Explosive grenade = Explosive(ecs, position, size, Textures.grenade, grenadeExplosion);
+        Explosive grenade = Explosive(ecs, position, size, TextureIDs::Grenade, grenadeExplosion);
         return grenade;
     }
 
     Explosive Airstrike(EntityWorld* ecs, Vec2 position, Vec2 size, Vec2 target) {
-        Explosive airstrike = Explosive(ecs, position, size, Textures.grenade, airstrikeExplosion);
-        throwEntity(ecs, airstrike, target, 2.0f);
+        Explosive airstrike = Explosive(ecs, position, size, TextureIDs::Grenade, airstrikeExplosion);
+        throwEntity(ecs, airstrike, target, 0.2f);
         return airstrike;
     }
 
@@ -31,7 +31,7 @@ namespace Entities {
         Entity chest = ecs->New("chest");
         ecs->Add<EC::Position>(chest, position);
         ecs->Add<EC::Size>(chest, {(float)width - 0.2f, (float)height - 0.2f});
-        ecs->Add<EC::Render>(chest, EC::Render(Textures.chest, RenderLayer::Buildings));
+        ecs->Add<EC::Render>(chest, EC::Render(TextureIDs::Chest, RenderLayer::Buildings));
         Inventory inventory = Inventory(inventorySize);
         ecs->Add<EC::Inventory>(chest, {inventory});
         ecs->Add<EC::Growth>(chest, {0});
@@ -53,7 +53,7 @@ namespace Entities {
         Entity inserter = ecs->New("inserter");
         ecs->Add<EC::Position>(inserter, position);
         ecs->Add<EC::Size>(inserter, {1.0f, 1.0f});
-        ecs->Add<EC::Render>(inserter, EC::Render(Textures.inserter, RenderLayer::Buildings));
+        ecs->Add<EC::Render>(inserter, EC::Render(TextureIDs::Inserter, RenderLayer::Buildings));
         ecs->Add<EC::Rotation>(inserter, {0.0f});
         ecs->Add<EC::Rotatable>(inserter, {0.0f, 90.0f});
         
@@ -68,7 +68,7 @@ namespace Entities {
         ecs->Add<EC::Nametag>(enemy, EC::Nametag("Enemy", ""));
         ecs->Add<EC::Rotation>(enemy, {0.0f});
         ecs->Add<EC::Size>(enemy, {0.8f, 0.8f});
-        ecs->Add<EC::Render>(enemy, EC::Render(Textures.player, RenderLayer::Player));
+        ecs->Add<EC::Render>(enemy, EC::Render(TextureIDs::Player, RenderLayer::Player));
         ecs->Add<EC::Rotatable>(enemy, EC::Rotatable(0.0f, 45.0f));
         ecs->Add<EC::Follow>(enemy, EC::Follow(following, 0.05));
         return enemy;

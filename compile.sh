@@ -1,1 +1,1 @@
-make compile
+make build_it

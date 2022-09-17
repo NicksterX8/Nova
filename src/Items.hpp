@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
+typedef Uint32 TextureID;
+
 typedef Uint16 Item;
 typedef Uint32 ItemFlags;
 
@@ -49,7 +51,7 @@ namespace Items {
 }
 
 struct ItemTypeData {
-    SDL_Texture* icon;
+    TextureID icon;
     ItemFlags flags;
     Uint32 stackSize;
 

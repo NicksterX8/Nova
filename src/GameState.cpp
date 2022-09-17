@@ -8,8 +8,7 @@
 #include <SDL2/SDL.h>
 #include "constants.hpp"
 #include "Textures.hpp"
-#include "NC/cpp-vectors.hpp"
-#include "NC/utils.h"
+#include "utils/Vectors.hpp"
 #include "SDL2_gfx/SDL2_gfx.h"
 #include "Tiles.hpp"
 #include "Player.hpp"
@@ -25,7 +24,7 @@ GameState::~GameState() {
     ecs.destroy();
 }
 
-void GameState::init(SDL_Renderer* renderer, GameViewport* gameViewport) {
+void GameState::init() {
 
     chunkmap.init();
     int chunkRadius = 10;
@@ -42,8 +41,8 @@ void GameState::init(SDL_Renderer* renderer, GameViewport* gameViewport) {
         Vec2 pos = ecs->Get<EC::Position>(entity)->vec2();
         if (ecs->EntityHas<EC::Size>(entity)) {
             Vec2 size = ecs->Get<EC::Size>(entity)->vec2();
-            IVec2 minChunkPosition = toChunkPosition(pos - size.scaled(0.5f));
-            IVec2 maxChunkPosition = toChunkPosition(pos + size.scaled(0.5f));
+            IVec2 minChunkPosition = toChunkPosition(pos - size * 0.5f);
+            IVec2 maxChunkPosition = toChunkPosition(pos + size * 0.5f);
             for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
                 for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
                     IVec2 chunkPosition = {col, row};
@@ -91,7 +90,7 @@ void GameState::init(SDL_Renderer* renderer, GameViewport* gameViewport) {
     ecs.testInitialization();
     */
 
-    player = Player(&ecs);
+    player = Player(&ecs, Vec2(0, 0));
 
     ItemStack startInventory[] = {
         {Items::SpaceFloor, INFINITE_ITEM_QUANTITY},
@@ -119,7 +118,7 @@ IVec2* worldLine(Vec2 start, Vec2 end, int* lineSize) {
     IVec2* line = (IVec2*)malloc(lineTileLength * sizeof(IVec2));
     if (lineSize) *lineSize = lineTileLength;
 
-    Vec2 dir = ((Vec2)(end - start)).norm();
+    Vec2 dir = glm::normalize((Vec2)(end - start));
 
     IVec2 mapCheck = startTile;
     Vec2 unitStep = {sqrt(1 + (dir.y / dir.x) * (dir.y / dir.x)), sqrt(1 + (dir.x / dir.y) * (dir.x / dir.y))};
@@ -175,7 +174,7 @@ IVec2* worldLine(Vec2 start, Vec2 end, int* lineSize) {
 
 void worldLineAlgorithm(Vec2 start, Vec2 end, std::function<int(IVec2)> callback) {
     Vec2 delta = end - start;
-    Vec2 dir = delta.norm();
+    Vec2 dir = glm::normalize(delta);
 
     IVec2 mapCheck = {(int)floor(start.x), (int)floor(start.y)};
     Vec2 unitStep = {sqrt(1 + (dir.y / dir.x) * (dir.y / dir.x)), sqrt(1 + (dir.x / dir.y) * (dir.x / dir.y))};
@@ -267,7 +266,7 @@ bool pointIsOnTileEntity(const EntityWorld* ecs, const Entity tileEntity, IVec2 
 }
 
 OptionalEntity<> findTileEntityAtPosition(const GameState* state, Vec2 position) {
-    IVec2 tilePosition = position.floorToIVec();
+    IVec2 tilePosition = vecFloori(position);
     Tile* selectedTile = getTileAtPosition(state->chunkmap, tilePosition);
     if (selectedTile) {
         auto tileEntity = selectedTile->entity;
@@ -325,7 +324,7 @@ void forEachEntityInRange(const ComponentManager<EC::Position, EC::Size>& ecs, c
                 }
                 Vec2 entityCenter = ecs.Get<EC::Position>(closeEntity)->vec2();
                 if (closeEntity.Has<EC::Size>(&ecs)) {
-                    Vec2 halfSize = ecs.Get<EC::Size>(closeEntity)->vec2().scaled(0.5f);
+                    Vec2 halfSize = ecs.Get<EC::Size>(closeEntity)->vec2() * 0.5f;
                     entityCenter += halfSize;
                     radiusSqrd += (halfSize.x * halfSize.x + halfSize.y * halfSize.y) * M_SQRT2;
                 }
@@ -360,8 +359,8 @@ void forEachEntityNearPoint(const ComponentManager<EC::Position, const EC::Size>
 }
 
 void forEachChunkContainingBounds(const ChunkMap* chunkmap, Vec2 position, Vec2 size, std::function<void(ChunkData*)> callback) {
-    IVec2 minChunkPosition = toChunkPosition(position - size.scaled(0.5f));
-    IVec2 maxChunkPosition = toChunkPosition(position + size.scaled(0.5f));
+    IVec2 minChunkPosition = toChunkPosition(position - size * 0.5f);
+    IVec2 maxChunkPosition = toChunkPosition(position + size * 0.5f);
     for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
         for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
             IVec2 chunkPosition = {col, row};
@@ -403,7 +402,7 @@ findClosestEntityToPosition(const EntityWorld* ecs, const ChunkMap* chunkmap, Ve
     forEachEntityNearPoint(ecs, chunkmap, position, [&](EntityT<EC::Position> entity){
         Vec2 entityPos = ecs->Get<EC::Position>(entity)->vec2();
         Vec2 delta = entityPos - position;
-        float entityDistSqrd = delta.lengthSqrd();
+        float entityDistSqrd = delta.x*delta.x + delta.y*delta.y;
         if (entityDistSqrd < closestDistSqrd) {
             closestEntity = entity;
             closestDistSqrd = entityDistSqrd;
@@ -418,8 +417,8 @@ bool pointInsideEntityBounds(Vec2 point, const EntityT<EC::Position, EC::Size> e
     Vec2 entityPosition = entity.Get<const EC::Position>(&ecs)->vec2();
     Vec2 entitySize = entity.Get<const EC::Size>(&ecs)->vec2();
 
-    Vec2 minEntityPos = entityPosition - entitySize.scaled(0.5f);
-    Vec2 maxEntityPos = entityPosition + entitySize.scaled(0.5f);
+    Vec2 minEntityPos = entityPosition - entitySize * 0.5f;
+    Vec2 maxEntityPos = entityPosition + entitySize * 0.5f;
 
     if (point.x > minEntityPos.x && point.x < maxEntityPos.x &&
         point.y > minEntityPos.y && point.y < maxEntityPos.y) {

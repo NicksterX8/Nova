@@ -4,77 +4,27 @@
 #include <vector>
 
 #include <SDL2/SDL.h>
-#include "../gl.h"
-#include "../GameViewport.hpp"
+#include "../sdl_gl.hpp"
+#include "../utils/random.hpp"
 #include "../GameState.hpp"
 #include "../Tiles.hpp"
-#include "../Metadata.hpp"
+#include "../utils/Metadata.hpp"
 #include "../Textures.hpp"
-#include "../Debug.hpp"
-#include "../GUI.hpp"
-#include "../NC/colors.h"
+#include "../utils/Debug.hpp"
+#include "../GUI/GUI.hpp"
 #include "../SDL2_gfx/SDL2_gfxPrimitives.h"
-#include "../Log.hpp"
+#include "../utils/Log.hpp"
 
 #include "Drawing.hpp"
 #include "../EntitySystems/Rendering.hpp"
+#include "Shader.hpp"
+#include "../Camera.hpp"
+#include "utils.hpp"
+#include "text.hpp"
 
 #include <glm/vec2.hpp>
 
-SDL_Texture* screenTexture = NULL;
-
-struct RenderContext {
-    SDL_Window* window = NULL;
-    SDL_GLContext glCtx = NULL;
-    unsigned int textureArray = 0;
-};
-
-float squareVertices[] = {
-    // positions     // texture coords
-     0.5f,   0.5f,   1.0f, 1.0f, // top right
-     0.5f,  -0.5f,   1.0f, 0.0f, // bottom right
-    -0.5f,  -0.5f,   0.0f, 0.0f, // bottom left
-    -0.5f,   0.5f,   0.0f, 1.0f  // top left 
-};
-unsigned int squareIndices[] = {
-    0, 1, 3, // first triangle
-    1, 2, 3  // second triangle
-};
-
-struct ModelData {
-    unsigned int VBO;
-    unsigned int EBO;
-    unsigned int VAO;
-};
-
-ModelData loadSquareModel() {
-    ModelData model;
-    glGenBuffers(1, &model.VBO);
-    glGenBuffers(1, &model.EBO);
-    glGenVertexArrays(1, &model.VAO);
-
-    glBindVertexArray(model.VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, model.VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(squareVertices), squareVertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model.EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(squareIndices), squareIndices, GL_STATIC_DRAW);
-
-    size_t stride = (2 + 2) * sizeof(float);
-
-    /* Link vertex attributes */
-    // position attribute : 2
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, stride, (void*)0);
-    glEnableVertexAttribArray(0);
-    // texture attribute : 2
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(2 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(0);
-
-    return model;
-}
-
+/*
 int drawWorld(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, GameState* state) {
     int renWidth,renHeight;
     SDL_GetRendererOutputSize(ren, &renWidth, &renHeight);
@@ -158,7 +108,7 @@ int drawWorld(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, 
     return numRenderedChunks;
 }
 
-int drawWorld2(RenderContext& ren, float scale, const GameViewport* gameViewport, GameState* state) {
+int drawWorld2(RenderContext& ren, float scale, GameState* state, GameViewport* gameViewport) {
     Vec2 minChunkRelativePos = {gameViewport->world.x / CHUNKSIZE, gameViewport->world.y / CHUNKSIZE};
     Vec2 maxChunkRelativePos = {gameViewport->worldRightEdge() / CHUNKSIZE, gameViewport->worldBottomEdge() / CHUNKSIZE};
     IVec2 minChunkPos = {(int)floor(minChunkRelativePos.x), (int)floor(minChunkRelativePos.y)};
@@ -208,6 +158,7 @@ int drawWorld2(RenderContext& ren, float scale, const GameViewport* gameViewport
     return numRenderedChunks;
 }
 
+
 void highlightTargetedTile(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, const GUI* gui, Vec2 playerTargetPos) {
     Vec2 screenPos = gameViewport->worldToPixelPositionF(playerTargetPos.vfloor());
         // only draw tile marker if mouse is actually on the world, not on the GUI
@@ -235,7 +186,7 @@ void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport*
                 Draw::thickRect(ren, &entityRect, round(scale * 2));
             }
         } else {
-            /*
+            *
             forEachEntityInRange(&state->ecs, &state->chunkmap, playerTargetPos, M_SQRT2, [&](EntityT<EC::Position> entity){
                 if (entity.Has<EC::Size, EC::Render>()) {
                     Vec2 position = *state->ecs.Get<EC::Position>(entity);
@@ -254,7 +205,7 @@ void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport*
                 }
                 return 0;
             });
-            */
+            *
             auto focusedEntity = findPlayerFocusedEntity(&state->ecs, state->chunkmap, playerTargetPos);
             if (focusedEntity != NullEntity) {
                 SDL_FRect* entityRect = &focusedEntity.Get<EC::Render>(&state->ecs)->destination;
@@ -264,46 +215,347 @@ void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport*
         }
     }      
 }
+*/
 
-void render(RenderContext& ren, float scale, GUI* gui, GameState* state, const GameViewport* gameViewport, Vec2 playerTargetPos) {
-    /*
-    // get window size in pixels
-    int renWidth;
-    int renHeight;
-    SDL_GetRendererOutputSize(ren, &renWidth, &renHeight);
+struct TilemapVertex {
+    glm::vec2 pos;
+    glm::vec3 texCoord;
+};
 
-    SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
-    SDL_RenderClear(ren);
+namespace Render {
+    constexpr int numChunkVerts = CHUNKSIZE * CHUNKSIZE * 4;
+    constexpr int numChunkFloats = numChunkVerts * sizeof(TilemapVertex) / sizeof(float);
+    constexpr int numChunkIndices = 6 * CHUNKSIZE * CHUNKSIZE;
+}
 
-    SDL_RenderSetClipRect(ren, &gameViewport->display);
-    int numRenderedChunks = drawWorld(ren, scale, gameViewport, state);
-    if (state->player.heldItemStack && ItemData[state->player.heldItemStack->item].flags & Items::Placeable)
-        highlightTargetedTile(ren, scale, gameViewport, gui, playerTargetPos);
-    highlightTargetedEntity(ren, scale, gameViewport, gui, state, playerTargetPos);
-    SDL_RenderSetClipRect(ren, NULL);
+void renderChunk(RenderContext& ren, ChunkData& chunkdata, ModelData& chunkModel) {
+    glBindBuffer(GL_ARRAY_BUFFER, chunkModel.VBO);
+    void* vertexBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+    float* chunkVerts = static_cast<float*>(vertexBuffer);
     
-    gui->draw(ren, scale, gameViewport->display, &state->player);
+    Vec2 startPos = chunkdata.tilePosition();
 
-    FC_SetDefaultColor(FreeSans, SDL_RED);
-    FC_DrawScale(FreeSans, ren, 5, 5, FC_MakeScale(0.75 * scale, 0.75 * scale), "FPS: %f", Metadata->fps());
-    FC_SetDefaultColor(FreeSans, SDL_BLACK);
+    const float tileWidth = 1.0f;
+    const float tileHeight = 1.0f;
 
-    SDL_RenderPresent(ren);
-    */
+    for (int row = 0; row < CHUNKSIZE; row++) {
+        for (int col = 0; col < CHUNKSIZE; col++) {
+            unsigned int index = row * CHUNKSIZE + col;
+            TileType type = (*chunkdata.chunk)[row][col].type;
+            
+            float x = startPos.x + col * tileWidth;
+            float y = startPos.y + row * tileHeight;
+            float x2 = x + tileWidth;
+            float y2 = y + tileHeight;
+
+            TextureID texture = TileTypeData[type].background;
+            float texMaxX = ((float)TextureData[texture].width)  / MY_TEXTURE_ARRAY_WIDTH;
+            float texMaxY = ((float)TextureData[texture].height) / MY_TEXTURE_ARRAY_HEIGHT;
+            if (texMaxX < 0.9f) {
+                texMaxX -= 0.00001f;
+            }
+            if (texMaxY < 0.9f) {
+                texMaxY -= 0.00001f;
+            }
+            float tex = static_cast<float>(texture);
+            const float tileVerts[] = {
+                x,  y,
+                0.0f, 0.0f, tex,
+
+                x,  y2,
+                0.0f, texMaxY, tex,
+
+                x2, y2,
+                texMaxX, texMaxY, tex,
+
+                x2, y,
+                texMaxX, 0.0f, tex
+            };
+            static_assert(sizeof(tileVerts) == 4 * sizeof(TilemapVertex), "incorrect number of floats in vertex data");
+
+            memcpy(&chunkVerts[index * 20], tileVerts, sizeof(tileVerts));
+        }
+    }
+
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+
+    glDrawElements(GL_TRIANGLES, Render::numChunkIndices, GL_UNSIGNED_INT, 0);
+}
+
+Shader loadShader(const char* name) {
+    char path[512], vertexPath[512], fragmentPath[512];
+    int shadersPathLen = strlen(FilePaths::shaders);
+    memcpy(path, FilePaths::shaders, shadersPathLen);
+
+    unsigned int nameLen = 0;
+    char chr = name[0];
+    while(chr != '\0') {
+        path[nameLen+shadersPathLen] = chr;
+        nameLen++;
+        chr = name[nameLen];
+    }
+
+    int baseLen = shadersPathLen + nameLen;
+
+    path[baseLen] = '.';
+    path[baseLen+3] = '\0';
+
+    size_t pathSize = baseLen + 4;
+    memcpy(vertexPath, path, pathSize);
+    memcpy(fragmentPath, path, pathSize);
+    vertexPath[baseLen+1] = 'v';
+    vertexPath[baseLen+2] = 's';
+    fragmentPath[baseLen+1] = 'f';
+    fragmentPath[baseLen+2] = 's';
+ 
+    return Shader(vertexPath, fragmentPath);
+}
+
+int loadShaders(RenderContext& ren) {
+    ren.entityShader = loadShader("entity");
+    ren.tilemapShader = loadShader("tilemap");
+    ren.pointShader = loadShader("point");
+    ren.colorShader = loadShader("color");
+    ren.textShader = loadShader("sdf");
+    
+    return 0;
+}
+
+void renderInit(RenderContext& ren) {
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::Text);
+
+    initFreetype();
+    ren.font = new FontFace();
+    *ren.font = loadFontFace(str_add(FilePaths::assets, "fonts/FreeSans.ttf"), 64);
+
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureArray);
+
+    loadShaders(ren);
+    ren.textureArray = makeTextureArray(FilePaths::assets);
+    ren.tilemapShader.use();
+    ren.tilemapShader.setInt("texArray", TextureUnit::MyTextureArray);
+    ren.entityShader.use();
+    ren.entityShader.setInt("texArray", TextureUnit::MyTextureArray);
+    ren.textShader.use();
+    ren.textShader.setInt("text", TextureUnit::Text);
+    ren.textShader.setFloat("minD", 0.4f);
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+    glEnable(GL_PROGRAM_POINT_SIZE);
+
+    checkOpenGLErrors();
+
+    const VertexAttribute attributes[] = {
+        {2, GL_FLOAT, sizeof(GLfloat)},
+        {3, GL_FLOAT, sizeof(GLfloat)}
+    };
+    ren.chunkModel = makeModel(
+        Render::numChunkVerts * sizeof(TilemapVertex), NULL, GL_DYNAMIC_DRAW,
+        Render::numChunkIndices * sizeof(GLuint), NULL, GL_DYNAMIC_DRAW,
+        attributes, sizeof(attributes) / sizeof(VertexAttribute)
+    );
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ren.chunkModel.EBO);
+    GLuint* chunkIndexBuffer = static_cast<GLuint*>(glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY));
+
+    for (GLuint i = 0; i < CHUNKSIZE*CHUNKSIZE; i++) {
+        GLuint first = i*4;
+        GLuint ind = i * 6;
+        chunkIndexBuffer[ind+0] = first+0;
+        chunkIndexBuffer[ind+1] = first+1;
+        chunkIndexBuffer[ind+2] = first+3;
+        chunkIndexBuffer[ind+3] = first+1;
+        chunkIndexBuffer[ind+4] = first+2;
+        chunkIndexBuffer[ind+5] = first+3; 
+    }
+
+    checkOpenGLErrors();
+
+    glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+
+    checkOpenGLErrors();
+}
+
+void renderQuit(RenderContext& ren) {
+    doneFreetype();
+
+    ren.entityShader.destroy();
+    ren.tilemapShader.destroy();
+    ren.pointShader.destroy();
+    ren.textShader.destroy();
+    ren.chunkModel.destroy();
+    glDeleteTextures(1, &ren.textureArray);
+}
+
+std::vector<Draw::ColorVertex>* makeDemoQuads(SDL_Window* window) {
+    int drawableWidth,drawableHeight;
+    SDL_GL_GetDrawableSize(window, &drawableWidth, &drawableHeight);
+
+    std::vector<Draw::ColorVertex>& quadPoints = *new std::vector<Draw::ColorVertex>{
+        {{200, 100, 0.5}, {0, 1, 0, 1}},
+        {{200, 200, 0.5}, {0, 1, 0, 1}},
+        {{400, 200, 0.5}, {0, 1, 0, 1}},
+        {{400, 100, 0.5}, {0, 1, 0, 1}},
+        
+        {{0, drawableHeight, 0.6}, {1, 0, 1, 1}},
+        {{50, drawableHeight, 0.6}, {0, 1, 1, 1}},
+        {{50, drawableHeight-50, 0.6}, {1, 1, 0, 1}},
+        {{0, drawableHeight-50, 0.6}, {0, 1, 0, 1}},
+
+        {{2, 1, 0.5}, {0, 1, 0, 1}},
+        {{2, 2, 0.5}, {0, 1, 1, 1}},
+        {{4, 2, 0.5}, {1, 1, 0, 1}},
+        {{4, 1, 0.5}, {0, 1, 0, 1}}
+    };
+
+    for (int i = 0; i < 500; i++) {
+        Vec2 min = {randomInt(-100, 100), randomInt(-100, 100)};
+        Vec2 max = min + Vec2{randomInt(1, 3), randomInt(1, 3)};
+        quadPoints.push_back({glm::vec3(min.x, min.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
+        quadPoints.push_back({glm::vec3(min.x, max.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
+        quadPoints.push_back({glm::vec3(max.x, max.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
+        quadPoints.push_back({glm::vec3(max.x, min.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
+    }
+
+    return &quadPoints;
+}
+
+void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera& camera, Vec2 playerTargetPos) {
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureArray);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, ren.textureArray);
 
     /* Start Rendering */
-    glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    static ModelData squareModel = loadSquareModel();
+    checkOpenGLErrors();
 
-    glBindVertexArray(squareModel.VAO);
+    auto camTransform = camera.getTransformMatrix();
+    ren.tilemapShader.use();
+    ren.tilemapShader.setMat4("transform", camTransform);
 
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    auto& chunkModel = ren.chunkModel;
 
-    glBindVertexArray(0);
+    glBindVertexArray(chunkModel.VAO);
 
+    Vec2 cameraMin = camera.minCorner();
+    Vec2 cameraMax = camera.maxCorner();
+
+    Vec2 minChunkRelativePos = {cameraMin.x / CHUNKSIZE, cameraMin.y / CHUNKSIZE};
+    Vec2 maxChunkRelativePos = {cameraMax.x / CHUNKSIZE, cameraMax.y / CHUNKSIZE};
+    IVec2 minChunkPos = {(int)floor(minChunkRelativePos.x), (int)floor(minChunkRelativePos.y)};
+    IVec2 maxChunkPos = {(int)floor(maxChunkRelativePos.x), (int)floor(maxChunkRelativePos.y)};
+    IVec2 viewportChunkSize = {maxChunkPos.x - minChunkPos.x, maxChunkPos.y - minChunkPos.y};
+
+    int numRenderedChunks = (viewportChunkSize.x+1) * (viewportChunkSize.y+1);
+
+    for (int x = minChunkPos.x; x <= maxChunkPos.x; x++) {
+        for (int y = minChunkPos.y; y <= maxChunkPos.y; y++) {
+            ChunkData* chunkdata = state->chunkmap.getChunkData({x, y});
+            if (!chunkdata) {
+                ChunkData* newChunk = state->chunkmap.createChunk({x, y});
+                generateChunk(newChunk->chunk);
+                chunkdata = newChunk;
+            }
+            renderChunk(ren, *chunkdata, chunkModel);
+        }
+    }
+
+    int numRenderedTiles = numRenderedChunks * CHUNKSIZE*CHUNKSIZE;
+    //Log.Info("num rendered tiles: %d", numRenderedTiles);
+
+    static RenderSystem renderSystem = RenderSystem();
+    renderSystem.Update(state->ecs, state->chunkmap, ren, camera);
+
+    std::vector<Draw::ColoredPoint> points;
+    points.push_back({{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.5f}, 15.0f});
+    auto r1 = camera.minCorner();
+    auto r2 = camera.pixelToWorld({camera.pixelWidth/2.0f, camera.pixelHeight/2.0f});
+    auto r3 = camera.maxCorner();
+    points.push_back({glm::vec3(r1.x + 1, r1.y + 1, 0.0f), {0, 1, 0, 1}, 8.0f});
+    points.push_back({glm::vec3(r3.x - 1, r3.y - 1, 0.0f), {0, 1, 0, 1}, 8.0f});
+    points.push_back({glm::vec3(getMouseWorldPosition(camera), 0.0f), {0, 1, 1, 1}, 9.0f});
+
+    static Draw::ColorQuadRenderBuffer quadRenderer = Draw::ColorQuadRenderBuffer();
+    static auto& quadPoints = *makeDemoQuads(ren.window);
+
+    int drawableWidth,drawableHeight;
+    SDL_GL_GetDrawableSize(ren.window, &drawableWidth, &drawableHeight);
+
+    glm::mat4 quadTransform;
+    glm::mat4 screenTransform = glm::ortho(0.0f, (float)drawableWidth, 0.0f, (float)drawableHeight);
+    if (Debug->settings.drawChunkBorders) {
+        quadTransform = screenTransform;
+    } else {
+        quadTransform = camTransform;
+    }
+
+    ren.colorShader.use();
+    ren.colorShader.setMat4("transform", quadTransform);
+
+    // only need blending for points and stuff, not entities or tilemap
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+    glDisable(GL_DEPTH_TEST);
+
+    //ren.pointShader.use();
+    //ren.pointShader.setMat4("transform", camTransform);
+    //Draw::coloredPoints(points.size(), &points[0]);
+
+    
+    if (Debug->settings.drawEntityRects)
+        Draw::coloredQuads(quadRenderer, quadPoints.size() / 4, &quadPoints[0]);
+
+    glm::vec3 linePoints[] = {
+        {-1, -1, 0},
+        {1, 1, 0}
+    };
+    glm::vec4 lineColors[] = {
+        {1, 1, 0, 1}
+    };
+    GLfloat lineWidths[] = {
+        0.01f
+    };
+    Draw::thickLines(quadRenderer, 1, linePoints, lineColors, lineWidths);
+
+    Draw::chunkBorders(quadRenderer, camera, {1, 0, 0, 1}, 4.0f, 0.5f);
+
+    SDL_FRect quadRect = {
+        30, 30,
+        400, 400
+    };
+    Draw::ColorQuadRenderBuffer::UniformQuad2D quadVerts = {
+        {{quadRect.x, quadRect.y}, {quadRect.x+quadRect.w, quadRect.y}, {quadRect.x+quadRect.w, quadRect.y+quadRect.h}, {quadRect.x, quadRect.y+quadRect.h}},
+        {0.5, 0.5, 0.5, 1.0}
+    };
+    quadRenderer.bufferUniform(1, &quadVerts, 1.0f);
+
+    quadRenderer.flush();
+
+    checkOpenGLErrors();
+
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::Text);
+
+    auto textShader = ren.textShader;
+    textShader.use();
+    textShader.setMat4("transform", screenTransform);
+    textShader.setInt("text", TextureUnit::Text);
+    //textShader.setFloat("minD", (Metadata->ticks() % 240) / 240.0f);
+    textShader.setFloat("thickness", 0.5f);
+    textShader.setFloat("soft", 0.01f);
+
+    glDepthMask(GL_FALSE);
+    renderText(ren.textShader, *ren.font, "hello\nworld!\nWhats up guys  \n\n!", glm::vec2{100, 100}, camera.scale() / 10, glm::vec3{1, 0, 0});
+    renderText(ren.textShader, *ren.font, "Howdy\tpal!", glm::vec2(drawableWidth/2.0f, drawableHeight/2.0f), camera.scale() / 10, glm::vec3(0, 0, 0));
+    glDepthMask(GL_TRUE);
+
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+    
     SDL_GL_SwapWindow(ren.window);
+
+    checkOpenGLErrors();
 }
+
 
 #endif

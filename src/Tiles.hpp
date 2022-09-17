@@ -2,7 +2,6 @@
 #define TILES_INCLUDED
 
 #include "constants.hpp"
-#include "NC/colors.h"
 #include "Textures.hpp"
 #include <SDL2/SDL.h>
 #include "Items.hpp"
@@ -39,7 +38,7 @@ typedef TileTypes::Flags TileTypeFlag;
 
 struct TileTypeDataStruct {
     Color color;
-    SDL_Texture* background;
+    TextureID background;
     Uint32 flags;
 
     TileTypes::MineableTile mineable;

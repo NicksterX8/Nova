@@ -9,14 +9,12 @@
 #include <SDL2/SDL.h>
 #include "constants.hpp"
 #include "Textures.hpp"
-#include "NC/cpp-vectors.hpp"
-#include "NC/utils.h"
+#include "utils/Vectors.hpp"
 
 #include "Tiles.hpp"
 #include "Chunks.hpp"
 #include "Player.hpp"
 #include "ECS/ECS.hpp"
-#include "GameViewport.hpp"
 
 struct GameState {
     ChunkMap chunkmap;
@@ -26,7 +24,7 @@ struct GameState {
     ~GameState();
 
     void free();
-    void init(SDL_Renderer*, GameViewport*);
+    void init();
 };
 
 /*
@@ -57,10 +55,33 @@ void forEachEntityNearPoint(const ComponentManager<EC::Position, const EC::Size>
 
 void forEachChunkContainingBounds(const ChunkMap* chunkmap, Vec2 position, Vec2 size, std::function<void(ChunkData*)> callback);
 
-inline void forEachEntityInBounds(const ChunkMap* chunkmap, Vec2 position, Vec2 size, std::function<void(EntityT<EC::Position>)> callback) {
-    forEachChunkContainingBounds(chunkmap, position, size, [&callback](ChunkData* chunkdata){
+inline void forEachEntityInBounds(const ComponentManager<const EC::Position, const EC::Size>& ecs, const ChunkMap* chunkmap, Vec2 position, Vec2 size, std::function<void(EntityT<EC::Position>)> callback) {
+    forEachChunkContainingBounds(chunkmap, position, size, [&](ChunkData* chunkdata){
+        //position -= size/2.0f;
+        Vec2 min = position - size/2.0f;
+        Vec2 max = position + size/2.0f;
+
         for (unsigned int i = 0; i < chunkdata->closeEntities.size(); i++) {
-            callback(chunkdata->closeEntities[i].cast<EC::Position>());
+            auto closeEntity = chunkdata->closeEntities[i].cast<EC::Position>();
+            auto entityPos = ecs.Get<const EC::Position>(closeEntity)->vec2();
+            if (ecs.EntityHas<EC::Size>(closeEntity)) {
+                auto entitySize = ecs.Get<const EC::Size>(closeEntity)->vec2();
+                Vec2 eMin = entityPos - entitySize / 2.0f;
+                Vec2 eMax = entityPos + entitySize / 2.0f;
+                entityPos -= entitySize / 2.0f;
+                if (eMin.x < max.x && eMax.x > min.x &&
+                    eMin.y < max.y && eMin.y > min.y)
+                {
+                    callback(closeEntity);
+                }
+            } else {
+                if (entityPos.x > min.x && entityPos.x < max.x &&
+                    entityPos.y > min.y && entityPos.y < max.y)
+                {
+                    callback(closeEntity);
+                }
+            }
+            
         }
     });
 }

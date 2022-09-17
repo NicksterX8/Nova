@@ -3,24 +3,29 @@
 #include "Chunks.hpp"
 
 ChunkData::ChunkData(Chunk* chunk, IVec2 position) {
-        if (chunk) {
-            this->chunk = chunk;
-        }
-        this->position = position;
-    }
-
-int ChunkData::tilePositionX() const {
-    return position.x * CHUNKSIZE;
-}
-
-int ChunkData::tilePositionY() const {
-    return position.y * CHUNKSIZE;
+    this->chunk = chunk;
+    this->position = position;
+    this->vbo = 0;
 }
 
 void generateChunk(Chunk* chunk) {
     for (int row = 0; row < CHUNKSIZE; row++) {
         for (int col = 0; col < CHUNKSIZE; col++) {
             TileType tileType = TileTypes::Grass;
+            switch(rand() % 4) {
+            case 0:
+                tileType = TileTypes::Sand;
+                break;
+            case 1:
+                tileType = TileTypes::Grass;
+                break;
+            case 2:
+                tileType = TileTypes::Wall;
+                break;
+            default:
+                tileType = TileTypes::Empty;
+                break;
+            }
             CHUNK_TILE(chunk, row, col) = Tile(tileType);
         }
     }
@@ -173,7 +178,7 @@ ChunkData* ChunkMap::newEntry(IVec2 position) {
             // this method was wrongly called, the entry already exists at the position,
             // abort making a new one to not cause memory leaks and other weird bugs.
             // also log it
-            Log("Warning: ChunkMap::newEntry was called at an already existing position key. Position: (%d, %d) Aborting.", position.x, position.y);
+            Log(Warn, "ChunkMap::newEntry was called at an already existing position key. Position: (%d, %d) Aborting.", position.x, position.y);
             // just return the old entry
             return it->second;
         }

@@ -5,7 +5,7 @@
 #include "../EntityComponents/Components.hpp"
 #include "../Textures.hpp"
 #include "../SECS/EntityWorld.hpp"
-#include "../NC/cpp-vectors.hpp"
+#include "../utils/Vectors.hpp"
 
 struct EntityNamePrototype {
     std::string name;
@@ -77,7 +77,7 @@ namespace Entities {
 
     using ExplosiveType = EntityT<EC::Position, EC::Size, EC::Explosive, EC::Render, EC::Rotation>;
     struct Explosive : ExplosiveType {
-        Explosive(EntityWorld* ecs, Vec2 position, Vec2 size, SDL_Texture* texture, const EC::Explosion& explosion, float startRotation = 0.0f)
+        Explosive(EntityWorld* ecs, Vec2 position, Vec2 size, TextureID texture, const EC::Explosion& explosion, float startRotation = 0.0f)
         : ExplosiveType(ecs, "explosive") {
             MARK_START_ENTITY_CREATION(ecs);
 
@@ -116,7 +116,7 @@ namespace Entities {
             Add<EC::Size>(ecs, {0.8f, 0.8f});
             Inventory inventory = Inventory(PLAYER_INVENTORY_SIZE);
             Add<EC::Inventory>(ecs, {inventory});
-            Add<EC::Render>(ecs, {Textures.player, RenderLayer::Player});
+            Add<EC::Render>(ecs, {TextureIDs::Player, RenderLayer::Player});
             Add<EC::Immortal>(ecs, {});
 
             MARK_END_ENTITY_CREATION(ecs);
@@ -146,7 +146,7 @@ namespace Entities {
             Add<EC::Health>(ecs, {100.0f});
             Add<EC::Position>(ecs, position);
             Add<EC::Size>(ecs, {1.0f, 1.0f});
-            Add<EC::Render>(ecs, EC::Render(Textures.inserter, RenderLayer::Buildings));
+            Add<EC::Render>(ecs, EC::Render(TextureIDs::Inserter, RenderLayer::Buildings));
             Add<EC::Rotation>(ecs, {0.0f});
             Add<EC::Rotatable>(ecs, EC::Rotatable(0.0f, 90.0f));
             Add<EC::Transporter>(ecs, {0.15f});
@@ -166,7 +166,7 @@ namespace Entities {
             Add(ecs, EC::Health(100.0f));
             Add(ecs, EC::Position(position));
             Add(ecs, EC::Growth(0.0f));
-            Add(ecs, EC::Render(Textures.tree, RenderLayer::Trees));
+            Add(ecs, EC::Render(TextureIDs::Tree, RenderLayer::Trees));
             Add(ecs, EC::Size(size.x, size.y));
             Add(ecs, EC::Inventory(Inventory(10)));
             MARK_END_ENTITY_CREATION(ecs);

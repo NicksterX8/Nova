@@ -9,9 +9,9 @@
 #include <vector>
 
 #include "../constants.hpp"
-#include "../NC/cpp-vectors.hpp"
+#include "../utils/Vectors.hpp"
 #include "../Textures.hpp"
-#include "../Log.hpp"
+#include "../utils/Log.hpp"
 
 #include "Entity.hpp"
 #include "Component.hpp"
