@@ -57,7 +57,7 @@ public:
     */
     inline ComponentPool* getPool(ComponentID id) const {
         if (id > highestComponentID) {
-            Log.Error("EntityManager::getPool id passed is too high, could not get component pool!");
+            LogError("EntityManager::getPool id passed is too high, could not get component pool!");
             return NULL;
         }
         return pools[id];
@@ -73,7 +73,7 @@ public:
         if (id > highestComponentID)
             highestComponentID = id;
         if (nComponents > NUM_COMPONENTS || highestComponentID > NUM_COMPONENTS) {
-            Log.Critical("The number of components in the enity component system is greater than the constant NUM_COMPONENTS!"
+            LogCritical("The number of components in the enity component system is greater than the constant NUM_COMPONENTS!"
                 "number of components in system: %u, NUM_COMPONENTS: %d", nComponents, NUM_COMPONENTS);
         }
     }
@@ -175,7 +175,7 @@ public:
         if (EntityExists(entity) && pool)
             return static_cast<T*>(pool->get(entity.id));
 
-        Log.Error("Attempted to get unowned component \"%s\" of an entity! Returning NULL. Entity: %s", getComponentName<T>(), entity.DebugStr().c_str());
+        LogError("Attempted to get unowned component \"%s\" of an entity! Returning NULL. Entity: %s", getComponentName<T>(), entity.DebugStr().c_str());
         return NULL;
     }
 
@@ -185,14 +185,14 @@ public:
         if (EntityExists(entity) && pool)
             return pool->get(entity.id);
 
-        Log.Error("Failed to get component \"%s\" of an entity! Returning NULL. Entity: %s", getComponentName(componentID), entity.DebugStr().c_str());
+        LogError("Failed to get component \"%s\" of an entity! Returning NULL. Entity: %s", getComponentName(componentID), entity.DebugStr().c_str());
         return NULL;
     }
 
     template<class... Components>
     int Add(Entity entity) {
         if (!EntityExists(entity)) {
-            Log.Error("EntityManager::Add : Attempted to add components to a non-living entity! Entity: %s.", entity.DebugStr().c_str());
+            LogError("EntityManager::Add : Attempted to add components to a non-living entity! Entity: %s.", entity.DebugStr().c_str());
             return -1;
         }
 
@@ -213,7 +213,7 @@ public:
         if (sizeof(T) == 0) return 1;
 
         if (!EntityExists(entity)) {
-            Log.Error("EntityManager::Add %s : Attempted to add a component to a non-living entity! Entity: %s", getComponentName<T>(), entity.DebugStr().c_str());
+            LogError("EntityManager::Add %s : Attempted to add a component to a non-living entity! Entity: %s", getComponentName<T>(), entity.DebugStr().c_str());
             return -1;
         }
 
@@ -226,7 +226,7 @@ public:
 
     int AddSignature(Entity entity, ComponentFlags signature) {
         if (!EntityExists(entity)) {
-            Log.Error("EntityManager::AddSignature : Attempted to add components to a non-existent entity! Entity: %s", entity.DebugStr().c_str());
+            LogError("EntityManager::AddSignature : Attempted to add components to a non-existent entity! Entity: %s", entity.DebugStr().c_str());
             return -1;
         }
         
@@ -244,7 +244,7 @@ public:
 
     int RemoveComponents(Entity entity, ComponentID* componentIDs, Uint32 numComponentIDs) {
         if (!EntityExists(entity)) {
-            Log.Error("EntityManager::RemoveComponents : Attempted to remove components from a non-living entity! Entity: %s", entity.DebugStr().c_str());
+            LogError("EntityManager::RemoveComponents : Attempted to remove components from a non-living entity! Entity: %s", entity.DebugStr().c_str());
             return -1;
         }
 
@@ -264,7 +264,7 @@ public:
     template<class... Components>
     int RemoveComponents(Entity entity) {
         if (!EntityExists(entity)) {
-            Log.Error("EntityManager::RemoveComponents : Attempted to remove components from a non-living entity! Entity: %s", entity.DebugStr().c_str());
+            LogError("EntityManager::RemoveComponents : Attempted to remove components from a non-living entity! Entity: %s", entity.DebugStr().c_str());
             return -1;
         }
 

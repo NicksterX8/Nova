@@ -186,7 +186,7 @@ void systemJob(ECS::EntitySystem* system) {
 
 void runConcurrently(EntityWorld* ecs, ECS::EntitySystem* sysA, ECS::EntitySystem* sysB) {
     if (!canRunConcurrently(sysA, sysB)) {
-        Log.Critical("Attempted to run two incompatible systems together concurrently! Running in sequence.");
+        LogCritical("Attempted to run two incompatible systems together concurrently! Running in sequence.");
         systemJob(sysA);
         systemJob(sysB);
         return;
@@ -281,12 +281,12 @@ int tick(GameState* state) {
 }
 
 void logComponentPoolSizes(const EntityWorld& ecs) {
-    Log.Info("Total number of entities: %u", ecs.EntityCount());
+    LogInfo("Total number of entities: %u", ecs.EntityCount());
     for (ECS::ComponentID id = 0; id < ecs.NumComponentPools(); id++) {
         const ECS::ComponentPool* pool = ecs.GetPool(id);
-        Log.Info("%s || Size: %u", pool->name, pool->size());
+        LogInfo("%s || Size: %u", pool->name, pool->size());
         if (pool->size() > ecs.EntityCount()) {
-            Log.Error("Size is too large!");
+            LogError("Size is too large!");
         }
     }
 }
@@ -377,7 +377,7 @@ int Game::update() {
     lastUpdatePlayerTargetPos = playerTargetPos;
 
     if (quit) {
-        Log(Info, "Returning from main update loop.");
+        LogInfo("Returning from main update loop.");
         return 1;
     }
     return 0; 
@@ -416,12 +416,12 @@ void Game::init(int screenWidth, int screenHeight) {
 }
 
 void Game::quit() {
-    Log.Info("Quitting!");
+    LogInfo("Quitting!");
 
     renderQuit(*renderContext);
 
     double secondsElapsed = metadata.end();
-    Log.Info("Time elapsed: %.1f", secondsElapsed);
+    LogInfo("Time elapsed: %.1f", secondsElapsed);
     // GameSave::save()
 }
 
@@ -436,7 +436,7 @@ void Game::start() {
 
     Metadata = &metadata;
 
-    Log.Info("Starting!");
+    LogInfo("Starting!");
 
     if (metadata.vsyncEnabled) {
         metadata.setTargetFps(60);

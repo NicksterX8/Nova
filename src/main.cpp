@@ -2,6 +2,7 @@
 #include "utils/Log.hpp"
 
 #include <vector>
+#include <string>
 #include <stdio.h>
 #include <libproc.h>
 #include <unistd.h>
@@ -19,16 +20,14 @@
 #include "GameSave/main.hpp"
 #include "sdl.hpp"
 
+//#include <glog/logging.h>
+
 #ifdef DEBUG
     //#include "Testing.hpp"
 #endif
 
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
-#define AT __FILE__ ":" TOSTRING(__LINE__)
-
 void logEntitySystemInfo() {
-    Log(Info, "Number of systems: %d", NUM_SYSTEMS);
+    LogInfo("Number of systems: %d", NUM_SYSTEMS);
     const char* systemsStr = TOSTRING((SYSTEMS));
     int length = strlen(systemsStr);
     char systemsStr2[length];
@@ -58,7 +57,7 @@ void logEntitySystemInfo() {
     }
 
     for (int i = 0; i < NUM_SYSTEMS; i++) {
-        Log(Info, "ID: %d, System: %s.", i, systemsList[i]);
+        LogInfo("ID: %d, System: %s.", i, systemsList[i]);
     }
 }
 
@@ -101,8 +100,8 @@ void logEntityComponentInfo() {
 }
 
 void initLogging() {
-    Log.init(str_add(FilePaths::save, "log.txt"));
-    SDL_LogSetOutputFunction(Logger::logOutputFunction, &Log);
+    gLogger.init(str_add(FilePaths::save, "log.txt"));
+    SDL_LogSetOutputFunction(Logger::logOutputFunction, &gLogger);
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_ERROR);
     SDL_LogSetPriority(LogCategory::Main, SDL_LOG_PRIORITY_INFO);
 }
@@ -140,17 +139,19 @@ void initPaths() {
 }
 
 int main(int argc, char** argv) {
-    Log.useEscapeCodes = true;
+    gLogger.useEscapeCodes = true;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--no-color-codes") == 0) {
-            Log.useEscapeCodes = false;
+            gLogger.useEscapeCodes = false;
         }
     }
 
     initPaths();
     initLogging();
 
-    Log(Critical, "ayo bud. my name is %s and im %d years old\n", "nick", 12);
+    LogCritical("(Log(Critcal, ...)): ayo bud. my name is %s and im %d years old\n", "nick", 12);
+    LogWarn("(LogWarn,...)): whats up guys");
+    LogError("LogError: heyo");
 
     printf("argv[0]: %s\n", argv[0]);
 
@@ -172,7 +173,7 @@ int main(int argc, char** argv) {
     game->quit();
     game->destroy();
 
-    Log.destroy();
+    gLogger.destroy();
 
     quitSDL(&sdlCtx);
 

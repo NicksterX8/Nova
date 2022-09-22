@@ -426,7 +426,7 @@ public:
 
     void Update() {
         if (!chunkmap) {
-            Log.Error("InserterSystem::Update Chunkmap is NULL");
+            LogError("InserterSystem::Update Chunkmap is NULL");
             return;
         }
 

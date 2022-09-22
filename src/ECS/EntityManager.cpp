@@ -17,14 +17,14 @@ Uint32 EntityManager::numLiveEntities() const {
 
 Entity EntityManager::New() {
     if (liveEntities >= NULL_ENTITY_ID || freeEntities.size() < 0) {
-        Log.Critical("Ran out of entity space in ECS! Live entities: %u, freeEntities size: %lu. Aborting.\n", liveEntities, freeEntities.size());
+        LogCritical("Ran out of entity space in ECS! Live entities: %u, freeEntities size: %lu. Aborting.\n", liveEntities, freeEntities.size());
         return NullEntity;
     }
 
     // get top entity from free entity stack
     EntityID entityID = freeEntities.back();
     if (entityID == NULL_ENTITY_ID) {
-        Log.Error("Entity from freeEntities was NULL! EntityID: %u", entityID);
+        LogError("Entity from freeEntities was NULL! EntityID: %u", entityID);
     }
     freeEntities.pop_back();
 
@@ -45,7 +45,7 @@ int EntityManager::Destroy(Entity entity) {
     EntityData* entityData = &entityDataList[entity.id];
 
     if (!EntityExists(entity)) {
-        Log.Error("ECS::Remove %s : Attempted to remove a non-existent entity! Returning -1. Entity: %s", entity.DebugStr().c_str());
+        LogError("ECS::Remove %s : Attempted to remove a non-existent entity! Returning -1. Entity: %s", entity.DebugStr().c_str());
         return -1;
     }
 
@@ -83,7 +83,7 @@ int EntityManager::Destroy(Entity entity) {
 
 Entity EntityManager::getEntityByIndex(Uint32 entityIndex) const {
     if (entityIndex >= liveEntities) {
-        Log.Error("ECS::getEntityByIndex : index out out bounds! Index : %u, liveEntities: %u", entityIndex, liveEntities);
+        LogError("ECS::getEntityByIndex : index out out bounds! Index : %u, liveEntities: %u", entityIndex, liveEntities);
         return NullEntity;
     }
     return entities[entityIndex];

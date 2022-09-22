@@ -65,7 +65,7 @@ struct Game {
             return game->update();
         } else {
             // handle error
-            Log.Error("Parameter passed to emscripten update wrapper was null!");
+            LogError("Parameter passed to emscripten update wrapper was null!");
             return -1;
         }
         

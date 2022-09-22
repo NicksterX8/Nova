@@ -78,9 +78,9 @@ inline SDLContext initSDL() {
 #endif
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS | SDL_INIT_TIMER)) {
-        Log.Error("Failed initializing SDL. MSG: %s", SDL_GetError());
+        LogError("Failed initializing SDL. MSG: %s", SDL_GetError());
     } else {
-        Log.Info("SDL Initialized.");
+        LogInfo("SDL Initialized.");
     }
 
     SDLContext context;
@@ -96,7 +96,7 @@ inline SDLContext initSDL() {
 
     if (!context.win) {
         const char* sdlError = SDL_GetError();
-        Log.Error("Failed creating window. Error: %s", sdlError);
+        LogError("Failed creating window. Error: %s", sdlError);
         char errorMessage[512];
         if (sdlError) 
             snprintf(errorMessage, 512, "Failed to open a window. SDL Error message: %s", sdlError);
@@ -109,7 +109,7 @@ inline SDLContext initSDL() {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GLContext glContext = SDL_GL_CreateContext(context.win);
     if (!glContext) {
-        Log.Error("Failed creating OpenGL context! Error message: %s", SDL_GetError());
+        LogError("Failed creating OpenGL context! Error message: %s", SDL_GetError());
         exit(EXIT_FAILURE);
     }
 
@@ -152,7 +152,7 @@ inline void quitSDL(SDLContext* ctx) {
         ctx->win = NULL;
     }
 
-    Log.Info("SDL quit!");
+    LogInfo("SDL quit!");
 }
 
 #endif

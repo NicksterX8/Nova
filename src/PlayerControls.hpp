@@ -262,7 +262,7 @@ public:
                     OptionalEntity<> selectedEntity = state->player.selectedEntity;
                     if (selectedEntity.Has<EC::Render, EC::EntityTypeEC>(&state->ecs)) {
                         const char* name = selectedEntity.Get<EC::EntityTypeEC>(&state->ecs)->name;
-                        Log(Info, "name: %s", name);
+                        LogInfo("name: %s", name);
                     }
                     if (selectedEntity.Has<EC::Grabable, EC::ItemStack>(&state->ecs)) {
                         ItemStack itemGrabbed = selectedEntity.Get<EC::ItemStack>(&state->ecs)->item;
@@ -278,7 +278,7 @@ public:
 
                 auto tileEntity = findTileEntityAtPosition(state, worldPos);
                 if (tileEntity.Exists(&state->ecs)) {
-                    Log(Info, "Removing entity at %d,%d", (int)floor(worldPos.x), (int)floor(worldPos.y));
+                    LogInfo("Removing entity at %d,%d", (int)floor(worldPos.x), (int)floor(worldPos.y));
                         removeEntityOnTile(&state->ecs, selectedTile);
                 }
 
@@ -361,10 +361,9 @@ public:
                 enteredText.back().append(enteredString);
             }
 
-            Log.Info("entered text:");
+            LogInfo("entered text:");
             for (auto& str : enteredText) {
-                Log(Debug, "%s", str.c_str());
-                Log(Info, "%s", str.c_str());
+                LogDebug("%s", str.c_str());
             }
             
         }

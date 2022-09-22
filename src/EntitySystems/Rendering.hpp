@@ -126,7 +126,7 @@ public:
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         void* elementBuffer = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
         if (!elementBuffer) {
-            Log.Error("bad things happened!!!");
+            LogError("bad things happened!!!");
             return;
         }
         GLuint* indices = static_cast<GLuint*>(elementBuffer);
@@ -165,7 +165,7 @@ public:
     VertexDataArrays mapVertexBuffer() {
         GLfloat* vertexBuffer = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
         if (!vertexBuffer) {
-            Log.Error("Oh no a bunch more bad stuff happened!");
+            LogError("Oh no a bunch more bad stuff happened!");
             
             return {NULL,NULL,NULL};
         }
@@ -267,7 +267,7 @@ public:
             glDrawElements(GL_TRIANGLES, entityCounter*indicesPerEntity, GL_UNSIGNED_INT, 0); // draw a batch of entities
         }
         
-        //Log.Info("entities rendererd: %d", entitiesRenderered);
+        //LogInfo("entities rendererd: %d", entitiesRenderered);
         /*
 
         ForEach(ecs, [&](Entity entity){
@@ -415,7 +415,7 @@ public:
                 }
                 */
             });
-            Log.Info("rendered %d ids", nRenderedIDs);
+            LogInfo("rendered %d ids", nRenderedIDs);
         }
 
         /*

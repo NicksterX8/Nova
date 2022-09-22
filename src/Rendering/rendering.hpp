@@ -316,7 +316,8 @@ int loadShaders(RenderContext& ren) {
     ren.tilemapShader = loadShader("tilemap");
     ren.pointShader = loadShader("point");
     ren.colorShader = loadShader("color");
-    ren.textShader = loadShader("sdf");
+    ren.textShader = loadShader("text");
+    ren.sdfShader = loadShader("sdf");
     
     return 0;
 }
@@ -326,7 +327,9 @@ void renderInit(RenderContext& ren) {
 
     initFreetype();
     ren.font = new FontFace();
-    *ren.font = loadFontFace(str_add(FilePaths::assets, "fonts/FreeSans.ttf"), 64);
+    *ren.font = loadFontFace(str_add(FilePaths::assets, "fonts/FreeSans.ttf"), 64, true);
+    ren.debugFont = new FontFace();
+    *ren.debugFont = loadFontFace(str_add(FilePaths::assets, "fonts/Ubuntu-Regular.ttf"), 24, false);
 
     glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureArray);
 
@@ -338,7 +341,8 @@ void renderInit(RenderContext& ren) {
     ren.entityShader.setInt("texArray", TextureUnit::MyTextureArray);
     ren.textShader.use();
     ren.textShader.setInt("text", TextureUnit::Text);
-    ren.textShader.setFloat("minD", 0.4f);
+    ren.sdfShader.use();
+    ren.sdfShader.setInt("text", TextureUnit::Text);
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
     glEnable(GL_PROGRAM_POINT_SIZE);
@@ -462,7 +466,7 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
     }
 
     int numRenderedTiles = numRenderedChunks * CHUNKSIZE*CHUNKSIZE;
-    //Log.Info("num rendered tiles: %d", numRenderedTiles);
+    //LogInfo("num rendered tiles: %d", numRenderedTiles);
 
     static RenderSystem renderSystem = RenderSystem();
     renderSystem.Update(state->ecs, state->chunkmap, ren, camera);
@@ -537,16 +541,19 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
     glActiveTexture(GL_TEXTURE0 + TextureUnit::Text);
 
     auto textShader = ren.textShader;
+    auto sdfShader = ren.sdfShader;
     textShader.use();
     textShader.setMat4("transform", screenTransform);
-    textShader.setInt("text", TextureUnit::Text);
-    //textShader.setFloat("minD", (Metadata->ticks() % 240) / 240.0f);
-    textShader.setFloat("thickness", 0.5f);
-    textShader.setFloat("soft", 0.01f);
+
+    sdfShader.use();
+    sdfShader.setMat4("transform", screenTransform);
+    sdfShader.setFloat("thickness", 0.5f);
+    sdfShader.setFloat("soft", 0.01f);
 
     glDepthMask(GL_FALSE);
-    renderText(ren.textShader, *ren.font, "hello\nworld!\nWhats up guys  \n\n!", glm::vec2{100, 100}, camera.scale() / 10, glm::vec3{1, 0, 0});
+    renderText(ren.sdfShader, *ren.font, "hello\nworld!\nWhats up guys  \n\n!", glm::vec2{100, 100}, camera.scale() / 10, glm::vec3{1, 0, 0});
     renderText(ren.textShader, *ren.font, "Howdy\tpal!", glm::vec2(drawableWidth/2.0f, drawableHeight/2.0f), camera.scale() / 10, glm::vec3(0, 0, 0));
+    renderText(ren.textShader, *ren.debugFont, "This is ubuntu with regular text!", glm::vec2{600, 500}, 1.0f, glm::vec3{0.0f, 0.0f, 0.0f});
     glDepthMask(GL_TRUE);
 
     glEnable(GL_DEPTH_TEST);

@@ -64,7 +64,7 @@ void Logger::logOutputFunction(void* arg, int category, SDL_LogPriority priority
     logger->logOutputFunction((LogCategory)category, (LogPriority)priority, message);
 }
 
-Logger Log;
+Logger gLogger;
 
 void logAt(const char* file, int line, LogCategory category, LogPriority priority, const char* fmt, ...) {
     va_list ap;
@@ -72,6 +72,38 @@ void logAt(const char* file, int line, LogCategory category, LogPriority priorit
 
     va_start(ap, fmt);
     vsnprintf(message, MAX_LOG_MESSAGE_LENGTH, fmt, ap);
-    SDL_LogMessage((SDL_LogCategory)category, (SDL_LogPriority)priority, "%s:%d - %s", file, line, message);
+    SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s:%d - %s", file, line, message);
     va_end(ap);
 }
+
+void logInternal(LogCategory category, LogPriority priority, const char* prefix, const char* fmt, ...) {
+    va_list ap;
+    char message[MAX_LOG_MESSAGE_LENGTH];
+
+    va_start(ap, fmt);
+    vsnprintf(message, MAX_LOG_MESSAGE_LENGTH, fmt, ap);
+    SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s%s", prefix, message);
+    va_end(ap);
+}
+
+void logInternal2(LogCategory category, LogPriority priority, const char* prefix1, const char* prefix2, const char* fmt, ...) {
+    va_list ap;
+    char message[MAX_LOG_MESSAGE_LENGTH];
+
+    va_start(ap, fmt);
+    vsnprintf(message, MAX_LOG_MESSAGE_LENGTH, fmt, ap);
+    SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s%s%s", prefix1, prefix2, message);
+    va_end(ap);
+}
+
+void logInternal3(LogCategory category, LogPriority priority, const char* prefix1, const char* prefix2, const char* prefix3, const char* fmt, ...) {
+    va_list ap;
+    char message[MAX_LOG_MESSAGE_LENGTH];
+
+    va_start(ap, fmt);
+    vsnprintf(message, MAX_LOG_MESSAGE_LENGTH, fmt, ap);
+    SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s%s%s%s", prefix1, prefix2, prefix3, message);
+    va_end(ap);
+}
+
+// FILE:FUNCTION
