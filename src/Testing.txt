@@ -362,7 +362,7 @@ namespace Tests {
         if (success) {
             Log("SUCCESS: All tests succeeded.\n");
         } else {
-            Log.Error("FAILURE: %lu tests failed.\n", failedTests.size());
+            LogError("FAILURE: %lu tests failed.\n", failedTests.size());
         }
 
         return success;

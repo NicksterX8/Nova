@@ -21,7 +21,7 @@ inline int checkOpenGLErrors() {
     }
 
     for (i = 0; i < numErrors; i++) {
-        Log.Error("OpenGL error: %d", errors[i]);
+        LogError("OpenGL error: %d", errors[i]);
     }
 
     return numErrors;

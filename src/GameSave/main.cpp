@@ -25,7 +25,8 @@ struct FileProperty {
         setName(propertyName);
         this->size = size;
         if (!data) {
-            Log.Error("data passed to file property is NULL!");
+            LogError("data passed to file property is NULL!");
+            LogWarn("warn");
         }
         this->data = data;
     }
@@ -59,7 +60,7 @@ struct FileProperty {
     void setName(const char* string) {
         size_t nameLength = strlen(name) + 1;
         if (nameLength > PropertyNameSize) {
-            Log.Error("Name for file property is too long! Length: %lu", nameLength);
+            LogError("Name for file property is too long! Length: %lu", nameLength);
         }
         strlcpy(name, string, PropertyNameSize);
     }
@@ -174,7 +175,7 @@ const char* findProperty(const char* property, const char* fileContents) {
 const void* readProp(const char* propName, const char* contents) {
     const char* location = findProperty(propName, contents);
     if (!location) {
-        Log.Error("Failed to read prop %s!", propName);
+        LogError("Failed to read prop %s!", propName);
         return NULL;
     }
     const char* propContents = location;
@@ -374,7 +375,7 @@ int writeEverythingToFiles(const char* outputSaveFolderPath, const GameState* st
     FILE* entityFile = fopen(entitiesFilepath, "w");
     if (!entityFile) {
         code |= -1;
-        Log.Critical("Failed to open entity file for writing! File path: %s", entitiesFilepath);
+        LogCritical("Failed to open entity file for writing! File path: %s", entitiesFilepath);
         return code;
     }
 
@@ -400,7 +401,7 @@ int writeEverythingToFiles(const char* outputSaveFolderPath, const GameState* st
     FILE* playerFile = fopen(playerFilepath, "w");
     if (!playerFile) {
         code |= -1;
-        Log.Critical("Failed to open player file for writing! File path: %s", playerFilepath);
+        LogCritical("Failed to open player file for writing! File path: %s", playerFilepath);
         return code;
     }
 
@@ -412,7 +413,7 @@ int writeEverythingToFiles(const char* outputSaveFolderPath, const GameState* st
     fclose(playerFile);
 
     if (code) {
-        Log.Critical("Error occurred during writing to save!");
+        LogCritical("Error occurred during writing to save!");
     }
     return code;
 }
@@ -424,7 +425,7 @@ const char* readSource(void* dst, const char* src, size_t size) {
 
 const char* readFileContents(FILE* file, long* outFileSize=NULL) {
     if (!file) {
-        Log.Critical("NULL file passed to readFileContents!");
+        LogCritical("NULL file passed to readFileContents!");
         return NULL;
     }
     
@@ -436,7 +437,7 @@ const char* readFileContents(FILE* file, long* outFileSize=NULL) {
         if (outFileSize)
             *outFileSize = bufsize;
         if (bufsize == -1) {
-            Log.Critical("Couldn't get size of file!");
+            LogCritical("Couldn't get size of file!");
             fclose(file);
             return NULL;
         }
@@ -469,7 +470,7 @@ int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
     const char* src = readFileContents(file);
     fclose(file);
     if (!src) {
-        Log.Error("Failed to read file contents for entity data. Path: %s", filepath);
+        LogError("Failed to read file contents for entity data. Path: %s", filepath);
         return -1;
     }
 
@@ -485,13 +486,13 @@ int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
     // validate data
 
     if (maxEntities > MAX_ENTITIES) {
-        Log.Critical("Max entity count while reading entity save file is too large!");
+        LogCritical("Max entity count while reading entity save file is too large!");
         maxEntities = MAX_ENTITIES;
         code |= -212;
         return code;
     }
     if (maxEntities < MAX_ENTITIES) {
-        Log.Critical("Max entity count while reading entity save file is too small!");
+        LogCritical("Max entity count while reading entity save file is too small!");
         code |= -563;
         return code;
     }
@@ -519,7 +520,7 @@ int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
 int readPlayerDataFromFile(const char* filepath, Player* player) {
     FILE* file = fopen(filepath, "r");
     if (!file) {
-        Log.Critical("Failed to open player file for reading! File path: %s", filepath);
+        LogCritical("Failed to open player file for reading! File path: %s", filepath);
         return -1;
     }
     const char* src = readFileContents(file);
@@ -556,21 +557,21 @@ int readEverythingFromFiles(const char* inputSaveFolderPath, GameState* state) {
 
 
     if (code) {
-        Log.Critical("Error occurred during reading of save!");
+        LogCritical("Error occurred during reading of save!");
     }
     return code;
 }
 
 int save(const GameState* state) {
     int code = writeEverythingToFiles("save/", state);
-    Log(Info, "Saved!");
+    LogInfo("Saved!");
     return code;
 }
 
 int load(GameState* state) {
     int code = readEverythingFromFiles("save/", state);
     state->player.releaseHeldItem();
-    Log(Info, "Loaded!");
+    LogInfo("Loaded!");
     return code;
 }
 

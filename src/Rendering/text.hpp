@@ -9,6 +9,8 @@
 
 #include "Shader.hpp"
 #include "utils.hpp"
+#include "texture-packing.hpp"
+
 
 struct Character {
     GLuint       textureID;  // ID handle of the glyph texture
@@ -21,7 +23,7 @@ FT_Library freetype;
 
 int initFreetype() {
     if (FT_Init_FreeType(&freetype)) {
-        Log.Error("Failed to initialize FreeType library.");
+        LogError("Failed to initialize FreeType library.");
         return -1;
     }
 
@@ -37,9 +39,90 @@ struct FontFace {
     Character* characters;
 };
 
+struct Font {
+    FT_Face face;
+    GLuint atlasTexture;
+    glm::ivec2 atlasSize;
+
+    struct Character {
+        glm::ivec2 texPos;
+        glm::ivec2 size;
+        glm::ivec2 bearing;
+        unsigned int advance;
+    } *characters;
+};
+
+GLuint generateFontAtlasTexture(const TexturePacker& packer) {
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RED,
+        packer.textureSize.x,
+        packer.textureSize.y,
+        0,
+        GL_RED,
+        GL_UNSIGNED_BYTE,
+        packer.buffer
+    );
+    // set texture options
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    return texture;
+}
+
+void loadFont(Font* font, unsigned char firstChar, unsigned char lastChar) {
+
+    if (lastChar > 127 || firstChar > 127) {
+        LogError("Can't load font characters higher than 127!");
+        if (lastChar > 127) lastChar = 127;
+        if (firstChar > 127) firstChar = 127;
+    }
+
+    TexturePacker packer({500, 500});
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
+
+    FT_GlyphSlot slot = font->face->glyph;
+
+    FT_Error error;
+    
+    for (unsigned char c = firstChar; c <= lastChar; c++) {
+        // load character glyph 
+        if ((error = FT_Load_Char(font->face, c, FT_LOAD_RENDER))) {
+            LogError("Failed to load glyph charcter \'%c\'. Error: %s", c, FT_Error_String(error));
+            continue;
+        }
+
+        glm::ivec2 texPos = packer.packTexture(slot->bitmap.buffer, glm::ivec2(slot->bitmap.width, slot->bitmap.rows));
+  
+        // now store character for later use3
+        font->characters[c-firstChar] = Font::Character{
+            glm::ivec2(0, 0),
+            glm::ivec2(slot->bitmap.width, slot->bitmap.rows),
+            glm::ivec2(slot->bitmap_left, slot->bitmap_top),
+            (unsigned int)slot->advance.x
+        };
+    }
+
+    font->atlasSize = packer.textureSize;
+    font->atlasTexture = generateFontAtlasTexture(packer);
+    if (!font->atlasTexture) {
+        LogError("Font atlas texture failed to generate!");
+    }
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4); // re enable default byte-alignment restriction
+}
+
 void loadFontFaceCharacters(FT_Face face, Character* firstCharacter, unsigned char firstChar, unsigned char lastChar) {
     if (lastChar > 127 || firstChar > 127) {
-        Log.Error("Can't load font characters higher than 127!");
+        LogError("Can't load font characters higher than 127!");
+        if (lastChar > 127) lastChar = 127;
+        if (firstChar > 127) firstChar = 127;
     }
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
@@ -51,13 +134,65 @@ void loadFontFaceCharacters(FT_Face face, Character* firstCharacter, unsigned ch
     for (unsigned char c = firstChar; c <= lastChar; c++) {
         // load character glyph 
         if ((error = FT_Load_Char(face, c, FT_LOAD_RENDER))) {
-            Log.Error("Failed to load glyph charcter \'%c\'. Error: %s", c, FT_Error_String(error));
+            LogError("Failed to load glyph charcter \'%c\'. Error: %s", c, FT_Error_String(error));
+            continue;
+        }
+
+        // generate texture
+        GLuint texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RED,
+            slot->bitmap.width,
+            slot->bitmap.rows,
+            0,
+            GL_RED,
+            GL_UNSIGNED_BYTE,
+            slot->bitmap.buffer
+        );
+        // set texture options
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        // now store character for later use3
+        firstCharacter[c-firstChar] = Character{
+            texture, 
+            glm::ivec2(slot->bitmap.width, slot->bitmap.rows),
+            glm::ivec2(slot->bitmap_left, slot->bitmap_top),
+            (unsigned int)slot->advance.x
+        };
+    }
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4); // re enable default byte-alignment restriction
+}
+
+void loadFontFaceCharactersSDF(FT_Face face, Character* firstCharacter, unsigned char firstChar, unsigned char lastChar) {
+    if (lastChar > 127 || firstChar > 127) {
+        LogError("Can't load font characters higher than 127!");
+        if (lastChar > 127) lastChar = 127;
+        if (firstChar > 127) firstChar = 127;
+    }
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
+
+    FT_GlyphSlot slot = face->glyph;
+
+    FT_Error error;
+    
+    for (unsigned char c = firstChar; c <= lastChar; c++) {
+        // load character glyph 
+        if ((error = FT_Load_Char(face, c, FT_LOAD_RENDER))) {
+            LogError("Failed to load glyph charcter \'%c\'. Error: %s", c, FT_Error_String(error));
             continue;
         }
 
         if (c != ' ')
             if ((error = FT_Render_Glyph(slot, FT_RENDER_MODE_SDF))) {
-                LogGory(Main, Error, "Failed to load SDF glyph character \'%c\'. Error: %s", c, FT_Error_String(error));
+                LogLocGory(Main, Error, "Failed to load SDF glyph character \'%c\'. Error: %s", c, FT_Error_String(error));
                 continue;
             }
 
@@ -88,9 +223,9 @@ void loadFontFaceCharacters(FT_Face face, Character* firstCharacter, unsigned ch
             glm::ivec2(slot->bitmap_left, slot->bitmap_top),
             (unsigned int)slot->advance.x
         };
-
-        checkOpenGLErrors();
     }
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4); // re enable default byte-alignment restriction
 }
 
 void unloadFontFaceCharacters(Character* characters) {
@@ -99,27 +234,29 @@ void unloadFontFaceCharacters(Character* characters) {
     }
 }
 
-FontFace loadFontFace(const char* filepath, FT_UInt height) {
+FontFace loadFontFace(const char* filepath, FT_UInt height, bool useSDFs) {
     FT_Error err = 0;
     FT_Face face = nullptr;
     err = FT_New_Face(freetype, filepath, 0, &face);
     if (err) {
-        Log.Error("Failed to load font face. Filepath: %s. Error: %s", filepath, FT_Error_String(err));
+        LogError("Failed to load font face. Filepath: %s. Error: %s", filepath, FT_Error_String(err));
         return {nullptr, nullptr};
     }
 
     err = FT_Set_Pixel_Sizes(face, 0, height);
     if (err) {
-        Log.Error("Failed to set font face pixel size. FT_Error: %s", FT_Error_String(err));
+        LogError("Failed to set font face pixel size. FT_Error: %s", FT_Error_String(err));
     }
 
     FontFace fontFace;
     fontFace.face = face;
     fontFace.characters = new Character[95];
 
-    loadFontFaceCharacters(face, fontFace.characters, 32, 127);
-
-    checkOpenGLErrors();
+    if (useSDFs) {
+        loadFontFaceCharactersSDF(face, fontFace.characters, 32, 127);
+    } else {
+        loadFontFaceCharacters(face, fontFace.characters, 32, 127);
+    }
 
     return fontFace;
 }

@@ -32,7 +32,7 @@ void EntitySystemInterface::AddEntity(Entity entity) {
 
 int EntitySystemInterface::RemoveEntityLocally(Uint32 localIndex) {
     if (localIndex >= nEntities) {
-        Log.Error("EntitySystem::RemoveEntity : localIndex out of bounds. index: %u, nEntities: %u", localIndex, nEntities);
+        LogError("EntitySystem::RemoveEntity : localIndex out of bounds. index: %u, nEntities: %u", localIndex, nEntities);
         return 1;
     }
     entities[localIndex] = entities[nEntities-1];

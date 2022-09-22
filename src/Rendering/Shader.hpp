@@ -89,13 +89,13 @@ private:
             glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
             if (!success) {
                 glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-                Log.Error("Failed to compile %s shader! Shader info log: %s\n -------------------------------------------------", type, infoLog);
+                LogError("Failed to compile %s shader! Shader info log: %s\n -------------------------------------------------", type, infoLog);
             }
         } else {
             glGetProgramiv(shader, GL_LINK_STATUS, &success);
             if (!success) {
                 glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-                Log.Error("Failed to link shader program! Program info log: %s\n -------------------------------------------------", infoLog);
+                LogError("Failed to link shader program! Program info log: %s\n -------------------------------------------------", infoLog);
             }
         }
     }

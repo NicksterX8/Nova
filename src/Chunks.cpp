@@ -178,7 +178,7 @@ ChunkData* ChunkMap::newEntry(IVec2 position) {
             // this method was wrongly called, the entry already exists at the position,
             // abort making a new one to not cause memory leaks and other weird bugs.
             // also log it
-            Log(Warn, "ChunkMap::newEntry was called at an already existing position key. Position: (%d, %d) Aborting.", position.x, position.y);
+            LogWarn("ChunkMap::newEntry was called at an already existing position key. Position: (%d, %d) Aborting.", position.x, position.y);
             // just return the old entry
             return it->second;
         }

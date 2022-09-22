@@ -12,12 +12,12 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
     vShaderFile.open(vertexPath);
     fShaderFile.open(fragmentPath);
     if (!vShaderFile) {
-        Log.Error("Failed to open vertex shader for reading. Path: %s", vertexPath);
-        Log.Error("str error: %s", strerror(errno));
+        LogError("Failed to open vertex shader for reading. Path: %s", vertexPath);
+        LogError("str error: %s", strerror(errno));
         return;
     }
     if (!fShaderFile) {
-        Log.Error("Failed to open fragment shader for reading. Path: %s", fragmentPath);
+        LogError("Failed to open fragment shader for reading. Path: %s", fragmentPath);
         return;
     }
 
@@ -59,18 +59,18 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
 
 GLint Shader::getLoc(const char* name) const {
     if (!id) {
-        Log.Error("Attempted to use uninitialized shader!");
+        LogError("Attempted to use uninitialized shader!");
         return 0;
     }
     
     if (id != usedShader) {
-        Log.Error("Attempted to use shader %d before calling shader.use()!. Switching shaders...", id);
+        LogError("Attempted to use shader %d before calling shader.use()!. Switching shaders...", id);
         use();
     }
 
     auto loc = glGetUniformLocation(id, name);
     if (loc == -1) {
-        Log.Error("Failed to get uniform location for \"%s\"", name);
+        LogError("Failed to get uniform location for \"%s\"", name);
     }
     return loc;
 }

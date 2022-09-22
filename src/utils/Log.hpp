@@ -4,9 +4,14 @@
 #include <SDL2/SDL_log.h>
 #include <stdio.h>
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 namespace LogCategories {
 enum LogCategory {
     Main = SDL_LOG_CATEGORY_CUSTOM,
+    Render,
+    Audio,
     Test,
     Debug
 };
@@ -94,24 +99,32 @@ public:
     //}
 };
 
-extern Logger Log;
+extern Logger gLogger;
 
 #define MAX_LOG_MESSAGE_LENGTH 2048
 
 void logAt(const char* file, int line, LogCategory category, LogPriority priority, const char* fmt, ...);
+void logInternal(LogCategory category, LogPriority priority, const char* prefix, const char* fmt, ...);
+void logInternal2(LogCategory category, LogPriority priority, const char* prefix, const char* prefix2, const char* fmt, ...);
+void logInternal3(LogCategory category, LogPriority priority, const char* prefix, const char* prefix2, const char* prefix3, const char* fmt, ...);
 
-#define LogAt(...) logAt(__FILE__, __LINE__, SDL_LOG_PRIORITY_INFO, __VA_ARGS__)
+#define Log(priority_enum_name, ...) SDL_LogMessage((int)Log.category, (SDL_LogPriority)LogPriority::priority_enum_name, __VA_ARGS__);
 
-enum class space {
-    Error,
-    Debug,
-    Info
-};
-
-#define LogBase(category, priority, ...) logAt(__FILE__, __LINE__, category, priority, __VA_ARGS__)
-#define LogGory(category_enum_name, priority_enum_name, ...) logAt(__FILE__, __LINE__, LogCategory::category_enum_name, LogPriority::priority_enum_name, __VA_ARGS__)
-#define Log(priority_enum_name, ...) LogBase(Log.category, LogPriority::priority_enum_name, __VA_ARGS__)
+#define LogLocBase(category, priority, ...) logInternal(__FILE__ ":" TOSTRING(__LINE__) " - ", category, priority, __VA_ARGS__)
+#define LogLocGory(category_enum_name, priority_enum_name, ...) logAt(__FILE__, __LINE__, LogCategory::category_enum_name, LogPriority::priority_enum_name, __VA_ARGS__)
+#define LogLoc(priority_enum_name, ...) LogLocBase(Log.category, LogPriority::priority_enum_name, __VA_ARGS__)
 //#define Log(...) LogBase(Log.category, LogPriority::Info, __VA_ARGS__)
+
+#define LOG_FUNCTION __FUNCTION__
+
+#define LogCritical(...) logInternal(gLogger.category, LogPriority::Critical, "", __VA_ARGS__)
+#define LogError(...) logInternal3(gLogger.category, LogPriority::Error, __FILE__ ":", __FUNCTION__, ":" TOSTRING(__LINE__) " - ", __VA_ARGS__)
+#define LogWarn(...) logInternal3(gLogger.category, LogPriority::Warn, __FILE__ ":", __FUNCTION__, ":" TOSTRING(__LINE__) " - ", __VA_ARGS__)
+#define LogInfo(...) logInternal(gLogger.category, LogPriority::Info, "", __VA_ARGS__)
+#define LogDebug(...) logInternal(gLogger.category, LogPriority::Debug, "", __VA_ARGS__)
+
+#define LOCATION __FILE__ ":" __FUNCTION__ ":" TOSTRING(__LINE__)
+
 
 #undef LOG_PRIORITY
 

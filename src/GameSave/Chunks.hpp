@@ -11,7 +11,7 @@ namespace GameSave {
 int writeChunksToFile(const char* filename, const ChunkMap* chunkmap) {
     FILE* file = fopen(filename, "w+");
     if (!file) {
-        Log.Critical("Failed to open file for writing chunk data! Filename: %s", filename);
+        LogCritical("Failed to open file for writing chunk data! Filename: %s", filename);
         return -1;
     }
 
@@ -29,7 +29,7 @@ int writeChunksToFile(const char* filename, const ChunkMap* chunkmap) {
         nItemsWritten += fwrite(chunkdata->chunk, sizeof(Chunk), 1, file);
 
         if (nItemsWritten != 2) {
-            Log.Critical("Failed to write chunk data to file! Number of items written: %d", nItemsWritten);
+            LogCritical("Failed to write chunk data to file! Number of items written: %d", nItemsWritten);
             return -1;
         }
 
@@ -45,7 +45,7 @@ int readChunksFromFile(const char* filename, ChunkMap* chunkmap) {
     int code = 0;
     FILE* file = fopen(filename, "r");
     if (!file) {
-        Log.Critical("Failed to open file for reading chunk data! Filename: %s", filename);
+        LogCritical("Failed to open file for reading chunk data! Filename: %s", filename);
         return -1;
     }
 

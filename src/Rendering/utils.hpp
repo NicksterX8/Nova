@@ -49,8 +49,10 @@ struct RenderContext {
     Shader pointShader;
     Shader colorShader;
     Shader textShader;
+    Shader sdfShader;
 
     FontFace* font;
+    FontFace* debugFont;
 
     ModelData chunkModel;
 

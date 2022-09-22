@@ -76,7 +76,7 @@ public:
 #ifdef DEBUG
         ComponentAccessType type = componentAccess[getID<T>()];
         if (!ComponentAccess::isReadable(type) || !ComponentAccess::isWriteable(type)) {
-            Log.Error("Attempted to get read write access to a component without the proper type. Returning NULL.");
+            LogError("Attempted to get read write access to a component without the proper type. Returning NULL.");
             return NULL;
         }
 #endif
@@ -88,7 +88,7 @@ public:
 #ifdef DEBUG
         ComponentAccessType type = componentAccess[getID<T>()];
         if (!ComponentAccess::isReadable(type)) {
-            Log.Error("Attempted to get read only access to a component without the proper type! Returning NULL.");
+            LogError("Attempted to get read only access to a component without the proper type! Returning NULL.");
             return NULL;
         }
 #endif
@@ -100,7 +100,7 @@ public:
 #ifdef DEBUG
         ComponentAccessType type = componentAccess[getID<T>()];
         if (type == ComponentAccess::None) {
-            Log.Error("Attempted to check a component without access to that component! Returning NULL.");
+            LogError("Attempted to check a component without access to that component! Returning NULL.");
         }
 #endif
         return ecs->entityComponents(entity.id)[getID<T>()];
@@ -125,7 +125,7 @@ public:
 #ifdef DEBUG
         ComponentAccessType type = componentAccess[getID<T>()];
         if (!(ComponentAccess::Remove & type)) {
-            Log.Error("Attempted to schedule remove a component without remove access to that component! Returning NULL.");
+            LogError("Attempted to schedule remove a component without remove access to that component! Returning NULL.");
             return;
         }
 #endif

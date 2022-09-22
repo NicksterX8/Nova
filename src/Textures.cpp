@@ -58,7 +58,7 @@ unsigned int loadGLTexture(const char* filepath) {
         glGenerateMipmap(GL_TEXTURE_2D);
         SDL_FreeSurface(surface);
     } else {
-        Log.Error("Failed to load texture at \"%s\". SDL error message: %s\n", filepath, SDL_GetError());
+        LogError("Failed to load texture at \"%s\". SDL error message: %s\n", filepath, SDL_GetError());
         return 0;
     }
     return texture;
@@ -86,7 +86,7 @@ unsigned int createTextureArray(int width, int height, int depth, SDL_Surface** 
     for (unsigned int i = 0; i < depth; i++) {
         SDL_Surface* surface = images[i];
         if (surface->w > width || surface->h > height) {
-            Log.Error("createTextureArray : Image passed is too large to fit in texture array! image dimensions: %d,%d; texture array dimensions: %d,%d\n", surface->w, surface->h, width, height);
+            LogError("createTextureArray : Image passed is too large to fit in texture array! image dimensions: %d,%d; texture array dimensions: %d,%d\n", surface->w, surface->h, width, height);
             continue;
         }
         SDL_LockSurface(surface);
@@ -126,7 +126,7 @@ int setTextureMetadata() {
     // start at 1 to skip null texture
     for (unsigned int i = 1; i < NumTextures; i++) {
         if (tx[i].filename == NULL) {
-            Log.Warn("Texture %d was not set!", i);
+            LogWarn("Texture %d was not set!", i);
             code = -1;
         }
     }
@@ -146,14 +146,14 @@ unsigned int makeTextureArray(const char* assetsPath) {
         char path[512];
         strcpy(path, assetsPath);
         if (!TextureMetaData[textureID].filename) {
-            Log.Error("Texture metadata %d is NULL!", i);
+            LogError("Texture metadata %d is NULL!", i);
             images[i] = NULL;
             continue;
         }
         strcat(path, TextureMetaData[textureID].filename);
         images[i] = IMG_Load(path);
         if (!images[i]) {
-            Log.Error("Failed to load image for texture array (path: %s)", path);
+            LogError("Failed to load image for texture array (path: %s)", path);
             TextureData[textureID].width = 0;
             TextureData[textureID].height = 0;
             fail = 1;
@@ -187,7 +187,7 @@ unsigned int makeTextureArray(const char* assetsPath) {
         SDL_FreeSurface(images[i]);
     }
     if (!textureArray) {
-        Log.Critical("Failed to make texture array!");
+        LogCritical("Failed to make texture array!");
     }
     return textureArray;
 }

@@ -71,7 +71,7 @@ void GameState::init() {
         if (ecs->EntityHas<EC::Size>(entity)) {
             forEachChunkContainingBounds(&chunkmap, entityPosition, ecs->Get<EC::Size>(entity)->vec2(), [entity](ChunkData* chunkdata){
                 if (!chunkdata->removeCloseEntity(entity)) {
-                    Log.Warn("couldn't remove entity");
+                    LogWarn("couldn't remove entity");
                 }
             });
         } else {
@@ -319,7 +319,7 @@ void forEachEntityInRange(const ComponentManager<EC::Position, EC::Size>& ecs, c
             for (size_t e = 0; e < chunkdata->closeEntities.size(); e++) {
                 EntityT<EC::Position> closeEntity = chunkdata->closeEntities[e].cast<EC::Position>();
                 if (!ecs.EntityExists(closeEntity)) {
-                    Log.Error("Entity in closeEntities is dead!");
+                    LogError("Entity in closeEntities is dead!");
                     continue;
                 }
                 Vec2 entityCenter = ecs.Get<EC::Position>(closeEntity)->vec2();

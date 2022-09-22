@@ -91,7 +91,7 @@ public:
      */
     int Destroy(Entity entity) {
         if (!EntityExists(entity)) {
-            Log.Error("EntityWorld::Destroy : Entity passed does not exist! Entity: %s", entity.DebugStr().c_str());
+            LogError("EntityWorld::Destroy : Entity passed does not exist! Entity: %s", entity.DebugStr().c_str());
             return -1;
         }
 
@@ -226,7 +226,7 @@ public:
         constexpr auto ids = ECS::getComponentIDs<Components...>();
         int ret = em->Add<Components...>(entity);
         if (ret) {
-            Log.Info("Entity type: %s", em->Get<EC::EntityTypeEC>(entity)->name);
+            LogInfo("Entity type: %s", em->Get<EC::EntityTypeEC>(entity)->name);
         } else {
             for (size_t i = 0; i < ids.size(); i++) {
                 auto& onAddT = callbacksOnAdd[ids[i]];
@@ -362,7 +362,7 @@ public:
 
     inline void SetWorld(const EntityWorld* world) {
         if (!world)
-            Log.Error("ComponentManager::SetWorld : World passed is null!");
+            LogError("ComponentManager::SetWorld : World passed is null!");
         ecs = world;
     }
 

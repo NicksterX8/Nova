@@ -65,18 +65,18 @@ public:
             return atIndex(componentIndex);
         }
 
-        Log.Error("ComponentPool(%s)::get : componentIndex (%d) of entityComponentSet[%d] is greater than size or null: %d", name, componentIndex, entity, _size);
+        LogError("ComponentPool(%s)::get : componentIndex (%d) of entityComponentSet[%d] is greater than size or null: %d", name, componentIndex, entity, _size);
         return NULL;
     }
 
     // returns 0 on success, -1 on failure.
     int add(EntityID entity) {
         if (entity >= NULL_ENTITY_ID) {
-            Log.Error("ComponentPool(%s)::add : Entity is NULL!", name);
+            LogError("ComponentPool(%s)::add : Entity is NULL!", name);
             return -1;
         }
         if (entityComponentSet[entity] != ECS_NULL_INDEX) {
-            Log.Error("ComponentPool(%s)::add : Entity already has this component! Entity: %u", name, entity);
+            LogError("ComponentPool(%s)::add : Entity already has this component! Entity: %u", name, entity);
             return -1;
         }
         if (_size >= reserved) {
@@ -97,14 +97,14 @@ public:
     int remove(EntityID entity) {
         Uint32 entityComponentIndex = entityComponentSet[entity];
         if (entityComponentIndex > _size) {
-            Log.Error("ComponentPool(%s)::remove : Failed to remove entity from component pool. Entity: %u, component index: %u, size: %u", name, entity, entityComponentSet[entity], _size);
+            LogError("ComponentPool(%s)::remove : Failed to remove entity from component pool. Entity: %u, component index: %u, size: %u", name, entity, entityComponentSet[entity], _size);
             return -1;
         }
 
         Uint32 lastComponentIndex = _size-1;
         EntityID lastComponentOwner = componentOwners[lastComponentIndex];
         if (lastComponentOwner >= NULL_ENTITY_ID) {
-            Log.Error("ComponentPool(%s)::remove : Last component owner is NULL while removing entity %u!", name, entity);
+            LogError("ComponentPool(%s)::remove : Last component owner is NULL while removing entity %u!", name, entity);
             return -1;
         }
         // dont need to switch data around if the entity is the last entity.
@@ -130,7 +130,7 @@ public:
     int resize(Uint32 newSize) {
         if (newSize < _size) {
             // bad things
-            Log.Error("ComponentPool(%s)::resize : New size is too small to contain all entities!\n"
+            LogError("New size is too small to contain all entities!\n"
                 "Old size: %d, New size: %d. Aborting.", name, _size, newSize);
             return -1;
         }
@@ -142,7 +142,6 @@ public:
 
         Component* newComponents = (Component*)realloc(components, newSize * componentSize);
         if (!newComponents) {
-            Log.Warn("ComponentPool(%s)::resize : Realloc returned null!", name);
             newComponents = (Component*)malloc(newSize * componentSize);
             memcpy(newComponents, components, _size * componentSize);
             free(components);
