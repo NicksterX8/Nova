@@ -77,10 +77,10 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
     }));
 
     KeyBinding* keyBindings[] = {
-        new ToggleKeyBinding('b', &debug.settings.drawChunkBorders),
-        new ToggleKeyBinding('u', &debug.settings.drawEntityRects),
-        new ToggleKeyBinding('c', &debug.settings.drawChunkCoordinates),
-        new ToggleKeyBinding('[', &debug.settings.drawChunkEntityCount),
+        new ToggleKeyBinding<bool>('b', &debug.settings.drawChunkBorders),
+        new ToggleKeyBinding<bool>('u', &debug.settings.drawEntityRects),
+        new ToggleKeyBinding<bool>('c', &debug.settings.drawChunkCoordinates),
+        new ToggleKeyBinding<bool>('[', &debug.settings.drawChunkEntityCount),
 
         new FunctionKeyBinding('q', [&player](){
             player.releaseHeldItem();

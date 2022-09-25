@@ -132,11 +132,11 @@ public:
 };
 */
 struct GUI {
-    std::vector<SDL_FRect> area;
-    ItemStack* heldItemStack;
+    My::Vector<SDL_FRect> area = My::Vector<SDL_FRect>(0);
+    ItemStack* heldItemStack = nullptr;
 
     void draw(SDL_Renderer* ren, float scale, SDL_Rect viewport, const Player* player) {
-        area.clear();
+        area.size = 0;
         //SDL_FRect hotbarArea = hotbar.draw(ren, scale, viewport, player);
         heldItemStack = player->heldItemStack;
         if (heldItemStack && heldItemStack->item)
@@ -157,7 +157,7 @@ struct GUI {
     }
 
     bool pointInArea(SDL_Point point) const {
-        for (size_t i = 0; i < area.size(); i++) {
+        for (size_t i = 0; i < area.size; i++) {
             if (point.x > area[i].x && point.x < area[i].x + area[i].w &&
                 point.y > area[i].y && point.y < area[i].y + area[i].h) {
                 return true;

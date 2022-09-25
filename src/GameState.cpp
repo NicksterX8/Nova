@@ -31,7 +31,12 @@ void GameState::init() {
     for (int chunkX = -chunkRadius; chunkX < chunkRadius; chunkX++) {
         for (int chunkY = -chunkRadius; chunkY < chunkRadius; chunkY++) {
             ChunkData* chunkdata = chunkmap.createChunk({chunkX, chunkY});
-            generateChunk(chunkdata->chunk);
+            if (chunkdata) {
+                generateChunk(chunkdata->chunk);
+            } else {
+                LogError("Failed to create chunk at tile (%d,%d) for initialization", chunkX * CHUNKSIZE, chunkY * CHUNKSIZE);
+                continue;
+            }
         }
     }
 
@@ -316,7 +321,7 @@ void forEachEntityInRange(const ComponentManager<EC::Position, EC::Size>& ecs, c
                 continue;
             }
 
-            for (size_t e = 0; e < chunkdata->closeEntities.size(); e++) {
+            for (int e = 0; e < chunkdata->closeEntities.size; e++) {
                 EntityT<EC::Position> closeEntity = chunkdata->closeEntities[e].cast<EC::Position>();
                 if (!ecs.EntityExists(closeEntity)) {
                     LogError("Entity in closeEntities is dead!");
@@ -350,7 +355,7 @@ void forEachEntityNearPoint(const ComponentManager<EC::Position, const EC::Size>
         return;
     }
 
-    for (size_t e = 0; e < chunkdata->closeEntities.size(); e++) {
+    for (int e = 0; e < chunkdata->closeEntities.size; e++) {
         EntityT<EC::Position> closeEntity = chunkdata->closeEntities[e].cast<EC::Position>();
         if (callback(closeEntity)) {
             return;

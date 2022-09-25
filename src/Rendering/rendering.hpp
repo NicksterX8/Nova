@@ -21,6 +21,7 @@
 #include "../Camera.hpp"
 #include "utils.hpp"
 #include "text.hpp"
+#include "../My/Array.hpp"
 
 #include <glm/vec2.hpp>
 
@@ -391,11 +392,30 @@ void renderQuit(RenderContext& ren) {
     glDeleteTextures(1, &ren.textureArray);
 }
 
-std::vector<Draw::ColorVertex>* makeDemoQuads(SDL_Window* window) {
+My::Array<Draw::ColorVertex> makeDemoQuads(SDL_Window* window) {
     int drawableWidth,drawableHeight;
     SDL_GL_GetDrawableSize(window, &drawableWidth, &drawableHeight);
+    /*
+    Draw::ColorVertex testQuadPoints[] = {
+        {{200, 100, 0.5}, {0, 1, 0, 1}},
+        {{200, 200, 0.5}, {0, 1, 0, 1}},
+        {{400, 200, 0.5}, {0, 1, 0, 1}},
+        {{400, 100, 0.5}, {0, 1, 0, 1}},
+        
+        {{0, drawableHeight, 0.6}, {1, 0, 1, 1}},
+        {{50, drawableHeight, 0.6}, {0, 1, 1, 1}},
+        {{50, drawableHeight-50, 0.6}, {1, 1, 0, 1}},
+        {{0, drawableHeight-50, 0.6}, {0, 1, 0, 1}},
 
-    std::vector<Draw::ColorVertex>& quadPoints = *new std::vector<Draw::ColorVertex>{
+        {{2, 1, 0.5}, {0, 1, 0, 1}},
+        {{2, 2, 0.5}, {0, 1, 1, 1}},
+        {{4, 2, 0.5}, {1, 1, 0, 1}},
+        {{4, 1, 0.5}, {0, 1, 0, 1}}
+    };
+    My::Vector<Draw::ColorVertex> quadPoints(testQuadPoints, sizeof(testQuadPoints) / sizeof(Draw::ColorVertex));
+    */
+
+    My::Vector<Draw::ColorVertex> quadPoints{
         {{200, 100, 0.5}, {0, 1, 0, 1}},
         {{200, 200, 0.5}, {0, 1, 0, 1}},
         {{400, 200, 0.5}, {0, 1, 0, 1}},
@@ -421,7 +441,7 @@ std::vector<Draw::ColorVertex>* makeDemoQuads(SDL_Window* window) {
         quadPoints.push_back({glm::vec3(max.x, min.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
     }
 
-    return &quadPoints;
+    return quadPoints.asArray();
 }
 
 void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera& camera, Vec2 playerTargetPos) {
@@ -458,8 +478,15 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
             ChunkData* chunkdata = state->chunkmap.getChunkData({x, y});
             if (!chunkdata) {
                 ChunkData* newChunk = state->chunkmap.createChunk({x, y});
-                generateChunk(newChunk->chunk);
-                chunkdata = newChunk;
+                if (newChunk) {
+                    generateChunk(newChunk->chunk);
+                    chunkdata = newChunk;
+                } else {
+                    LogError("Failed to create missing chunk at tile (%d,%d) for rendering", x*CHUNKSIZE, y*CHUNKSIZE);
+                    // perhaps this should render some missing texture thing, but atleast for now just render nothing
+                    continue;
+                }
+                
             }
             renderChunk(ren, *chunkdata, chunkModel);
         }
@@ -481,7 +508,7 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
     points.push_back({glm::vec3(getMouseWorldPosition(camera), 0.0f), {0, 1, 1, 1}, 9.0f});
 
     static Draw::ColorQuadRenderBuffer quadRenderer = Draw::ColorQuadRenderBuffer();
-    static auto& quadPoints = *makeDemoQuads(ren.window);
+    static auto quadPoints = makeDemoQuads(ren.window);
 
     int drawableWidth,drawableHeight;
     SDL_GL_GetDrawableSize(ren.window, &drawableWidth, &drawableHeight);
@@ -508,7 +535,7 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
 
     
     if (Debug->settings.drawEntityRects)
-        Draw::coloredQuads(quadRenderer, quadPoints.size() / 4, &quadPoints[0]);
+        Draw::coloredQuads(quadRenderer, quadPoints.size / 4, quadPoints.data);
 
     glm::vec3 linePoints[] = {
         {-1, -1, 0},

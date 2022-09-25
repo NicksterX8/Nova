@@ -16,7 +16,7 @@
 #include "Entity.hpp"
 #include "Component.hpp"
 #include "ComponentPool.hpp"
-
+#include "../My/Vector.hpp"
 
 
 typedef uint32_t Uint32;
@@ -35,12 +35,14 @@ public:
     } entityDataList[MAX_ENTITIES]; // The list of data corresponding to an entity ID, indexed by the ID
 
     Uint32 liveEntities = 0; // The number of alive (or existent) entities
-    std::vector<EntityID> freeEntities = std::vector<EntityID>(MAX_ENTITIES-1); // A stack of free entity ids
+    My::Vector<EntityID> freeEntities = My::Vector<EntityID>(MAX_ENTITIES-1); // A stack of free entity ids
 
     // TODO: allocate pools in an array, find a solution to the optional pool problem.
     ComponentPool** pools = NULL; // a list of component pool pointers
     Uint32 nComponents = 0; // The number of unique component types, the size of the pools array
     ComponentID highestComponentID = 0; // The highest id of all the components used in the entity manager. Should be equal to nComponents most of the time
+
+
 
 public:
     /*
@@ -110,6 +112,7 @@ public:
         }
         // all entities are free by default.
         // stop one shorter than the others to avoid making NULL_ENTITY_ID a free entity.
+        freeEntities.size = MAX_ENTITIES-1;
         for (EntityID i = 0; i < NULL_ENTITY_ID; i++) {
             // set free entities in reverse order so that when new entities are popped off the back the ids will go from lowest to highest,
             // starting at 0, ending at NULL_ENTITY_ID-1

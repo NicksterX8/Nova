@@ -2,6 +2,7 @@
 #define CHUNKS_INCLUDED
 
 #include <vector>
+#include "My/Vector.hpp"
 #include <unordered_map>
 #include "Tiles.hpp"
 #include "constants.hpp"
@@ -13,9 +14,9 @@ using ECS::Entity;
 typedef Tile Chunk[CHUNKSIZE][CHUNKSIZE]; // 2d array of tiles
 
 struct ChunkData {
-    IVec2 position; // chunk position aka floor(tilePosition / CHUNKSIZE), NOT tile position
-    std::vector<Entity> closeEntities; // entities that are at least partially inside the chunk
     Chunk* chunk; // pointer to chunk tiles
+    IVec2 position; // chunk position aka floor(tilePosition / CHUNKSIZE), NOT tile position
+    My::Vector<Entity> closeEntities; // entities that are at least partially inside the chunk
     unsigned int vbo;
 
     ChunkData(Chunk* chunk, IVec2 position);
@@ -27,10 +28,10 @@ struct ChunkData {
     }
 
     inline bool removeCloseEntity(Entity entity) {
-        for (unsigned int e = 0; e < closeEntities.size(); e++) {
+        for (unsigned int e = 0; e < closeEntities.size; e++) {
             // TODO: try implementing binary search with sorting for faster removal
             if (closeEntities[e].id == entity.id) {
-                closeEntities.erase(closeEntities.begin() + e);
+                closeEntities.remove(e);
                 return true;
             }
         }
@@ -45,6 +46,7 @@ struct ChunkData {
 
 void generateChunk(Chunk* chunk);
 
+/*
 class ChunkPool {
     size_t _size;
     size_t _used;
@@ -68,8 +70,9 @@ public:
 
     Chunk* getNew();
 }; 
+*/
 
-#define CHUNKPOOL_SIZE 100
+#define CHUNKPOOL_SIZE 256
 
 struct IVec2Hash {
     size_t operator()(const IVec2& point) const {
@@ -78,11 +81,13 @@ struct IVec2Hash {
     }
 };
 
+using ChunkPool = My::Vector<Chunk>;
+
 typedef std::unordered_map<IVec2, ChunkData*, IVec2Hash> ChunkUnorderedMap;
 class ChunkMap {
     ChunkUnorderedMap map;
-    std::vector<ChunkPool> chunkPools;
-    std::vector<ChunkData*> chunkDataList;
+    My::Vector< My::Vector<Chunk> > chunkPools;
+    My::Vector<ChunkData*> chunkDataList;
 public:
     void init();
     void destroy();
@@ -120,7 +125,7 @@ public:
 private:
     /*
     * Create and allocate for a new ungenerated chunk at the position.
-    * @return The new chunk
+    * @return A new allocated chunk, except in cases of memory allocation failure
     */
     Chunk* newChunk(IVec2 position);
     ChunkData* newEntry(IVec2 position);

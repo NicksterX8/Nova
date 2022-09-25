@@ -3,6 +3,9 @@
 
 #include <string.h>
 #include <string>
+#include "MyUtils.hpp"
+
+namespace MY_NAMESPACE_NAME {
 
 struct AllocatedString {
     char* str;
@@ -26,12 +29,12 @@ struct AllocatedString {
     }
 };
 
-struct String {
+struct StringView {
     const char* str;
 
-    String(const char* _str) : str(_str) {}
+    StringView(const char* _str) : str(_str) {}
 
-    String(const std::string& _str) {
+    StringView(const std::string& _str) {
         str = _str.data();
     }
 
@@ -58,6 +61,8 @@ inline AllocatedString str_add(const char* str_a, const char* str_b) {
     memcpy(result.str, str_a, lenA);
     memcpy(result.str + lenA, str_b, lenB+1);
     return result;
+}
+
 }
 
 #endif

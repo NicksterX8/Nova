@@ -12,7 +12,7 @@
 #include "../../ComponentMetadata/getID.hpp"
 #include "../utils/Log.hpp"
 #include "../constants.hpp"
-#include "../utils/MyBitset.hpp"
+#include "../My/Bitset.hpp"
 
 typedef uint32_t Uint32;
 
@@ -22,7 +22,14 @@ typedef Uint32 EntityID;
 typedef Uint32 EntityVersion;
 typedef Uint32 ComponentID;
 
-typedef MyBitset<NUM_COMPONENTS> ComponentFlags;
+//typedef My::Bitset<NUM_COMPONENTS> ComponentFlags;
+
+struct ComponentFlags : public My::Bitset<NUM_COMPONENTS> {
+    template<class C>
+    constexpr bool getComponent() const {
+        return *this & componentSignature<C>();
+    }
+};
 
 #define MAX_ENTITIES 100000
 
@@ -60,9 +67,9 @@ constexpr std::array<ComponentID, sizeof...(Components)> getComponentIDs() {
 }
 
 template<class T, class... Components>
-constexpr bool componentInComponents() {
+constexpr inline bool componentInComponents() {
     constexpr ComponentFlags signature = componentSignature<Components...>();
-    return signature[getID<T>()];
+    return signature.getComponent<T>();
 }
 
 template<class... Components>

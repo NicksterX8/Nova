@@ -58,10 +58,10 @@ void entitySizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<EC::P
                 // remove entity from old chunk
                 ChunkData* oldChunkdata = chunkmap->getChunkData(chunkPosition);
                 if (oldChunkdata) {
-                    for (unsigned int e = 0; e < oldChunkdata->closeEntities.size(); e++) {
+                    for (unsigned int e = 0; e < oldChunkdata->closeEntities.size; e++) {
                         // TODO: try implementing binary search with sorting for faster removal
                         if (oldChunkdata->closeEntities[e].id == entity.id)
-                            oldChunkdata->closeEntities.erase(oldChunkdata->closeEntities.begin() + e);
+                            oldChunkdata->closeEntities.remove(e);
                     }
                 }
             }
@@ -134,10 +134,10 @@ void entityPositionChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<E
             // remove entity from old chunk
             ChunkData* oldChunkdata = chunkmap->getChunkData(oldChunkPosition);
             if (oldChunkdata) {
-                for (unsigned int e = 0; e < oldChunkdata->closeEntities.size(); e++) {
+                for (unsigned int e = 0; e < oldChunkdata->closeEntities.size; e++) {
                     // TODO: try implementing binary search with sorting for faster removal
                     if (oldChunkdata->closeEntities[e].id == entity.id)
-                        oldChunkdata->closeEntities.erase(oldChunkdata->closeEntities.begin() + e);
+                        oldChunkdata->closeEntities.remove(e);
                 }
             }
         }
@@ -188,10 +188,10 @@ void entityPositionAndSizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, En
                 // remove entity from old chunk
                 ChunkData* oldChunkdata = chunkmap->getChunkData(chunkPosition);
                 if (oldChunkdata) {
-                    for (unsigned int e = 0; e < oldChunkdata->closeEntities.size(); e++) {
+                    for (int e = 0; e < oldChunkdata->closeEntities.size; e++) {
                         // TODO: try implementing binary search with sorting for faster removal
                         if (oldChunkdata->closeEntities[e].id == entity.id)
-                            oldChunkdata->closeEntities.erase(oldChunkdata->closeEntities.begin() + e);
+                            oldChunkdata->closeEntities.remove(e);
                     }
                 }
             }
