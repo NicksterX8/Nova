@@ -7,4 +7,3 @@ cp build/faketorio $MAC_APP_PATH/Contents/MacOS/exe
 cp -r build/resources $MAC_APP_PATH/Contents/
 cp macos/favicon.icns $MAC_APP_PATH/Contents/Resources/favicon.icns
 cp macos/PkgInfo $MAC_APP_PATH/Contents/Resources/PkgInfo
-cp -r $MAC_APP_PATH /Users/nick/Desktop/

@@ -2,13 +2,17 @@
 
 namespace ECS {
 
-EntityManager::EntityManager() {}
+EntityManager::EntityManager() {
+    //this->freeEntities = My::Vector<EntityID>(0);
+}
 
 void EntityManager::destroy() {
     for (ComponentID id = 0; id < nComponents; id++) {
         pools[id]->destroy();
     }
     delete pools;
+
+    freeEntities.destroy();
 }
 
 Uint32 EntityManager::numLiveEntities() const {
@@ -16,8 +20,8 @@ Uint32 EntityManager::numLiveEntities() const {
 }
 
 Entity EntityManager::New() {
-    if (liveEntities >= NULL_ENTITY_ID || freeEntities.size() < 0) {
-        LogCritical("Ran out of entity space in ECS! Live entities: %u, freeEntities size: %lu. Aborting.\n", liveEntities, freeEntities.size());
+    if (liveEntities >= NULL_ENTITY_ID || freeEntities.size < 0) {
+        LogCritical("Ran out of entity space in ECS! Live entities: %u, freeEntities size: %lu. Aborting.\n", liveEntities, freeEntities.size);
         return NullEntity;
     }
 

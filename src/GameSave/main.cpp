@@ -252,16 +252,14 @@ void writeComponentPool(FileWriter& ef, const ECS::ComponentPool* pool) {
 }
 
 template<class T>
-void copyType(T* dst, const T* src, size_t count) {
-    T valueTest;
-    (void)valueTest;
+void copy(T* dst, const T* src, size_t count) {
     memcpy(dst, src, sizeof(T) * count);
 }
 
 template<class T>
 void readTo(const char* propName, T* dst, size_t count, const char* contents) {
     const T* prop = readProp<T>(propName, contents);
-    copyType<T>(dst, prop, count);
+    copy<T>(dst, prop, count);
 }
 
 template<class T>
@@ -301,7 +299,7 @@ int readComponentPool(const char* source, ECS::ComponentPool* pool) {
 
             Inventory* inventory = &static_cast<EC::Inventory*>(pool->components)[i].inventory;
             *inventory = Inventory(size);
-            copyType(inventory->items, items, size);
+            copy(inventory->items, items, size);
 
             component = (const char*)component + (sizeof(size) + (sizeof(ItemStack) * size));
 
@@ -332,8 +330,6 @@ int readComponentPool(const char* source, ECS::ComponentPool* pool) {
     return code;
 }
 
-
-
 template<class... Components>
 int writeComponentPools(FileWriter& ef, const ECS::EntityManager* em) {
     int dummy[] = {0, ((void)writeComponentPool<Components>(ef, em->getPool<Components>()), 0) ...};
@@ -355,10 +351,6 @@ const char* const EntitiesFilename = "entities";
 const char* const PlayerFilename = "player";
 
 int writeEverythingToFiles(const char* outputSaveFolderPath, const GameState* state) {
-    /*
-    number of live entities: 4
-    size of entities array: 
-    */
 
     int code = 0;
 
@@ -386,9 +378,9 @@ int writeEverythingToFiles(const char* outputSaveFolderPath, const GameState* st
     ef.set("maxEntities", (size_t)MAX_ENTITIES);
     ef.set("entities", state->ecs.em->entities, sizeof(Entity) * MAX_ENTITIES);
     ef.set("entityData", state->ecs.em->entityDataList, sizeof(ECS::EntityManager::EntityData) * MAX_ENTITIES);
-    ef.set("numFreeEntities", state->ecs.em->freeEntities.size());
+    ef.set("numFreeEntities", state->ecs.em->freeEntities.size);
     ef.set("freeEntities", &state->ecs.em->freeEntities[0],
-        sizeof(EntityID) * state->ecs.em->freeEntities.size());
+        sizeof(EntityID) * state->ecs.em->freeEntities.size);
 
     writeComponentPools<COMPONENTS>(ef, state->ecs.em);
 
@@ -480,7 +472,7 @@ int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
     const Entity *entities = readProp<Entity>("entities", src);
     const auto entityData = readProp<ECS::EntityManager::EntityData>("entityData", src);
     size_t numFreeEntities = *readProp<decltype(ecs->em->liveEntities)>("numFreeEntities", src);
-    const auto freeEntities = readProp<decltype(ecs->em->freeEntities)::value_type>("freeEntities", src);
+    const EntityID* freeEntities = readProp<decltype(ecs->em->freeEntities)::Type>("freeEntities", src);
 
 
     // validate data
@@ -498,12 +490,15 @@ int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
     }
     
     // update data
+    auto& em = *ecs->em;
 
-    ecs->em->liveEntities = (Uint32)numLiveEntities;
-    ecs->em->freeEntities.clear();
-    ecs->em->freeEntities.insert(ecs->em->freeEntities.end(), freeEntities, freeEntities + numFreeEntities);
-    copyType(ecs->em->entities, entities, maxEntities);
-    copyType(ecs->em->entityDataList, entityData, maxEntities);
+    em.liveEntities = (Uint32)numLiveEntities;
+    em.freeEntities.destroy();
+    em.freeEntities = My::Vector<EntityID>(freeEntities, numFreeEntities);
+
+    copy(em.freeEntities.data, freeEntities, numFreeEntities);
+    copy(em.entities,          entities,     maxEntities);
+    copy(em.entityDataList,    entityData,   maxEntities);
 
     readComponentPools<COMPONENTS>(src, ecs->em);
 

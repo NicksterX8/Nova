@@ -1,7 +1,7 @@
 #ifndef FILE_SYSTEM_INCLUDED
 #define FILE_SYSTEM_INCLUDED
 
-#include "utils/MyString.h"
+#include "My/String.hpp"
 
 #define GLOBAL_FILEPATH_SIZE 1024
 

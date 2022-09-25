@@ -4,7 +4,8 @@
 #include <SDL2/SDL.h>
 #include "constants.hpp"
 #include "FileSystem.hpp"
-#include "utils/MyString.h"
+#include "My/String.hpp"
+using My::str_add;
 #include "sdl_gl.hpp"
 #include "utils/Log.hpp"
 #include "utils/Vectors.hpp"

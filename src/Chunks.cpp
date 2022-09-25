@@ -5,6 +5,7 @@
 ChunkData::ChunkData(Chunk* chunk, IVec2 position) {
     this->chunk = chunk;
     this->position = position;
+    this->closeEntities = My::Vector<Entity>(0);
     this->vbo = 0;
 }
 
@@ -31,6 +32,7 @@ void generateChunk(Chunk* chunk) {
     }
 }
 
+/*
 ChunkPool::ChunkPool() {
     _size = 0;
     _used = 0;  
@@ -80,23 +82,27 @@ Chunk* ChunkPool::getNew() {
     }
     return NULL;
 }
+*/
 
 void ChunkMap::init() {
     // each pool holds a maximum of 10 chunks
     ChunkPool pool(CHUNKPOOL_SIZE); // starting pool
-    chunkPools.push_back(pool);
+    chunkPools = My::Vector<ChunkPool>(&pool, 1);
+    chunkDataList = {0,0,0};
 }
 
 void ChunkMap::destroy() {
     // free the new chunk data created in newEntry
-    for (auto chunkData : chunkDataList) {
+    for (ChunkData* chunkData : chunkDataList) {
         delete chunkData;
     }
+    chunkDataList.destroy();
 
     // free all chunks (which are being held in the pools)
-    for (auto pool : chunkPools) {
-        pool.destroy();
+    for (ChunkPool& chunkPool : chunkPools) {
+        chunkPool.destroy();
     }
+    chunkPools.destroy();
 }
 
 size_t ChunkMap::size() const {
@@ -136,20 +142,21 @@ ChunkData* ChunkMap::createChunk(IVec2 position) {
 int ChunkMap::iterateChunks(std::function<int(Chunk*)> callback) const {
     // go through pools instead of going through the map to have better data locality
     for (auto& pool : chunkPools) {
-        for (size_t c = 0; c < pool.used(); c++) {
-            Chunk* chunk = pool.at(c);
+        for (size_t c = 0; c < pool.size; c++) {
+            Chunk* chunk = &pool[c];
             int ret = callback(chunk);
             if (ret) {
                 return ret;
             }
         }
     }
+
     return 0;
 }
 
 int ChunkMap::iterateChunkdata(std::function<int(ChunkData*)> callback) const {
-    for (ChunkData* chunkdata : chunkDataList) {
-        int ret = callback(chunkdata);
+    for (int i = 0; i < chunkDataList.size; i++) {
+        int ret = callback(chunkDataList[i]);
         if (ret) {
             return ret;
         }
@@ -158,15 +165,25 @@ int ChunkMap::iterateChunkdata(std::function<int(ChunkData*)> callback) const {
 }
 
 Chunk* ChunkMap::newChunk(IVec2 position) {
-    ChunkPool& pool = chunkPools.back();
-    if (!pool.hasRoom()) {
-        // make new pool
-        ChunkPool newPool(CHUNKPOOL_SIZE);
-        chunkPools.push_back(newPool);
-        return chunkPools.back().getNew();
+    ChunkPool* newestPool;
+    if (chunkPools.size > 0) {
+        newestPool = &chunkPools.back();
+        if (newestPool->is_full()) {
+            // make new pool to fit new chunk
+            newestPool = chunkPools.push_back(ChunkPool(CHUNKPOOL_SIZE));
+        }
+    } else {
+        newestPool = chunkPools.push_back(ChunkPool(CHUNKPOOL_SIZE));
     }
 
-    return pool.getNew();
+    if (newestPool) {
+        Chunk* emptyChunk = newestPool->end(); // we get a pointer to the element right after the end of the chunks already stored
+        newestPool->size++; // tell the chunkpool we will be using that slot
+        return emptyChunk; // return a pointer to an unitialized but allocated chunk to be filled in with whatever
+        // we can only do this because we make sure that newestPool has room earlier in the method
+    }
+
+    return nullptr;
 }
 
 ChunkData* ChunkMap::newEntry(IVec2 position) {
@@ -178,15 +195,19 @@ ChunkData* ChunkMap::newEntry(IVec2 position) {
             // this method was wrongly called, the entry already exists at the position,
             // abort making a new one to not cause memory leaks and other weird bugs.
             // also log it
-            LogWarn("ChunkMap::newEntry was called at an already existing position key. Position: (%d, %d) Aborting.", position.x, position.y);
+            LogWarn("There already exists an entry at the position (%d, %d), returning old entry...", position.x, position.y);
             // just return the old entry
             return it->second;
         }
     }
 
     Chunk* chunk = newChunk(position);
-    // This is pretty bad, it will spread all the memory everywhere,
-    // this should be changed.
+    if (!chunk) {
+        LogWarn("Failed to get a new chunk from the chunkmap at chunk position (%d, %d).", position.x, position.y);
+        return nullptr;
+    }
+    // TODO: This is pretty bad, it will spread all the memory everywhere,
+    // this should be changed. 
     ChunkData* chunkData = new ChunkData(chunk, position);
     chunkDataList.push_back(chunkData);
     map[position] = chunkData;

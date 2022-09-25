@@ -64,11 +64,12 @@ public:
     }
 };
 
+template<class T>
 class ToggleKeyBinding : public KeyBinding {
-    bool* value;
+    T* value;
     bool keyWasDown;
 public:
-    ToggleKeyBinding(char key, bool* value): value(value) {
+    ToggleKeyBinding(char key, T* value): value(value) {
         this->key = key;
         keyWasDown = false;
     }
@@ -83,10 +84,11 @@ public:
     }
 };
 
+template<class T>
 struct ClickKeyBinding : public KeyBinding {
-    bool* value;
-public:
-    ClickKeyBinding(char key, bool* value): value(value) {
+    T* value;
+
+    ClickKeyBinding(char key, T* value): value(value) {
         this->key = key;
     }
 
@@ -105,7 +107,8 @@ public:
     Camera& camera;
     MouseState mouse;
     Vec2 mouseWorldPos;
-    std::vector<KeyBinding*> keyBindings;
+    My::Vector<KeyBinding*> keyBindings;
+    //My::Vector<ClickKeyBinding2> clickKeyBindings;
     std::vector<std::string> enteredText;
     bool enteringText;
 
@@ -113,6 +116,7 @@ public:
 
     PlayerControls(Camera& camera): camera(camera) {
         keyboardState = SDL_GetKeyboardState(NULL);
+        keyBindings = My::Vector<KeyBinding*>(0);
         enteringText = false;
         enteredText.push_back(std::string());
     }
@@ -122,7 +126,7 @@ public:
             delete keyBinding;
         }
     }
-
+    
     /* 
     * Update the internal state of this class, like mouse position.
     * Call near the beginning of the frame, before using any methods of this class,
@@ -434,6 +438,10 @@ public:
                 placeEntityOnTile(&state->ecs, selectedTile, chest);
             }
             
+        }
+
+        for (int i = 0; i < keyBindings.size; i++) {
+            keyBindings[i]->updateKeyState(keyboardState[SDL_GetScancodeFromKey(keyBindings[i]->key)]);
         }
 
         for (auto keyBinding : keyBindings) {

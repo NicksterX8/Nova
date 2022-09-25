@@ -1,17 +1,19 @@
 #include <stdint.h>
+#include <stddef.h>
+#include "MyUtils.hpp"
 
-typedef Uint64 uint64_t;
+MY_CLASS_START
 
-template<std::size_t N>
-class MyBitset {
+template<size_t N>
+struct Bitset {
 public:
     constexpr static size_t nInts = (N/64) + ((N % 64) != 0);
     Uint64 bits[nInts] = {0};
-    using Self = MyBitset<N>;
+    using Self = Bitset<N>;
 
-    constexpr MyBitset() {}
+    constexpr Bitset() {}
 
-    constexpr MyBitset(bool startValue) {
+    constexpr Bitset(bool startValue) {
         for (size_t i = 0; i < nInts; i++) {
             if (startValue)
                 bits[i] = (Uint64)(-1);
@@ -24,14 +26,14 @@ public:
         return N;
     }
 
-    constexpr bool operator[](Uint32 position) const {
+    constexpr bool operator[](uint32_t position) const {
         return bits[position/64] & (1 << (position%64));
     }
 
-    constexpr void set(Uint32 position) {
+    constexpr void set(uint32_t position) {
         if (position > size()) return;
-        Uint32 position64 = position >> 6;
-        Uint64 digit = (1 << (position - (position64 << 6)));
+        uint32_t position64 = position >> 6;
+        uint64_t digit = (1 << (position - (position64 << 6)));
         bits[position64] |= digit;
     }
 
@@ -53,11 +55,11 @@ public:
         return c;
     }
 
-    constexpr bool hasAll(MyBitset aBitset) const {
+    constexpr bool hasAll(Bitset aBitset) const {
         return (*this & aBitset) == aBitset;
     }
 
-    constexpr bool hasNone(MyBitset aBitset) const {
+    constexpr bool hasNone(Bitset aBitset) const {
         return !(*this & aBitset).any();
     }
 
@@ -119,3 +121,5 @@ public:
         return !operator==(rhs);
     }
 };
+
+MY_CLASS_END
