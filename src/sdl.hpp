@@ -3,7 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include "constants.hpp"
-#include "global.h"
+#include "FileSystem.hpp"
 #include "utils/MyString.h"
 #include "sdl_gl.hpp"
 #include "utils/Log.hpp"

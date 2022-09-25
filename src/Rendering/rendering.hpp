@@ -311,6 +311,10 @@ Shader loadShader(const char* name) {
     return Shader(vertexPath, fragmentPath);
 }
 
+Shader loadShader2(const char* name) {
+    return Shader(FileSystem.shaders.get(str_add(name, ".vs")), FileSystem.shaders.get(str_add(name, ".fs")));
+}
+
 int loadShaders(RenderContext& ren) {
     ren.entityShader = loadShader("entity");
     ren.tilemapShader = loadShader("tilemap");

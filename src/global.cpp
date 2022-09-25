@@ -1,4 +1,4 @@
-#include "global.h"
+#include "FileSystem.hpp"
 
 namespace FilePaths {
     char base[GLOBAL_FILEPATH_SIZE] = {'\0',};
