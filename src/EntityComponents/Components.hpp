@@ -7,14 +7,14 @@
 #include "../SECS/ECS.hpp"
 #include "../SECS/EntityPrototype.hpp"
 
-struct ArrayView {
+struct GenericArrayView {
     const void* data;
     const size_t size;
 
-    ArrayView(const void* ptr, size_t size) : data(ptr), size(size) {}
+    GenericArrayView(const void* ptr, size_t size) : data(ptr), size(size) {}
 
     template<class T>
-    ArrayView(const T& value) : data(&value), size(sizeof(value)) {}
+    GenericArrayView(const T& value) : data(&value), size(sizeof(value)) {}
 };
 
 class EntityWorld;
@@ -22,7 +22,7 @@ class EntityWorld;
 namespace EC {
 
 //using SerializerOutput = void (*)(ArrayView);
-using SerializerOutput = const std::function<void(ArrayView)>&;
+using SerializerOutput = const std::function<void(GenericArrayView)>&;
 
 template<class T>
 int defaultSerializer(const T* components, Uint32 count, SerializerOutput output) {
@@ -74,7 +74,7 @@ struct EntityTypeEC : EntityComponent<EntityTypeEC> {
     }
 
     static int Serialize(const EntityTypeEC* components, Uint32 count, SerializerOutput output) {
-        output(ArrayView(components, count * sizeof(EntityTypeEC)));
+        output(GenericArrayView(components, count * sizeof(EntityTypeEC)));
         return 0;
     }
 
@@ -198,8 +198,8 @@ struct Inventory : EntityComponent<Inventory> {
         for (Uint32 i = 0; i < count; i++) {
             const ::Inventory& inventory = components[i].inventory;
 
-            output(ArrayView(inventory.size));
-            output(ArrayView(inventory.items, inventory.size * sizeof(::ItemStack)));
+            output(GenericArrayView(inventory.size));
+            output(GenericArrayView(inventory.items, inventory.size * sizeof(::ItemStack)));
         }
         return 0;
     }

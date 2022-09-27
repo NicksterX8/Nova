@@ -48,7 +48,7 @@ public:
     template<class... Components>
     void init() {
         em->init<Components...>();
-        for (Uint32 i = 0; i < em->numComponents(); i++) {
+        for (Uint32 i = 0; i < em->getComponentCount(); i++) {
             em->getPool(i)->setName(componentNames[i]);
         }
     }
@@ -96,7 +96,7 @@ public:
         }
 
         ComponentFlags entityComponents = em->EntitySignature(entity.id);
-        for (ECS::ComponentID id = 0; id < em->numComponents(); id++) {
+        for (ECS::ComponentID id = 0; id < em->getComponentCount(); id++) {
             if (entityComponents[id]) {
                 auto& beforeRemoveT = callbacksBeforeRemove[id];
                 if (beforeRemoveT) {
@@ -156,7 +156,7 @@ public:
      * This is equivalent to the size of the main entity list.
      */
     inline Uint32 EntityCount() const {
-        return em->numLiveEntities();
+        return em->getEntityCount();
     }
 
     /* Get the list containing all entities in the world, length equal to the number of entities in existence (can be found using EntityCount()).
@@ -286,7 +286,7 @@ public:
      * Creating entities while iterating this list is also safe, but keep in mind that entities created during iteration will be skipped.
      */
     inline void IterateEntities(std::function<void(Entity)> callback) const {
-        for (int e = em->numLiveEntities()-1; e >= 0; e--) {
+        for (int e = em->getEntityCount()-1; e >= 0; e--) {
             callback(em->entities[e]);
         }
     }

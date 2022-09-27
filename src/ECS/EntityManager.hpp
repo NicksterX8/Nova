@@ -37,7 +37,7 @@ struct EntityManager {
     EntityData *entityDataList; // The list of data corresponding to an entity ID, indexed by the ID
     My::Vec<EntityID> freeEntities; // A stack of free entity ids
 
-    Uint32 liveEntities = 0; // The number of alive (or existent) entities
+    Uint32 entityCount = 0; // The number of alive (or existent) entities
 
     // TODO: allocate pools in an array, find a solution to the optional pool problem.
     ComponentPool** pools = NULL; // a list of component pool pointers
@@ -125,11 +125,13 @@ struct EntityManager {
     // destroy the entity manager and deallocate everything
     void destroy();
 
-    inline Uint32 numComponents() const {
+    inline Uint32 getComponentCount() const {
         return nComponents;
     }
 
-    Uint32 numLiveEntities() const;
+    inline Uint32 getEntityCount() const {
+        return entityCount;
+    }
 
 
     /* Component Methods */

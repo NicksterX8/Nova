@@ -55,36 +55,7 @@ void forEachEntityNearPoint(const ComponentManager<EC::Position, const EC::Size>
 
 void forEachChunkContainingBounds(const ChunkMap* chunkmap, Vec2 position, Vec2 size, std::function<void(ChunkData*)> callback);
 
-inline void forEachEntityInBounds(const ComponentManager<const EC::Position, const EC::Size>& ecs, const ChunkMap* chunkmap, Vec2 position, Vec2 size, std::function<void(EntityT<EC::Position>)> callback) {
-    forEachChunkContainingBounds(chunkmap, position, size, [&](ChunkData* chunkdata){
-        //position -= size/2.0f;
-        Vec2 min = position - size/2.0f;
-        Vec2 max = position + size/2.0f;
-
-        for (int i = 0; i < chunkdata->closeEntities.size; i++) {
-            auto closeEntity = chunkdata->closeEntities[i].cast<EC::Position>();
-            auto entityPos = ecs.Get<const EC::Position>(closeEntity)->vec2();
-            if (ecs.EntityHas<EC::Size>(closeEntity)) {
-                auto entitySize = ecs.Get<const EC::Size>(closeEntity)->vec2();
-                Vec2 eMin = entityPos - entitySize / 2.0f;
-                Vec2 eMax = entityPos + entitySize / 2.0f;
-                entityPos -= entitySize / 2.0f;
-                if (eMin.x < max.x && eMax.x > min.x &&
-                    eMin.y < max.y && eMin.y > min.y)
-                {
-                    callback(closeEntity);
-                }
-            } else {
-                if (entityPos.x > min.x && entityPos.x < max.x &&
-                    entityPos.y > min.y && entityPos.y < max.y)
-                {
-                    callback(closeEntity);
-                }
-            }
-            
-        }
-    });
-}
+void forEachEntityInBounds(const ComponentManager<const EC::Position, const EC::Size>& ecs, const ChunkMap* chunkmap, Vec2 position, Vec2 size, std::function<void(EntityT<EC::Position>)> callback);
 
 OptionalEntity<EC::Position, EC::Size>
 findFirstEntityAtPosition(const EntityWorld* ecs, const ChunkMap* chunkmap, Vec2 position);

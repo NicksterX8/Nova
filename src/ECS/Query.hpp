@@ -145,7 +145,7 @@ public:
         } else {
             // iterate main entity list
             const Entity* entities = (Entity*)em->entities;
-            for (int c = em->numLiveEntities()-1; c >= 0; c--) {
+            for (int c = em->getEntityCount()-1; c >= 0; c--) {
                 Entity entity = entities[c];
                 ComponentFlags entityComponents = em->EntitySignature(entity.id);
                 if (entityComponents.hasNone(Avoid::signature())) {
@@ -165,8 +165,8 @@ public:
         }
     }
 
-    constexpr bool check_t(ComponentFlags signature) const {
-        return check(signature);
+    constexpr bool check(ComponentFlags signature) const {
+        return t_check(signature);
     }
 };
 

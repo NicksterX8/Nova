@@ -19,10 +19,6 @@ void EntityManager::destroy() {
     free(entityDataList);
 }
 
-Uint32 EntityManager::numLiveEntities() const {
-    return liveEntities;
-}
-
 Entity EntityManager::New() {
     if (liveEntities >= NULL_ENTITY_ID || freeEntities.size < 0) {
         LogCritical("Ran out of entity space in ECS! Live entities: %u, freeEntities size: %lu. Aborting.\n", liveEntities, freeEntities.size);

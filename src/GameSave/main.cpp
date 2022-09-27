@@ -373,8 +373,8 @@ int writeEverythingToFiles(const char* outputSaveFolderPath, const GameState* st
 
     FileWriter ef;
 
-    size_t numLiveEntities = state->ecs.EntityCount();
-    ef.set("numLiveEntities", &numLiveEntities, sizeof(size_t));
+    size_t entityCount = state->ecs.EntityCount();
+    ef.set("getEntityCount", &entityCount, sizeof(size_t));
     ef.set("maxEntities", (size_t)MAX_ENTITIES);
     ef.set("entities", state->ecs.em->entities, sizeof(Entity) * MAX_ENTITIES);
     ef.set("entityData", state->ecs.em->entityDataList, sizeof(ECS::EntityData) * MAX_ENTITIES);
@@ -467,7 +467,7 @@ int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
     }
 
     // get data from source
-    size_t numLiveEntities = *readProp<size_t>("numLiveEntities", src);
+    size_t entityCount = *readProp<size_t>("entityCount", src);
     size_t maxEntities = *readProp<size_t>("maxEntities", src);
     const Entity *entities = readProp<Entity>("entities", src);
     const auto entityData = readProp<ECS::EntityData>("entityData", src);
@@ -492,7 +492,7 @@ int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
     // update data
     auto& em = *ecs->em;
 
-    em.liveEntities = (Uint32)numLiveEntities;
+    em.entityCount = (Uint32)entityCount;
     em.freeEntities.destroy();
     em.freeEntities = My::Vec<EntityID>(freeEntities, numFreeEntities);
 

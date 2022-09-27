@@ -45,9 +45,6 @@ struct Camera {
     }
 
     glm::vec2 pixelToWorld(glm::vec2 pixel) const {
-        /*
-
-        */
         glm::vec2 scaled = {(pixel.x - pixelWidth/2.0f) / scale() * 2, -(pixel.y - pixelHeight/2.0f) / scale() * 2};
         float s = sin(glm::radians(rotation));
         float c = cos(glm::radians(rotation));
