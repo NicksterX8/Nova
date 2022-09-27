@@ -33,7 +33,7 @@ int main() {
     
     ostringstream stream;
     for (auto component : components) {
-        stream << "template<> constexpr unsigned int getRawID<const " << "EC::" << component.name << ">() { return " << component.id << "; }\n";   
+        stream << "template<> constexpr ComponentID getRawID<const " << "EC::" << component.name << ">() { return " << component.id << "; }\n";   
     }
     cout << stream.str();
 

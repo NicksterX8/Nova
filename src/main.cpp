@@ -19,6 +19,7 @@
 #include "utils/Debug.hpp"
 #include "GameSave/main.hpp"
 #include "sdl.hpp"
+#include "global.hpp"
 
 //#include <glog/logging.h>
 
@@ -100,7 +101,6 @@ void logEntityComponentInfo() {
 }
 
 void initLogging() {
-    gLogger.init(str_add(FilePaths::save, "log.txt"));
     SDL_LogSetOutputFunction(Logger::logOutputFunction, &gLogger);
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_ERROR);
     SDL_LogSetPriority(LogCategory::Main, SDL_LOG_PRIORITY_INFO);
@@ -125,13 +125,9 @@ void initPaths() {
         upperPath[std::string(pathbuf).find_last_of('/')] = '\0';
 
         auto filePrefix = str_add(upperPath, "/resources/");
-        strcpy(FilePaths::base, filePrefix);
-        strcpy(FilePaths::assets, str_add(filePrefix, "assets/"));
-        strcpy(FilePaths::shaders, str_add(filePrefix, "shaders/"));
-        strcpy(FilePaths::save, str_add(filePrefix, "save/"));
 
-        LOG("Assets path: %s\n", FilePaths::assets);
-        LOG("Shaders path: %s\n", FilePaths::shaders);
+        FileSystem = FileSystemT(filePrefix);
+        LOG("resources path: %s", FileSystem.resources.get());
     }
 
     LOG("Path to executable: %s\n", pathbuf);
@@ -146,8 +142,10 @@ int main(int argc, char** argv) {
         }
     }
 
-    initPaths();
     initLogging();
+    LogInfo("LOGGING WORKING??");
+    initPaths();
+    gLogger.init(FileSystem.save.get("log.txt"));
 
     LogCritical("(Log(Critcal, ...)): ayo bud. my name is %s and im %d years old\n", "nick", 12);
     LogWarn("(LogWarn,...)): whats up guys");
@@ -174,8 +172,11 @@ int main(int argc, char** argv) {
     game->destroy();
 
     gLogger.destroy();
+    FileSystem.destroy();
 
     quitSDL(&sdlCtx);
+
+    auto i = new int;
 
     return 0;
 }

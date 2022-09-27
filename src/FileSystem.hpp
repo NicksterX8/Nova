@@ -5,10 +5,7 @@
 
 #define GLOBAL_FILEPATH_SIZE 1024
 
-namespace My {
-    using String = AllocatedString;
-};
-
+/*
 namespace FilePaths {
     // Base path to resources
     extern char base[GLOBAL_FILEPATH_SIZE];
@@ -16,41 +13,68 @@ namespace FilePaths {
     extern char shaders[GLOBAL_FILEPATH_SIZE]; // path to shaders
     extern char save[GLOBAL_FILEPATH_SIZE]; // path to save folder
 }
+*/
 
 struct FileSystemT {
-    struct Directory {
-        const char* path;
 
-        Directory() {
-            path = nullptr;
+    struct Directory {
+        char* path;
+
+        Directory() {}
+
+        Directory(const char* unixPath) {
+            path = My::duplicateStr(unixPath);
         }
 
-        Directory(const char* unixFilepath) {
-            path = unixFilepath;
+        Directory(Directory root, const char* subpath) {
+            path = My::str_add_manual(root.path, subpath);
         }
 
         My::String get(const char* unixFilepath) const {
             // make this work for windows
-            return str_add(path, unixFilepath);
+            return My::str_add(path, FileSystemT::get(unixFilepath));
+        }
+
+        const char* get() const {
+            return path;
         }
     };
 
     Directory resources;
     Directory assets;
     Directory shaders;
+    Directory save;
+
+    FileSystemT() {}
 
     FileSystemT(const char* unixResourcesPath) {
         resources = Directory(get(unixResourcesPath));
+        assets = Directory(get(resources, "assets/"));
+        shaders = Directory(get(resources, "shaders/"));
+        save = Directory(get(resources, "save/"));
     }
 
-    My::String get(const char* unixFilepath) const {
-        return unixFilepath;
+    static My::String get(const char* unixFilepath) {
+        return My::String(unixFilepath);
     }
 
-    My::String get(Directory directory, const char* unixFilepath) const {
-        return str_add(directory.path, unixFilepath);
+    static My::String get(Directory directory, const char* unixFilepath) {
+        return My::str_add(directory.path, get(unixFilepath));
+    }
+
+    void destroy() {
+        free(resources.path);
+        free(assets.path);
+        free(shaders.path);
+        free(save.path);
     }
 };
+
+inline void teste() {
+    My::String s1;
+    My::String s2;
+    long c3 = s1 - s2;
+}
 
 extern FileSystemT FileSystem;
 

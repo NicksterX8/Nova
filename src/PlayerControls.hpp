@@ -107,8 +107,8 @@ public:
     Camera& camera;
     MouseState mouse;
     Vec2 mouseWorldPos;
-    My::Vector<KeyBinding*> keyBindings;
-    //My::Vector<ClickKeyBinding2> clickKeyBindings;
+    My::Vec<KeyBinding*> keyBindings;
+    //My::Vec<ClickKeyBinding2> clickKeyBindings;
     std::vector<std::string> enteredText;
     bool enteringText;
 
@@ -116,7 +116,7 @@ public:
 
     PlayerControls(Camera& camera): camera(camera) {
         keyboardState = SDL_GetKeyboardState(NULL);
-        keyBindings = My::Vector<KeyBinding*>(0);
+        keyBindings = My::Vec<KeyBinding*>(0);
         enteringText = false;
         enteredText.push_back(std::string());
     }
@@ -138,7 +138,7 @@ public:
     }
 
     void addKeyBinding(KeyBinding* keyBinding) {
-        keyBindings.push_back(keyBinding);
+        keyBindings.push(keyBinding);
     }
 
     const MouseState& getMouse() {

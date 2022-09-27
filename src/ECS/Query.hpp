@@ -125,7 +125,7 @@ public:
             ComponentPool* iteratedPool = Require::smallestPool(em);
             for (int c = iteratedPool->size()-1; c >= 0; c--) {
                 EntityID entityID = iteratedPool->componentOwners[c];
-                EntityManager::EntityData entityData = em->entityDataList[entityID];
+                EntityData entityData = em->entityDataList[entityID];
                 // check required and avoided
                 if (entityData.flags.hasAll(Require::signature()) && entityData.flags.hasNone(Avoid::signature())) {
                     // check logical ORs
@@ -147,7 +147,7 @@ public:
             const Entity* entities = (Entity*)em->entities;
             for (int c = em->numLiveEntities()-1; c >= 0; c--) {
                 Entity entity = entities[c];
-                ComponentFlags entityComponents = em->getEntityComponents(entity.id);
+                ComponentFlags entityComponents = em->EntitySignature(entity.id);
                 if (entityComponents.hasNone(Avoid::signature())) {
                     for (size_t i = 0; i < LogicalORs::size(); i++) {
                         const ComponentFlags logicalOrSignature = getLogicalOrSignature(logicalORs, i);

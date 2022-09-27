@@ -12,11 +12,12 @@
 #include "../constants.hpp"
 #include "../utils/Vectors.hpp"
 #include "../utils/Log.hpp"
+#include "../utils/common-macros.hpp"
 
 #include "Entity.hpp"
 #include "Component.hpp"
 #include "ComponentPool.hpp"
-#include "../My/Vector.hpp"
+#include "../My/Vec.hpp"
 
 
 typedef uint32_t Uint32;
@@ -25,17 +26,18 @@ namespace ECS {
 
 using EntityCallback = std::function<void(Entity)>;
 
-class EntityManager {
-public:
-    Entity entities[MAX_ENTITIES];
-    struct EntityData {
-        EntityVersion version; // The current entity version
-        ComponentFlags flags; // The entity's component signature
-        Uint32 index; // Where in the entities array the entity is stored
-    } entityDataList[MAX_ENTITIES]; // The list of data corresponding to an entity ID, indexed by the ID
+struct EntityData {
+    EntityVersion version; // The current entity version
+    ComponentFlags flags; // The entity's component signature
+    Uint32 index; // Where in the entities array the entity is stored
+};
+
+struct EntityManager {
+    Entity *entities;
+    EntityData *entityDataList; // The list of data corresponding to an entity ID, indexed by the ID
+    My::Vec<EntityID> freeEntities; // A stack of free entity ids
 
     Uint32 liveEntities = 0; // The number of alive (or existent) entities
-    My::Vector<EntityID> freeEntities = My::Vector<EntityID>(MAX_ENTITIES-1); // A stack of free entity ids
 
     // TODO: allocate pools in an array, find a solution to the optional pool problem.
     ComponentPool** pools = NULL; // a list of component pool pointers
@@ -43,8 +45,9 @@ public:
     ComponentID highestComponentID = 0; // The highest id of all the components used in the entity manager. Should be equal to nComponents most of the time
 
 
+    /* Manager Methods */
 
-public:
+
     /*
     * @return The component pool corresponding to the component template parameter. May be null if the size of the component is 0 or for other reasons.
     */
@@ -67,10 +70,9 @@ public:
 
     template<class T>
     void newComponent() {
-        constexpr Uint32 id = getID<T>();
-        // make a new pool
-        ComponentPool* pool = new ComponentPool(getID<T>(), sizeof(T), 100);
-        pools[id] = pool;
+        constexpr ComponentID id = getID<T>();
+        // make new pool for component
+        pools[id] = new ComponentPool(id, sizeof(T), 100);
         nComponents++;
         if (id > highestComponentID)
             highestComponentID = id;
@@ -79,20 +81,20 @@ public:
                 "number of components in system: %u, NUM_COMPONENTS: %d", nComponents, NUM_COMPONENTS);
         }
     }
-
+    /*
     template<class... Components>
     void newComponents() {
         int dummy[] = {0, (newComponent<Components>(), 0) ...};
         (void)dummy;
     }
+    */
 
-public:
     EntityManager();
 
     template<class... Components>
     void init() {
         pools = (ComponentPool**)calloc(sizeof...(Components), sizeof(ComponentPool*));
-        newComponents<Components...>();
+        FOR_EACH_VAR_TYPE(Components, newComponent<Components>());
 
         static_assert(NULL_ENTITY_VERSION == 0, "starting entity version should be 1");
 
@@ -129,21 +131,13 @@ public:
 
     Uint32 numLiveEntities() const;
 
-    ComponentFlags getEntityComponents(EntityID entityID) const;
 
-    template<class... Cs>
-    inline bool EntityHas(Entity entity) const {
-        constexpr ComponentFlags signature = componentSignature<Cs...>();
-        return getEntityComponents(entity.id).hasAll(signature);
-    }
+    /* Component Methods */
 
-    inline bool EntityExists(Entity entity) const {
-        return (entity.id < NULL_ENTITY_ID && entity.version >= entityDataList[entity.id].version);
-    }
 
     /* Get the name of the component type */
     template<class T>
-    const char* getComponentName() const {
+    inline const char* getComponentName() const {
         return getComponentName(getID<T>());
     }
 
@@ -164,9 +158,25 @@ public:
 
     Entity getEntityByIndex(Uint32 entityIndex) const;
 
+
+    /* Entity Methods */
+
+
     Entity New();
 
     int Destroy(Entity entity);
+
+    ComponentFlags EntitySignature(EntityID entityID) const;
+
+    template<class... Cs>
+    inline bool EntityHas(Entity entity) const {
+        constexpr ComponentFlags signature = componentSignature<Cs...>();
+        return EntitySignature(entity.id).hasAll(signature);
+    }
+
+    inline bool EntityExists(Entity entity) const {
+        return (entity.id < NULL_ENTITY_ID && entity.version >= entityDataList[entity.id].version);
+    }
 
     // Get a component of the entity. May be NULL if the entity does not have the component
     template<class T> 

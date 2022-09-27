@@ -93,8 +93,10 @@ int readChunksFromFile(const char* filename, ChunkMap* chunkmap) {
         memcpy(&position, filePos, sizeof(IVec2));
         filePos += sizeof(IVec2);
 
-        ChunkData* chunkdata = chunkmap->getOrCreateAt(position);
-        memcpy(chunkdata->chunk, filePos, sizeof(Chunk));
+        ChunkData* chunkdata = chunkmap->getOrMakeNew(position);
+        if (chunkdata) {
+            memcpy(chunkdata->chunk, filePos, sizeof(Chunk));
+        }
         filePos += sizeof(Chunk);
     }
 

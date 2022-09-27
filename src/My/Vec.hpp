@@ -3,7 +3,6 @@
 
 #include <assert.h>
 #include "MyUtils.hpp"
-#include "BasicIterator.hpp"
 #include "Array.hpp"
 #include <initializer_list>
 
@@ -15,7 +14,7 @@ MY_CLASS_START
  * and result in faster compile times
  */
 template<typename T>
-struct Vector {
+struct Vec {
     T* data;
     int size;
     int capacity;
@@ -23,7 +22,7 @@ struct Vector {
     using Type = T;
 
     // does not initialize data
-    Vector() {
+    Vec() {
 #ifdef DEBUG
         data = (T*)(1); // pointer that can't be null checked but should still crash on dereference
         size = 0x7ff8dead; // sentinel value that should mess everything up when used
@@ -31,27 +30,38 @@ struct Vector {
 #endif
     }
 
-    Vector(int startCapacity) {
-        data = (T*)MY_malloc(startCapacity * sizeof(T));
+    Vec(int startCapacity) {
+        if (startCapacity > 0) 
+            data = (T*)MY_malloc(startCapacity * sizeof(T));
+        else
+            data = nullptr;
         size = 0;
         capacity = startCapacity;
     }
 
-    Vector(T* _data, int _size, int _capacity)
+    inline static Vec<T> WithCapacity(int capacity) {
+        return Vec<T>(capacity);
+    }
+
+    Vec(T* _data, int _size, int _capacity)
     : data(_data), size(_size), capacity(_capacity) {}
+
+    static Vec<T> Empty() {
+        return Vec<T>(nullptr, 0, 0);
+    }
 
     /* Create a vector with the given size and copy the given data to the vector
      * 
      */
-    Vector(const T* _data, int _size) {
+    Vec(const T* _data, int _size) {
         data = (T*)MY_malloc(_size * sizeof(T));
         memcpy(data, _data, _size * sizeof(T));
         size = _size;
         capacity = _size;
     }
 
-    Vector(std::initializer_list<T> il) {
-        *this = Vector(il.begin(), il.size());
+    static Vec<T> FromList(const std::initializer_list<T>& il) {
+        return Vec<T>(il.begin(), il.size());
     }
 
     inline T& operator[](int index) const {
@@ -60,7 +70,7 @@ struct Vector {
         return data[index];
     }
 
-    T* push_back(const T& val) {
+    T* push(const T& val) {
         if (size >= capacity) {
             int increasedCapacity = capacity*2;
             // resize to atleast size+1 capacity. This is useful if for example capacity is 0,
@@ -72,20 +82,16 @@ struct Vector {
             }
         }
 
-        data[size] = val;
+        memcpy(&data[size], &val, sizeof(T));
         return &data[size++];
     }
 
-    void pop_back() {
+    void pop() {
         assert(size > 0 && "can't pop back element of empty vector");
         size--;
     }
 
-    inline bool is_full() const {
-        return size >= capacity;
-    }
-
-    inline bool is_empty() const {
+    inline bool empty() const {
         return size == 0;
     }
 
@@ -149,12 +155,9 @@ struct Vector {
         return Array<T>(size, data);
     }
 
-    inline BasicIterator<T> begin() const { return BasicIterator<T>(data); }
-    inline BasicIterator<T> end() const { return BasicIterator<T>(data + size); }
+    inline T* begin() const { return data; }
+    inline T* end() const { return data + size; }
 };
-
-//template<typename T> inline BasicIterator<T> begin(const My::Vector<T>& vector) { return BasicIterator<T>(vector.data); }
-//template<typename T> inline BasicIterator<T>   end(const My::Vector<T>& vector) { return BasicIterator<T>(vector.data + vector.size); }
 
 MY_CLASS_END
 

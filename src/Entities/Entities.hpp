@@ -7,24 +7,173 @@
 #include "../SECS/EntityWorld.hpp"
 #include "../utils/Vectors.hpp"
 
-struct EntityNamePrototype {
-    std::string name;
-    std::string displayName;
+struct EntityPrototypeBase {
+    using EventFunction = void(EntityWorld*, Entity);
+
+    virtual void Created() const {}
+
+    virtual void Serialize() const {}
+
+    virtual void Destroyed() const {}
 };
 
-class EntityPrototypeBase {
+struct Outputter {
+    // some state ...
+
+    size_t out(size_t bytes, const void* data) {
+        return 0;
+    }
+    /*
+    template<class T>
+    size_t operator()(const T& val) {
+        return out(sizeof(T), &val);
+    }
+
+    template<class T>
+    size_t operator()(size_t bytes, const T* data) {
+        return out(bytes, data);
+    }
+    */
+};
+
+struct Inputter {
+    size_t in(size_t bytes, void* data) {
+        return 0;
+    }
+
+    void* in(size_t bytes) {
+        return nullptr;
+    }
+    /*
+    template<class T>
+    T get() {
+        T val;
+        size_t bytesWritten = in(sizeof(T), &val);
+        if (bytesWritten != sizeof(T)) {
+
+        }
+        return val;
+    }
+
+    template<class T>
+    size_t get(size_t count, T* data) {
+        return in(count * sizeof(T), data);
+    }
+    */
+};
+
+namespace InOut {
+
+template<class T>
+size_t out(const T& val, Outputter& output) {
+    return output.out(sizeof(T), &val);
+}
+
+template<class T>
+size_t out(size_t count, const T* data, Outputter& output) {
+    return output.out(count * sizeof(T), data);
+}
+
+#define OUT_VAL(type, val) InOut::out<type>(val, out)
+#define OUT_PTR(type, ptr, count) InOut::out<type>(count, ptr, out)
+
+template<class T>
+inline T in(Inputter& input) {
+    T val;
+    size_t bytesWritten = input.in(sizeof(T), &val);
+    if (bytesWritten != sizeof(T)) {
+        // err
+    }
+    return val;
+}
+
+template<class T>
+inline size_t in(size_t count, T* data, Inputter& input) {
+    return input.in(count * sizeof(T), data);
+}
+
+template<class T>
+inline T* in(size_t count, Inputter& input) {
+    return (T*)input.in(count);
+}
+
+}
+
+#define IN_VAL(type, var) type var = InOut::in<type>(in)
+#define IN_READ(type, ptr, count) InOut::in<type>(count, ptr, in)
+#define IN_ALLOC(type, var, count) type* var = InOut::in<type>(count, in)
+#define IN_FREE(var) free(var)
+
+namespace IO {
+
+
+    inline void string(Outputter& out, const std::string& str) {
+        OUT_VAL(size_t, str.size());
+        OUT_PTR(char, str.data(), str.size());
+    }
+
+
+
+    inline std::string string(Inputter& in) {
+        IN_VAL(size_t, size);
+
+        IN_ALLOC(char, data, size);
+        auto str = std::string(data, size);
+
+        IN_FREE(data);
+        return str;
+    }
+
+    inline void string(Inputter& in, std::string& str) {
+        str = string(in);
+    }
+}
+
+struct EntityNamePrototype : EntityPrototypeBase {
     std::string name;
     std::string displayName;
 
-    virtual void Serialize() {
+    void Created(EntityWorld* ecs, Entity entity) const {
 
     }
 
-    virtual void Destroyed() {
-        
+    void Serialize(EntityWorld* ecs, Entity entity, Outputter& out) const {
+        IO::string(out, name);
+        IO::string(out, displayName);
     }
 
-    virtual void Created() {
+    void Deserialize(EntityWorld* ecs, Entity entity, Inputter& in) {
+        IO::string(in, name);
+        IO::string(in, displayName);
+    }
+};
+
+struct ExplosivePrototype : EntityPrototypeBase {
+    EC::Explosion explosion;
+
+    void Serialize(Outputter& out) const {
+        OUT_VAL(EC::Explosion, explosion);
+    }
+
+    void DeserializeEntity(EntityWorld* ecs, Entity entity, Inputter& in) {
+        EC::Explosive* explosive = ecs->Get<EC::Explosive>(entity);
+        if (explosive) {
+            //*explosive->explosion = explosion;
+        }
+    }
+};
+
+template<class T>
+struct GenericProtoComponent : EC::EntityComponent<GenericProtoComponent<T>> {
+    T* ptr;
+
+    void Serialize() {}
+};
+
+struct ExplosiveProtoComponent : EC::EntityComponent<ExplosiveProtoComponent> {
+    ExplosivePrototype* ptr;
+
+    void Serialize(Outputter& out) const {
 
     }
 };

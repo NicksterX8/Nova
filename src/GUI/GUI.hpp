@@ -132,7 +132,7 @@ public:
 };
 */
 struct GUI {
-    My::Vector<SDL_FRect> area = My::Vector<SDL_FRect>(0);
+    My::Vec<SDL_FRect> area = My::Vec<SDL_FRect>(0);
     ItemStack* heldItemStack = nullptr;
 
     void draw(SDL_Renderer* ren, float scale, SDL_Rect viewport, const Player* player) {

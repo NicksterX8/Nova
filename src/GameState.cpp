@@ -30,7 +30,7 @@ void GameState::init() {
     int chunkRadius = 10;
     for (int chunkX = -chunkRadius; chunkX < chunkRadius; chunkX++) {
         for (int chunkY = -chunkRadius; chunkY < chunkRadius; chunkY++) {
-            ChunkData* chunkdata = chunkmap.createChunk({chunkX, chunkY});
+            ChunkData* chunkdata = chunkmap.newChunkAt({chunkX, chunkY});
             if (chunkdata) {
                 generateChunk(chunkdata->chunk);
             } else {
@@ -52,18 +52,18 @@ void GameState::init() {
                 for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
                     IVec2 chunkPosition = {col, row};
                     // add entity to new chunk
-                    ChunkData* newChunkdata = chunkmap.getChunkData(chunkPosition);
+                    ChunkData* newChunkdata = chunkmap.get(chunkPosition);
                     if (newChunkdata) {
-                        newChunkdata->closeEntities.push_back(entity);
+                        newChunkdata->closeEntities.push(entity);
                     }
                 }
             }
         } else {
             IVec2 chunkPosition = toChunkPosition(pos);
             // add entity to new chunk
-            ChunkData* newChunkdata = chunkmap.getChunkData(chunkPosition);
+            ChunkData* newChunkdata = chunkmap.get(chunkPosition);
             if (newChunkdata) {
-                newChunkdata->closeEntities.push_back(entity);
+                newChunkdata->closeEntities.push(entity);
             }
         }
     });
@@ -80,7 +80,7 @@ void GameState::init() {
                 }
             });
         } else {
-            chunkmap.getChunkData(toChunkPosition(entityPosition))->removeCloseEntity(entity);
+            chunkmap.get(toChunkPosition(entityPosition))->removeCloseEntity(entity);
         }
     });
     ecs.SetBeforeRemove<EC::Inventory>([](EntityWorld* ecs, Entity entity){
@@ -315,7 +315,7 @@ void forEachEntityInRange(const ComponentManager<EC::Position, EC::Size>& ecs, c
     // go through each chunk in chunk search rectangle
     for (int y = lowChunkBound.y; y <= highChunkBound.y; y++) {
         for (int x = lowChunkBound.x; x <= highChunkBound.x; x++) {
-            const ChunkData* chunkdata = chunkmap->getChunkData({x, y});
+            const ChunkData* chunkdata = chunkmap->get({x, y});
             if (chunkdata == NULL) {
                 // entities can't be in non-existent chunks
                 continue;
@@ -349,7 +349,7 @@ void forEachEntityInRange(const ComponentManager<EC::Position, EC::Size>& ecs, c
 
 void forEachEntityNearPoint(const ComponentManager<EC::Position, const EC::Size>& ecs, const ChunkMap* chunkmap, Vec2 point, std::function<int(EntityT<EC::Position>)> callback) {
     IVec2 chunkPos = toChunkPosition(point);
-    const ChunkData* chunkdata = chunkmap->getChunkData(chunkPos);
+    const ChunkData* chunkdata = chunkmap->get(chunkPos);
     if (!chunkdata) {
         // entities can't be in non-existent chunks
         return;
@@ -369,7 +369,7 @@ void forEachChunkContainingBounds(const ChunkMap* chunkmap, Vec2 position, Vec2 
     for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
         for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
             IVec2 chunkPosition = {col, row};
-            ChunkData* chunkdata = chunkmap->getChunkData(chunkPosition);
+            ChunkData* chunkdata = chunkmap->get(chunkPosition);
             if (chunkdata) {
                 callback(chunkdata);
             }

@@ -3,9 +3,7 @@
 
 #include <SDL2/SDL_log.h>
 #include <stdio.h>
-
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
+#include "common-macros.hpp"
 
 namespace LogCategories {
 enum LogCategory {

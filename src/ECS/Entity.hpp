@@ -25,9 +25,17 @@ typedef Uint32 ComponentID;
 //typedef My::Bitset<NUM_COMPONENTS> ComponentFlags;
 
 struct ComponentFlags : public My::Bitset<NUM_COMPONENTS> {
+    using My::Bitset<NUM_COMPONENTS>::Bitset;
+
+    constexpr ComponentFlags(My::Bitset<NUM_COMPONENTS> bitset) : My::Bitset<NUM_COMPONENTS>(bitset) {
+        
+    }
+
     template<class C>
     constexpr bool getComponent() const {
-        return *this & componentSignature<C>();
+        constexpr ComponentID id = getID<C>();
+        constexpr bool result = this->operator[](id);
+        return result;
     }
 };
 
@@ -51,7 +59,7 @@ constexpr ComponentFlags componentSignature() {
 template<class... Components>
 constexpr ComponentFlags componentMutSignature() {
     constexpr ComponentID   ids[] = {getID<Components>() ...};
-    constexpr bool         muts[] = {componentIsMutable<Components>() ...};
+    constexpr bool         muts[] = {!std::is_const<Components>() ...};
 
     ComponentFlags result;
     for (size_t i = 0; i < sizeof...(Components); i++) {
@@ -69,7 +77,9 @@ constexpr std::array<ComponentID, sizeof...(Components)> getComponentIDs() {
 template<class T, class... Components>
 constexpr inline bool componentInComponents() {
     constexpr ComponentFlags signature = componentSignature<Components...>();
-    return signature.getComponent<T>();
+    //constexpr bool result = signature.getComponent<T>();
+    constexpr bool result = signature[getID<T>()];
+    return result;
 }
 
 template<class... Components>

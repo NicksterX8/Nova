@@ -36,9 +36,7 @@ void placeInserter(ChunkMap& chunkmap, EntityWorld* ecs, Vec2 mouseWorldPos) {
     Tile* tile = getTileAtPosition(chunkmap, mouseWorldPos);
     if (tile && !tile->entity.Exists(ecs)) {
         Vec2 inputPos = {mouseWorldPos.x + 1, mouseWorldPos.y};
-        //Tile* inputTile = getTileAtPosition(chunkmap, inputPos);
         Vec2 outputPos = {mouseWorldPos.x - 1, mouseWorldPos.y};
-        //Tile* outputTile = getTileAtPosition(chunkmap, outputPos);
         Entity inserter = Entities::Inserter(ecs, Vec2(floor(mouseWorldPos.x), floor(mouseWorldPos.y)) + Vec2(0.5f, 0.5f), 1, vecFloori(inputPos), vecFloor(outputPos));
         placeEntityOnTile(ecs, tile, inserter);
     }

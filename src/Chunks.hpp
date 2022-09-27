@@ -2,7 +2,8 @@
 #define CHUNKS_INCLUDED
 
 #include <vector>
-#include "My/Vector.hpp"
+#include "My/Vec.hpp"
+#include "My/BucketArray.hpp"
 #include <unordered_map>
 #include "Tiles.hpp"
 #include "constants.hpp"
@@ -16,7 +17,7 @@ typedef Tile Chunk[CHUNKSIZE][CHUNKSIZE]; // 2d array of tiles
 struct ChunkData {
     Chunk* chunk; // pointer to chunk tiles
     IVec2 position; // chunk position aka floor(tilePosition / CHUNKSIZE), NOT tile position
-    My::Vector<Entity> closeEntities; // entities that are at least partially inside the chunk
+    My::Vec<Entity> closeEntities; // entities that are at least partially inside the chunk
     unsigned int vbo;
 
     ChunkData(Chunk* chunk, IVec2 position);
@@ -46,33 +47,7 @@ struct ChunkData {
 
 void generateChunk(Chunk* chunk);
 
-/*
-class ChunkPool {
-    size_t _size;
-    size_t _used;
-    Chunk* pool;
-public:
-    ChunkPool();
-
-    ChunkPool(int size);
-
-    void init(int size);
-
-    void destroy();
-
-    size_t used() const;
-
-    size_t size() const;
-
-    bool hasRoom() const;
-
-    Chunk* at(size_t index) const;
-
-    Chunk* getNew();
-}; 
-*/
-
-#define CHUNKPOOL_SIZE 256
+#define CHUNK_BUCKET_SIZE 256
 
 struct IVec2Hash {
     size_t operator()(const IVec2& point) const {
@@ -81,36 +56,31 @@ struct IVec2Hash {
     }
 };
 
-using ChunkPool = My::Vector<Chunk>;
-
 typedef std::unordered_map<IVec2, ChunkData*, IVec2Hash> ChunkUnorderedMap;
 class ChunkMap {
     ChunkUnorderedMap map;
-    My::Vector< My::Vector<Chunk> > chunkPools;
-    My::Vector<ChunkData*> chunkDataList;
+    //My::Vec< My::Vec<Chunk> > chunkPools;
+    using ChunkBucketArray = My::BucketArray<Chunk, CHUNK_BUCKET_SIZE>;
+    ChunkBucketArray chunks;
+    My::Vec<ChunkData*> chunkDataList;
 public:
     void init();
     void destroy();
     size_t size() const;
 
     /*
-    * Get a chunk data object from the map.
+    * Get chunk data from the map for the given chunk position key.
     * Returns NULL if the chunk couldn't be found.
     */
-    ChunkData* getChunkData(IVec2 chunkPosition) const;
+    ChunkData* get(IVec2 chunkPosition) const;
+
+    ChunkData* newChunkAt(IVec2 position);
 
     /*
-    * Like getChunkData except will create a new chunk if the chunk couldn't be found.
+    * Like get() except will create a new chunk if the chunk couldn't be found.
     * The chunk will not be generated, so this shouldn't be used most in most cases.
     */
-    ChunkData* getOrCreateAt(IVec2 position);
-
-    /*
-    * Get a const chunk from the map.
-    * Returns NULL if the chunk couldn't be found.
-    */
-    Chunk* getChunk(IVec2 chunkPosition) const;
-    ChunkData* createChunk(IVec2 position);
+    ChunkData* getOrMakeNew(IVec2 position);
     /*
     * @return The value returned from the final callback
     */
@@ -121,14 +91,6 @@ public:
     */
     int iterateChunkdata(std::function<int(ChunkData*)> callback) const;
 
-    
-private:
-    /*
-    * Create and allocate for a new ungenerated chunk at the position.
-    * @return A new allocated chunk, except in cases of memory allocation failure
-    */
-    Chunk* newChunk(IVec2 position);
-    ChunkData* newEntry(IVec2 position);
 };
 
 inline IVec2 toChunkPosition(Vec2 position) {
@@ -137,9 +99,7 @@ inline IVec2 toChunkPosition(Vec2 position) {
 
 Tile* getTileAtPosition(const ChunkMap& chunkmap, Vec2 position);
 
-inline Tile* getTileAtPosition(const ChunkMap& chunkmap, IVec2 tilePos) {
-    return getTileAtPosition(chunkmap, Vec2(tilePos.x, tilePos.y));
-}
+Tile* getTileAtPosition(const ChunkMap& chunkmap, IVec2 position);
 
 bool chunkIsVisible(IVec2 chunkPosition, const SDL_FRect *worldViewport);
 

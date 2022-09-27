@@ -3,7 +3,9 @@
 namespace ECS {
 
 EntityManager::EntityManager() {
-    //this->freeEntities = My::Vector<EntityID>(0);
+    freeEntities = My::Vec<EntityID>::WithCapacity(MAX_ENTITIES-1);
+    entities = (Entity*)malloc(MAX_ENTITIES * sizeof(Entity));
+    entityDataList = (EntityData*)malloc(MAX_ENTITIES * sizeof(EntityData));
 }
 
 void EntityManager::destroy() {
@@ -13,6 +15,8 @@ void EntityManager::destroy() {
     delete pools;
 
     freeEntities.destroy();
+    free(entities);
+    free(entityDataList);
 }
 
 Uint32 EntityManager::numLiveEntities() const {
@@ -30,7 +34,7 @@ Entity EntityManager::New() {
     if (entityID == NULL_ENTITY_ID) {
         LogError("Entity from freeEntities was NULL! EntityID: %u", entityID);
     }
-    freeEntities.pop_back();
+    freeEntities.pop();
 
     EntityData* entityData = &entityDataList[entityID];
     EntityVersion entityVersion = entityData->version;
@@ -71,7 +75,7 @@ int EntityManager::Destroy(Entity entity) {
 
     // Version goes up one everytime it's removed
     entityDataList[entity.id].version += 1;
-    freeEntities.push_back(entity.id);
+    freeEntities.push(entity.id);
 
     liveEntities--;
 
@@ -93,7 +97,7 @@ Entity EntityManager::getEntityByIndex(Uint32 entityIndex) const {
     return entities[entityIndex];
 }
 
-ComponentFlags EntityManager::getEntityComponents(EntityID entityID) const {
+ComponentFlags EntityManager::EntitySignature(EntityID entityID) const {
     return entityDataList[entityID].flags;
 }
 

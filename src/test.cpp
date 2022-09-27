@@ -5,38 +5,53 @@
 #include <math.h>
 #include <string>
 #include <algorithm>
+#include <vector>
+#include <memory>
 #include <array>
+#include <unistd.h>
+#include <time.h>
+#include <chrono>
 
-using std::cout;
-
-int func() {
-    cout << "func run\n";
-    return 3;
+std::chrono::time_point<std::chrono::high_resolution_clock> getNow() {
+    return std::chrono::high_resolution_clock::now();
 }
 
-class Thing {
-public:
-    int priv = func();
+//time elapsed: 949738584
+//time elapsed: 1358284833
 
-    Thing();
-};
+constexpr size_t innerIterations = 100000;
 
-Thing::Thing() {
-    priv = 3;
+void func(size_t i, std::vector<size_t>& array) {
+    /*
+    for (size_t j = 0; j < innerIterations; j++) {
+
+       (*array)[j] = i;
+    }
+    /*/
+    for (size_t& arrVal : array) {
+        arrVal = rand();
+    }
+    //*/
 }
 
-struct SS {
-    int x;
-    int* xPtr;
-};
-
-
+void func2(size_t i, std::vector<size_t>& array) {
+    for (size_t j = 0; j < array.size(); j++) {
+        size_t& arrVal = array[j];
+        arrVal = rand();
+    }
+}
 
 int main() {
+    auto before = getNow();
 
-    int x = 0;
-    Thing thing;
-    cout << "thing val: " << thing.priv;
+    size_t iterations = 10000;
+    std::vector<size_t> array(innerIterations);
+    for (size_t i = 0; i < iterations; i++) {
+        func(i, array);
+    }
 
+    auto after = getNow();
+
+    printf("time elapsed: %llu\n", (after - before).count());
     return 0;
 }

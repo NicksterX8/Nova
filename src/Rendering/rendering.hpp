@@ -26,155 +26,6 @@
 #include <glm/vec2.hpp>
 
 /*
-int drawWorld(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, GameState* state) {
-    int renWidth,renHeight;
-    SDL_GetRendererOutputSize(ren, &renWidth, &renHeight);
-    if (renWidth != gameViewport->display.w) {
-        //Log("width is incorrect! renderwidth: %d, viewport width: %d", renWidth, gameViewport->display.w);
-    }
-
-    // draw space background
-    SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
-    SDL_RenderFillRect(ren, NULL);
-    // stars
-
-    Vec2 minChunkRelativePos = {gameViewport->world.x / CHUNKSIZE, gameViewport->world.y / CHUNKSIZE};
-    Vec2 maxChunkRelativePos = {gameViewport->worldRightEdge() / CHUNKSIZE, gameViewport->worldBottomEdge() / CHUNKSIZE};
-    IVec2 minChunkPos = {(int)floor(minChunkRelativePos.x), (int)floor(minChunkRelativePos.y)};
-    IVec2 maxChunkPos = {(int)floor(maxChunkRelativePos.x), (int)floor(maxChunkRelativePos.y)};
-    IVec2 viewportChunkSize = {maxChunkPos.x - minChunkPos.x, maxChunkPos.y - minChunkPos.y};
-
-    int numRenderedChunks = (viewportChunkSize.x+1) * (viewportChunkSize.y+1);
-    
-    for (int x = minChunkPos.x; x <= maxChunkPos.x; x++) {
-        for (int y = minChunkPos.y; y <= maxChunkPos.y; y++) {
-            const ChunkData* chunkdata = state->chunkmap.getChunkData({x, y});
-            if (!chunkdata) {
-                ChunkData* newChunk = state->chunkmap.createChunk({x, y});
-                generateChunk(newChunk->chunk);
-                chunkdata = newChunk;
-            }
-
-            Vec2 screenDst = gameViewport->worldToPixelPositionF(Vec2(x * CHUNKSIZE, y * CHUNKSIZE));
-            SDL_FRect destination = {
-                screenDst.x,
-                screenDst.y,
-                TileWidth * CHUNKSIZE,
-                TileHeight * CHUNKSIZE
-            };
-            
-            // When zoomed out far, simplify rendering for better performance and less distraction
-            if (TileWidth < 10.0f) {
-                Draw::simpleChunk(chunkdata->chunk, ren, destination);
-            } else {
-                Draw::chunkExp(chunkdata->chunk, ren, scale, destination);
-                // draw chunk coordinates
-                if (Debug->settings.drawChunkCoordinates) {
-                    // TODO: TEXT RENDER
-                    //FC_DrawScale(FreeSans, ren, destination.x + 3*scale, destination.y + 2*scale, FC_MakeScale(0.5f,0.5f),
-                    //"%d, %d", x * CHUNKSIZE, y * CHUNKSIZE);
-                }
-
-                if (Debug->settings.drawChunkEntityCount) {
-                    // TODO: TEXT RENDER
-                    //FC_DrawScale(FreeSans, ren, destination.x + destination.w/2.0f, destination.y + destination.h/2.0f, FC_MakeScale(0.5f,0.5f),
-                    //"%llu", chunkdata->closeEntities.size());
-                }
-            }
-
-        }
-    }
-
-    auto renderSystem = SimpleRectRenderSystem(ren, gameViewport);
-    renderSystem.scale = scale;
-    renderSystem.Update(state->ecs, state->chunkmap);
-
-    using RenderSystemQuery = ECS::EntityQuery<
-        ECS::RequireComponents<EC::Render, EC::Position, EC::Size>,
-        ECS::AvoidComponents<>,
-        ECS::LogicalOrComponents<>
-    >;
-
-    state->ecs.ForEach<RenderSystemQuery>([&](Entity entity){
-        //Log("entity");
-    });
-    
-    //if (Metadata.ticks() % 30 == 0)
-    //    Log("rendered %d entities", nRenderedEntities);
-
-    if (Debug->settings.drawChunkBorders) {
-        Draw::drawChunkBorders(ren, scale, gameViewport);
-    } 
-
-    return numRenderedChunks;
-}
-
-int drawWorld2(RenderContext& ren, float scale, GameState* state, GameViewport* gameViewport) {
-    Vec2 minChunkRelativePos = {gameViewport->world.x / CHUNKSIZE, gameViewport->world.y / CHUNKSIZE};
-    Vec2 maxChunkRelativePos = {gameViewport->worldRightEdge() / CHUNKSIZE, gameViewport->worldBottomEdge() / CHUNKSIZE};
-    IVec2 minChunkPos = {(int)floor(minChunkRelativePos.x), (int)floor(minChunkRelativePos.y)};
-    IVec2 maxChunkPos = {(int)floor(maxChunkRelativePos.x), (int)floor(maxChunkRelativePos.y)};
-    IVec2 viewportChunkSize = {maxChunkPos.x - minChunkPos.x, maxChunkPos.y - minChunkPos.y};
-
-    int numRenderedChunks = (viewportChunkSize.x+1) * (viewportChunkSize.y+1);
-
-    for (int x = minChunkPos.x; x <= maxChunkPos.x; x++) {
-        for (int y = minChunkPos.y; y <= maxChunkPos.y; y++) {
-            const ChunkData* chunkdata = state->chunkmap.getChunkData({x, y});
-            if (!chunkdata) {
-                ChunkData* newChunk = state->chunkmap.createChunk({x, y});
-                generateChunk(newChunk->chunk);
-                chunkdata = newChunk;
-            }
-
-            Vec2 screenDst = gameViewport->worldToPixelPositionF(Vec2(x * CHUNKSIZE, y * CHUNKSIZE));
-            SDL_FRect destination = {
-                screenDst.x,
-                screenDst.y,
-                TileWidth * CHUNKSIZE,
-                TileHeight * CHUNKSIZE
-            };
-            
-            // When zoomed out far, simplify rendering for better performance and less distraction
-            if (TileWidth < 10.0f) {
-
-                //Draw::simpleChunk(chunkdata->chunk, ren, destination);
-            } else {
-                //Draw::chunkExp(chunkdata->chunk, ren, scale, destination);
-                // draw chunk coordinates
-                if (Debug->settings.drawChunkCoordinates) {
-                    //FC_DrawScale(FreeSans, ren, destination.x + 3*scale, destination.y + 2*scale, FC_MakeScale(0.5f,0.5f),
-                    //"%d, %d", x * CHUNKSIZE, y * CHUNKSIZE);
-                }
-
-                if (Debug->settings.drawChunkEntityCount) {
-                    //FC_DrawScale(FreeSans, ren, destination.x + destination.w/2.0f, destination.y + destination.h/2.0f, FC_MakeScale(0.5f,0.5f),
-                    //"%llu", chunkdata->closeEntities.size());
-                }
-            }
-
-        }
-    }
-
-    return numRenderedChunks;
-}
-
-
-void highlightTargetedTile(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, const GUI* gui, Vec2 playerTargetPos) {
-    Vec2 screenPos = gameViewport->worldToPixelPositionF(playerTargetPos.vfloor());
-        // only draw tile marker if mouse is actually on the world, not on the GUI
-    if (!gui->pointInArea({(int)screenPos.x, (int)screenPos.y})) {
-        SDL_FRect playerTileHover = {
-            screenPos.x,
-            screenPos.y,
-            TileWidth,
-            TileHeight
-        };
-        SDL_SetRenderDrawColor(ren, 0, 255, 255, 255);
-        Draw::thickRect(ren, &playerTileHover, round(scale * 2));
-    }      
-}
-
 void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, const GUI* gui, const GameState* state, Vec2 playerTargetPos) {
     Vec2 screenPos = gameViewport->worldToPixelPositionF(playerTargetPos.vfloor());
     // only draw tile marker if mouse is actually on the world, not on the GUI
@@ -284,35 +135,6 @@ void renderChunk(RenderContext& ren, ChunkData& chunkdata, ModelData& chunkModel
 }
 
 Shader loadShader(const char* name) {
-    char path[512], vertexPath[512], fragmentPath[512];
-    int shadersPathLen = strlen(FilePaths::shaders);
-    memcpy(path, FilePaths::shaders, shadersPathLen);
-
-    unsigned int nameLen = 0;
-    char chr = name[0];
-    while(chr != '\0') {
-        path[nameLen+shadersPathLen] = chr;
-        nameLen++;
-        chr = name[nameLen];
-    }
-
-    int baseLen = shadersPathLen + nameLen;
-
-    path[baseLen] = '.';
-    path[baseLen+3] = '\0';
-
-    size_t pathSize = baseLen + 4;
-    memcpy(vertexPath, path, pathSize);
-    memcpy(fragmentPath, path, pathSize);
-    vertexPath[baseLen+1] = 'v';
-    vertexPath[baseLen+2] = 's';
-    fragmentPath[baseLen+1] = 'f';
-    fragmentPath[baseLen+2] = 's';
- 
-    return Shader(vertexPath, fragmentPath);
-}
-
-Shader loadShader2(const char* name) {
     return Shader(FileSystem.shaders.get(str_add(name, ".vs")), FileSystem.shaders.get(str_add(name, ".fs")));
 }
 
@@ -332,14 +154,14 @@ void renderInit(RenderContext& ren) {
 
     initFreetype();
     ren.font = new FontFace();
-    *ren.font = loadFontFace(str_add(FilePaths::assets, "fonts/FreeSans.ttf"), 64, true);
+    *ren.font = loadFontFace(FileSystem.assets.get("fonts/FreeSans.ttf"), 64, true);
     ren.debugFont = new FontFace();
-    *ren.debugFont = loadFontFace(str_add(FilePaths::assets, "fonts/Ubuntu-Regular.ttf"), 24, false);
+    *ren.debugFont = loadFontFace(FileSystem.assets.get("fonts/Ubuntu-Regular.ttf"), 24, false);
 
     glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureArray);
 
     loadShaders(ren);
-    ren.textureArray = makeTextureArray(FilePaths::assets);
+    ren.textureArray = makeTextureArray(FileSystem.assets.get());
     ren.tilemapShader.use();
     ren.tilemapShader.setInt("texArray", TextureUnit::MyTextureArray);
     ren.entityShader.use();
@@ -399,8 +221,8 @@ void renderQuit(RenderContext& ren) {
 My::Array<Draw::ColorVertex> makeDemoQuads(SDL_Window* window) {
     int drawableWidth,drawableHeight;
     SDL_GL_GetDrawableSize(window, &drawableWidth, &drawableHeight);
-    /*
-    Draw::ColorVertex testQuadPoints[] = {
+
+    auto quadPoints = My::Vec<Draw::ColorVertex>::FromList({
         {{200, 100, 0.5}, {0, 1, 0, 1}},
         {{200, 200, 0.5}, {0, 1, 0, 1}},
         {{400, 200, 0.5}, {0, 1, 0, 1}},
@@ -415,34 +237,17 @@ My::Array<Draw::ColorVertex> makeDemoQuads(SDL_Window* window) {
         {{2, 2, 0.5}, {0, 1, 1, 1}},
         {{4, 2, 0.5}, {1, 1, 0, 1}},
         {{4, 1, 0.5}, {0, 1, 0, 1}}
-    };
-    My::Vector<Draw::ColorVertex> quadPoints(testQuadPoints, sizeof(testQuadPoints) / sizeof(Draw::ColorVertex));
-    */
+    });
 
-    My::Vector<Draw::ColorVertex> quadPoints{
-        {{200, 100, 0.5}, {0, 1, 0, 1}},
-        {{200, 200, 0.5}, {0, 1, 0, 1}},
-        {{400, 200, 0.5}, {0, 1, 0, 1}},
-        {{400, 100, 0.5}, {0, 1, 0, 1}},
-        
-        {{0, drawableHeight, 0.6}, {1, 0, 1, 1}},
-        {{50, drawableHeight, 0.6}, {0, 1, 1, 1}},
-        {{50, drawableHeight-50, 0.6}, {1, 1, 0, 1}},
-        {{0, drawableHeight-50, 0.6}, {0, 1, 0, 1}},
-
-        {{2, 1, 0.5}, {0, 1, 0, 1}},
-        {{2, 2, 0.5}, {0, 1, 1, 1}},
-        {{4, 2, 0.5}, {1, 1, 0, 1}},
-        {{4, 1, 0.5}, {0, 1, 0, 1}}
-    };
-
+    auto vec = My::Vec<int>(500 * 4);
+ 
     for (int i = 0; i < 500; i++) {
         Vec2 min = {randomInt(-100, 100), randomInt(-100, 100)};
         Vec2 max = min + Vec2{randomInt(1, 3), randomInt(1, 3)};
-        quadPoints.push_back({glm::vec3(min.x, min.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
-        quadPoints.push_back({glm::vec3(min.x, max.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
-        quadPoints.push_back({glm::vec3(max.x, max.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
-        quadPoints.push_back({glm::vec3(max.x, min.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
+        quadPoints.push({glm::vec3(min.x, min.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
+        quadPoints.push({glm::vec3(min.x, max.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
+        quadPoints.push({glm::vec3(max.x, max.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
+        quadPoints.push({glm::vec3(max.x, min.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
     }
 
     return quadPoints.asArray();
@@ -479,9 +284,9 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
 
     for (int x = minChunkPos.x; x <= maxChunkPos.x; x++) {
         for (int y = minChunkPos.y; y <= maxChunkPos.y; y++) {
-            ChunkData* chunkdata = state->chunkmap.getChunkData({x, y});
+            ChunkData* chunkdata = state->chunkmap.get({x, y});
             if (!chunkdata) {
-                ChunkData* newChunk = state->chunkmap.createChunk({x, y});
+                ChunkData* newChunk = state->chunkmap.newChunkAt({x, y});
                 if (newChunk) {
                     generateChunk(newChunk->chunk);
                     chunkdata = newChunk;
@@ -502,14 +307,14 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
     static RenderSystem renderSystem = RenderSystem();
     renderSystem.Update(state->ecs, state->chunkmap, ren, camera);
 
-    std::vector<Draw::ColoredPoint> points;
-    points.push_back({{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.5f}, 15.0f});
+    My::Vec<Draw::ColoredPoint> points(0);
+    points.push({{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.5f}, 15.0f});
     auto r1 = camera.minCorner();
     auto r2 = camera.pixelToWorld({camera.pixelWidth/2.0f, camera.pixelHeight/2.0f});
     auto r3 = camera.maxCorner();
-    points.push_back({glm::vec3(r1.x + 1, r1.y + 1, 0.0f), {0, 1, 0, 1}, 8.0f});
-    points.push_back({glm::vec3(r3.x - 1, r3.y - 1, 0.0f), {0, 1, 0, 1}, 8.0f});
-    points.push_back({glm::vec3(getMouseWorldPosition(camera), 0.0f), {0, 1, 1, 1}, 9.0f});
+    points.push({glm::vec3(r1.x + 1, r1.y + 1, 0.0f), {0, 1, 0, 1}, 8.0f});
+    points.push({glm::vec3(r3.x - 1, r3.y - 1, 0.0f), {0, 1, 0, 1}, 8.0f});
+    points.push({glm::vec3(getMouseWorldPosition(camera), 0.0f), {0, 1, 1, 1}, 9.0f});
 
     static Draw::ColorQuadRenderBuffer quadRenderer = Draw::ColorQuadRenderBuffer();
     static auto quadPoints = makeDemoQuads(ren.window);

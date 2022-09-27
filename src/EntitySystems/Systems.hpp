@@ -36,9 +36,9 @@ public:
             }
             Vec2 position = *sys.GetReadOnly<EC::Position>(entity);
             IVec2 chunkPosition = toChunkPosition(position);
-            ChunkData* chunkdata = chunkmap->getChunkData(chunkPosition);
+            ChunkData* chunkdata = chunkmap->get(chunkPosition);
             if (chunkdata) {
-                chunkdata->closeEntities.push_back(entity);
+                chunkdata->closeEntities.push(entity);
             }
         });
 
@@ -51,9 +51,9 @@ public:
             for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
                 for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
                     IVec2 chunkPosition = {col, row};
-                    ChunkData* chunkdata = chunkmap->getChunkData(chunkPosition);
+                    ChunkData* chunkdata = chunkmap->get(chunkPosition);
                     if (chunkdata) {
-                        chunkdata->closeEntities.push_back(entity);
+                        chunkdata->closeEntities.push(entity);
                     }
                 }
             }

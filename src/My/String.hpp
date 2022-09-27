@@ -4,27 +4,47 @@
 #include <string.h>
 #include <string>
 #include "MyUtils.hpp"
+#include "../utils/Log.hpp"
+#include <memory>
 
 namespace MY_NAMESPACE_NAME {
 
-struct AllocatedString {
+inline char* duplicateStr(const char* str) {
+    int strSize = strlen(str)+1;
+    char* copy = (char*)MY_malloc(strSize);
+    memcpy(copy, str, strSize);
+    return copy;
+}
+
+struct String {
     char* str;
 
-    AllocatedString(size_t size) {
+    String() : str(nullptr) {}
+
+    String(size_t size) {
         str = new char[size];
     }
 
-    AllocatedString(const char* _str) {
-        int len = strlen(_str);
-        str = new char[len+1];
-        memcpy(str, _str, len+1);
+    String(const char* _str) {
+        str = duplicateStr(_str);
     }
 
-    ~AllocatedString() {
-        delete[] str;
+    static String take(char* _str) {
+        String string;
+        string.str = _str;
+        return string;
+    }
+
+    ~String() {
+        LogInfo("String \"%s\" deallocated", str);
+        MY_free(str);
     }
 
     operator char*() {
+        return str;
+    }
+
+    operator const char*() const {
         return str;
     }
 };
@@ -41,25 +61,46 @@ struct StringView {
     operator char*() {
         return (char*)str;
     }
-
-    AllocatedString operator+(const char* rhs) {
-        int len1 = strlen(str);
-        int len2 = strlen(rhs);
-
-        AllocatedString result = AllocatedString(len1 + len2 + 1);
-        memcpy(result.str, str, len1);
-        memcpy(result.str + len1, rhs, len2+1);
-        return result;
-    }
 };
 
+/*
 inline AllocatedString str_add(const char* str_a, const char* str_b) {
     int lenA = strlen(str_a);
     int lenB = strlen(str_b);
 
-    AllocatedString result = AllocatedString(lenA + lenB + 1);
-    memcpy(result.str, str_a, lenA);
-    memcpy(result.str + lenA, str_b, lenB+1);
+    //AllocatedString result = AllocatedString(lenA + lenB + 1);
+    char* result = new char[lenA + lenB + 1];
+    memcpy(result, str_a, lenA);
+    memcpy(result + lenA, str_b, lenB+1);
+    LogInfo("Allocated str for str_add : %s", result);
+    return AllocatedString::take(result);
+}
+*/
+}
+
+namespace My {
+
+//#define STR_ADD(lhs, rhs) (My::string_result = strcat(strcpy((char*)malloc(strlen(lhs) + strlen(rhs) + 1), lhs), rhs)); defer(free(My::string_result))
+
+//#define STR_ADD2(var, lhs, rhs) char* var = strcat(strcpy((char*)malloc(strlen(lhs) + strlen(rhs) + 1), lhs), rhs); defer {free(var);}
+
+inline String str_add(const char* str_a, const char* str_b) {
+    int lenA = strlen(str_a);
+    int lenB = strlen(str_b);
+
+    char* result = new char[lenA + lenB + 1];
+    memcpy(result, str_a, lenA);
+    memcpy(result + lenA, str_b, lenB+1);
+    return My::String::take(result);
+}
+
+inline char* str_add_manual(const char* str_a, const char* str_b) {
+    int lenA = strlen(str_a);
+    int lenB = strlen(str_b);
+
+    char* result = new char[lenA + lenB + 1];
+    memcpy(result, str_a, lenA);
+    memcpy(result + lenA, str_b, lenB+1);
     return result;
 }
 

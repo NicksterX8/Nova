@@ -3,7 +3,6 @@
 
 #include <array>
 #include "MyUtils.hpp"
-#include "BasicIterator.hpp"
 #include <initializer_list>
 
 MY_CLASS_START
@@ -23,7 +22,7 @@ struct Array {
 
     Array(int _size) {
         size = _size;
-        data = MY_malloc(size * sizeof(T));
+        data = (int*)MY_malloc(size * sizeof(T));
     }
 
     Array(int _size, T* _data) {
@@ -33,11 +32,12 @@ struct Array {
 
     static Array<T> from_ptr(int _size, const T* _data) {
         Array<T> array(_size);
-        memcpy(data, _data, size * sizeof(T));
+        memcpy(array.data, _data, _size * sizeof(T));
+        return array;
     }
 
     Array(const std::initializer_list<T>& il) {
-        *this = Array(il.size(), il.begin());
+        *this = Array::from_ptr(il.size(), il.begin());
     }
 
     inline T& operator[](int index) const {
@@ -52,21 +52,9 @@ struct Array {
 
     using Type = T;
 
-    inline BasicIterator<T> begin() const { return BasicIterator<T>(data); }
-    inline BasicIterator<T> end() const { return BasicIterator<T>(data + size); }
+    inline T* begin() const { return data; }
+    inline T* end() const { return data + size; }
 };
-
-inline int takes(std::array<int, 2> arr) {
-
-}
-
-inline int tester() {
-    std::array<int, 3> stdArray{0,1,2};
-    My::Array<int> myArray{0,1,2};
-
-    takes({1,2});
-
-}
 
 MY_CLASS_END
 

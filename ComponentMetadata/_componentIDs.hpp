@@ -1,21 +1,21 @@
-template<> constexpr unsigned int getRawID<const EC::Position>() { return 0; }
-template<> constexpr unsigned int getRawID<const EC::Size>() { return 1; }
-template<> constexpr unsigned int getRawID<const EC::Render>() { return 2; }
-template<> constexpr unsigned int getRawID<const EC::Health>() { return 3; }
-template<> constexpr unsigned int getRawID<const EC::Growth>() { return 4; }
-template<> constexpr unsigned int getRawID<const EC::Explosion>() { return 5; }
-template<> constexpr unsigned int getRawID<const EC::Nametag>() { return 6; }
-template<> constexpr unsigned int getRawID<const EC::Explosive>() { return 7; }
-template<> constexpr unsigned int getRawID<const EC::Inventory>() { return 8; }
-template<> constexpr unsigned int getRawID<const EC::Motion>() { return 9; }
-template<> constexpr unsigned int getRawID<const EC::Dying>() { return 10; }
-template<> constexpr unsigned int getRawID<const EC::Inserter>() { return 11; }
-template<> constexpr unsigned int getRawID<const EC::Rotation>() { return 12; }
-template<> constexpr unsigned int getRawID<const EC::Rotatable>() { return 13; }
-template<> constexpr unsigned int getRawID<const EC::Follow>() { return 14; }
-template<> constexpr unsigned int getRawID<const EC::Immortal>() { return 15; }
-template<> constexpr unsigned int getRawID<const EC::AngleMotion>() { return 16; }
-template<> constexpr unsigned int getRawID<const EC::ItemStack>() { return 17; }
-template<> constexpr unsigned int getRawID<const EC::Transporter>() { return 18; }
-template<> constexpr unsigned int getRawID<const EC::Grabable>() { return 19; }
-template<> constexpr unsigned int getRawID<const EC::EntityTypeEC>() { return 20; }
+template<> constexpr ComponentID getRawID<const EC::Position>() { return 0; }
+template<> constexpr ComponentID getRawID<const EC::Size>() { return 1; }
+template<> constexpr ComponentID getRawID<const EC::Render>() { return 2; }
+template<> constexpr ComponentID getRawID<const EC::Health>() { return 3; }
+template<> constexpr ComponentID getRawID<const EC::Growth>() { return 4; }
+template<> constexpr ComponentID getRawID<const EC::Explosion>() { return 5; }
+template<> constexpr ComponentID getRawID<const EC::Nametag>() { return 6; }
+template<> constexpr ComponentID getRawID<const EC::Explosive>() { return 7; }
+template<> constexpr ComponentID getRawID<const EC::Inventory>() { return 8; }
+template<> constexpr ComponentID getRawID<const EC::Motion>() { return 9; }
+template<> constexpr ComponentID getRawID<const EC::Dying>() { return 10; }
+template<> constexpr ComponentID getRawID<const EC::Inserter>() { return 11; }
+template<> constexpr ComponentID getRawID<const EC::Rotation>() { return 12; }
+template<> constexpr ComponentID getRawID<const EC::Rotatable>() { return 13; }
+template<> constexpr ComponentID getRawID<const EC::Follow>() { return 14; }
+template<> constexpr ComponentID getRawID<const EC::Immortal>() { return 15; }
+template<> constexpr ComponentID getRawID<const EC::AngleMotion>() { return 16; }
+template<> constexpr ComponentID getRawID<const EC::ItemStack>() { return 17; }
+template<> constexpr ComponentID getRawID<const EC::Transporter>() { return 18; }
+template<> constexpr ComponentID getRawID<const EC::Grabable>() { return 19; }
+template<> constexpr ComponentID getRawID<const EC::EntityTypeEC>() { return 20; }

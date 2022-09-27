@@ -95,7 +95,7 @@ public:
             return -1;
         }
 
-        ComponentFlags entityComponents = em->getEntityComponents(entity.id);
+        ComponentFlags entityComponents = em->EntitySignature(entity.id);
         for (ECS::ComponentID id = 0; id < em->numComponents(); id++) {
             if (entityComponents[id]) {
                 auto& beforeRemoveT = callbacksBeforeRemove[id];
@@ -125,7 +125,7 @@ public:
      * @return The component flags corresponding to the entity ID.
      */
     inline ECS::ComponentFlags EntitySignature(EntityID entityID) const {
-        return em->getEntityComponents(entityID);
+        return em->EntitySignature(entityID);
     }
 
     /* Check if an entity exists and has all of the given components.
@@ -142,7 +142,7 @@ public:
      * @return True when the entity exists and has the components, otherwise false.
      */
     inline bool EntityHas(Entity entity, ComponentFlags components) const {
-        return (EntityExists(entity) && em->getEntityComponents(entity.id).hasAll(components));
+        return (EntityExists(entity) && em->EntitySignature(entity.id).hasAll(components));
     }
 
     /* Get the latest entity version in use for the given ID.
@@ -376,7 +376,7 @@ public:
         static_assert(ECS::componentInComponents<T, Components...>(), "component manager must be manager of component");
         constexpr ComponentFlags mutSignature = ECS::componentMutSignature<Components...>();
         constexpr ECS::ComponentID id = getID<T>();
-        static_assert(mutSignature[id] || componentIsConst<T>(), "need mutable signature to get mutable component");
+        static_assert(mutSignature[id] || std::is_const<T>(), "need mutable signature to get mutable component");
         return ecs->Get<T>(entity);
     }
 

@@ -5,15 +5,16 @@
 
 MY_CLASS_START
 
+// I think useless
+
 template<class T>
 struct BasicIterator {
+    T* ptr;
     BasicIterator(T* ptr): ptr(ptr){}
     BasicIterator operator++() { ++ptr; return *this; }
     bool operator!=(const BasicIterator& other) const { return ptr != other.ptr; }
-    const T& operator*() const { return *ptr; }
-    T& operator*() { return *ptr; }
+    T& operator*() const { return *ptr; }
     operator T*() { return ptr; };
-    T* ptr;
 };
 
 MY_CLASS_END

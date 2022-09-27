@@ -64,7 +64,7 @@ inline Uint32 getMouseButtons() {
 inline SDLContext initSDL() {
     bool vsync = true;
     const char* windowTitle = WINDOW_TITLE;
-    auto windowIconPath = str_add(FilePaths::assets, "bad-factorio-logo.png");
+    auto windowIconPath = FileSystem.assets.get("bad-factorio-logo.png");
 
     SDL_Rect windowRect = {
         0, 0,

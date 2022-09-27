@@ -48,15 +48,15 @@ void entitySizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<EC::P
 
             if ((inNewArea && !inOldArea) || oldSizeIsNan) {
                 // add entity to new chunk
-                ChunkData* newChunkdata = chunkmap->getChunkData(chunkPosition);
+                ChunkData* newChunkdata = chunkmap->get(chunkPosition);
                 if (newChunkdata) {
-                    newChunkdata->closeEntities.push_back(entity);
+                    newChunkdata->closeEntities.push(entity);
                 }
             }
 
             if (inOldArea && !inNewArea && !oldSizeIsNan) {
                 // remove entity from old chunk
-                ChunkData* oldChunkdata = chunkmap->getChunkData(chunkPosition);
+                ChunkData* oldChunkdata = chunkmap->get(chunkPosition);
                 if (oldChunkdata) {
                     for (unsigned int e = 0; e < oldChunkdata->closeEntities.size; e++) {
                         // TODO: try implementing binary search with sorting for faster removal
@@ -107,15 +107,15 @@ void entityPositionChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<E
 
                 if ((inNewArea && !inOldArea) || oldPosIsNan) {
                     // add entity to new chunk
-                    ChunkData* newChunkdata = chunkmap->getChunkData(chunkPosition);
+                    ChunkData* newChunkdata = chunkmap->get(chunkPosition);
                     if (newChunkdata) {
-                        newChunkdata->closeEntities.push_back(entity);
+                        newChunkdata->closeEntities.push(entity);
                     }
                 }
 
                 if (inOldArea && !inNewArea && !oldPosIsNan) {
                     // remove entity from old chunk
-                    ChunkData* oldChunkdata = chunkmap->getChunkData(chunkPosition);
+                    ChunkData* oldChunkdata = chunkmap->get(chunkPosition);
                     if (oldChunkdata) {
                         oldChunkdata->removeCloseEntity(entity);
                     }
@@ -127,12 +127,12 @@ void entityPositionChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<E
         IVec2 newChunkPosition = toChunkPosition(newPos);
         if (oldChunkPosition != newChunkPosition) {
             // add entity to new chunk
-            ChunkData* newChunkdata = chunkmap->getChunkData(newChunkPosition);
+            ChunkData* newChunkdata = chunkmap->get(newChunkPosition);
             if (newChunkdata) {
-                newChunkdata->closeEntities.push_back(entity);
+                newChunkdata->closeEntities.push(entity);
             }
             // remove entity from old chunk
-            ChunkData* oldChunkdata = chunkmap->getChunkData(oldChunkPosition);
+            ChunkData* oldChunkdata = chunkmap->get(oldChunkPosition);
             if (oldChunkdata) {
                 for (unsigned int e = 0; e < oldChunkdata->closeEntities.size; e++) {
                     // TODO: try implementing binary search with sorting for faster removal
@@ -178,15 +178,15 @@ void entityPositionAndSizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, En
 
             if (inNewArea && !inOldArea) {
                 // add entity to new chunk
-                ChunkData* newChunkdata = chunkmap->getChunkData(chunkPosition);
+                ChunkData* newChunkdata = chunkmap->get(chunkPosition);
                 if (newChunkdata) {
-                    newChunkdata->closeEntities.push_back(entity);
+                    newChunkdata->closeEntities.push(entity);
                 }
             }
 
             if (inOldArea && !inNewArea) {
                 // remove entity from old chunk
-                ChunkData* oldChunkdata = chunkmap->getChunkData(chunkPosition);
+                ChunkData* oldChunkdata = chunkmap->get(chunkPosition);
                 if (oldChunkdata) {
                     for (int e = 0; e < oldChunkdata->closeEntities.size; e++) {
                         // TODO: try implementing binary search with sorting for faster removal

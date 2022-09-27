@@ -377,7 +377,7 @@ int writeEverythingToFiles(const char* outputSaveFolderPath, const GameState* st
     ef.set("numLiveEntities", &numLiveEntities, sizeof(size_t));
     ef.set("maxEntities", (size_t)MAX_ENTITIES);
     ef.set("entities", state->ecs.em->entities, sizeof(Entity) * MAX_ENTITIES);
-    ef.set("entityData", state->ecs.em->entityDataList, sizeof(ECS::EntityManager::EntityData) * MAX_ENTITIES);
+    ef.set("entityData", state->ecs.em->entityDataList, sizeof(ECS::EntityData) * MAX_ENTITIES);
     ef.set("numFreeEntities", state->ecs.em->freeEntities.size);
     ef.set("freeEntities", &state->ecs.em->freeEntities[0],
         sizeof(EntityID) * state->ecs.em->freeEntities.size);
@@ -470,7 +470,7 @@ int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
     size_t numLiveEntities = *readProp<size_t>("numLiveEntities", src);
     size_t maxEntities = *readProp<size_t>("maxEntities", src);
     const Entity *entities = readProp<Entity>("entities", src);
-    const auto entityData = readProp<ECS::EntityManager::EntityData>("entityData", src);
+    const auto entityData = readProp<ECS::EntityData>("entityData", src);
     size_t numFreeEntities = *readProp<decltype(ecs->em->liveEntities)>("numFreeEntities", src);
     const EntityID* freeEntities = readProp<decltype(ecs->em->freeEntities)::Type>("freeEntities", src);
 
@@ -494,7 +494,7 @@ int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
 
     em.liveEntities = (Uint32)numLiveEntities;
     em.freeEntities.destroy();
-    em.freeEntities = My::Vector<EntityID>(freeEntities, numFreeEntities);
+    em.freeEntities = My::Vec<EntityID>(freeEntities, numFreeEntities);
 
     copy(em.freeEntities.data, freeEntities, numFreeEntities);
     copy(em.entities,          entities,     maxEntities);
