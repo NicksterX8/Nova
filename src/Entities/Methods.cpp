@@ -50,7 +50,9 @@ void entitySizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<EC::P
                 // add entity to new chunk
                 ChunkData* newChunkdata = chunkmap->get(chunkPosition);
                 if (newChunkdata) {
-                    newChunkdata->closeEntities.push(entity);
+                    if (!newChunkdata->closeEntities.push(entity)) {
+                        LogError("Failed to push entity to chunk's closeEntities vector");
+                    }
                 }
             }
 

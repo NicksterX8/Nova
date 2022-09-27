@@ -106,7 +106,7 @@ void initLogging() {
     SDL_LogSetPriority(LogCategory::Main, SDL_LOG_PRIORITY_INFO);
 }
 
-#define LOG(...) printf(__VA_ARGS__)
+#define LOG LogInfo
 
 void initPaths() {
     char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
@@ -143,19 +143,13 @@ int main(int argc, char** argv) {
     }
 
     initLogging();
-    LogInfo("LOGGING WORKING??");
     initPaths();
     gLogger.init(FileSystem.save.get("log.txt"));
 
-    LogCritical("(Log(Critcal, ...)): ayo bud. my name is %s and im %d years old\n", "nick", 12);
-    LogWarn("(LogWarn,...)): whats up guys");
-    LogError("LogError: heyo");
-
-    printf("argv[0]: %s\n", argv[0]);
+    LogInfo("argv[0]: %s\n", argv[0]);
 
     SDLContext sdlCtx = initSDL();
 
-    //logEntitySystemInfo();
     logEntityComponentInfo();
 
     int screenWidth,screenHeight;
@@ -167,7 +161,8 @@ int main(int argc, char** argv) {
 
     Game* game = new Game(sdlCtx);
     game->init(screenWidth, screenHeight);
-    game->start();
+    game->start(); // start indefinitely long game loop
+    // runs after the game loop has ended
     game->quit();
     game->destroy();
 
@@ -175,8 +170,6 @@ int main(int argc, char** argv) {
     FileSystem.destroy();
 
     quitSDL(&sdlCtx);
-
-    auto i = new int;
 
     return 0;
 }

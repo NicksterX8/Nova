@@ -36,7 +36,6 @@ struct String {
     }
 
     ~String() {
-        LogInfo("String \"%s\" deallocated", str);
         MY_free(str);
     }
 

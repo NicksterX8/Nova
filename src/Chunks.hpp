@@ -47,22 +47,23 @@ struct ChunkData {
 
 void generateChunk(Chunk* chunk);
 
-#define CHUNK_BUCKET_SIZE 256
+#define CHUNK_BUCKET_SIZE 512
+#define CHUNKDATA_BUCKET_SIZE 512
 
-struct IVec2Hash {
-    size_t operator()(const IVec2& point) const {
-        size_t hash = std::hash<int>()(((point.x - 32768) << 16) + (point.y - 32768));
-        return hash;
-    }
-};
-
-typedef std::unordered_map<IVec2, ChunkData*, IVec2Hash> ChunkUnorderedMap;
 class ChunkMap {
-    ChunkUnorderedMap map;
-    //My::Vec< My::Vec<Chunk> > chunkPools;
+    struct KeyHash {
+        size_t operator()(const IVec2& point) const {
+            size_t hash = std::hash<int>()(((point.x - 32768) << 16) + (point.y - 32768));
+            return hash;
+        }
+    };
+    using ChunkUnorderedMap = std::unordered_map<IVec2, ChunkData*, KeyHash>;
     using ChunkBucketArray = My::BucketArray<Chunk, CHUNK_BUCKET_SIZE>;
+    using ChunkDataBucketArray = My::BucketArray<ChunkData, CHUNKDATA_BUCKET_SIZE>;
+
+    ChunkUnorderedMap map;
     ChunkBucketArray chunks;
-    My::Vec<ChunkData*> chunkDataList;
+    ChunkDataBucketArray chunkdataList;
 public:
     void init();
     void destroy();

@@ -8,18 +8,22 @@ void Logger::logOutputFunction(LogCategory category, LogPriority priority, const
     switch (priority) {
     using namespace LogPriorities;
     case Debug:
-        fg = "33";
+        fg = "94";
         break;
     case LogPriority::Info:
         fg = "";
         break;
+    case LogPriority::Warn:
+        prefix = "Warning: ";
+        fg = "33";
+        break;
     case LogPriority::Error:
-        prefix = "ERROR: ";
+        prefix = "Error: ";
         fg = "31";
         effect = "1";
         break;
     case LogPriority::Critical:
-        prefix = "CRITICAL: ";
+        prefix = "Critical: ";
         fg = "91";
         effect = "1";
         break;

@@ -64,9 +64,17 @@ struct Vec {
         return Vec<T>(il.begin(), il.size());
     }
 
+    inline T* get(int index) const {
+        if (data && index < size && index > -1) {
+            return &data[index];
+        }
+        return nullptr;
+    }
+
     inline T& operator[](int index) const {
-        assert(index < size && "vector index out of bounds");
-        assert(index > -1    && "vector index out of bounds");
+        assert(index < size    && "vector index out of bounds");
+        assert(index > -1      && "vector index out of bounds");
+        assert(data != nullptr && "access of null vector");
         return data[index];
     }
 
@@ -75,7 +83,7 @@ struct Vec {
             int increasedCapacity = capacity*2;
             // resize to atleast size+1 capacity. This is useful if for example capacity is 0,
             // resulting in increased capacity being 0 too, not big enough to hold the new element
-            int newCapacity = resize((increasedCapacity > size+1) ? increasedCapacity : size+1);
+            int newCapacity = reallocate((increasedCapacity > size+1) ? increasedCapacity : size+1);
             if (newCapacity == -1 // can't push back if unable to resize to fit the new element
             || size >= newCapacity) { // or if the capacity still isn't big enough, give up
                 return nullptr;
@@ -95,11 +103,13 @@ struct Vec {
         return size == 0;
     }
 
-    /* Resize the vector, giving it capacity 'newSize'. 
+    /* Resize the vector to the given new capacity. 
+     * If the current size of the vector is greater than the new capacity, the size will reduced to the new capacity,
+     * losing any elements past index 'newCapacity' - 1.
      * @return The capacity of the vector after resizing. If an error hasn't occured, this will be equal to 'newSize'.
      * When malloc fails, -1 will be returned
      */
-    int resize(int newCapacity) {
+    int reallocate(int newCapacity) {
         int newSize = (size < newCapacity) ? size : newCapacity;
         // this check is basically unavoidable because malloc and realloc return null when passed 0 size,
         // and we need to know that isn't because we are out of memory

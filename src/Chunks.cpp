@@ -1,8 +1,6 @@
 #include "Tiles.hpp"
 #include "Chunks.hpp"
 
-#include "debugAllocStart.hpp"
-
 ChunkData::ChunkData(Chunk* chunk, IVec2 position) {
     this->chunk = chunk;
     this->position = position;
@@ -34,18 +32,12 @@ void generateChunk(Chunk* chunk) {
 }
 
 void ChunkMap::init() {
-    // each pool holds a maximum of 10 chunks
     chunks = ChunkBucketArray::WithBuckets(1);
-    chunkDataList = {0,0,0};
+    chunkdataList = ChunkDataBucketArray::WithBuckets(1);
 }
 
 void ChunkMap::destroy() {
-    // free the new chunk data created in newEntry
-    for (ChunkData* chunkData : chunkDataList) {
-        delete chunkData;
-    }
-    chunkDataList.destroy();
-
+    chunkdataList.destroy();
     chunks.destroy();
 }
 
@@ -79,8 +71,8 @@ int ChunkMap::iterateChunks(std::function<int(Chunk*)> callback) const {
 }
 
 int ChunkMap::iterateChunkdata(std::function<int(ChunkData*)> callback) const {
-    for (int i = 0; i < chunkDataList.size; i++) {
-        int ret = callback(chunkDataList[i]);
+    for (ChunkData& chunkdata : chunkdataList) {
+        int ret = callback(&chunkdata);
         if (ret) {
             return ret;
         }
@@ -105,14 +97,11 @@ ChunkData* ChunkMap::newChunkAt(IVec2 position) {
 
     Chunk* chunk = chunks.reserveBack();
     if (chunk) {
-        // TODO: This is pretty bad, it will spread all the memory everywhere,
-        // this should be changed. 
-        ChunkData* chunkdata = new ChunkData(chunk, position);
+        ChunkData* chunkdata = chunkdataList.reserveBack();
+        *chunkdata = ChunkData(chunk, position);
         if (chunkdata) {
-            if (chunkDataList.push(chunkdata)) {
-                map[position] = chunkdata;
-                return chunkdata;
-            };
+            map[position] = chunkdata;
+            return chunkdata;
         }
     }
     

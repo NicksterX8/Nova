@@ -47,6 +47,14 @@ struct BucketArray {
         return ((buckets.size+(buckets.size==0)) * BucketSize) - BucketSize + topBucketSlotsUsed;
     }
 
+    T* get(int elementIndex) const {
+        if (elementIndex >= 0 && elementIndex < this->size()) {
+            T* bucket = buckets.get(elementIndex / BucketSize);
+            if (bucket) return bucket[elementIndex % BucketSize];
+        }
+        return nullptr;
+    }
+
     T& operator[](int elementIndex) const {
         assert(elementIndex > -1 && "array index out of bounds");
         assert(elementIndex < this->size() && "array index out of bounds");
@@ -61,6 +69,7 @@ struct BucketArray {
         T* bucket = (T*)MY_malloc(BucketSize * sizeof(T));
         if (bucket) {
             T** bucketPtr = buckets.push(bucket);
+            topBucketSlotsUsed = 0;
             return bucketPtr;
         }
         return nullptr;
@@ -117,10 +126,31 @@ struct BucketArray {
         return &((*topBucketPtr)[topBucketSlotsUsed++]);
     }
 
-    T* bucket(int bucketIndex) const {
-        assert(bucketIndex > -1 && "bucket array index out of bounds");
-        assert(bucketIndex < buckets.size && "bucket array index out of bounds");
-        return buckets[bucketIndex];
+    void pop() {
+        if (topBucketSlotsUsed != 0) {
+            topBucketSlotsUsed--;
+        } else {
+            buckets.pop(); // assertion fail if no buckets exist
+            topBucketSlotsUsed = BucketSize-1;
+        }
+    }
+
+    void popReduce(int maxUnusedCapacity) {
+        if (topBucketSlotsUsed != 0) {
+            topBucketSlotsUsed--;
+        } else {
+            buckets.pop(); // assertion fail if no buckets exist
+            if (buckets.capacity > buckets.size + maxUnusedCapacity) {
+                // don't use any extra memory
+                buckets.reallocate(buckets.size);
+            }
+            topBucketSlotsUsed = BucketSize-1;
+        }
+    }
+
+    // may be null
+    T* getBucket(int bucketIndex) const {
+        return buckets.get(bucketIndex);
     }
 
     void destroy() {
