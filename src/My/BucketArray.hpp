@@ -1,7 +1,7 @@
 #ifndef MY_BUCKET_ARRAY_INCLUDED
 #define MY_BUCKET_ARRAY_INCLUDED
 
-#include "MyUtils.hpp"
+#include "MyInternals.hpp"
 #include <stddef.h>
 #include "Vec.hpp"
 

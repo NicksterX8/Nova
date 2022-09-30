@@ -19,7 +19,7 @@ std::chrono::time_point<std::chrono::high_resolution_clock> getNow() {
 //time elapsed: 949738584
 //time elapsed: 1358284833
 
-constexpr size_t innerIterations = 100000;
+const size_t innerIterations = 100000;
 
 void func(size_t i, std::vector<size_t>& array) {
     /*
@@ -41,17 +41,73 @@ void func2(size_t i, std::vector<size_t>& array) {
     }
 }
 
-int main() {
-    auto before = getNow();
+struct My2 {
+    char* c[10];
+};
 
-    size_t iterations = 10000;
-    std::vector<size_t> array(innerIterations);
-    for (size_t i = 0; i < iterations; i++) {
-        func(i, array);
+struct Random {
+    int a;
+    char c[2];
+    void* vptr;
+};
+
+struct My {
+    int* ints[3];
+    int a;
+    int b;
+    
+};
+
+int main() {
+    void* alloced = malloc(10000);
+    if (!alloced) {
+        printf("initial null\n");
+    }
+    for (size_t i = 0; i < 50000000; i++) {
+        void* ptr = malloc(i*64);
+        if (!ptr) {
+            printf("PTR WAS NULL AT %lu!\n", i);
+            malloc(i*32);
+            malloc(i*16);
+            malloc(i*8);
+            malloc(i*4);
+            malloc(i);
+            for (int j = 100000; j > 0; j--) {
+                malloc(j);
+            }
+            break;
+        }
     }
 
-    auto after = getNow();
+    const size_t reallocS = 0;
 
-    printf("time elapsed: %llu\n", (after - before).count());
+    void* newAlloced = realloc(alloced, reallocS);
+    if (newAlloced == alloced) {
+        printf("new == old\n");
+    }
+    if (!newAlloced) {
+        printf("new alloced null!!!\n");
+        void* ma = malloc(reallocS);
+        if (ma)
+            printf("but malloc worked!\n");
+    }
+
+    void* b = malloc(128);
+    void* a = realloc(b, 0);
+    if (!a) {
+        printf("a is null\n");
+    } else {
+        *((int*)a) = 2;
+    }
+
+    void* b2 = malloc(128);
+    void* a2 = realloc(b, 1);
+    if (!a2) {
+        printf("a2 is null\n");
+    } else {
+        *((int*)a2) = 2;
+    }
+
+
     return 0;
 }

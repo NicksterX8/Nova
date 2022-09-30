@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <functional>
-#include <SDL2/SDL.h>
+#include "sdl.hpp"
 #include "GameState.hpp"
 #include "utils/Debug.hpp"
 #include "utils/Metadata.hpp"
@@ -11,6 +11,11 @@
 #include "Entities/Entities.hpp"
 #include "Entities/Methods.hpp"
 #include "utils/Log.hpp"
+
+inline Vec2 getMouseWorldPosition(const Camera& camera) {
+    SDL_Point pixelPosition = SDL::getMousePixelPosition();
+    return camera.pixelToWorld(pixelPosition.x, pixelPosition.y);
+}
 
 struct MouseState {
     int x;
@@ -433,7 +438,7 @@ public:
 
         if (keyboardState[SDL_SCANCODE_G]) {
             Tile* selectedTile = getTileAtPosition(state->chunkmap, aimingPosition);
-            if (selectedTile->entity.Exists(&state->ecs)) {
+            if (selectedTile && !selectedTile->entity.Exists(&state->ecs)) {
                 Entity chest = Entities::Chest(&state->ecs, {floor(aimingPosition.x), floor(aimingPosition.y)}, 32, 1, 1);
                 placeEntityOnTile(&state->ecs, selectedTile, chest);
             }

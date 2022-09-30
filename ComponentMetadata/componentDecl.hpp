@@ -20,4 +20,5 @@ struct ItemStack;
 struct Transporter;
 struct Grabable;
 struct EntityTypeEC;
+struct Fresh;
 }

@@ -16,11 +16,6 @@
 #include "EntityComponents/Components.hpp"
 #include "ECS/ECS.hpp"
 
-Vec2 getMouseWorldPosition(const Camera& camera) {
-    SDL_Point pixelPosition = SDL::getMousePixelPosition();
-    return camera.pixelToWorld(pixelPosition.x, pixelPosition.y);
-}
-
 static void updateTilePixels(float scale) {
     if (scale == 0) {
         scale = 1;
@@ -270,6 +265,20 @@ static void updateSystems(GameState* state) {
     });
     runSystem<PositionSystem>(&ecs);
     */
+
+    ecs.ForEach< EntityQuery< ECS::RequireComponents<EC::Position, EC::Fresh> > >(
+    [&](Entity entity){
+        auto fresh = ecs.Get<EC::Fresh>(entity); assert(fresh);
+        if (fresh->flags.getComponent<EC::Position>()) {
+            // ec::position just added
+            fresh->flags.setComponent<EC::Position>(0);
+        }
+    });
+
+    ecs.ForEach< EntityQuery< ECS::RequireComponents<EC::Fresh> > >(
+    [&](Entity entity){
+        ecs.Remove<EC::Fresh>(entity);
+    });
 }
 
 int tick(GameState* state) {
@@ -282,8 +291,8 @@ void logComponentPoolSizes(const EntityWorld& ecs) {
     LogInfo("Total number of entities: %u", ecs.EntityCount());
     for (ECS::ComponentID id = 0; id < ecs.NumComponentPools(); id++) {
         const ECS::ComponentPool* pool = ecs.GetPool(id);
-        LogInfo("%s || Size: %u", pool->name, pool->size());
-        if (pool->size() > ecs.EntityCount()) {
+        LogInfo("%s || Size: %u", pool->name, pool->size);
+        if (pool->size > ecs.EntityCount()) {
             LogError("Size is too large!");
         }
     }

@@ -22,11 +22,9 @@ typedef Uint32 EntityID;
 typedef Uint32 EntityVersion;
 typedef Uint32 ComponentID;
 
-//typedef My::Bitset<NUM_COMPONENTS> ComponentFlags;
-
 struct ComponentFlags : public My::Bitset<NUM_COMPONENTS> {
     using My::Bitset<NUM_COMPONENTS>::Bitset;
-
+    
     constexpr ComponentFlags(My::Bitset<NUM_COMPONENTS> bitset) : My::Bitset<NUM_COMPONENTS>(bitset) {
         
     }
@@ -34,8 +32,13 @@ struct ComponentFlags : public My::Bitset<NUM_COMPONENTS> {
     template<class C>
     constexpr bool getComponent() const {
         constexpr ComponentID id = getID<C>();
-        constexpr bool result = this->operator[](id);
-        return result;
+        return this->operator[](id);
+    }
+
+    template<class C>
+    constexpr void setComponent(bool val) {
+        constexpr ComponentID id = getID<C>();
+        set(id, val);
     }
 };
 
@@ -49,7 +52,7 @@ template<class... Components>
 constexpr ComponentFlags componentSignature() {
     constexpr ComponentID ids[] = {getID<Components>() ...};
     // sum component signatures
-    ComponentFlags result;
+    ComponentFlags result(0);
     for (size_t i = 0; i < sizeof...(Components); i++) {
         result.set(ids[i]);
     }
@@ -61,7 +64,7 @@ constexpr ComponentFlags componentMutSignature() {
     constexpr ComponentID   ids[] = {getID<Components>() ...};
     constexpr bool         muts[] = {!std::is_const<Components>() ...};
 
-    ComponentFlags result;
+    ComponentFlags result(0);
     for (size_t i = 0; i < sizeof...(Components); i++) {
         if (muts[i])
             result.set(ids[i]);

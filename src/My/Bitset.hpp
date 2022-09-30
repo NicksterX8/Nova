@@ -1,24 +1,23 @@
 #include <stdint.h>
 #include <stddef.h>
-#include "MyUtils.hpp"
+#include "MyInternals.hpp"
 
 MY_CLASS_START
 
 template<size_t N>
 struct Bitset {
 public:
-    constexpr static size_t nInts = (N/64) + ((N % 64) != 0);
-    Uint64 bits[nInts] = {0};
+    constexpr static size_t nInts  = (N/64) + (N%64 != 0);
+    constexpr static size_t nBytes = N/8 + (N%8 != 0);
     using Self = Bitset<N>;
+
+    Uint64 bits[nInts] = {0};
 
     constexpr Bitset() {}
 
-    constexpr Bitset(bool startValue) {
-        for (size_t i = 0; i < nInts; i++) {
-            if (startValue)
-                bits[i] = (Uint64)(-1);
-            else
-                bits[i] = 0;
+    constexpr Bitset(Uint64 startValue) {
+        for (unsigned int i = 0; i < nInts; i++) {
+            bits[i] = startValue;
         }
     }
 
@@ -31,10 +30,25 @@ public:
     }
 
     constexpr void set(uint32_t position) {
-        if (position > size()) return;
+        if (position >= size()) return;
+        const uint32_t position64 = position >> 6;
+        const uint64_t digit = (1 << (position - (position64 << 6)));
+        bits[position64] |= digit;
+    }
+
+    constexpr void flipBit(uint32_t position) {
+        if (position >= size()) return;
         uint32_t position64 = position >> 6;
         uint64_t digit = (1 << (position - (position64 << 6)));
-        bits[position64] |= digit;
+        bits[position64] ^= digit;
+    }
+
+    constexpr void set(uint32_t position, bool value) {
+        if (position >= size()) return;
+        uint32_t position64 = position >> 6;
+        uint32_t remainder = (position - (position64 << 6));
+        uint64_t digit = (uint64_t)value << remainder;
+        bits[position64] = (bits[position64] | digit) & digit; // disabling part
     }
 
     constexpr bool any() const {
@@ -119,6 +133,14 @@ public:
 
     constexpr bool operator!=(Self rhs) const {
         return !operator==(rhs);
+    }
+
+    constexpr Self operator~() const {
+        Self result;
+        for (size_t i = 0; i < nInts; i++) {
+            result.bits[i] = ~bits[i];
+        }
+        return result;
     }
 };
 

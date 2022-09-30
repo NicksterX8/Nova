@@ -7,8 +7,6 @@
 #include <libproc.h>
 #include <unistd.h>
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 #include "sdl_gl.hpp"
 
 #include "GUI/GUI.hpp"
@@ -20,8 +18,10 @@
 #include "GameSave/main.hpp"
 #include "sdl.hpp"
 #include "global.hpp"
+#include "My/HashMap.hpp"
+#include "Rendering/TexturePacker.hpp"
 
-//#include <glog/logging.h>
+#include "memory.hpp"
 
 #ifdef DEBUG
     //#include "Testing.hpp"
@@ -134,6 +134,63 @@ void initPaths() {
     LOG("Base path: %s\n", basePath);
 }
 
+inline void tester() {
+    auto map = My::HashMap<int, int>(16);
+    map.insert(0, 1);
+    map.insert(0, 1);
+    LogInfo("map size after 2 same inserts: %d", map.size);
+
+    map.insert(5, 0);
+    map.insert(4, 1);
+    map.insert(3, 2);
+    map.insert(50329842, 2132);
+    map.insert(2, 3);
+    map.insert(1, 4);
+    map.insert(0, 5);
+    
+    map.insert(100, 5);
+    map.remove(100);
+    map.insert(100, 5);
+    assert(*map.lookup(100) == 5);
+
+    assert(*map.lookup(5) == 0);
+    assert(*map.lookup(0) == 5);
+    assert(map.remove(3) == true);
+    assert(map.lookup(3) == nullptr);
+
+    for (int i = 0; i < 100; i++) {
+        map.insert(i, 100 - i);
+    }
+
+    map.destroy();
+    map = My::HashMap<int, int>(342);
+    for (int i = 0; i < 10000; i++) {
+        map.insert(rand(), rand());
+    }
+
+    for (int i = 0; i < 10000; i++) {
+        map.remove(rand());
+    }
+
+    for (int i = 0; i < 10000; i++) {
+        map.lookup(rand());
+    }
+
+    for (int i = 0; i < 10000; i++) {
+        map.insert(rand(), rand());
+    }
+
+    TexturePacker packer({512, 512});
+    std::vector<unsigned char> zeroes(512*512);
+    packer.packTexture(&zeroes[0], {64, 64});
+    packer.packTexture(&zeroes[0], {64, 64});
+    packer.packTexture(&zeroes[0], {32, 32});
+    packer.packTexture(&zeroes[0], {128, 16});
+    packer.packTexture(&zeroes[0], {4, 8});
+    packer.packTexture(&zeroes[0], {512, 512});
+
+}
+
 int main(int argc, char** argv) {
     gLogger.useEscapeCodes = true;
     for (int i = 1; i < argc; i++) {
@@ -155,11 +212,18 @@ int main(int argc, char** argv) {
     int screenWidth,screenHeight;
     SDL_GL_GetDrawableSize(sdlCtx.win, &screenWidth, &screenHeight);
 
+    tester();
+
     //load(sdlCtx.ren, sdlCtx.scale);
     loadTileData();
     loadItemData();
 
     Game* game = new Game(sdlCtx);
+    memory_init([game](size_t size) -> void* {
+        auto state = game->state;
+        state->ecs.reduceMemoryUsage(1);
+    });
+
     game->init(screenWidth, screenHeight);
     game->start(); // start indefinitely long game loop
     // runs after the game loop has ended

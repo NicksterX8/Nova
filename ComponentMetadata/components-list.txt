@@ -19,3 +19,4 @@ ItemStack
 Transporter
 Grabable
 EntityTypeEC
+Fresh

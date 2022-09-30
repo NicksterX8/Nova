@@ -10,7 +10,7 @@ inline int randomInt(int min, int max) {
 
 // return a random integer in the range of min to max, inclusive, 
 // that is negative half of the time
-int randomIntHalfNegative(int min, int max) {
+inline int randomIntHalfNegative(int min, int max) {
     return randomInt(min, max) * (randomInt(0, 1) ? 1 : -1);
 }
 

@@ -9,11 +9,10 @@
 
 namespace ECS {
 
-class ComponentPool {
-public:
+struct ComponentPool {
     size_t componentSize;
-    Uint32 _size = 0; // how many used components exist in the components array
-    Uint32 reserved = 0; // number of reserved component memory spaces
+    Uint32 size = 0; // how many used components exist in the components array
+    Uint32 capacity = 0; // number of reserved component memory spaces
 
     Component* components = NULL; // array of components
     EntityID* componentOwners = NULL;
@@ -23,16 +22,12 @@ public:
     ComponentID id;
     char name[ECS_MAX_COMPONENT_NAME_SIZE] = "null";
 
-    Uint32 size() const {
-        return _size;
-    }
-
-    ComponentPool(ComponentID componentID, size_t componentSize, Uint32 startSize)
+    ComponentPool(ComponentID componentID, size_t componentSize, Uint32 startCapacity)
     : componentSize(componentSize), id(componentID) {
         if (componentSize != 0) {
-            reserved = startSize;
-            components = (Component*)malloc(startSize * componentSize);
-            componentOwners = (EntityID*)malloc(startSize * sizeof(EntityID));
+            capacity = startCapacity;
+            components = (Component*)malloc(startCapacity * componentSize);
+            componentOwners = (EntityID*)malloc(startCapacity * sizeof(EntityID));
             entityComponentSet = (Uint32*)malloc(MAX_ENTITIES * sizeof(Uint32));
             for (Uint32 c = 0; c < MAX_ENTITIES; c++) {
                 entityComponentSet[c] = ECS_NULL_INDEX;
@@ -61,11 +56,11 @@ public:
         Uint32 componentIndex = entityComponentSet[entity];
 
         // this is optimized to just check if index is greater than size rather than two separate checks
-        if (componentIndex < _size) {
+        if (componentIndex < size) {
             return atIndex(componentIndex);
         }
 
-        LogError("ComponentPool(%s)::get : componentIndex (%d) of entityComponentSet[%d] is greater than size or null: %d", name, componentIndex, entity, _size);
+        LogError("Failed to get component %s for entity %u. Component index: %u.", name, entity, componentIndex);
         return NULL;
     }
 
@@ -79,29 +74,28 @@ public:
             LogError("ComponentPool(%s)::add : Entity already has this component! Entity: %u", name, entity);
             return -1;
         }
-        if (_size >= reserved) {
+        if (size >= capacity) {
             // double in size every time it runs out of space
-            // Log("resizing pool, old size: %d, new size: %d, reserved: %d", size, reserved * 2, reserved);
-            if (resize(reserved * 2)) {
+            if (reallocate(capacity * 2) != 0) {
                 return -1;
             }
         }
 
-        entityComponentSet[entity] = _size;
-        componentOwners[_size] = entity;
-        _size++;
+        entityComponentSet[entity] = size;
+        componentOwners[size] = entity;
+        size++;
         return 0;
     }
 
     // returns 0 on success, -1 on failure.
     int remove(EntityID entity) {
         Uint32 entityComponentIndex = entityComponentSet[entity];
-        if (entityComponentIndex > _size) {
-            LogError("ComponentPool(%s)::remove : Failed to remove entity from component pool. Entity: %u, component index: %u, size: %u", name, entity, entityComponentSet[entity], _size);
+        if (entityComponentIndex > size) {
+            LogError("ComponentPool(%s)::remove : Failed to remove entity from component pool. Entity: %u, component index: %u, size: %u", name, entity, entityComponentSet[entity], size);
             return -1;
         }
 
-        Uint32 lastComponentIndex = _size-1;
+        Uint32 lastComponentIndex = size-1;
         EntityID lastComponentOwner = componentOwners[lastComponentIndex];
         if (lastComponentOwner >= NULL_ENTITY_ID) {
             LogError("ComponentPool(%s)::remove : Last component owner is NULL while removing entity %u!", name, entity);
@@ -123,51 +117,40 @@ public:
         // update it to be empty
         entityComponentSet[entity] = ECS_NULL_INDEX;
         componentOwners[lastComponentIndex] = NULL_ENTITY_ID;
-        _size--;
+        size--;
         return 0;
     }
 
-    int resize(Uint32 newSize) {
-        if (newSize < _size) {
-            // bad things
-            LogError("New size is too small to contain all entities!\n"
-                "Old size: %d, New size: %d. Aborting.", name, _size, newSize);
-            return -1;
-        }
+    int reallocate(Uint32 newCapacity) {
+        newCapacity = (newCapacity > size) ? newCapacity : size; // can't reallocate smaller than current size
 
-        if (newSize > reserved/2 && newSize < reserved) {
-            // do nothing as the size is already large enough and shortening it wouldn't save that much memory
-            return 0;
-        }
-
-        Component* newComponents = (Component*)realloc(components, newSize * componentSize);
+        Component* newComponents = (Component*)realloc(components, newCapacity * componentSize);
         if (!newComponents) {
-            newComponents = (Component*)malloc(newSize * componentSize);
-            memcpy(newComponents, components, _size * componentSize);
-            free(components);
+            LogWarn("Failed to reallocate space for components for component pool %s", name);
+            return -1;
         }
         components = newComponents;
         
-        EntityID* newOwners = (EntityID*)realloc(componentOwners, newSize * sizeof(EntityID));
+        EntityID* newOwners = (EntityID*)realloc(componentOwners, newCapacity * sizeof(EntityID));
         if (!newOwners) {
-            newOwners = (EntityID*)malloc(newSize * sizeof(EntityID));
-            memcpy(newOwners, componentOwners, _size * sizeof(EntityID));
-            free(componentOwners);
+            LogWarn("Failed to reallocate space for components for component pool %s", name);
+            return -1;
         }
         componentOwners = newOwners;
-        reserved = newSize;
 
-        return 0;
+        capacity = newCapacity;
+
+        return newCapacity;
     }
 
     void iterateComponents(std::function<void(void*)> callback) const {
-        for (int c = _size-1; c >= 0; c--) {
+        for (int c = size-1; c >= 0; c--) {
             callback(atIndex(c));
         }
     }
 
     void iterateEntities(std::function<void(EntityID)> callback) const {
-        for (int c = _size-1; c >= 0; c--) {
+        for (int c = size-1; c >= 0; c--) {
             callback(componentOwners[c]);
         }
     }

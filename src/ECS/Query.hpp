@@ -27,10 +27,10 @@ constexpr ComponentPool* smallestComponentPool(const EntityManager* em) {
 
     constexpr ComponentID ids[] = {0, ((void)0, getID<Components>()) ...};
     ComponentPool* pools[] = {0, ((void)0, em->getPool<Components>()) ...};
-    Uint32 minSize = pools[1]->size();
+    Uint32 minSize = pools[1]->size;
     ComponentPool* minSizePool = pools[1];
     for (Uint32 i = 2; i < sizeof(pools) / sizeof(ComponentPool*); i++) {
-        Uint32 poolSize = pools[i]->size();
+        Uint32 poolSize = pools[i]->size;
         if (poolSize < minSize) {
             minSize = poolSize;
             minSizePool = pools[i];
@@ -104,7 +104,7 @@ public:
         return setSignatures[index+1];
     }
 
-    static constexpr bool check(ComponentFlags signature) {
+    static constexpr bool Check(ComponentFlags signature) {
         const size_t numLogicalORs = getNumLogicalORs(logicalORs);
 
         for (size_t i = 0; i < numLogicalORs; i++) {
@@ -123,7 +123,7 @@ public:
             //Require::PoolArrayType requiredPools = Require::getPoolArray();
             //ComponentPool* iteratedPool = smallestComponentPool<RequiredComponents...>(ecs);
             ComponentPool* iteratedPool = Require::smallestPool(em);
-            for (int c = iteratedPool->size()-1; c >= 0; c--) {
+            for (int c = iteratedPool->size-1; c >= 0; c--) {
                 EntityID entityID = iteratedPool->componentOwners[c];
                 EntityData entityData = em->entityDataList[entityID];
                 // check required and avoided
@@ -166,7 +166,7 @@ public:
     }
 
     constexpr bool check(ComponentFlags signature) const {
-        return t_check(signature);
+        return Check(signature);
     }
 };
 

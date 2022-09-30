@@ -4,6 +4,7 @@
 #include <vector>
 #include "My/Vec.hpp"
 #include "My/BucketArray.hpp"
+#include "My/HashMap.hpp"
 #include <unordered_map>
 #include "Tiles.hpp"
 #include "constants.hpp"
@@ -50,24 +51,23 @@ void generateChunk(Chunk* chunk);
 #define CHUNK_BUCKET_SIZE 512
 #define CHUNKDATA_BUCKET_SIZE 512
 
-class ChunkMap {
+struct ChunkMap {
     struct KeyHash {
         size_t operator()(const IVec2& point) const {
-            size_t hash = std::hash<int>()(((point.x - 32768) << 16) + (point.y - 32768));
-            return hash;
+            return std::hash<int>()(((point.x - 32768) << 16) + (point.y - 32768));
         }
     };
-    using ChunkUnorderedMap = std::unordered_map<IVec2, ChunkData*, KeyHash>;
+    using InternalChunkMap = My::HashMap<IVec2, ChunkData*, KeyHash>;
     using ChunkBucketArray = My::BucketArray<Chunk, CHUNK_BUCKET_SIZE>;
     using ChunkDataBucketArray = My::BucketArray<ChunkData, CHUNKDATA_BUCKET_SIZE>;
 
-    ChunkUnorderedMap map;
-    ChunkBucketArray chunks;
+    InternalChunkMap map;
+    ChunkBucketArray chunkList;
     ChunkDataBucketArray chunkdataList;
-public:
+
     void init();
     void destroy();
-    size_t size() const;
+    inline size_t size() const { return map.size; }
 
     /*
     * Get chunk data from the map for the given chunk position key.
@@ -82,16 +82,6 @@ public:
     * The chunk will not be generated, so this shouldn't be used most in most cases.
     */
     ChunkData* getOrMakeNew(IVec2 position);
-    /*
-    * @return The value returned from the final callback
-    */
-    int iterateChunks(std::function<int(Chunk*)> callback) const;
-
-    /*
-    * @return The value returned from the final callback
-    */
-    int iterateChunkdata(std::function<int(ChunkData*)> callback) const;
-
 };
 
 inline IVec2 toChunkPosition(Vec2 position) {

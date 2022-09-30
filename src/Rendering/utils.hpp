@@ -5,8 +5,6 @@
 #include "Shader.hpp"
 #include "../Camera.hpp"
 
-struct FontFace;
-
 struct vao_vbo_t {
     GLuint vao;
     GLuint vbo;
@@ -18,14 +16,11 @@ struct vao_vbo_ebo_t {
     GLuint ebo;
 };
 
-namespace TextureUnits {
-    enum E {
-        MyTextureArray=0,
-        Text=1
-    };
-}
-
-using TextureUnit = TextureUnits::E;
+struct VertexAttribute {
+    GLint count;
+    GLenum type;
+    GLuint typeSize;
+};
 
 struct ModelData {
     GLuint VBO;
@@ -37,33 +32,6 @@ struct ModelData {
         glDeleteBuffers(1, &EBO);
         glDeleteVertexArrays(1, &VAO);
     }
-};
-
-struct RenderContext {
-    SDL_Window* window = NULL;
-    SDL_GLContext glCtx = NULL;
-    GLuint textureArray = 0;
-
-    Shader entityShader;
-    Shader tilemapShader;
-    Shader pointShader;
-    Shader colorShader;
-    Shader textShader;
-    Shader sdfShader;
-
-    FontFace* font;
-    FontFace* debugFont;
-
-    ModelData chunkModel;
-
-    RenderContext(SDL_Window* window, SDL_GLContext glContext)
-    : window(window), glCtx(glContext) {}
-};
-
-struct VertexAttribute {
-    GLint count;
-    GLenum type;
-    GLuint typeSize;
 };
 
 unsigned int enableVertexAttribs(const VertexAttribute* attributes, unsigned int count);

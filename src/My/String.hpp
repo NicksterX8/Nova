@@ -3,7 +3,7 @@
 
 #include <string.h>
 #include <string>
-#include "MyUtils.hpp"
+#include "MyInternals.hpp"
 #include "../utils/Log.hpp"
 #include <memory>
 

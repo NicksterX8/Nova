@@ -2,7 +2,7 @@
 #define MY_ARRAY_INCLUDED
 
 #include <array>
-#include "MyUtils.hpp"
+#include "MyInternals.hpp"
 #include <initializer_list>
 
 MY_CLASS_START
@@ -22,10 +22,15 @@ struct Array {
 
     Array(int _size) {
         size = _size;
-        data = (int*)MY_malloc(size * sizeof(T));
+        data = (T*)MY_malloc(size * sizeof(T));
     }
 
     Array(int _size, T* _data) {
+        size = _size;
+        data = _data;
+    }
+
+    Array(T* _data, int _size) {
         size = _size;
         data = _data;
     }
@@ -36,18 +41,15 @@ struct Array {
         return array;
     }
 
-    Array(const std::initializer_list<T>& il) {
-        *this = Array::from_ptr(il.size(), il.begin());
-    }
-
     inline T& operator[](int index) const {
         assert(index < size && "array index out of bounds");
         assert(index > -1    && "array index out of bounds");
         return data[index];
     }
 
-    void free() {
+    inline void free() {
         MY_free(data);
+        data = nullptr;
     }
 
     using Type = T;

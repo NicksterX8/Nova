@@ -7,26 +7,26 @@
 #include "../SECS/ECS.hpp"
 #include "../SECS/EntityPrototype.hpp"
 
-struct GenericArrayView {
+struct RawArray {
     const void* data;
     const size_t size;
 
-    GenericArrayView(const void* ptr, size_t size) : data(ptr), size(size) {}
+    RawArray(const void* ptr, size_t size) : data(ptr), size(size) {}
 
     template<class T>
-    GenericArrayView(const T& value) : data(&value), size(sizeof(value)) {}
+    RawArray(const T& value) : data(&value), size(sizeof(value)) {}
 };
 
-class EntityWorld;
+struct EntityWorld;
 
 namespace EC {
 
-//using SerializerOutput = void (*)(ArrayView);
-using SerializerOutput = const std::function<void(GenericArrayView)>&;
+//using SerializerOutput = void (*)(RawArray);
+using SerializerOutput = const std::function<void(RawArray)>&;
 
 template<class T>
 int defaultSerializer(const T* components, Uint32 count, SerializerOutput output) {
-    output(ArrayView(components, sizeof(T) * count));
+    output(RawArray(components, sizeof(T) * count));
 }
 
 template<class T>
@@ -43,7 +43,7 @@ using Deserializer = int(T*, Uint32, const char* serialized);
 template<class T>
 struct Serializable {
     static int Serialize(const T* components, Uint32 count, SerializerOutput output) {
-        output(ArrayView(components, sizeof(T) * count));
+        output(RawArray(components, sizeof(T) * count));
         return 0;
     }
 
@@ -74,7 +74,7 @@ struct EntityTypeEC : EntityComponent<EntityTypeEC> {
     }
 
     static int Serialize(const EntityTypeEC* components, Uint32 count, SerializerOutput output) {
-        output(GenericArrayView(components, count * sizeof(EntityTypeEC)));
+        output(RawArray(components, count * sizeof(EntityTypeEC)));
         return 0;
     }
 
@@ -198,8 +198,8 @@ struct Inventory : EntityComponent<Inventory> {
         for (Uint32 i = 0; i < count; i++) {
             const ::Inventory& inventory = components[i].inventory;
 
-            output(GenericArrayView(inventory.size));
-            output(GenericArrayView(inventory.items, inventory.size * sizeof(::ItemStack)));
+            output(RawArray(inventory.size));
+            output(RawArray(inventory.items, inventory.size * sizeof(::ItemStack)));
         }
         return 0;
     }
@@ -225,6 +225,12 @@ struct Dying : EntityComponent<Dying>, Serializable<Dying> {
     int timeToRemoval;
 
     Dying(int updatesTilRemoval) : timeToRemoval(updatesTilRemoval) {}
+};
+
+struct Fresh : EntityComponent<Fresh>, Serializable<Fresh> {
+    ComponentFlags flags;
+
+    Fresh() : flags(0) {}
 };
 
 struct Inserter : EntityComponent<Inserter>, Serializable<Inserter> {

@@ -8,6 +8,7 @@
 #include "../ECS/ECS.hpp"
 #include "../utils/Log.hpp"
 #include "../Rendering/Drawing.hpp"
+#include "../Rendering/context.hpp"
 #include "../utils/Debug.hpp"
 #include "../constants.hpp"
 
@@ -77,8 +78,7 @@ const GLuint quadIndices[6] = {
     1, 2, 3    // second triangle
 };
 
-class RenderSystem {
-public:
+struct RenderSystem {
     typedef ECS::EntityQuery<
         ECS::RequireComponents<EC::Render, EC::Size, EC::Position>
     > Query;
@@ -206,7 +206,7 @@ public:
             Vec2(camera.position.x, camera.position.y),
             cameraSize*2.0f, 
         [&](EntityT<EC::Position> entity){
-            if (Query::check(ecs.EntitySignature(entity))) {
+            if (Query::Check(ecs.EntitySignature(entity))) {
                 auto position =  ecs.Get<const EC::Position>(entity)->vec2();
                 auto renderEC =  ecs.Get<const EC::Render>(entity);
                 auto size     = *ecs.Get<const EC::Size>(entity);

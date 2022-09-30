@@ -5,6 +5,7 @@
 #include <OpenGL/gl3.h> // this needs to be included before sdl opengl is so it doesn't end up including opengl 2 instead of 3
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL_image.h>
 #include "utils/Log.hpp"
 
 static_assert(sizeof(GLfloat) == sizeof(float), "float type is as expected");

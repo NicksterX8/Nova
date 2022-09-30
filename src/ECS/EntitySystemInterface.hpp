@@ -14,8 +14,7 @@ Uint32 getSystemID() {
     return id;
 }
 
-class EntitySystemInterface {
-public:
+struct EntitySystemInterface {
     Entity *entities = NULL;
     Uint32 nEntities = 0;
     Uint32 reservedEntities = 0;
@@ -45,7 +44,6 @@ public:
         return nEntities;
     }
 
-private:
     void resize(Uint32 reserve);
 };
 

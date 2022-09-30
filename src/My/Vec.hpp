@@ -2,7 +2,7 @@
 #define MY_VECTOR_INCLUDED
 
 #include <assert.h>
-#include "MyUtils.hpp"
+#include "MyInternals.hpp"
 #include "Array.hpp"
 #include <initializer_list>
 
@@ -15,11 +15,12 @@ MY_CLASS_START
  */
 template<typename T>
 struct Vec {
+    static_assert(std::is_trivially_copyable<T>::value, "vec doesn't support complex types");
+    using Type = T;
+
     T* data;
     int size;
     int capacity;
-
-    using Type = T;
 
     // does not initialize data
     Vec() {
@@ -60,10 +61,6 @@ struct Vec {
         capacity = _size;
     }
 
-    static Vec<T> FromList(const std::initializer_list<T>& il) {
-        return Vec<T>(il.begin(), il.size());
-    }
-
     inline T* get(int index) const {
         if (data && index < size && index > -1) {
             return &data[index];
@@ -79,22 +76,14 @@ struct Vec {
     }
 
     T* push(const T& val) {
-        if (size >= capacity) {
-            int increasedCapacity = capacity*2;
-            // resize to atleast size+1 capacity. This is useful if for example capacity is 0,
-            // resulting in increased capacity being 0 too, not big enough to hold the new element
-            int newCapacity = reallocate((increasedCapacity > size+1) ? increasedCapacity : size+1);
-            if (newCapacity == -1 // can't push back if unable to resize to fit the new element
-            || size >= newCapacity) { // or if the capacity still isn't big enough, give up
-                return nullptr;
-            }
+        if (reserveAtleast(size+1)) {
+            memcpy(&data[size], &val, sizeof(T));
+            return &data[size++];
         }
-
-        memcpy(&data[size], &val, sizeof(T));
-        return &data[size++];
+        return nullptr;
     }
 
-    void pop() {
+    inline void pop() {
         assert(size > 0 && "can't pop back element of empty vector");
         size--;
     }
@@ -103,36 +92,36 @@ struct Vec {
         return size == 0;
     }
 
+    // Try to reserve to atleast minCapacity
+    inline bool reserveAtleast(int minCapacity) {
+        if (minCapacity > capacity)
+            return reallocate((capacity*2 > minCapacity) ? capacity*2 : minCapacity);
+        return true;
+    }
+
     /* Resize the vector to the given new capacity. 
      * If the current size of the vector is greater than the new capacity, the size will reduced to the new capacity,
      * losing any elements past index 'newCapacity' - 1.
      * @return The capacity of the vector after resizing. If an error hasn't occured, this will be equal to 'newSize'.
-     * When malloc fails, -1 will be returned
+     * When the new capacity couldn't be allocated, -1 will be returned
      */
-    int reallocate(int newCapacity) {
-        int newSize = (size < newCapacity) ? size : newCapacity;
-        // this check is basically unavoidable because malloc and realloc return null when passed 0 size,
-        // and we need to know that isn't because we are out of memory
-        if (newCapacity != 0) {
-            T* newData = (T*)MY_realloc(data, newCapacity * sizeof(T));
-            if (!newData) {
-                newData = (T*)MY_malloc(newCapacity * sizeof(T));
-                if (newData) {
-                    memcpy(newData, data, newSize * sizeof(T));
-                    MY_free(data);
-                } else { // malloc and realloc both failed.
-                    return -1;
-                }
-            }
+    bool reallocate(int newCapacity) {
+        T* newData = (T*)MY_realloc(data, newCapacity * sizeof(T));
+        if (newData) {
             data = newData;
-        } else {
-            MY_free(data);
-            data = nullptr;
+            size = (size < newCapacity) ? size : newCapacity;
+            capacity = newCapacity;
+            return true;
         }
-        
-        size = newSize;
-        capacity = newCapacity;
-        return capacity;
+        // failed to allocate
+        return false;
+    }
+
+    void clear() {
+        MY_free(data);
+        size = 0;
+        data = nullptr;
+        capacity = 0;
     }
 
     void destroy() {
@@ -153,7 +142,6 @@ struct Vec {
         assert(index < size && "vector index out of bounds");
         assert(index > -1    && "vector index out of bounds");
 
-        //int elementsToMove = size - index;
         for (int i = index; i < size-1; i++) {
             memcpy(&data[i], &data[i+1], sizeof(T));
         }
@@ -161,8 +149,13 @@ struct Vec {
         size--;
     }
 
-    Array<T> asArray() const {
-        return Array<T>(size, data);
+    bool push(T* elements, int count) {
+        if (reserveAtleast(size + count)) {
+            memcpy(&data[size], elements, count * sizeof(T));
+            size += count;
+            return true;
+        }
+        return false;
     }
 
     inline T* begin() const { return data; }

@@ -19,3 +19,4 @@ template<> constexpr ComponentID getRawID<const EC::ItemStack>() { return 17; }
 template<> constexpr ComponentID getRawID<const EC::Transporter>() { return 18; }
 template<> constexpr ComponentID getRawID<const EC::Grabable>() { return 19; }
 template<> constexpr ComponentID getRawID<const EC::EntityTypeEC>() { return 20; }
+template<> constexpr ComponentID getRawID<const EC::Fresh>() { return 21; }

@@ -3,13 +3,14 @@
 
 #include "ECS.hpp"
 #include "../EntityComponents/Components.hpp"
+#include "../My/Vec.hpp"
 
 template<class... Components>
-class ComponentManager;
+struct ComponentManager;
 
 struct GameState;
 
-class EntityWorld;
+struct EntityWorld;
 
 namespace GameSave {
     int writeEverythingToFiles(const char* outputSaveFolderPath, const GameState* state);
@@ -17,9 +18,9 @@ namespace GameSave {
 }
 
 template<class... Components>
-class ComponentManager;
+struct ComponentManager;
 
-class EntityWorld {
+struct EntityWorld {
 protected:
     ECS::EntityManager* em = NULL;
     using EventCallback = std::function<void(EntityWorld*, Entity)>;
@@ -39,6 +40,7 @@ public:
 
     EntityWorld() {
         em = new ECS::EntityManager();
+        //deferredEvents = std::vector<DeferredEvent>();
     }
 
     /* Initialize the entity world.
@@ -70,6 +72,7 @@ public:
     Entity New(const char* type) {
         Entity entity = em->New();
         Add(entity, EC::EntityTypeEC(type));
+        Add(entity, EC::Fresh());
         return entity;
     }
 
@@ -322,39 +325,17 @@ public:
     operator ComponentManager<Components...>() const {
         return ComponentManager<Components...>(this);
     }
-};
 
-/*
-template<class... Components>
-struct EntityCreator : public EntityT<Components...> {
-    using EntityT<Components...>::EntityT;
-
-protected:
-
-    EntityCreator(EntityWorld* ecs, const char* type) {
-        *this = ecs->New(type);
-        ecs->Add<Components...>(*this);
-    }
-
-    template<class T>
-    int Add(EntityWorld* ecs, const T& startValue) const {
-        return ecs->Add(*this, startValue);
-    }
-
-    template<class T>
-    void Set(const EntityWorld* ecs, const T& startValue) const {
-        return ecs->Set(*this, startValue);
-    }
-
-    template<class T>
-    T* Get(const EntityWorld* ecs) const {
-        return ecs->Get(*this);
+    void reduceMemoryUsage(int priority) {
+        for (Uint32 i = 0; i < em->nComponents; i++) {
+            em->pools[i]->reallocate(em->pools[i]->size);
+        }
+    
     }
 };
-*/
 
 template<class... Components>
-class ComponentManager {
+struct ComponentManager {
 private:
     const EntityWorld* ecs;
 public:

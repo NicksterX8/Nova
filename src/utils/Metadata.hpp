@@ -7,7 +7,7 @@
 /*
 * Useful metadata information and utilities
 */
-class MetadataTracker {
+struct MetadataTracker {
     double _fps; // actual fps
     double targetFps; // Desired fps, currently unused
     double deltaTime; // the change in milliseconds from the last tick to the current tick

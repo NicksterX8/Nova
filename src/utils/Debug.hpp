@@ -14,7 +14,7 @@ struct DebugSettings {
     bool drawEntityRects;
 };
 
-class DebugClass {
+struct DebugClass {
 public:
     DebugSettings settings;
 

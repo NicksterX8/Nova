@@ -20,8 +20,8 @@ void EntityManager::destroy() {
 }
 
 Entity EntityManager::New() {
-    if (liveEntities >= NULL_ENTITY_ID || freeEntities.size < 0) {
-        LogCritical("Ran out of entity space in ECS! Live entities: %u, freeEntities size: %lu. Aborting.\n", liveEntities, freeEntities.size);
+    if (entityCount >= NULL_ENTITY_ID || freeEntities.size < 0) {
+        LogCritical("Ran out of entity space in ECS! Live entities: %u, freeEntities size: %lu. Aborting.\n", entityCount, freeEntities.size);
         return NullEntity;
     }
 
@@ -36,11 +36,11 @@ Entity EntityManager::New() {
     EntityVersion entityVersion = entityData->version;
 
     // add free entity to end of entities array
-    Uint32 index = liveEntities;
+    Uint32 index = entityCount;
     entities[index] = Entity(entityID, entityVersion);
     entityData->index = index; // update the entity's location in the entity array
     entityData->flags = ComponentFlags(0); // I set this when an entity is destroyed and when a new one is created, so it's redundant here or at destruction.
-    liveEntities++;
+    entityCount++;
 
     return Entity(entityID, entityVersion);
 }
@@ -60,7 +60,7 @@ int EntityManager::Destroy(Entity entity) {
     }
 
     // swap last entity with this entity for 100% entity packing in array
-    Uint32 lastEntityIndex = liveEntities-1;
+    Uint32 lastEntityIndex = entityCount-1;
     Entity lastEntity = entities[lastEntityIndex];
 
     //Uint32 entityIndex = indices[entity.id]; // the index of the entity being removed
@@ -73,10 +73,10 @@ int EntityManager::Destroy(Entity entity) {
     entityDataList[entity.id].version += 1;
     freeEntities.push(entity.id);
 
-    liveEntities--;
+    entityCount--;
 
     // set now unused last entity position data to null
-    entities[liveEntities].id = NULL_ENTITY_ID;
+    entities[entityCount].id = NULL_ENTITY_ID;
 
     // set other destroyed entity data back to null just in case
     entityData->index = ECS_NULL_INDEX;
@@ -86,8 +86,8 @@ int EntityManager::Destroy(Entity entity) {
 }
 
 Entity EntityManager::getEntityByIndex(Uint32 entityIndex) const {
-    if (entityIndex >= liveEntities) {
-        LogError("ECS::getEntityByIndex : index out out bounds! Index : %u, liveEntities: %u", entityIndex, liveEntities);
+    if (entityIndex >= entityCount) {
+        LogError("ECS::getEntityByIndex : index out out bounds! Index : %u, liveEntities: %u", entityIndex, entityCount);
         return NullEntity;
     }
     return entities[entityIndex];

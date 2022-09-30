@@ -11,7 +11,7 @@ namespace GameSave {
 int writeChunksToFile(const char* filename, const ChunkMap* chunkmap) {
     FILE* file = fopen(filename, "w+");
     if (!file) {
-        LogCritical("Failed to open file for writing chunk data! Filename: %s", filename);
+        LogError("Failed to open file for writing chunk data! Filename: %s", filename);
         return -1;
     }
 
@@ -19,22 +19,22 @@ int writeChunksToFile(const char* filename, const ChunkMap* chunkmap) {
     size_t sizeValue = chunkmap->size();
     fwrite(&sizeValue, sizeof(size_t), 1, file);
 
-    int code = chunkmap->iterateChunkdata([file](const ChunkData* chunkdata){
+    int code = 0;
+
+    for (const ChunkData& chunkdata : chunkmap->chunkdataList) {
         int nItemsWritten = 0;
 
         // write chunk position to file
-        nItemsWritten += fwrite(&chunkdata->position, sizeof(IVec2), 1, file);
+        nItemsWritten += fwrite(&chunkdata.position, sizeof(IVec2), 1, file);
 
         // write actual chunk to file
-        nItemsWritten += fwrite(chunkdata->chunk, sizeof(Chunk), 1, file);
+        nItemsWritten += fwrite(chunkdata.chunk, sizeof(Chunk), 1, file);
 
         if (nItemsWritten != 2) {
             LogCritical("Failed to write chunk data to file! Number of items written: %d", nItemsWritten);
-            return -1;
+            code |= -1;
         }
-
-        return 0;
-    });
+    }
 
     fclose(file);
 

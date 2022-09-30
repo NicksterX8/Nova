@@ -31,7 +31,7 @@ enum LogPriority {
 
 using LogPriority = LogPriorities::LogPriority;
 
-class Logger {
+struct Logger {
     void logOutputFunction(LogCategory category, LogPriority priority, const char *message) const;
 public:
     LogCategory category = LogCategory::Main; // The log category to use when logging, default is main

@@ -154,7 +154,7 @@ struct EntityManager {
     template<class T>
     Uint32 getComponentPoolSize() const {
         const ComponentPool* pool = getPool<T>();
-        if (pool) return pool->size();
+        if (pool) return pool->size;
         return 0;
     }
 
@@ -207,7 +207,7 @@ struct EntityManager {
     template<class... Components>
     int Add(Entity entity) {
         if (!EntityExists(entity)) {
-            LogError("EntityManager::Add : Attempted to add components to a non-living entity! Entity: %s.", entity.DebugStr().c_str());
+            LogError("Attempted to add components to a non-living entity! Entity: %s.", entity.DebugStr().c_str());
             return -1;
         }
 
@@ -228,7 +228,7 @@ struct EntityManager {
         if (sizeof(T) == 0) return 1;
 
         if (!EntityExists(entity)) {
-            LogError("EntityManager::Add %s : Attempted to add a component to a non-living entity! Entity: %s", getComponentName<T>(), entity.DebugStr().c_str());
+            LogError("Attempted to add component %s to a non-living entity! Entity: %s", getComponentName<T>(), entity.DebugStr().c_str());
             return -1;
         }
 
@@ -241,13 +241,12 @@ struct EntityManager {
 
     int AddSignature(Entity entity, ComponentFlags signature) {
         if (!EntityExists(entity)) {
-            LogError("EntityManager::AddSignature : Attempted to add components to a non-existent entity! Entity: %s", entity.DebugStr().c_str());
+            LogError("Attempted to add components to a non-existent entity! Entity: %s", entity.DebugStr().c_str());
             return -1;
         }
         
         // just in case the same component is tried to be added twice
         ComponentFlags* components = &entityDataList[entity.id].flags;
-        ComponentFlags newComponents = (signature ^ *components) & signature;
         *components |= signature;
         int code = 0;
         for (ComponentID id = 0; id < nComponents; id++) {
@@ -259,7 +258,7 @@ struct EntityManager {
 
     int RemoveComponents(Entity entity, ComponentID* componentIDs, Uint32 numComponentIDs) {
         if (!EntityExists(entity)) {
-            LogError("EntityManager::RemoveComponents : Attempted to remove components from a non-living entity! Entity: %s", entity.DebugStr().c_str());
+            LogError("Attempted to remove components from a non-living entity! Entity: %s", entity.DebugStr().c_str());
             return -1;
         }
 
@@ -283,7 +282,7 @@ struct EntityManager {
             return -1;
         }
 
-        auto componentIDs = getComponentIDs<Components...>();
+        constexpr auto componentIDs = getComponentIDs<Components...>();
         ComponentFlags& entityFlags = entityDataList[entity.id].flags;
 
         int code = 0;

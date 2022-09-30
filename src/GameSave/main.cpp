@@ -208,13 +208,13 @@ void writeComponentPool(FileWriter& ef, const ECS::ComponentPool* pool) {
     FileWriter cf;
 
     cf.set("componentSize", pool->componentSize);
-    cf.set("numComponents", (size_t)pool->size());
+    cf.set("numComponents", (size_t)pool->size);
     /*
     switch (pool->id) {
     case getID<EC::Inventory>(): {
         const EC::Inventory* components = static_cast<EC::Inventory*>(pool->components);
         cf.reserveHeader("components");
-        for (Uint32 i = 0; i < pool->size(); i++) {
+        for (Uint32 i = 0; i < pool->size; i++) {
             const Inventory& inventory = components[i].inventory;
 
             cf.back_writeValue(inventory.size);
@@ -225,7 +225,7 @@ void writeComponentPool(FileWriter& ef, const ECS::ComponentPool* pool) {
     case getID<EC::Render>(): {
         const EC::Render* components = static_cast<EC::Render*>(pool->components);
         cf.reserveHeader("components");
-        for (Uint32 i = 0; i < pool->size(); i++) {
+        for (Uint32 i = 0; i < pool->size; i++) {
             const EC::Render& render = components[i];
 
             std::string stringName = Textures.getNameFromTexture(render.texture);
@@ -238,15 +238,15 @@ void writeComponentPool(FileWriter& ef, const ECS::ComponentPool* pool) {
         }
         break;}
     default:
-        cf.set("components", pool->components, pool->componentSize * pool->size());
+        cf.set("components", pool->components, pool->componentSize * pool->size);
         break;
     }
     */
-    C::Serialize(static_cast<C*>(pool->components), pool->size(), [&cf](ArrayView array){
+    C::Serialize(static_cast<C*>(pool->components), pool->size, [&cf](RawArray array){
         cf.back_write(array.data, array.size);
     });
     
-    cf.setT("componentOwners", pool->componentOwners, pool->size());
+    cf.setT("componentOwners", pool->componentOwners, pool->size);
 
     ef.write(cf, componentNames[pool->id]);
 }
@@ -271,17 +271,17 @@ T readValue(const char* propName, const char* contents) {
 int readComponentPool(const char* source, ECS::ComponentPool* pool) {
     int code = 0;
 
-    pool->_size = 0;
+    pool->size = 0;
 
     const char* contents = static_cast<const char*>(
         readProp(componentNames[pool->id], source));
 
     readTo("componentSize", &pool->componentSize, 1, contents);
-    auto numComponents = readValue<decltype(pool->_size)>("numComponents", contents);
+    auto numComponents = readValue<decltype(pool->size)>("numComponents", contents);
 
     // NEED TO RESIZE BEFORE COPYING COMPONENTS DATA
-    assert(pool->size() == 0 && "pool written to must not have pre-existing components");
-    pool->resize(numComponents + 10);
+    assert(pool->size == 0 && "pool written to must not have pre-existing components");
+    pool->reallocate(numComponents + 10);
 
 
     readTo("componentOwners", pool->componentOwners, numComponents, contents);
@@ -312,7 +312,7 @@ int readComponentPool(const char* source, ECS::ComponentPool* pool) {
         break;
     }
     
-    pool->_size = (Uint32)numComponents;
+    pool->size = (Uint32)numComponents;
 
     for (Uint32 i = 0; i < MAX_ENTITIES; i++) {
         pool->entityComponentSet[i] = ECS_NULL_INDEX;
@@ -378,7 +378,7 @@ int writeEverythingToFiles(const char* outputSaveFolderPath, const GameState* st
     ef.set("maxEntities", (size_t)MAX_ENTITIES);
     ef.set("entities", state->ecs.em->entities, sizeof(Entity) * MAX_ENTITIES);
     ef.set("entityData", state->ecs.em->entityDataList, sizeof(ECS::EntityData) * MAX_ENTITIES);
-    ef.set("numFreeEntities", state->ecs.em->freeEntities.size);
+    ef.set<size_t>("numFreeEntities", (size_t)state->ecs.em->freeEntities.size);
     ef.set("freeEntities", &state->ecs.em->freeEntities[0],
         sizeof(EntityID) * state->ecs.em->freeEntities.size);
 
@@ -471,7 +471,7 @@ int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
     size_t maxEntities = *readProp<size_t>("maxEntities", src);
     const Entity *entities = readProp<Entity>("entities", src);
     const auto entityData = readProp<ECS::EntityData>("entityData", src);
-    size_t numFreeEntities = *readProp<decltype(ecs->em->liveEntities)>("numFreeEntities", src);
+    const auto numFreeEntities = *readProp<size_t>("numFreeEntities", src);
     const EntityID* freeEntities = readProp<decltype(ecs->em->freeEntities)::Type>("freeEntities", src);
 
 
@@ -503,7 +503,7 @@ int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
     readComponentPools<COMPONENTS>(src, ecs->em);
 
     ECS::ComponentPool* inventoryECPool = ecs->em->getPool<EC::Inventory>();
-    for (Uint32 i = 0; i < inventoryECPool->size(); i++) {
+    for (Uint32 i = 0; i < inventoryECPool->size; i++) {
         Inventory& inventory = static_cast<EC::Inventory*>(inventoryECPool->atIndex(i))->inventory;
     }
 

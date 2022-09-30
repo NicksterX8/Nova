@@ -32,17 +32,15 @@ void generateChunk(Chunk* chunk) {
 }
 
 void ChunkMap::init() {
-    chunks = ChunkBucketArray::WithBuckets(1);
+    map = InternalChunkMap::WithBuckets(32);
+    chunkList = ChunkBucketArray::WithBuckets(1);
     chunkdataList = ChunkDataBucketArray::WithBuckets(1);
 }
 
 void ChunkMap::destroy() {
     chunkdataList.destroy();
-    chunks.destroy();
-}
-
-size_t ChunkMap::size() const {
-    return map.size();
+    chunkList.destroy();
+    map.destroy();
 }
 
 /*
@@ -50,58 +48,44 @@ size_t ChunkMap::size() const {
 * Returns NULL if the chunk couldn't be found.
 */
 ChunkData* ChunkMap::get(IVec2 chunkPosition) const {
+    /*
     auto it = map.find(chunkPosition);
     if (it == map.end()) {
         // chunk not found
         return nullptr;
     }
     return it->second;
-}
+    */
 
-int ChunkMap::iterateChunks(std::function<int(Chunk*)> callback) const {
-    // go through pools instead of going through the map to have better data locality
-    for (auto& chunk : chunks) {
-        int ret = callback(&chunk);
-        if (ret) {
-            return ret;
-        }
-    }
-
-    return 0;
-}
-
-int ChunkMap::iterateChunkdata(std::function<int(ChunkData*)> callback) const {
-    for (ChunkData& chunkdata : chunkdataList) {
-        int ret = callback(&chunkdata);
-        if (ret) {
-            return ret;
-        }
-    }
-    return 0;
+    ChunkData** maybeChunkdata = map.lookup(chunkPosition);
+    if (maybeChunkdata) return *maybeChunkdata;
+    return nullptr;
 }
 
 ChunkData* ChunkMap::newChunkAt(IVec2 position) {
     // Safety check to make sure chunk data is not overwritten / duplicated and stuff.
     // If the log warning never goes off, it might be okay to remove.
     {
-        auto it = map.find(position);
-        if (it != map.end()) {
+        ChunkData** chunkdata = map.lookup(position);
+        if (chunkdata) {
             // this method was wrongly called, the entry already exists at the position,
             // abort making a new one to not cause memory leaks and other weird bugs.
             // also log it
             LogWarn("There already exists an entry at the position (%d, %d), returning old entry...", position.x, position.y);
-            // just return the old entry
-            return it->second;
+            return *chunkdata; // return the old entry
         }
     }
 
-    Chunk* chunk = chunks.reserveBack();
-    if (chunk) {
+    Chunk* chunk = chunkList.reserveBack();
+    if (chunk) { // check for possible memory errors
         ChunkData* chunkdata = chunkdataList.reserveBack();
-        *chunkdata = ChunkData(chunk, position);
         if (chunkdata) {
-            map[position] = chunkdata;
+            *chunkdata = ChunkData(chunk, position);
+            map.insert(position, chunkdata);
             return chunkdata;
+        } else {
+            // undo the reserve back
+            chunkList.pop();
         }
     }
     
@@ -110,11 +94,15 @@ ChunkData* ChunkMap::newChunkAt(IVec2 position) {
 }
 
 ChunkData* ChunkMap::getOrMakeNew(IVec2 position) {
-    // newChunkAt already does this but it produces a warning so we just do it here to not produce a warning
+    // newChunkAt already does this but it produces a warning so we just do it here to not produce a warning.
+    /*
     auto it = map.find(position);
     if (it != map.end()) {
         return it->second;
     }
+    */
+    ChunkData** chunkdata = map.lookup(position);
+    if (chunkdata) return *chunkdata;
 
     return newChunkAt(position);
 }

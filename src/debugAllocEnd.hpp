@@ -1,3 +1,4 @@
+#include "memory.hpp"
 
 #ifdef new
 #undef new
@@ -7,10 +8,6 @@
 #undef delete
 #endif
 
-#ifdef malloc
-#undef malloc
-#endif
+#define malloc(size) malloc_func(size)
 
-#ifdef free
-#undef free
-#endif
+#define free(ptr) free_func(ptr)

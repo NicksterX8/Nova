@@ -1,7 +1,7 @@
 #ifndef MY_BASIC_ITERATOR_INCLUDED
 #define MY_BASIC_ITERATOR_INCLUDED
 
-#include "MyUtils.hpp"
+#include "MyInternals.hpp"
 
 MY_CLASS_START
 

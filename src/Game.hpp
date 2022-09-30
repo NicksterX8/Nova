@@ -13,9 +13,9 @@
 #include "GUI/GUI.hpp"
 #include "sdl.hpp"
 #include "Camera.hpp"
+#include "Rendering/rendering.hpp"
 
 struct Game;
-struct RenderContext;
 
 void placeInserter(ChunkMap& chunkmap, EntityWorld* ecs, Vec2 mouseWorldPos);
 
@@ -72,8 +72,6 @@ struct Game {
     }
 #endif
 };
-
-Vec2 getMouseWorldPosition(const Camera& camera);
 
 // update wrapper function to unwrap the void pointer main loop parameter into its properties
 int updateWrapper(void *param);
