@@ -182,7 +182,7 @@ public:
     void placeHeldItem(GameState* state, Vec2 at) {
         Tile* tile = getTileAtPosition(state->chunkmap, at);
         if (tile) {
-            state->player.tryPlaceHeldItem(tile);
+            //state->player.tryPlaceHeldItem(tile);
         }
     }
 

@@ -1,5 +1,7 @@
 # TODO
 
+- fix text rendering
+- organize files somehow (move filesystem to utils)
 - Save player inventory to file
 - Make actual stuff like belts and -inserters-
 - clean up code, add documentation

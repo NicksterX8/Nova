@@ -9,11 +9,43 @@
 
 MY_CLASS_START
 
+namespace Map {
+
 using Hash = size_t;
+
+enum BState {
+    Bucket_Empty=0, // This needs to be 0 so that memsetting 0 on buckets will make them empty
+    Bucket_Filled=1,
+    Bucket_Removed=2,
+};
+
+struct Bucket {
+    // Steal a couple bits from the hash value to say whether the bucket
+    // is empty, filled, or removed (different from empty)
+    size_t	hash:62;
+    size_t	state:2;
+};
+
+namespace Generic {
+
+using HashFunction = Hash(const void*);
+using EqualityFunction = bool(const void* lhs, const void* rhs);
+
+struct HashMap {
+    Bucket* buckets;
+    void* keys;
+    void* values;
+    int size;
+    int bucketCount;
+};
+
+void* hashmap_lookup(const HashMap* map, int keySize, int valueSize, const void* key, HashFunction* hashFunction, EqualityFunction* keyEquals);
+
+}
 
 template<class T>
 struct TrivialHashT {
-    Hash operator()(const T& val) {
+    Hash operator()(const T& val) const {
         return val;
     }
 };
@@ -25,18 +57,6 @@ struct HashMap {
 private:
     using Self = HashMap<K, V, H>;
 public:
-    enum BState {
-		Bucket_Empty=0, // This needs to be 0 so that memsetting 0 on buckets will make them empty
-		Bucket_Filled=1,
-		Bucket_Removed=2,
-	};
-
-    struct Bucket {
-        // Steal a couple bits from the hash value to say whether the bucket
-		// is empty, filled, or removed (different from empty)
-		size_t	hash:62;
-		size_t	state:2;
-    };
 
     Bucket* buckets;
     K*      keys;
@@ -54,28 +74,36 @@ public:
         memset(buckets, 0, startBuckets * sizeof(Bucket));
     }
 
-    static Self WithBuckets(int buckets) {
+    static inline Self WithBuckets(int buckets) {
         return HashMap(buckets);
     }
 
-    Hash hashKey(const K& key) const {
-        H hashFunction;
-        return hashFunction(key);
+    static inline Hash hashKey(const K& key) {
+        static constexpr H hashKeyType;
+        return hashKeyType(key); 
+    }
+
+    static inline Hash cHashKeyFunc(const void* key) {
+        static constexpr H hashKeyType;
+        return hashKeyType(*((K*)key));
     }
 
     V* lookup(const K& key) const {
+        return (V*)Generic::hashmap_lookup((Generic::HashMap*)this, sizeof(K), sizeof(V), &key, cHashKeyFunc, [](const void* lhs, const void* rhs){
+            return (*(K*)lhs) == (*(K*)rhs);
+        });
+        /*
+
         // have to do this before doing hash % size because x % 0 is undefined behavior
         if (size < 1) return nullptr;
 
         Hash hash = hashKey(key) & BITMASK_BOTTOM_62;
-        int startBucketIndex = hash % bucketCount;
+        int bucketStart = hash % bucketCount;
         
         // search buckets until we find an empty one
-        V* val = nullptr;
-        int i = startBucketIndex;
-        int iEnd = bucketCount;
+        int i,iEnd;
+        for (i = bucketStart,iEnd=bucketCount; i < iEnd; i++) {
         loop:
-        for (; i < iEnd; i++) {
             Bucket* b = &buckets[i];
             if (b->state == Bucket_Filled) {
                 if (b->hash == hash && keys[i] == key) {
@@ -90,7 +118,7 @@ public:
         }
 
         // loop back to the begining to try the earlier buckets now
-        if (i > 0) {
+        if (i != 0) {
             i = 0;
             iEnd = startBucketIndex;
             goto loop;
@@ -98,27 +126,22 @@ public:
 
         // even after all that we couldn't find a value for the key
         return nullptr;
+        */
     }
 
     void insert(const K& key, const V& value) {
-        // Resize larger if the load factor goes over 2/3
-        if (size * 3 > bucketCount * 2 || size == 0) {
-            int minNewSize = bucketCount * 2 > 0 ? bucketCount * 2 : 1;
+        // Resize larger if the load factor goes over 2/3 or if bucket count is 0
+        if (!(size * 3 < bucketCount * 2)) {
+            int minNewSize = bucketCount * 2 > 1 ? bucketCount * 2 : 1;
             rehash(minNewSize);
         }
 
         // Hash the key and find the starting bucket
         Hash hash = hashKey(key) & BITMASK_BOTTOM_62;
-        int bucketStart = 0;
-        if (bucketCount != 0)
-            bucketStart = hash % bucketCount;
+        int bucketStart = hash % bucketCount;
 
         // Search for an unused bucket
-        Bucket* bucketTarget = nullptr;
-        int bucketTargetIndex = 0;
-        int i = bucketStart, iEnd = bucketCount;
-    loop:
-        for (; i < iEnd; ++i) {
+        for (int i = bucketStart; i < bucketCount; ++i) {
             Bucket* b = &buckets[i];
             if (b->state == Bucket_Filled) {
                 if (b->hash == hash && keys[i] == key) {
@@ -128,39 +151,50 @@ public:
                 }
             }
             else if (b->state != Bucket_Filled) {
-                bucketTarget = b;
-                bucketTargetIndex = i;
-                break;
+                // Store the hash, key, and value in the bucket
+                b->hash = hash;
+                b->state = Bucket_Filled;
+                keys[i] = key;
+                values[i] = value;
+
+                ++size;
+                return;
+            }
+        }
+        for (int i = 0; i < bucketStart; ++i) {
+            Bucket* b = &buckets[i];
+            if (b->state == Bucket_Filled) {
+                if (b->hash == hash && keys[i] == key) {
+                    // key already inserted. Just set new value
+                    values[i] = value;
+                    return;
+                }
+            }
+            else if (b->state != Bucket_Filled) {
+                // Store the hash, key, and value in the bucket
+                b->hash = hash;
+                b->state = Bucket_Filled;
+                keys[i] = key;
+                values[i] = value;
+
+                ++size;
+                return;
             }
         }
 
-        if (!bucketTarget && i > 0) {
-            i = 0;
-            iEnd = bucketStart;
-            goto loop;
-        }
-
-        assert(bucketTarget && "should find bucket target");
-
-        // Store the hash, key, and value in the bucket
-        bucketTarget->hash = hash;
-        bucketTarget->state = Bucket_Filled;
-        keys[bucketTargetIndex] = key;
-        values[bucketTargetIndex] = value;
-
-        ++size;
+        assert(false && "unable to find bucket target");        
     }
 
     // remove empty buckets to save memory
-    void trim() {
+    inline void trim() {
         rehash(0);
     }
 
-    void reserve(int maxSize) {
-        rehash(maxSize * 3 / 2);
+    inline bool reserve(int maxSize) {
+        return rehash(maxSize * 3 / 2);
     }
 
-    void rehash(int newBucketCount) {
+    bool rehash(int newBucketCount) {
         // Can't rehash down to smaller than current size or initial size
         newBucketCount = std::max(newBucketCount, size);
 
@@ -168,6 +202,10 @@ public:
         Bucket* newBuckets = (Bucket*)MY_malloc(newBucketCount * sizeof(Bucket));
         K* newKeys         =      (K*)MY_malloc(newBucketCount * sizeof(K));
         V* newValues       =      (V*)MY_malloc(newBucketCount * sizeof(V));
+        if (!newBuckets || !newKeys || !newValues) {
+            free(newBuckets); free(newKeys); free(newValues);
+            return false;
+        }
         memset(newBuckets, 0, newBucketCount * sizeof(Bucket));
 
         // Walk through all the current elements and insert them into the new buckets
@@ -180,35 +218,29 @@ public:
             size_t hash = b->hash;
             int bucketStart = hash % newBucketCount;
 
-            // Search for an unused bucket
-            Bucket* bucketTarget = nullptr;
-            size_t bucketTargetIndex = 0;
+            int targetBucketIndex;
             for (int j = bucketStart; j < newBucketCount; j++) {
-                Bucket* newBucket = &newBuckets[j];
-                if (newBucket->state != Bucket_Filled) {
-                    bucketTarget = newBucket;
-                    bucketTargetIndex = j;
-                    break;
+                if (newBuckets[j].state != Bucket_Filled) {
+                    targetBucketIndex = j;
+                    goto foundBucket;
                 }
             }
-            if (!bucketTarget) {
-                for (int j = 0; j < bucketStart; j++) {
-                    Bucket* newBucket = &newBuckets[j];
-                    if (newBucket->state != Bucket_Filled) {
-                        bucketTarget = newBucket;
-                        bucketTargetIndex = j;
-                        break;
-                    }
+            for (int j = 0; j < bucketStart; j++) {
+                if (newBuckets[j].state != Bucket_Filled) {
+                    targetBucketIndex = j;
+                    goto foundBucket;
                 }
             }
 
-            assert(bucketTarget);
+            assert(false && "Failed to find empty bucket for rehash");
 
+        foundBucket:
             // Store the hash, key, and value in the bucket
-            bucketTarget->hash = hash;
-            bucketTarget->state = Bucket_Filled;
-            newKeys[bucketTargetIndex] = keys[i];
-            newValues[bucketTargetIndex] = values[i];
+            Bucket* targetBucket = &newBuckets[targetBucketIndex];
+            targetBucket->hash = hash;
+            targetBucket->state = Bucket_Filled;
+            newKeys[targetBucketIndex] = keys[i];
+            newValues[targetBucketIndex] = values[i];
         }
 
         // Swap the new buckets, keys, and values into place
@@ -221,6 +253,7 @@ public:
         values  = newValues;
 
         bucketCount = newBucketCount;
+        return true;
     }
 
     // returns true on removal, false when failed to remove
@@ -280,9 +313,13 @@ public:
             }
         }
     }
-
-
 };
+
+static_assert(sizeof(HashMap<int,int>) == sizeof(Generic::HashMap), "generic hashmap binary representation same as normal");
+
+}
+
+using Map::HashMap;
 
 MY_CLASS_END
 

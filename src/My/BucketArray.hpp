@@ -65,14 +65,17 @@ struct BucketArray {
         return buckets.size == 0 && topBucketSlotsUsed == 0;
     }
 
-    T** pushNewBucket() {
+    bool pushNewBucket() {
+        bool result;
         T* bucket = (T*)MY_malloc(BucketSize * sizeof(T));
         if (bucket) {
-            T** bucketPtr = buckets.push(bucket);
-            topBucketSlotsUsed = 0;
-            return bucketPtr;
+            result = buckets.push(bucket);
+            if (result)
+                topBucketSlotsUsed = 0;
+            else
+                MY_free(bucket);
         }
-        return nullptr;
+        return result;
     }
 
     T& back() const {
@@ -92,38 +95,28 @@ struct BucketArray {
     }
 
     T* push(const T& val) {
-        T** topBucketPtr;
         // room for another element in top bucket?
-        if (topBucketSlotsUsed < BucketSize && buckets.size > 0) {
-            topBucketPtr = &buckets.back();
-        } else {
-            // need new bucket
-            topBucketPtr = pushNewBucket(); // failable on memory error
-            if (!topBucketPtr) {
+        if (topBucketSlotsUsed >= BucketSize || buckets.size == 0) {
+            if (!pushNewBucket()) { // failable on memory error
                 return nullptr;
             }
         }
 
-        T* const location = &((*topBucketPtr)[topBucketSlotsUsed++]);
+        T* location = &buckets.back()[topBucketSlotsUsed++];
         *location = val;
         return location;
     }
 
     /* Same as push, but leave the value at the back uninitialized */
     T* reserveBack() {
-        T** topBucketPtr;
         // room for another element in top bucket?
-        if (topBucketSlotsUsed < BucketSize && buckets.size > 0) {
-            topBucketPtr = &buckets.back();
-        } else {
-            // need new bucket
-            topBucketPtr = pushNewBucket(); // failable on memory error
-            if (!topBucketPtr) {
+        if (topBucketSlotsUsed >= BucketSize || buckets.size == 0) {
+            if (!pushNewBucket()) { // failable on memory error
                 return nullptr;
             }
         }
 
-        return &((*topBucketPtr)[topBucketSlotsUsed++]);
+        return &buckets.back()[topBucketSlotsUsed++];
     }
 
     void pop() {

@@ -60,7 +60,7 @@ struct ComponentPool {
             return atIndex(componentIndex);
         }
 
-        LogError("Failed to get component %s for entity %u. Component index: %u.", name, entity, componentIndex);
+        LogError("Failed to get component %s for entity %u. Component index: %d.", name, entity, componentIndex);
         return NULL;
     }
 
@@ -76,14 +76,14 @@ struct ComponentPool {
         }
         if (size >= capacity) {
             // double in size every time it runs out of space
-            if (reallocate(capacity * 2) != 0) {
+            if (!reallocate(capacity * 2 > size+1 ? capacity * 2 : size+1)) {
                 return -1;
             }
         }
 
         entityComponentSet[entity] = size;
         componentOwners[size] = entity;
-        size++;
+        ++size;
         return 0;
     }
 
@@ -121,7 +121,7 @@ struct ComponentPool {
         return 0;
     }
 
-    int reallocate(Uint32 newCapacity) {
+    bool reallocate(Uint32 newCapacity) {
         newCapacity = (newCapacity > size) ? newCapacity : size; // can't reallocate smaller than current size
 
         Component* newComponents = (Component*)realloc(components, newCapacity * componentSize);
@@ -140,7 +140,7 @@ struct ComponentPool {
 
         capacity = newCapacity;
 
-        return newCapacity;
+        return true;
     }
 
     void iterateComponents(std::function<void(void*)> callback) const {

@@ -186,9 +186,11 @@ struct EntityManager {
         if (sizeof(T) == 0) return NULL;
 
         ComponentPool* pool = getPool<T>();
-
-        if (EntityExists(entity) && pool)
-            return static_cast<T*>(pool->get(entity.id));
+        if (entity.id < NULL_ENTITY_ID) {
+            EntityData* entityData = &entityDataList[entity.id];
+            if (entity.version >= entityData->version && entityData->flags.getComponent<T>())
+                return static_cast<T*>(pool->get(entity.id));
+        }
 
         LogError("Attempted to get unowned component \"%s\" of an entity! Returning NULL. Entity: %s", getComponentName<T>(), entity.DebugStr().c_str());
         return NULL;

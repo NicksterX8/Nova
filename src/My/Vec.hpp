@@ -8,6 +8,18 @@
 
 MY_CLASS_START
 
+namespace Vector {
+
+namespace Generic {
+    struct Vec {
+        void* data;
+        int size;
+        int capacity;
+    };
+
+    bool vec_push(Vec* vec, int typeSize, const void* elements, int elementCount=1);
+}
+
 /* A simple vector implementation for POD ONLY types!
  * Constructors and destructors will not be called!
  * Should be faster and smaller than std::vector most of the time, 
@@ -75,12 +87,15 @@ struct Vec {
         return data[index];
     }
 
-    T* push(const T& val) {
+    inline bool push(const T& val) {
+        /*
         if (reserveAtleast(size+1)) {
             memcpy(&data[size], &val, sizeof(T));
             return &data[size++];
         }
         return nullptr;
+        */
+        return vec_push((Generic::Vec*)this, sizeof(T), &val);
     }
 
     inline void pop() {
@@ -93,10 +108,16 @@ struct Vec {
     }
 
     // Try to reserve to atleast minCapacity
-    inline bool reserveAtleast(int minCapacity) {
-        if (minCapacity > capacity)
-            return reallocate((capacity*2 > minCapacity) ? capacity*2 : minCapacity);
-        return true;
+    inline bool reserve(int newCapacity) {
+        newCapacity = (size > newCapacity) ? size : newCapacity;
+        T* newData = (T*)MY_realloc(data, newCapacity * sizeof(T));
+        if (newData) {
+            data = newData;
+            capacity = newCapacity;
+            return true;
+        }
+        // failed to allocate
+        return false;
     }
 
     /* Resize the vector to the given new capacity. 
@@ -150,17 +171,26 @@ struct Vec {
     }
 
     bool push(T* elements, int count) {
+        /*
         if (reserveAtleast(size + count)) {
             memcpy(&data[size], elements, count * sizeof(T));
             size += count;
             return true;
         }
         return false;
+        */
+        return Generic::vec_push((Generic::Vec*)this, sizeof(T), elements, count);
     }
 
     inline T* begin() const { return data; }
     inline T* end() const { return data + size; }
 };
+
+static_assert(sizeof(Generic::Vec) == sizeof(Vec<int>), "GenericVec must have same binary layout as normal vec");
+
+}
+
+using Vector::Vec;
 
 MY_CLASS_END
 

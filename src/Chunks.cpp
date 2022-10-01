@@ -108,31 +108,32 @@ ChunkData* ChunkMap::getOrMakeNew(IVec2 position) {
 }
 
 Tile* getTileAtPosition(const ChunkMap& chunkmap, Vec2 position) {
-    int chunkX = (int)floor(position.x / CHUNKSIZE);
-    int chunkY = (int)floor(position.y / CHUNKSIZE);
-    ChunkData* chunkdata = chunkmap.get({chunkX, chunkY});
+    const float chunkSize = (float)CHUNKSIZE;
+    int chunkX = (int)floor(position.x / chunkSize);
+    int chunkY = (int)floor(position.y / chunkSize);
+    ChunkData** chunkdata = chunkmap.map.lookup({chunkX, chunkY});
     if (chunkdata) {
-        int tileX = (int)floor(position.x - (chunkX * CHUNKSIZE));
-        int tileY = (int)floor(position.y - (chunkY * CHUNKSIZE));
-        return &((*chunkdata->chunk))[tileY][tileX]; // when chunkdata is not null, chunkdata->chunk should never be null
+        int tileX = (int)floor(position.x - chunkX * chunkSize);
+        int tileY = (int)floor(position.y - chunkY * chunkSize);
+        return &((*(*chunkdata)->chunk))[tileY][tileX]; // when chunkdata is not null, chunkdata->chunk should never be null
     }
     return nullptr;
 }
 
 Tile* getTileAtPosition(const ChunkMap& chunkmap, IVec2 position) {
-    int chunkX,remainderX, chunkY,remainderY;
+    int chunkX,remainderX;
+    int chunkY,remainderY;
 
-    chunkX = position.x / CHUNKSIZE; 
     remainderX = position.x % CHUNKSIZE;
-    chunkX -= (remainderX < 0);
+    chunkX = position.x / CHUNKSIZE - (remainderX < 0); 
 
-    chunkY = position.y / CHUNKSIZE; 
     remainderY = position.y % CHUNKSIZE;
-    chunkY -= (remainderY < 0);
+    chunkY = position.y / CHUNKSIZE - (remainderY < 0); 
 
-    ChunkData* chunkdata = chunkmap.get({chunkX, chunkY});
+    ChunkData** chunkdata = chunkmap.map.lookup({chunkX, chunkY});
     if (chunkdata) {
-        return &((*chunkdata->chunk))[remainderY][remainderX]; // when chunkdata is not null, chunkdata->chunk should never be null
+        //return &((*(*chunkdata)->chunk))[remainderY][remainderX]; // when chunkdata is not null, chunkdata->chunk should never be null
+        return &CHUNK_TILE((*chunkdata)->chunk, position.y - chunkY * CHUNKSIZE, position.x - chunkX * CHUNKSIZE);
     }
     return nullptr;
 }

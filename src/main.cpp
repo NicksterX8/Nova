@@ -135,27 +135,11 @@ void initPaths() {
 }
 
 inline void tester() {
-    auto map = My::HashMap<int, int>(16);
-    map.insert(0, 1);
-    map.insert(0, 1);
-    LogInfo("map size after 2 same inserts: %d", map.size);
-
-    map.insert(5, 0);
-    map.insert(4, 1);
-    map.insert(3, 2);
-    map.insert(50329842, 2132);
-    map.insert(2, 3);
-    map.insert(1, 4);
-    map.insert(0, 5);
+    auto map = My::HashMap<int, int>(1);
     
-    map.insert(100, 5);
-    map.remove(100);
-    map.insert(100, 5);
-    assert(*map.lookup(100) == 5);
-
-    assert(*map.lookup(5) == 0);
-    assert(*map.lookup(0) == 5);
-    assert(map.remove(3) == true);
+    map.insert(1, 5);
+    assert(*map.lookup(1) == 5);
+    assert(map.lookup(0) == nullptr);
     assert(map.lookup(3) == nullptr);
 
     for (int i = 0; i < 100; i++) {
@@ -222,6 +206,7 @@ int main(int argc, char** argv) {
     memory_init([game](size_t size) -> void* {
         auto state = game->state;
         state->ecs.reduceMemoryUsage(1);
+        return nullptr;
     });
 
     game->init(screenWidth, screenHeight);
