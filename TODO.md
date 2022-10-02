@@ -1,6 +1,7 @@
 # TODO
 
 - fix text rendering
+- fix mac apps
 - organize files somehow (move filesystem to utils)
 - Save player inventory to file
 - Make actual stuff like belts and -inserters-

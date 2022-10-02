@@ -47,10 +47,13 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
             continue;
         }
 
+        // TODO: move this out of loop for better performance
         if (useSDFs) {
-            if ((error = FT_Render_Glyph(slot, FT_RENDER_MODE_SDF))) {
-                LogError("Failed to load sdf glyph charcter \'%c\'. Error: %s", c, FT_Error_String(error));
-                continue;
+            if (c != ' ') {
+                if ((error = FT_Render_Glyph(slot, FT_RENDER_MODE_SDF))) {
+                    LogError("Failed to load sdf glyph charcter \'%c\'. Error: %s", c, FT_Error_String(error));
+                    continue;
+                }
             }
         }
 
@@ -80,6 +83,39 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
     glDeleteTextures(1, &atlasTexture);
 }
 
+struct TextRenderer {
+    const static GLuint bufferCharacterCapacity = 100;
+    const static GLuint bufferPositionStart = 0;
+    const static GLuint bufferTexCoordStart = bufferCharacterCapacity * 4 * 2 * sizeof(GLfloat);
+
+    glm::vec4 defaultColor;
+    GLvoid* buffer;
+    Font* font;
+    Shader shader;
+    GLuint vao,vbo,ebo;
+    GLuint bufferSize;
+
+    void init() {
+        glGenVertexArrays(1, &vao);
+        glGenBuffers(1, &vbo);
+        glGenBuffers(1, &ebo);
+        glBindVertexArray(vao);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, bufferCharacterCapacity * (2 * sizeof(GLfloat) + 1 * sizeof(GLuint)), NULL, GL_STREAM_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferCharacterCapacity * 6, NULL, GL_STREAM_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 1, GL_UNSIGNED_INT, GL_FALSE, 1 * sizeof(GLuint), (void*)(bufferTexCoordStart));
+        buffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+    }
+
+    
+};
+
 static vao_vbo_t renderTextInitBuffers() {
     GLuint VAO, VBO;
     glGenVertexArrays(1, &VAO);
@@ -88,7 +124,9 @@ static vao_vbo_t renderTextInitBuffers() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 1, GL_UNSIGNED_INT, GL_FALSE, 1 * sizeof(GLuint), (void*)(2 * sizeof(GLfloat)));
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     return {VAO, VBO};
@@ -104,8 +142,11 @@ void renderTextGeneric(Shader& shader, const Font& font, const char* text, const
     static auto buffers = renderTextInitBuffers();
     glBindVertexArray(buffers.vao);
     glBindBuffer(GL_ARRAY_BUFFER, buffers.vbo);
+    GLvoid* vertexBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+
     glBindTexture(GL_TEXTURE_2D, font.atlasTexture);
 
+    int textLen = 0;
     for (const char* c = text; *c != '\0'; c++) {
         if (*c == '\n') {
             cy -= lineSpaceHeight * (font.face->height >> 6) * scale;
@@ -134,29 +175,38 @@ void renderTextGeneric(Shader& shader, const Font& font, const char* text, const
         float x2 = x + ch.size.x * scale;
         float y2 = y + ch.size.y * scale;
 
-        float tx = ch.texPos.x;
-        float ty = ch.texPos.y;
-        float tx2 = ch.texPos.x + ch.size.x;
-        float ty2 = ch.texPos.y + ch.size.y;
+        float tx = ch.texPos.x / (float)font.atlasSize.x;
+        float ty = ch.texPos.y / (float)font.atlasSize.y;
+        float tx2 = (ch.texPos.x + ch.size.x) / (float)font.atlasSize.x;
+        float ty2 = (ch.texPos.y + ch.size.y) / (float)font.atlasSize.y;
         // update VBO for each character
-        float vertices[6][4] = {
-            { x,  x2,  tx,  ty, },            
-            { x,  y,   tx,  ty2,},
-            { x2, y,   tx2, ty2 },
-
-            { x,  y2,  tx, ty },
-            { x2, y,   tx2, ty2 },
-            { x2, y2,  tx2, ty }           
+        // rendering glyph texture over quad
+        struct Vertex {
+            GLfloat pos[2];
+            GLuint texCoords;
         };
-        // render glyph texture over quad
+        float vertices[6][4] = {
+            { x,  y,   tx,  ty2 },            
+            { x,  y2,  tx,  ty  },
+            { x2, y2,  tx2, ty  },
 
-        // update content of VBO memory
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); 
-        // render quad
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+            { x,  y,   tx,  ty2 },
+            { x2, y,   tx2, ty2 },
+            { x2, y2,  tx2, ty  }           
+        };
+        
+        // add to vertex buffer
+        memcpy((char*)vertexBuffer + textLen * sizeof(vertices), vertices, sizeof(vertices));
+        
         // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
         cx += (ch.advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
+        textLen++;
     }
+
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+    // render quads
+    glDrawArrays(GL_TRIANGLES, 0, 6 * textLen);
+
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
 }

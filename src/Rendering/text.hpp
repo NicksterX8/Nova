@@ -74,7 +74,7 @@ struct Font {
         unsigned int advance;
     } *characters;
 
-    void load(const char* fontfile, FT_UInt height, bool useSDFs, char firstChar=33, char lastChar=127);
+    void load(const char* fontfile, FT_UInt height, bool useSDFs, char firstChar=32, char lastChar=127);
 
     void unload();
 };
