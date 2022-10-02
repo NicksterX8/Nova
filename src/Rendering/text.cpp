@@ -28,11 +28,11 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
     this->firstChar = firstChar;
     this->lastChar = lastChar;
 
-    face = newFontFace(fontfile, height);
+    this->face = newFontFace(fontfile, height);
 
-    characters = new Character[lastChar - firstChar];
+    this->characters = new Character[lastChar - firstChar];
 
-    TexturePacker packer({500, 500});
+    TexturePacker packer({256, 256});
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
 
@@ -68,8 +68,8 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
         };
     }
 
-    atlasSize = packer.textureSize;
-    atlasTexture = generateFontAtlasTexture(packer);
+    this->atlasSize = packer.textureSize;
+    this->atlasTexture = generateFontAtlasTexture(packer);
     if (!atlasTexture) {
         LogError("Font atlas texture failed to generate!");
     }
@@ -82,39 +82,6 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
     delete[] characters;
     glDeleteTextures(1, &atlasTexture);
 }
-
-struct TextRenderer {
-    const static GLuint bufferCharacterCapacity = 100;
-    const static GLuint bufferPositionStart = 0;
-    const static GLuint bufferTexCoordStart = bufferCharacterCapacity * 4 * 2 * sizeof(GLfloat);
-
-    glm::vec4 defaultColor;
-    GLvoid* buffer;
-    Font* font;
-    Shader shader;
-    GLuint vao,vbo,ebo;
-    GLuint bufferSize;
-
-    void init() {
-        glGenVertexArrays(1, &vao);
-        glGenBuffers(1, &vbo);
-        glGenBuffers(1, &ebo);
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, bufferCharacterCapacity * (2 * sizeof(GLfloat) + 1 * sizeof(GLuint)), NULL, GL_STREAM_DRAW);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferCharacterCapacity * 6, NULL, GL_STREAM_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 1, GL_UNSIGNED_INT, GL_FALSE, 1 * sizeof(GLuint), (void*)(bufferTexCoordStart));
-        buffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-    }
-
-    
-};
 
 static vao_vbo_t renderTextInitBuffers() {
     GLuint VAO, VBO;

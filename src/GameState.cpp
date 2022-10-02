@@ -9,7 +9,6 @@
 #include "constants.hpp"
 #include "Textures.hpp"
 #include "utils/Vectors.hpp"
-#include "SDL2_gfx/SDL2_gfx.h"
 #include "Tiles.hpp"
 #include "Player.hpp"
 #include "Entities/Entities.hpp"

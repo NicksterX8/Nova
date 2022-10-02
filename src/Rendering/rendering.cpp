@@ -117,7 +117,9 @@ void renderInit(RenderContext& ren) {
     glActiveTexture(GL_TEXTURE0 + TextureUnit::Text);
 
     initFreetype();
+    ren.font = Font(4.0f, 1.0f);
     ren.font.load(FileSystem.assets.get("fonts/FreeSans.ttf"), 64, true);
+    ren.debugFont = Font(4.0f, 1.0f);
     ren.debugFont.load(FileSystem.assets.get("fonts/Ubuntu-Regular.ttf"), 24, false);
 
     glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureArray);
@@ -133,10 +135,12 @@ void renderInit(RenderContext& ren) {
     ren.sdfShader.use();
     ren.sdfShader.setInt("text", TextureUnit::Text);
 
+    ren.textRenderer = TextRenderer::init(&ren.debugFont, ren.textShader);
+
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
     glEnable(GL_PROGRAM_POINT_SIZE);
 
-    checkOpenGLErrors();
+    GL::logErrors();
 
     const VertexAttribute attributes[] = {
         {2, GL_FLOAT, sizeof(GLfloat)},
@@ -162,15 +166,19 @@ void renderInit(RenderContext& ren) {
         chunkIndexBuffer[ind+5] = first+3; 
     }
 
-    checkOpenGLErrors();
+    GL::logErrors();
 
     glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 
-    checkOpenGLErrors();
+    GL::logErrors();
 }
 
 void renderQuit(RenderContext& ren) {
     doneFreetype();
+
+    ren.font.unload();
+    ren.font.unload();
+    ren.textRenderer.destroy();
 
     ren.entityShader.destroy();
     ren.tilemapShader.destroy();
@@ -224,7 +232,7 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    checkOpenGLErrors();
+    GL::logErrors();
 
     auto camTransform = camera.getTransformMatrix();
     ren.tilemapShader.use();
@@ -335,7 +343,7 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
 
     quadRenderer.flush();
 
-    checkOpenGLErrors();
+    GL::logErrors();
 
     glActiveTexture(GL_TEXTURE0 + TextureUnit::Text);
 
@@ -349,10 +357,16 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
     sdfShader.setFloat("thickness", 0.5f);
     sdfShader.setFloat("soft", 0.01f);
 
+    auto& textRenderer = ren.textRenderer;
+    textRenderer.shader = textShader;
+
+    textShader.use();
+
     glDepthMask(GL_FALSE);
-    renderText(ren.sdfShader, ren.font, "hello\nworld!\nWhats up guys  \n\n!", glm::vec2{100, 100}, camera.scale() / 10, glm::vec3{1, 0, 0});
-    renderText(ren.textShader, ren.font, "Howdy\tpal!", glm::vec2(drawableWidth/2.0f, drawableHeight/2.0f), camera.scale() / 10, glm::vec3(0, 0, 0));
-    renderText(ren.textShader, ren.debugFont, "This is ubuntu with regular text!", glm::vec2{600, 500}, 1.0f, glm::vec3{0.0f, 0.0f, 0.0f});
+    renderText(textRenderer, "hello\nworld!\nWhats up guys  \n\n!", glm::vec2{100, 100}, camera.scale() / 10, glm::vec3{1, 0, 0});
+    renderText(textRenderer, "Howdy\tpal!", glm::vec2(drawableWidth/2.0f, drawableHeight/2.0f), camera.scale() / 10, glm::vec3(0, 0, 0));
+    renderText(textRenderer, "This is ubuntu with regular text!", glm::vec2{600, 500}, 1.0f, glm::vec3{0.0f, 0.0f, 0.0f});
+    textRenderer.flush();
     glDepthMask(GL_TRUE);
 
     glEnable(GL_DEPTH_TEST);
@@ -360,5 +374,5 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
     
     SDL_GL_SwapWindow(ren.window);
 
-    checkOpenGLErrors();
+    GL::logErrors();
 }

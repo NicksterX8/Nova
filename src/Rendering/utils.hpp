@@ -45,4 +45,18 @@ ModelData makeModel(
 size_t vertexDataSize, const void* vertexData, GLenum vertexUsage,
 const VertexAttribute* attributes, unsigned int numAttributes);
 
+
+inline void generateQuadVertexIndices(int quadCount, GLushort* indices) {
+    for (int i = 0; i < quadCount; i++) {
+        GLushort first = i*4;
+        int ind = i * 6;
+        indices[ind+0] = first+0;
+        indices[ind+1] = first+1;
+        indices[ind+2] = first+3;
+        indices[ind+3] = first+1;
+        indices[ind+4] = first+2;
+        indices[ind+5] = first+3; 
+    }
+}
+
 #endif

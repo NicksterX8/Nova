@@ -189,8 +189,8 @@ struct RenderSystem {
         static float shaderSetAngle = 0.0f;
 
         struct EntityVertex {
-            glm::vec3 pos;
-            glm::vec3 texCoord;
+            GLvec3 pos;
+            GLvec3 texCoord;
             float rotation;
         };
 

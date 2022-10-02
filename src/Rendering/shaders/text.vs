@@ -1,6 +1,6 @@
 #version 330 core
 layout (location = 0) in vec2 vertex;
-layout (location = 1) in uint texCoord;
+layout (location = 1) in vec2 texCoord;
 out vec2 TexCoords;
 
 uniform mat4 transform;

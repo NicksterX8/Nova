@@ -28,6 +28,7 @@ struct RenderContext {
 
     Font font;
     Font debugFont;
+    TextRenderer textRenderer;
 
     ModelData chunkModel;
 

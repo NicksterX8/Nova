@@ -39,7 +39,7 @@ public:
     glm::ivec2 packTexture(unsigned char* textureBuffer, glm::ivec2 bufferSize);
     void resizeBuffer(glm::ivec2 newSize);
 
-    void destroy() {
+    ~TexturePacker() {
         free(buffer); buffer = nullptr;
     }
 };
