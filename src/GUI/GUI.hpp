@@ -5,7 +5,7 @@
 #include <vector>
 #include "../Items.hpp"
 #include "../constants.hpp"
-#include "../Rendering/Drawing.hpp"
+#include "../rendering/Drawing.hpp"
 #include "../Player.hpp"
 
 namespace Draw {
@@ -134,6 +134,7 @@ public:
 struct GUI {
     My::Vec<SDL_FRect> area = My::Vec<SDL_FRect>(0);
     ItemStack* heldItemStack = nullptr;
+    My::StringBuffer inputtedText = My::StringBuffer::FromStr("\0");;
 
     void draw(SDL_Renderer* ren, float scale, SDL_Rect viewport, const Player* player) {
         area.size = 0;

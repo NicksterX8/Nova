@@ -11,6 +11,7 @@
 #include "Entities/Entities.hpp"
 #include "Entities/Methods.hpp"
 #include "utils/Log.hpp"
+#include "My/String.hpp"
 
 inline Vec2 getMouseWorldPosition(const Camera& camera) {
     SDL_Point pixelPosition = SDL::getMousePixelPosition();
@@ -114,22 +115,24 @@ public:
     Vec2 mouseWorldPos;
     My::Vec<KeyBinding*> keyBindings;
     //My::Vec<ClickKeyBinding2> clickKeyBindings;
-    std::vector<std::string> enteredText;
+    //std::vector<std::string> enteredText;
+    My::StringBuffer* enteredText;
     bool enteringText;
 
     const Uint8* keyboardState;
 
-    PlayerControls(Camera& camera): camera(camera) {
+    PlayerControls(Camera& camera, My::StringBuffer* enteredText): camera(camera), enteredText(enteredText) {
         keyboardState = SDL_GetKeyboardState(NULL);
         keyBindings = My::Vec<KeyBinding*>(0);
         enteringText = false;
-        enteredText.push_back(std::string());
     }
 
-    ~PlayerControls() {
+    void destroy() {
         for (auto keyBinding : keyBindings) {
             delete keyBinding;
         }
+        keyBindings.destroy();
+        enteredText->destroy();
     }
     
     /* 
@@ -146,17 +149,11 @@ public:
         keyBindings.push(keyBinding);
     }
 
-    const MouseState& getMouse() {
-        return mouse;
-    }
-
     bool pixelInWorld(int x, int y, const GUI* gui) {
-        Vec2 worldPos = camera.pixelToWorld(x, y);
         SDL_Point pos = {x, y};
         bool clickInDisplay = SDL_PointInRect(&pos, &camera.displayViewport);
         bool clickOnGUI = gui->pointInArea(pos);
-        bool clickInWorld = clickInDisplay && !clickOnGUI;
-        return clickInWorld;
+        return clickInDisplay && !clickOnGUI;
     }
 
     void playerMouseTargetMoved(const MouseState& mouseState, const MouseState& prevMouseState, GameState* state, const GUI* gui) {
@@ -197,7 +194,6 @@ public:
     }
 
     void rightMouseHeld(const MouseState& mouse, GameState* state, const GUI* gui) {
-        SDL_Point mousePos = {mouse.x, mouse.y};
         if (pixelInWorld(mouse.x, mouse.y, gui)) {
             state->player.tryShootSandGun(&state->ecs, mouseWorldPos);
         }
@@ -282,9 +278,7 @@ public:
             }
 
         } else if (event.button == SDL_BUTTON_RIGHT) {
-            static int frame = Metadata->ticks();
             if (clickInWorld) {
-
                 auto tileEntity = findTileEntityAtPosition(state, worldPos);
                 if (tileEntity.Exists(&state->ecs)) {
                     LogInfo("Removing entity at %d,%d", (int)floor(worldPos.x), (int)floor(worldPos.y));
@@ -332,7 +326,7 @@ public:
                 if (heldItemStack && heldItemStack->item && heldItemStack->quantity > 0) {
                     ItemStack dropStack = ItemStack(heldItemStack->item, 1);
                     heldItemStack->reduceQuantity(1);
-                    auto itemEntity = Entities::ItemStack(&state->ecs, mouseWorldPos, dropStack);
+                    Entities::ItemStack(&state->ecs, mouseWorldPos, dropStack);
                 }
             break;} 
             case 'h': {
@@ -348,9 +342,25 @@ public:
             break;}
             case '[':
                 enteringText = !enteringText;
+                return; // dont do the rest of the junk below
             break;
             default:
                 break;
+        }
+
+        if (enteringText) {
+            switch (keycode) {
+            case SDLK_RETURN2:
+            case SDLK_RETURN:
+                enteredText->endStr();
+                break;
+            case SDLK_DELETE:
+            case SDLK_BACKSPACE:
+                if (!enteredText->empty()) {
+                    enteredText->popLastChar();
+                }
+                break;
+            }
         }
 
         for (int i = 1; i < (int)state->player.numHotbarSlots; i++) {
@@ -358,33 +368,80 @@ public:
                 state->player.selectHotbarSlot(i - 1);
             }
         }
-
-        if (enteringText) {
-            if (keycode == SDLK_RETURN || keycode == SDLK_RETURN2) {
-                enteredText.push_back(std::string());
-            }
-            else if (keycode < 256) {
-                char enteredChar = static_cast<char>(event.keysym.sym);
-                char enteredString[2] = {enteredChar, '\0'};
-
-                enteredText.back().append(enteredString);
-            }
-
-            LogInfo("entered text:");
-            for (auto& str : enteredText) {
-                LogDebug("%s", str.c_str());
-            }
-            
-        }
     }
 
-    void handleEvent(const SDL_Event& event, GameState* state, const GUI* gui) {
-        if (event.type == SDL_KEYDOWN) {
+    void handleEvent(SDL_Event& event, GameState* state, const GUI* gui) {
+        switch (event.type) {
+        case SDL_KEYDOWN:
             handleKeydown(event.key, state);
-        } else if (event.type == SDL_MOUSEBUTTONDOWN) {
+            break;
+        case SDL_MOUSEBUTTONDOWN:
             handleClick(event.button, state, gui);
-        } else if (event.type == SDL_MOUSEMOTION) {
+            break;
+        case SDL_MOUSEMOTION:
             handleMouseMotion(event.motion, state);
+            break;
+        case SDL_TEXTINPUT: {
+            char* text = event.text.text;
+            
+            if (enteringText) {
+                enteredText->appendToLast(text); 
+
+                /*
+                LogInfo("entered text:");
+                for (auto str : *enteredText) {
+                    LogInfo("\t%s", str);
+                }
+
+                // reverse:
+                for (auto it = enteredText->end(); it != enteredText->begin(); --it) {
+                    LogInfo("str: %s", *it);
+                }
+                */
+               /*
+                LogInfo("entered text reversed:");
+                for (auto str : My::reverse(*enteredText)) {
+                    LogInfo("\t%s", str);
+                }
+
+                LogInfo("entered text:");
+                for (auto str : *enteredText) {
+                    LogInfo("\t%s", str);
+                }
+                */
+                LogInfo("Testing");
+                My::StringBuffer buffer = My::StringBuffer::FromStr("1");
+                buffer += "2";
+                buffer += "3";
+                /*
+                LogInfo("normal:");
+                for (auto str : buffer) {
+                    LogInfo("num normal %s", str);
+                }
+                LogInfo("reversed:");
+                int i = 0;
+                for (auto str : My::reverse(buffer)) {
+                    LogInfo("num: %s", str);
+                    i++;
+                    if (i > 3) {
+                        LogError("FAILED");
+                        break;
+                    }
+                }*/
+                
+                FOR_MY_STRING_BUFFER(str, buffer, {
+                    LogInfo("num normal: %s", str);
+                });
+                FOR_MY_STRING_BUFFER_REVERSE(str, buffer, {
+                    LogInfo("num reverse: %s", str);
+                });
+
+
+            }
+            break;
+        }
+        default:
+            break;
         }
     }
 
@@ -399,9 +456,9 @@ public:
     void doPlayerMovementTick(GameState* state) {
         int sidewaysInput = keyboardState[SDL_SCANCODE_D] - keyboardState[SDL_SCANCODE_A];
         int updownInput = keyboardState[SDL_SCANCODE_W] - keyboardState[SDL_SCANCODE_S];
-
         int rotationInput = keyboardState[SDL_SCANCODE_E] - keyboardState[SDL_SCANCODE_Q];
-        // might want to move this constant to constants.hpp
+
+        /*
         float speed = PLAYER_SPEED;
         if (sidewaysInput && updownInput) {
             speed *= M_SQRT2 / 2.0;
@@ -409,6 +466,7 @@ public:
 
         float movementX = sidewaysInput * speed;
         float movementY = updownInput * speed;
+        */
 
         if (sidewaysInput || updownInput) {
             glm::vec2 moveVector = glm::normalize(glm::vec2(sidewaysInput, updownInput));

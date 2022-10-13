@@ -5,9 +5,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include <stddef.h>
-#include <bitset>
 #include <functional>
-#include <vector>
 #include <string>
 #include "../constants.hpp"
 #include "../utils/Vectors.hpp"
@@ -18,6 +16,7 @@
 #include "Component.hpp"
 #include "ComponentPool.hpp"
 #include "../My/Vec.hpp"
+#include "../memory.hpp"
 
 
 typedef uint32_t Uint32;
@@ -40,7 +39,7 @@ struct EntityManager {
     Uint32 entityCount = 0; // The number of alive (or existent) entities
 
     // TODO: allocate pools in an array, find a solution to the optional pool problem.
-    ComponentPool** pools = NULL; // a list of component pool pointers
+    ComponentPool* pools = NULL; // a list of component pool pointers
     Uint32 nComponents = 0; // The number of unique component types, the size of the pools array
     ComponentID highestComponentID = 0; // The highest id of all the components used in the entity manager. Should be equal to nComponents most of the time
 
@@ -65,36 +64,35 @@ struct EntityManager {
             LogError("EntityManager::getPool id passed is too high, could not get component pool!");
             return NULL;
         }
-        return pools[id];
-    }
-
-    template<class T>
-    void newComponent() {
-        constexpr ComponentID id = getID<T>();
-        // make new pool for component
-        pools[id] = new ComponentPool(id, sizeof(T), 100);
-        nComponents++;
-        if (id > highestComponentID)
-            highestComponentID = id;
-        if (nComponents > NUM_COMPONENTS || highestComponentID > NUM_COMPONENTS) {
-            LogCritical("The number of components in the enity component system is greater than the constant NUM_COMPONENTS!"
-                "number of components in system: %u, NUM_COMPONENTS: %d", nComponents, NUM_COMPONENTS);
+        
+        ComponentPool* pool = &pools[id];
+        if (pool->id != id) {
+            // pool doesnt exist
+            return nullptr;
         }
+        return pool;
     }
-    /*
-    template<class... Components>
-    void newComponents() {
-        int dummy[] = {0, (newComponent<Components>(), 0) ...};
-        (void)dummy;
-    }
-    */
 
     EntityManager();
 
     template<class... Components>
     void init() {
-        pools = (ComponentPool**)calloc(sizeof...(Components), sizeof(ComponentPool*));
-        FOR_EACH_VAR_TYPE(Components, newComponent<Components>());
+        pools = Alloc<ComponentPool>(NUM_COMPONENTS);
+        for (ComponentID i = 0; i < NUM_COMPONENTS; i++) {
+            pools[i].id = -1;
+        }
+        //FOR_EACH_VAR_TYPE(newComponent<Components>());
+        FOR_EACH_VAR_TYPE(([this](ComponentID id, size_t componentSize){
+            // make new pool for component
+            pools[id] = ComponentPool::Init(id, componentSize, DEFAULT_COMPONENT_POOL_CAPACITY);
+            nComponents++;
+            if (id > highestComponentID)
+                highestComponentID = id;
+            if (nComponents > NUM_COMPONENTS || highestComponentID > NUM_COMPONENTS) {
+                LogCritical("The number of components in the enity component system is greater than the constant NUM_COMPONENTS!"
+                    "number of components in system: %u, NUM_COMPONENTS: %d", nComponents, NUM_COMPONENTS);
+            }
+        })(getID<Components>(), sizeof(Components)));
 
         static_assert(NULL_ENTITY_VERSION == 0, "starting entity version should be 1");
 
@@ -253,7 +251,7 @@ struct EntityManager {
         int code = 0;
         for (ComponentID id = 0; id < nComponents; id++) {
             if (signature[id])
-                code |= pools[id]->add(entity.id);
+                code |= pools[id].add(entity.id);
         }
         return code;
     }
@@ -270,7 +268,7 @@ struct EntityManager {
         for (Uint32 i = 0; i < numComponentIDs; i++) {
             ComponentID id = componentIDs[i];
             if (entityFlags[id]) {
-                code |= pools[id]->remove(entity.id);
+                code |= pools[id].remove(entity.id);
                 entityFlags &= ~(1 << id);
             }
         }
@@ -291,7 +289,7 @@ struct EntityManager {
         for (Uint32 i = 0; i < componentIDs.size(); i++) {
             ComponentID id = componentIDs[i];
             if (entityFlags[id]) {
-                code |= pools[id]->remove(entity.id);
+                code |= pools[id].remove(entity.id);
             }
         }
 

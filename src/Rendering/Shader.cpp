@@ -2,73 +2,135 @@
 
 GLuint usedShader = 0;
 
-Shader::Shader(const char* vertexPath, const char* fragmentPath) {
-    // 1. retrieve the vertex/fragment source code from filePath
-    std::string vertexCode;
-    std::string fragmentCode;
-    std::ifstream vShaderFile;
-    std::ifstream fShaderFile;
-    // open files
-    vShaderFile.open(vertexPath);
-    fShaderFile.open(fragmentPath);
-    if (!vShaderFile) {
-        LogError("Failed to open vertex shader for reading. Path: %s", vertexPath);
-        LogError("str error: %s", strerror(errno));
-        return;
+char* readFileContents(FILE* file, size_t* outBytesRead) {
+    size_t chunkSize = 64;
+    ssize_t n;
+    char *str = (char*)malloc(chunkSize+1); // add 1 for nul char
+    if (!str) return NULL;
+    size_t len = 0;
+    while ((n = fread(str+len, 1, chunkSize, file))) {
+        if (n < 0) {
+            if (errno == EAGAIN)
+                continue;
+            perror("read");
+            break;
+        }
+        void* newStr = realloc(str, len + n + chunkSize + 1); // add 1 for nul char
+        if (!newStr) {
+            break;
+        }
+        str = (char*)newStr;
+        len += n;
     }
-    if (!fShaderFile) {
-        LogError("Failed to open fragment shader for reading. Path: %s", fragmentPath);
-        return;
+    str[len] = '\0';
+    if (outBytesRead)
+        *outBytesRead = len;
+    return str;
+}
+
+char* readFileContents(const char* filename, size_t* outBytesRead) {
+    FILE* file = fopen(filename, "r");
+    if (file) {
+        char* contents = readFileContents(file, outBytesRead);
+        fclose(file);
+        return contents;
+    }
+    return NULL;
+}
+
+GLuint compileShader(GLenum shaderType, const char* sourcePath) {
+    const char* shaderName;
+    switch (shaderType) {
+    case GL_VERTEX_SHADER:
+        shaderName = "vertex";
+        break;
+    case GL_FRAGMENT_SHADER:
+        shaderName = "fragment";
+        break;
+    case GL_GEOMETRY_SHADER:
+        shaderName = "geometry";
+        break;
+    default:
+        shaderName = "";
+        break;
     }
 
-    std::stringstream vShaderStream, fShaderStream;
-    // read file's buffer contents into streams
-    vShaderStream << vShaderFile.rdbuf();
-    fShaderStream << fShaderFile.rdbuf();
-    // close file handlers
-    vShaderFile.close();
-    fShaderFile.close();
-    // convert stream into string
-    vertexCode   = vShaderStream.str();
-    fragmentCode = fShaderStream.str();
+    if (!sourcePath) {
+        LogError("Invalid %s shader path (null)", shaderName);
+        return 0;
+    }
 
-    const char* vShaderCode = vertexCode.c_str();
-    const char* fShaderCode = fragmentCode.c_str();
-    // 2. compile shaders
-    unsigned int vertex, fragment;
-    // vertex shader
-    vertex = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex, 1, &vShaderCode, NULL);
-    glCompileShader(vertex);
-    checkCompileErrors(vertex, "Vertex");
-    // fragment Shader
-    fragment = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment, 1, &fShaderCode, NULL);
-    glCompileShader(fragment);
-    checkCompileErrors(fragment, "Fragment");
-    // shader Program
-    id = glCreateProgram();
+    size_t sourceLength;
+    char* source = readFileContents(sourcePath, &sourceLength);
+    if (!source) {
+        LogError("Failed to read %s shader file. Path: %s", shaderName, sourcePath);
+        return 0;
+    }
+
+    GLuint shader = glCreateShader(shaderType);
+    GLint iSourceLength = sourceLength;
+    glShaderSource(shader, 1, &source, &iSourceLength);
+    glCompileShader(shader);
+    free(source); // no longer needed after giving it to opengl
+    // check for compilation errors
+    GLint success;
+    char infoLog[1024];
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+        LogError("Failed to compile %s shader! Shader info log: %s\n -------------------------------------------------", shaderName, infoLog);
+        glDeleteShader(shader);
+        return 0;
+    }
+    return shader;
+}
+
+GLuint compileShaderProgram(const char* vertexPath, const char* fragmentPath) {
+    GLuint vertex = compileShader(GL_VERTEX_SHADER, vertexPath);
+    if (!vertex) {
+        LogError("Shader program compilation failed while compiling vertex shader.");
+        return 0;
+    }
+
+    GLuint fragment = compileShader(GL_FRAGMENT_SHADER, fragmentPath);
+    if (!fragment) {
+        LogError("Shader program compilation failed while compiling fragment shader.");
+        return 0;
+    }
+
+    GLuint id = glCreateProgram();
     glAttachShader(id, vertex);
     glAttachShader(id, fragment);
     glLinkProgram(id);
-    checkCompileErrors(id, "Program");
+    GLint success;
+    char infoLog[1024];
+    glGetProgramiv(id, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(id, 1024, NULL, infoLog);
+        LogError("Failed to link shader program! Program info log: %s\n -------------------------------------------------", infoLog);
+    }
     // delete the shaders as they're linked into our program now and are no longer needed
     glDeleteShader(vertex);
     glDeleteShader(fragment);
+    return id;
 }
 
-GLint Shader::getLoc(const char* name) const {
-    if (!id) {
+Shader::Shader(const char* vertexPath, const char* fragmentPath) {
+    id = compileShaderProgram(vertexPath, fragmentPath);
+}
+
+GLint Shader::getUniformLocation(const char* name) const {
+    if (!this->id) {
         LogError("Attempted to use uninitialized shader!");
         return 0;
     }
     
-    if (id != usedShader) {
-        LogError("Attempted to use shader %d before calling shader.use()!. Switching shaders...", id);
-        use();
+    if (this->id != usedShader) {
+        LogError("Attempted to use shader %d before calling shader.use()!. Switching shaders...", this->id);
+        this->use();
     }
 
-    auto loc = glGetUniformLocation(id, name);
+    GLint loc = glGetUniformLocation(id, name);
     if (loc == -1) {
         LogError("Failed to get uniform location for \"%s\"", name);
     }

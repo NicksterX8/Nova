@@ -32,7 +32,34 @@ void func2(int* a, const int* b) {
 int* a = new int(0);
 int* b = new int(12);
 
+struct Trash {
+    int a;
+
+    Trash(int x): a(x) {}
+
+    ~Trash() {
+        a = 3;
+    }
+};
+
+struct S {
+    int a;
+    double d;
+    int b;
+};
+
+using std::cout;
+
+int fff(int a) {
+    if (a) {
+        return 0;
+    } else {
+        return 1;
+    }
+}
+
 int main() {
+
     int count = 100000;
     
     auto before = getNow();
@@ -48,6 +75,13 @@ int main() {
     auto time2 = after2 - after1;
     printf("time1: %llu. time2: %llu\n", time1.count(), time2.count());
 
+    const Trash trash = Trash(1);
+    cout << trash.a << std::endl;
+    
+
+    trash.~Trash();
+
+    cout << trash.a << std::endl;
 
     return 0;
 }

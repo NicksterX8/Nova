@@ -3,8 +3,6 @@
 
 #include <SDL2/SDL.h>
 #include <functional>
-#include <unordered_map>
-#include <vector>
 
 typedef Uint32 TextureID;
 

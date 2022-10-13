@@ -1,27 +1,19 @@
 #include "GameState.hpp"
 
-#include <unordered_map>
 #include <functional>
 #include <array>
-#include <vector>
 
 #include <SDL2/SDL.h>
 #include "constants.hpp"
-#include "Textures.hpp"
+#include "rendering/textures.hpp"
 #include "utils/Vectors.hpp"
 #include "Tiles.hpp"
 #include "Player.hpp"
 #include "Entities/Entities.hpp"
-#include "EntitySystems/Rendering.hpp"
 #include "EntitySystems/Systems.hpp"
+#include "../ComponentMetadata/components.hpp"
 
-//void foreachEntityInRange(EntityWorld* ecs, Vec2 point, float distance, std::function<void(Entity)> callback) {   
-//}
-
-GameState::~GameState() {
-    chunkmap.destroy();
-    ecs.destroy();
-}
+#include <glm/geometric.hpp>
 
 void GameState::init() {
 
@@ -31,7 +23,7 @@ void GameState::init() {
         for (int chunkY = -chunkRadius; chunkY < chunkRadius; chunkY++) {
             ChunkData* chunkdata = chunkmap.newChunkAt({chunkX, chunkY});
             if (chunkdata) {
-                generateChunk(chunkdata->chunk);
+                generateChunk(chunkdata);
             } else {
                 LogError("Failed to create chunk at tile (%d,%d) for initialization", chunkX * CHUNKSIZE, chunkY * CHUNKSIZE);
                 continue;
@@ -86,14 +78,6 @@ void GameState::init() {
         ecs->Get<EC::Inventory>(entity)->inventory.destroy();
     });
 
-    /*
-    auto renderSystem = new SimpleRectRenderSystem(&ecs, renderer, gameViewport);
-    ecs.NewSystem<SimpleRectRenderSystem>(renderSystem);
-    ecs.NewSystems<SYSTEMS>();
-    ecs.System<InserterSystem>()->chunkmap = &chunkmap;
-    ecs.testInitialization();
-    */
-
     player = Player(&ecs, Vec2(0, 0));
 
     ItemStack startInventory[] = {
@@ -108,6 +92,11 @@ void GameState::init() {
     for (int i = 0; i < (int)(sizeof(startInventory) / sizeof(ItemStack)); i++) {
         playerInventory->addItemStack(startInventory[i]);
     }
+}
+
+void GameState::destroy() {
+    chunkmap.destroy();
+    ecs.destroy();
 }
 
 /*
@@ -176,7 +165,7 @@ IVec2* worldLine(Vec2 start, Vec2 end, int* lineSize) {
     return line;
 }
 
-void worldLineAlgorithm(Vec2 start, Vec2 end, std::function<int(IVec2)> callback) {
+void worldLineAlgorithm(Vec2 start, Vec2 end, const std::function<int(IVec2)>& callback) {
     Vec2 delta = end - start;
     Vec2 dir = glm::normalize(delta);
 
@@ -302,7 +291,7 @@ bool placeEntityOnTile(EntityWorld* ecs, Tile* tile, Entity entity) {
     return false;
 }
 
-void forEachEntityInRange(const ComponentManager<EC::Position, EC::Size>& ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, std::function<int(EntityT<EC::Position>)> callback) {
+void forEachEntityInRange(const ComponentManager<EC::Position, EC::Size>& ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, const std::function<int(EntityT<EC::Position>)>& callback) {
     int nCheckedEntities = 0;
     radius = abs(radius);
     float radiusSqrd = radius * radius;
@@ -346,7 +335,7 @@ void forEachEntityInRange(const ComponentManager<EC::Position, EC::Size>& ecs, c
     }
 }
 
-void forEachEntityNearPoint(const ComponentManager<EC::Position, const EC::Size>& ecs, const ChunkMap* chunkmap, Vec2 point, std::function<int(EntityT<EC::Position>)> callback) {
+void forEachEntityNearPoint(const ComponentManager<EC::Position, const EC::Size>& ecs, const ChunkMap* chunkmap, Vec2 point, const std::function<int(EntityT<EC::Position>)>& callback) {
     IVec2 chunkPos = toChunkPosition(point);
     const ChunkData* chunkdata = chunkmap->get(chunkPos);
     if (!chunkdata) {
@@ -362,7 +351,7 @@ void forEachEntityNearPoint(const ComponentManager<EC::Position, const EC::Size>
     }
 }
 
-void forEachChunkContainingBounds(const ChunkMap* chunkmap, Vec2 position, Vec2 size, std::function<void(ChunkData*)> callback) {
+void forEachChunkContainingBounds(const ChunkMap* chunkmap, Vec2 position, Vec2 size, const std::function<void(ChunkData*)>& callback) {
     IVec2 minChunkPosition = toChunkPosition(position - size * 0.5f);
     IVec2 maxChunkPosition = toChunkPosition(position + size * 0.5f);
     for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
@@ -376,7 +365,7 @@ void forEachChunkContainingBounds(const ChunkMap* chunkmap, Vec2 position, Vec2 
     }
 }
 
-void forEachEntityInBounds(const ComponentManager<const EC::Position, const EC::Size>& ecs, const ChunkMap* chunkmap, Vec2 position, Vec2 size, std::function<void(EntityT<EC::Position>)> callback) {
+void forEachEntityInBounds(const ComponentManager<const EC::Position, const EC::Size>& ecs, const ChunkMap* chunkmap, Vec2 position, Vec2 size, const std::function<void(EntityT<EC::Position>)>& callback) {
     forEachChunkContainingBounds(chunkmap, position, size, [&](ChunkData* chunkdata){
         //position -= size/2.0f;
         Vec2 min = position - size/2.0f;

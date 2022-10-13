@@ -8,7 +8,8 @@ ChunkData::ChunkData(Chunk* chunk, IVec2 position) {
     this->vbo = 0;
 }
 
-void generateChunk(Chunk* chunk) {
+void generateChunk(ChunkData* chunk) {
+    if (!chunk) return;
     for (int row = 0; row < CHUNKSIZE; row++) {
         for (int col = 0; col < CHUNKSIZE; col++) {
             TileType tileType = TileTypes::Grass;
@@ -26,7 +27,7 @@ void generateChunk(Chunk* chunk) {
                 tileType = TileTypes::Empty;
                 break;
             }
-            CHUNK_TILE(chunk, row, col) = Tile(tileType);
+            (*chunk->chunk)[row][col] = Tile(tileType);
         }
     }
 }
@@ -48,15 +49,6 @@ void ChunkMap::destroy() {
 * Returns NULL if the chunk couldn't be found.
 */
 ChunkData* ChunkMap::get(IVec2 chunkPosition) const {
-    /*
-    auto it = map.find(chunkPosition);
-    if (it == map.end()) {
-        // chunk not found
-        return nullptr;
-    }
-    return it->second;
-    */
-
     ChunkData** maybeChunkdata = map.lookup(chunkPosition);
     if (maybeChunkdata) return *maybeChunkdata;
     return nullptr;
@@ -95,12 +87,6 @@ ChunkData* ChunkMap::newChunkAt(IVec2 position) {
 
 ChunkData* ChunkMap::getOrMakeNew(IVec2 position) {
     // newChunkAt already does this but it produces a warning so we just do it here to not produce a warning.
-    /*
-    auto it = map.find(position);
-    if (it != map.end()) {
-        return it->second;
-    }
-    */
     ChunkData** chunkdata = map.lookup(position);
     if (chunkdata) return *chunkdata;
 
@@ -132,8 +118,8 @@ Tile* getTileAtPosition(const ChunkMap& chunkmap, IVec2 position) {
 
     ChunkData** chunkdata = chunkmap.map.lookup({chunkX, chunkY});
     if (chunkdata) {
-        //return &((*(*chunkdata)->chunk))[remainderY][remainderX]; // when chunkdata is not null, chunkdata->chunk should never be null
-        return &CHUNK_TILE((*chunkdata)->chunk, position.y - chunkY * CHUNKSIZE, position.x - chunkX * CHUNKSIZE);
+        Chunk& chunk = *(*chunkdata)->chunk; // when chunkdata is not null, chunkdata->chunk should never be null
+        return &chunk[position.y - chunkY * CHUNKSIZE][position.x - chunkX * CHUNKSIZE];
     }
     return nullptr;
 }

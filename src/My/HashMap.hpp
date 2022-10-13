@@ -4,6 +4,7 @@
 #include "MyInternals.hpp"
 #include "BucketArray.hpp"
 #include "Vec.hpp"
+#include "std.hpp"
 
 #define BITMASK_BOTTOM_62 0x3fffffffffffffffULL
 
@@ -32,9 +33,7 @@ using HashFunction = Hash(const void*);
 using EqualityFunction = bool(const void* lhs, const void* rhs);
 
 struct HashMap {
-    Bucket* buckets;
-    void* keys;
-    void* values;
+    void* memory;
     int size;
     int bucketCount;
 };
@@ -58,20 +57,29 @@ private:
     using Self = HashMap<K, V, H>;
 public:
 
-    Bucket* buckets;
-    K*      keys;
-    V*      values;
-    int     size;
-    int     bucketCount;
+    void* memory;
+    int   size;
+    int   bucketCount;
+
+    static inline Bucket* getBuckets(void* mem, int bucketCount) {
+        return (Bucket*)mem;
+    }
+    static inline K* getKeys(void* mem, int bucketCount) {
+        return (K*)((char*)mem + bucketCount * sizeof(Bucket));
+    }
+    static inline V* getValues(void* mem, int bucketCount) {
+        return (V*)((char*)mem + bucketCount * (sizeof(Bucket) + sizeof(K)));
+    }
+    inline Bucket* buckets() const { return getBuckets(memory, bucketCount); }
+    inline K*      keys()    const { return getKeys(memory, bucketCount); }
+    inline V*      values()  const { return getValues(memory, bucketCount); }
 
     HashMap() = default;
 
     HashMap(int startBuckets) : size(0), bucketCount(startBuckets) {
-        buckets = (Bucket*)MY_malloc(startBuckets * sizeof(Bucket));
-        keys    =      (K*)MY_malloc(startBuckets * sizeof(K));
-        values  =      (V*)MY_malloc(startBuckets * sizeof(V));
+        memory = MY_malloc(startBuckets * (sizeof(Bucket) + sizeof(K) + sizeof(V)));
         // buckets states need to be set to Bucket_Empty which is 0, so set all buckets to 0
-        memset(buckets, 0, startBuckets * sizeof(Bucket));
+        My::t_memset(buckets(), 0, startBuckets);
     }
 
     static inline Self WithBuckets(int buckets) {
@@ -89,11 +97,6 @@ public:
     }
 
     V* lookup(const K& key) const {
-        return (V*)Generic::hashmap_lookup((Generic::HashMap*)this, sizeof(K), sizeof(V), &key, cHashKeyFunc, [](const void* lhs, const void* rhs){
-            return (*(K*)lhs) == (*(K*)rhs);
-        });
-        /*
-
         // have to do this before doing hash % size because x % 0 is undefined behavior
         if (size < 1) return nullptr;
 
@@ -101,32 +104,36 @@ public:
         int bucketStart = hash % bucketCount;
         
         // search buckets until we find an empty one
-        int i,iEnd;
-        for (i = bucketStart,iEnd=bucketCount; i < iEnd; i++) {
-        loop:
-            Bucket* b = &buckets[i];
+        for (int i = bucketStart; i < bucketCount; i++) {
+            Bucket* b = &buckets()[i];
             if (b->state == Bucket_Filled) {
-                if (b->hash == hash && keys[i] == key) {
+                if (b->hash == hash && keys()[i] == key) {
                     // found the value
-                    return &values[i];
+                    return &values()[i];
                 }
             }
-            if (b->state == Bucket_Empty) {
+            else if (b->state == Bucket_Empty) {
+                // lookup failed, no value exists for the key
+                return nullptr;
+            }
+        }
+        // loop back to the begining to try the earlier buckets now
+        for (int i = 0; i < bucketStart; i++) {
+            Bucket* b = &buckets()[i];
+            if (b->state == Bucket_Filled) {
+                if (b->hash == hash && keys()[i] == key) {
+                    // found the value
+                    return &values()[i];
+                }
+            }
+            else if (b->state == Bucket_Empty) {
                 // lookup failed, no value exists for the key
                 return nullptr;
             }
         }
 
-        // loop back to the begining to try the earlier buckets now
-        if (i != 0) {
-            i = 0;
-            iEnd = startBucketIndex;
-            goto loop;
-        }
-
         // even after all that we couldn't find a value for the key
         return nullptr;
-        */
     }
 
     void insert(const K& key, const V& value) {
@@ -142,11 +149,11 @@ public:
 
         // Search for an unused bucket
         for (int i = bucketStart; i < bucketCount; ++i) {
-            Bucket* b = &buckets[i];
+            Bucket* b = &buckets()[i];
             if (b->state == Bucket_Filled) {
-                if (b->hash == hash && keys[i] == key) {
+                if (b->hash == hash && keys()[i] == key) {
                     // key already inserted. Just set new value
-                    values[i] = value;
+                    values()[i] = value;
                     return;
                 }
             }
@@ -154,19 +161,19 @@ public:
                 // Store the hash, key, and value in the bucket
                 b->hash = hash;
                 b->state = Bucket_Filled;
-                keys[i] = key;
-                values[i] = value;
+                keys()[i] = key;
+                values()[i] = value;
 
                 ++size;
                 return;
             }
         }
         for (int i = 0; i < bucketStart; ++i) {
-            Bucket* b = &buckets[i];
+            Bucket* b = &buckets()[i];
             if (b->state == Bucket_Filled) {
-                if (b->hash == hash && keys[i] == key) {
+                if (b->hash == hash && keys()[i] == key) {
                     // key already inserted. Just set new value
-                    values[i] = value;
+                    values()[i] = value;
                     return;
                 }
             }
@@ -174,8 +181,8 @@ public:
                 // Store the hash, key, and value in the bucket
                 b->hash = hash;
                 b->state = Bucket_Filled;
-                keys[i] = key;
-                values[i] = value;
+                keys()[i] = key;
+                values()[i] = value;
 
                 ++size;
                 return;
@@ -187,7 +194,7 @@ public:
 
     // remove empty buckets to save memory
     inline void trim() {
-        rehash(0);
+        rehash(size);
     }
 
     inline bool reserve(int maxSize) {
@@ -199,18 +206,17 @@ public:
         newBucketCount = std::max(newBucketCount, size);
 
         // Build a new set of buckets, keys, and values
-        Bucket* newBuckets = (Bucket*)MY_malloc(newBucketCount * sizeof(Bucket));
-        K* newKeys         =      (K*)MY_malloc(newBucketCount * sizeof(K));
-        V* newValues       =      (V*)MY_malloc(newBucketCount * sizeof(V));
-        if (!newBuckets || !newKeys || !newValues) {
-            free(newBuckets); free(newKeys); free(newValues);
-            return false;
-        }
-        memset(newBuckets, 0, newBucketCount * sizeof(Bucket));
+        void* newMemory = MY_malloc(newBucketCount * (sizeof(Bucket) + sizeof(K) + sizeof(V)));
+        if (!newMemory) { return false; }
+        Bucket* newBuckets = getBuckets(newMemory, newBucketCount);
+        K* newKeys         =    getKeys(newMemory, newBucketCount);
+        V* newValues       =  getValues(newMemory, newBucketCount);
+        
+        My::t_memset(newBuckets, 0, newBucketCount);
 
         // Walk through all the current elements and insert them into the new buckets
         for (int i = 0; i < bucketCount; ++i) {
-            Bucket* b = &buckets[i];
+            Bucket* b = &buckets()[i];
             if (b->state != Bucket_Filled)
                 continue;
 
@@ -239,18 +245,13 @@ public:
             Bucket* targetBucket = &newBuckets[targetBucketIndex];
             targetBucket->hash = hash;
             targetBucket->state = Bucket_Filled;
-            newKeys[targetBucketIndex] = keys[i];
-            newValues[targetBucketIndex] = values[i];
+            newKeys[targetBucketIndex] = keys()[i];
+            newValues[targetBucketIndex] = values()[i];
         }
 
         // Swap the new buckets, keys, and values into place
-        MY_free(buckets);
-        MY_free(keys);
-        MY_free(values);
-
-        buckets = newBuckets;
-        keys    = newKeys;
-        values  = newValues;
+        MY_free(memory);
+        memory = newMemory;
 
         bucketCount = newBucketCount;
         return true;
@@ -262,16 +263,18 @@ public:
         // Hash the key and find the starting bucket
         size_t hash = hashKey(key) & BITMASK_BOTTOM_62;
         size_t bucketStartIndex = hash % bucketCount;
+        Bucket* buckets_ = buckets();
+        K* keys_ = keys();
 
         // Search the buckets until we hit an empty one
         for (int i = bucketStartIndex; i < bucketCount; i++) {
-            Bucket* b = &buckets[i];
+            Bucket* b = &buckets_[i];
             if (b->state == Bucket_Empty) {
                 return false;
             }
             // bucket must be filled to remove it
             if (b->state == Bucket_Filled) {
-                if (b->hash == hash && keys[i] == key) {
+                if (b->hash == hash && keys_[i] == key) {
                     b->hash = 0;
                     b->state = Bucket_Removed;
                     --size;
@@ -280,13 +283,13 @@ public:
             }
         }
         for (int i = 0; i < bucketStartIndex; i++) {
-            Bucket* b = &buckets[i];
+            Bucket* b = &buckets_[i];
             if (b->state == Bucket_Empty) {
                 return false;
             }
             // bucket must be filled to remove it
             if (b->state == Bucket_Filled) {
-                if (b->hash == hash && keys[i] == key) {
+                if (b->hash == hash && keys_[i] == key) {
                     b->hash = 0;
                     b->state = Bucket_Removed;
                     --size;
@@ -299,19 +302,9 @@ public:
     }
 
     void destroy() {
-        MY_free(buckets); buckets = nullptr;
-        MY_free(keys); keys = nullptr;
-        MY_free(values); values = nullptr;
+        MY_free(memory);
         size = 0;
         bucketCount = 0;
-    }
-
-    void iterateKeys() {
-        for (int i = 0; i < bucketCount; i++) {
-            if (buckets[i].state == Bucket_Filled) {
-                // callback(keys[i])
-            }
-        }
     }
 };
 

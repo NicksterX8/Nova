@@ -66,14 +66,15 @@ struct BucketArray {
     }
 
     bool pushNewBucket() {
-        bool result;
+        bool result = false;
         T* bucket = (T*)MY_malloc(BucketSize * sizeof(T));
         if (bucket) {
             result = buckets.push(bucket);
-            if (result)
+            if (result) {
                 topBucketSlotsUsed = 0;
-            else
+            } else {
                 MY_free(bucket);
+            }
         }
         return result;
     }
@@ -155,31 +156,30 @@ struct BucketArray {
 
     // iterator stuff
 
-    struct Iterator {
-        T** array;
-        int bucket;
+    struct iterator {
+        T** bucketPtr;
         int index;
 
-        Iterator(T** array, int bucket, int index): array(array), bucket(bucket), index(index) {}
-        Iterator operator++() {
+        iterator(T** buckets, int index) : bucketPtr(buckets), index(index) {}
+        iterator operator++() {
             if (index < BucketSize) {
                 index++;
             } else {
                 index = 0;
-                bucket++;
+                bucketPtr++;
             }
             return *this;
         }
-        bool operator!=(const Iterator& other) const { return bucket != other.bucket && index != other.index; }
-        T& operator*() const { return array[bucket][index]; }
+        bool operator!=(const iterator& other) const { return bucketPtr != other.bucketPtr && index != other.index; }
+        T& operator*() const { return (*bucketPtr)[index]; }
     };
 
-    inline Iterator begin() const {
-        return Iterator(buckets.data, 0, 0);
+    inline iterator begin() const {
+        return iterator(&buckets.front(), 0);
     }
 
-    inline Iterator end() const {
-        return Iterator(buckets.data, buckets.size-1, topBucketSlotsUsed);
+    inline iterator end() const {
+        return iterator(&buckets.back(), topBucketSlotsUsed);
     }
 };
 

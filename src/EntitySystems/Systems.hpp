@@ -1,7 +1,6 @@
 #ifndef SYSTEMS_INCLUDED
 #define SYSTEMS_INCLUDED
 
-#include <vector>
 #include <random>
 #include "../ECS/ECS.hpp"
 #include "../ECS/EntitySystem.hpp"
@@ -10,6 +9,7 @@
 #include "../utils/Log.hpp"
 #include "../constants.hpp"
 #include "../Entities/Methods.hpp"
+#include <glm/geometric.hpp>
 
 static std::default_random_engine randomGen;
 

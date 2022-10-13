@@ -83,97 +83,12 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
     glDeleteTextures(1, &atlasTexture);
 }
 
-static vao_vbo_t renderTextInitBuffers() {
-    GLuint VAO, VBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 1, GL_UNSIGNED_INT, GL_FALSE, 1 * sizeof(GLuint), (void*)(2 * sizeof(GLfloat)));
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    return {VAO, VBO};
-}
-
-void renderTextGeneric(Shader& shader, const Font& font, const char* text, const float x, const float y, const float scale, glm::vec3 color, float lineSpaceHeight, float tabSpacesWidth) {
-    float cx = x;
-    float cy = y;
-
-    // activate corresponding render state	
-    shader.use();
-    shader.setVec3("textColor", color);
-    static auto buffers = renderTextInitBuffers();
-    glBindVertexArray(buffers.vao);
-    glBindBuffer(GL_ARRAY_BUFFER, buffers.vbo);
-    GLvoid* vertexBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-
-    glBindTexture(GL_TEXTURE_2D, font.atlasTexture);
-
-    int textLen = 0;
-    for (const char* c = text; *c != '\0'; c++) {
-        if (*c == '\n') {
-            cy -= lineSpaceHeight * (font.face->height >> 6) * scale;
-            cx = x;
-            continue;
-        }
-        else if (*c == '\t') {
-            // tab
-            cx += tabSpacesWidth * (font.characters[' ' - font.firstChar].advance >> 6) * scale;
-            continue;
-        }
-
-        if (*c < font.firstChar || *c > font.lastChar) {
-            // skip unsupported characters
-            continue;
-        }
-
-        Font::Character ch = font.characters[*c-font.firstChar];
-        if (*c == ' ') {
-            cx += (ch.advance >> 6) * scale; 
-            continue;
-        }
-
-        float x = cx + ch.bearing.x * scale;
-        float y = cy - (ch.size.y - ch.bearing.y) * scale;
-        float x2 = x + ch.size.x * scale;
-        float y2 = y + ch.size.y * scale;
-
-        float tx = ch.texPos.x / (float)font.atlasSize.x;
-        float ty = ch.texPos.y / (float)font.atlasSize.y;
-        float tx2 = (ch.texPos.x + ch.size.x) / (float)font.atlasSize.x;
-        float ty2 = (ch.texPos.y + ch.size.y) / (float)font.atlasSize.y;
-        // update VBO for each character
-        // rendering glyph texture over quad
-        struct Vertex {
-            GLfloat pos[2];
-            GLuint texCoords;
-        };
-        float vertices[6][4] = {
-            { x,  y,   tx,  ty2 },            
-            { x,  y2,  tx,  ty  },
-            { x2, y2,  tx2, ty  },
-
-            { x,  y,   tx,  ty2 },
-            { x2, y,   tx2, ty2 },
-            { x2, y2,  tx2, ty  }           
-        };
-        
-        // add to vertex buffer
-        memcpy((char*)vertexBuffer + textLen * sizeof(vertices), vertices, sizeof(vertices));
-        
-        // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-        cx += (ch.advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
-        textLen++;
-    }
-
-    glUnmapBuffer(GL_ARRAY_BUFFER);
-    // render quads
-    glDrawArrays(GL_TRIANGLES, 0, 6 * textLen);
-
-    glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-}
+const TextAlignment TextAlignment::TopLeft      = {HoriAlignment::Left,   VertAlignment::Top};
+const TextAlignment TextAlignment::TopCenter    = {HoriAlignment::Center, VertAlignment::Top};
+const TextAlignment TextAlignment::TopRight     = {HoriAlignment::Right,  VertAlignment::Top};
+const TextAlignment TextAlignment::MiddleLeft   = {HoriAlignment::Left,   VertAlignment::Middle};
+const TextAlignment TextAlignment::MiddleCenter = {HoriAlignment::Center, VertAlignment::Middle};
+const TextAlignment TextAlignment::MiddleRight  = {HoriAlignment::Right,  VertAlignment::Middle};
+const TextAlignment TextAlignment::BottomLeft   = {HoriAlignment::Left,   VertAlignment::Bottom};
+const TextAlignment TextAlignment::BottomCenter = {HoriAlignment::Center, VertAlignment::Bottom};
+const TextAlignment TextAlignment::BottomRight  = {HoriAlignment::Right,  VertAlignment::Bottom};

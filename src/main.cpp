@@ -1,8 +1,6 @@
 #include "constants.hpp"
 #include "utils/Log.hpp"
 
-#include <vector>
-#include <string>
 #include <stdio.h>
 #include <libproc.h>
 #include <unistd.h>
@@ -18,8 +16,6 @@
 #include "GameSave/main.hpp"
 #include "sdl.hpp"
 #include "global.hpp"
-#include "My/HashMap.hpp"
-#include "Rendering/TexturePacker.hpp"
 
 #include "memory.hpp"
 
@@ -62,7 +58,41 @@ void logEntitySystemInfo() {
     }
 }
 
+#define GET_MACRO_STRING_LIST(macro) getMacroStringList(TOSTRING((macro)), sizeof(TOSTRING((macro))) - 2)
+
+inline My::StringBuffer getMacroStringList(const char* macro, int length) {
+    const char* const start = macro+1;
+    const char* const end = macro + length;
+
+    const char* c = start;
+
+    auto outList = My::StringBuffer::WithCapacity(length+32);
+    for (int i = 0; i < NUM_COMPONENTS; i++) {
+        const char* nameStart = c;
+        const char* nameEnd = c;
+        while (true) {
+            if (*nameEnd == ' ' || *nameEnd == '(') {
+                if (nameEnd == nameStart) {
+                    nameStart++;
+                } else {
+                    break;
+                }
+            }
+            else if (nameEnd == end || *nameEnd == ',') {
+                nameEnd++;
+                break;
+            }
+            nameEnd++;
+        }
+        outList.push(nameStart, nameEnd - nameStart - 1);
+        outList.push('\0');
+        c = nameEnd;
+    }
+    return outList;
+}
+
 void logEntityComponentInfo() {
+    /*
     const char* componentsStr = TOSTRING((COMPONENT_NAMES));
     int length = strlen(componentsStr);
     char componentsStr2[length];
@@ -98,6 +128,14 @@ void logEntityComponentInfo() {
         //Log("ID: %d, Component: %s.", i, &componentsList[i * 256]);
         componentNames[i] = &componentsList[i * 256];
     }
+    */
+    auto nameBuffer = GET_MACRO_STRING_LIST(COMPONENTS);
+    int i = 0;
+    FOR_MY_STRING_BUFFER(componentName, nameBuffer, {
+        componentNames[i] = componentName;
+        LogInfo("Component Name: %s", componentName);
+        i++;
+    });
 }
 
 void initLogging() {
@@ -134,47 +172,6 @@ void initPaths() {
     LOG("Base path: %s\n", basePath);
 }
 
-inline void tester() {
-    auto map = My::HashMap<int, int>(1);
-    
-    map.insert(1, 5);
-    assert(*map.lookup(1) == 5);
-    assert(map.lookup(0) == nullptr);
-    assert(map.lookup(3) == nullptr);
-
-    for (int i = 0; i < 100; i++) {
-        map.insert(i, 100 - i);
-    }
-
-    map.destroy();
-    map = My::HashMap<int, int>(342);
-    for (int i = 0; i < 10000; i++) {
-        map.insert(rand(), rand());
-    }
-
-    for (int i = 0; i < 10000; i++) {
-        map.remove(rand());
-    }
-
-    for (int i = 0; i < 10000; i++) {
-        map.lookup(rand());
-    }
-
-    for (int i = 0; i < 10000; i++) {
-        map.insert(rand(), rand());
-    }
-
-    TexturePacker packer({512, 512});
-    std::vector<unsigned char> zeroes(512*512);
-    packer.packTexture(&zeroes[0], {64, 64});
-    packer.packTexture(&zeroes[0], {64, 64});
-    packer.packTexture(&zeroes[0], {32, 32});
-    packer.packTexture(&zeroes[0], {128, 16});
-    packer.packTexture(&zeroes[0], {4, 8});
-    packer.packTexture(&zeroes[0], {512, 512});
-
-}
-
 int main(int argc, char** argv) {
     gLogger.useEscapeCodes = true;
     for (int i = 1; i < argc; i++) {
@@ -195,8 +192,6 @@ int main(int argc, char** argv) {
 
     int screenWidth,screenHeight;
     SDL_GL_GetDrawableSize(sdlCtx.win, &screenWidth, &screenHeight);
-
-    tester();
 
     //load(sdlCtx.ren, sdlCtx.scale);
     loadTileData();

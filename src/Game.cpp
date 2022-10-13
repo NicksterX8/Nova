@@ -1,16 +1,15 @@
 #include "Game.hpp"
 
 #include <thread>
-#include <vector>
 
 #include "utils/Log.hpp"
 #include "utils/Debug.hpp"
+#include "utils/random.hpp"
 #include "GUI/GUI.hpp"
 #include "PlayerControls.hpp"
-#include "Rendering/rendering.hpp"
+#include "rendering/rendering.hpp"
 #include "GameSave/main.hpp"
 
-#include "EntitySystems/Rendering.hpp"
 #include "EntitySystems/Systems.hpp"
 #include "Entities/Entities.hpp"
 #include "EntityComponents/Components.hpp"
@@ -61,12 +60,13 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
 
     controls->addKeyBinding(new FunctionKeyBinding('y',
     [&ecs, &camera, &state, &playerControls](){
-        auto mouse = playerControls.getMouse();
+        auto& mouse = playerControls.mouse;
         Entity zombie = Entities::Enemy(
             &ecs,
             camera.pixelToWorld(mouse.x, mouse.y),
             state.player.entity
         );
+        (void)zombie;
     }));
 
     KeyBinding* keyBindings[] = {
@@ -78,25 +78,25 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
         new FunctionKeyBinding('q', [&player](){
             player.releaseHeldItem();
         }),
-        new FunctionKeyBinding('c', [&ecs, &camera, &playerControls](){
+        new FunctionKeyBinding('c', [&ecs, &playerControls](){
             int width = 2;
             int height = 1;
             Vec2 position = vecFloor(playerControls.mouseWorldPos) + Vec2(width/2.0f, height/2.0f);
             auto chest = Entities::Chest(&ecs, position, 3, width, height);
-
+            (void)chest;
         }),
         new FunctionKeyBinding('l', [&ecs](){
             // do airstrikes row by row
             for (int y = -100; y < 100; y += 5) {
                 for (int x = -100; x < 100; x += 5) {
-                    auto airstrike = Entities::Airstrike(&ecs, Vec2(x, y * 2), {3.0f, 3.0f}, Vec2(x, y));
+                    Entities::Airstrike(&ecs, Vec2(x, y * 2), {3.0f, 3.0f}, Vec2(x, y));
                 }
             }
         }),
         new FunctionKeyBinding('i', [&ecs, &mouseWorldPos, &chunkmap](){
             placeInserter(chunkmap, &ecs, mouseWorldPos);
         }),
-        new FunctionKeyBinding('r', [&camera, &playerControls, &ecs, &chunkmap](){
+        new FunctionKeyBinding('r', [&playerControls, &ecs, &chunkmap](){
             auto focusedEntity = findPlayerFocusedEntity(ecs, chunkmap, playerControls.mouseWorldPos);
             if (focusedEntity.Has<EC::Rotation, EC::Rotatable>(&ecs))
                 rotateEntity(ComponentManager<EC::Rotation, EC::Rotatable, EC::Position>(&ecs), focusedEntity.cast<EC::Rotation, EC::Rotatable>(), playerControls.keyboardState[SDL_SCANCODE_LSHIFT]);
@@ -317,7 +317,6 @@ int Game::update() {
 
     SDL_Event event;
     while (SDL_PollEvent(&event) != 0) {
-        static bool enteringText = false;
         switch(event.type) {
             case SDL_QUIT:
                 quit = true;
@@ -343,10 +342,12 @@ int Game::update() {
                 switch (event.key.keysym.sym) {
                 
                 case '7':
-                    GameSave::save(state);
+                    // broken
+                    //GameSave::save(state);
                     break;
                 case '9':
-                    GameSave::load(state);
+                    // borked
+                    //GameSave::load(state);
                     break;
                 case ']':
                     logComponentPoolSizes(state->ecs);
@@ -399,12 +400,13 @@ void Game::init(int screenWidth, int screenHeight) {
     for (int e = 0; e < 2000; e++) {
         Vec2 pos = {(float)randomInt(-200, 200), (float)randomInt(-200, 200)};
         auto tree = Entities::Tree(&state->ecs, pos, {1, 1});
+        (void)tree;
     }
 
     this->renderContext = new RenderContext(sdlCtx.win, sdlCtx.gl);
     setTextureMetadata();
     this->worldScale = 1.0f;
-    this->playerControls = new PlayerControls(this->camera);
+    this->playerControls = new PlayerControls(this->camera, &this->gui->inputtedText);
     SDL_Point mousePos = SDL::getMousePixelPosition();
     this->lastUpdateMouseState = {
         .x = mousePos.x,

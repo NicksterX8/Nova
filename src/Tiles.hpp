@@ -2,7 +2,7 @@
 #define TILES_INCLUDED
 
 #include "constants.hpp"
-#include "Textures.hpp"
+#include "rendering/textures.hpp"
 #include <SDL2/SDL.h>
 #include "Items.hpp"
 #include "SECS/Entity.hpp"

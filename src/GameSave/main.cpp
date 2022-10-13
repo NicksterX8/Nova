@@ -147,14 +147,11 @@ public:
         size_t headerSize = sizeof(FilePropertyHeader) * headers.size() + sizeof(size_t);
         for (auto& header : headers) {
             header.location += headerSize;
-            size_t x = header.location;
         }
         fwrite(&headers[0], sizeof(FilePropertyHeader), headers.size(), file);
         fwrite(&body[0], body.size(), 1, file);
     }
 };
-
-const char* const entitiesFilepath = "entities";
 
 const char* findProperty(const char* property, const char* fileContents) {
     const char* file = fileContents;
@@ -202,8 +199,6 @@ void writeComponentPool(FileWriter& ef, const ECS::ComponentPool* pool) {
     components: component size * number of components
     component owners: 8 * number of components
     */
-
-    int code = 0;
 
     FileWriter cf;
 
@@ -332,16 +327,15 @@ int readComponentPool(const char* source, ECS::ComponentPool* pool) {
 
 template<class... Components>
 int writeComponentPools(FileWriter& ef, const ECS::EntityManager* em) {
-    int dummy[] = {0, ((void)writeComponentPool<Components>(ef, em->getPool<Components>()), 0) ...};
-    (void)dummy;
+    FOR_EACH_VAR_TYPE(writeComponentPool<Components>(ef, em->getPool<Components>()));
     return 0;
 }
 
 template<class... Components>
 int readComponentPools(const char* source, ECS::EntityManager* em) {
-    int codes[] = {0, ( (void)0, readComponentPool(source, em->getPool<Components>()) ) ...};
+    int codes[] = {readComponentPool(source, em->getPool<Components>()) ...};
     int code = codes[0];
-    for (size_t i = 1; i < sizeof(codes) / sizeof(int); i++) {
+    for (size_t i = 1; i < sizeof...(Components); i++) {
         code |= codes[i];
     }  
     return code;
@@ -505,6 +499,8 @@ int readEntityDataFromFile(const char* filepath, EntityWorld* ecs) {
     ECS::ComponentPool* inventoryECPool = ecs->em->getPool<EC::Inventory>();
     for (Uint32 i = 0; i < inventoryECPool->size; i++) {
         Inventory& inventory = static_cast<EC::Inventory*>(inventoryECPool->atIndex(i))->inventory;
+        (void)inventory;
+        // TODO: do someting wih dis
     }
 
     free((void*)src);

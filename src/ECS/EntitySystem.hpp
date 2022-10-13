@@ -36,7 +36,7 @@ namespace ComponentAccess {
 class ECS;
 
 class EntityCommandBuffer {
-    ECS* ecs;
+   // ECS* ecs;
 public:
     std::vector< std::function<void(ECS*)> > commands;
 

@@ -45,10 +45,10 @@ ModelData makeModel(
 size_t vertexDataSize, const void* vertexData, GLenum vertexUsage,
 const VertexAttribute* attributes, unsigned int numAttributes);
 
-
-inline void generateQuadVertexIndices(int quadCount, GLushort* indices) {
+template<typename IntType>
+inline void generateQuadVertexIndices(int quadCount, IntType* indices) {
     for (int i = 0; i < quadCount; i++) {
-        GLushort first = i*4;
+        IntType first = i*4;
         int ind = i * 6;
         indices[ind+0] = first+0;
         indices[ind+1] = first+1;
@@ -57,6 +57,10 @@ inline void generateQuadVertexIndices(int quadCount, GLushort* indices) {
         indices[ind+4] = first+2;
         indices[ind+5] = first+3; 
     }
+}
+
+inline glm::vec4 colorConvert(Color color) {
+    return glm::vec4(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
 }
 
 #endif

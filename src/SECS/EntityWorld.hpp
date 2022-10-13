@@ -3,7 +3,7 @@
 
 #include "ECS.hpp"
 #include "../EntityComponents/Components.hpp"
-#include "../My/Vec.hpp"
+#include <vector>
 
 template<class... Components>
 struct ComponentManager;
@@ -51,7 +51,10 @@ public:
     void init() {
         em->init<Components...>();
         for (Uint32 i = 0; i < em->getComponentCount(); i++) {
-            em->getPool(i)->setName(componentNames[i]);
+            ECS::ComponentPool* pool = em->getPool(i);
+            if (pool) {
+                pool->name = componentNames[i];
+            }
         }
     }
 
@@ -328,9 +331,10 @@ public:
 
     void reduceMemoryUsage(int priority) {
         for (Uint32 i = 0; i < em->nComponents; i++) {
-            em->pools[i]->reallocate(em->pools[i]->size);
+            ECS::ComponentPool* pool = em->getPool(i);
+            if (pool)
+                pool->reallocate(pool->size);
         }
-    
     }
 };
 

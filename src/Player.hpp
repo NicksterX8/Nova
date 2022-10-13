@@ -3,7 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include "Tiles.hpp"
-#include "Textures.hpp"
+#include "rendering/textures.hpp"
 #include "Entities/Entities.hpp"
 #include "Entities/Methods.hpp"
 
@@ -89,8 +89,7 @@ struct Player {
     }
 
     bool tryShootSandGun(EntityWorld* ecs, Vec2 aimingPosition) {
-        if (heldItemStack)
-        if (heldItemStack->item == Items::SandGun) {
+        if (heldItemStack && heldItemStack->item == Items::SandGun) {
             Entity sand = ecs->New("sand");
             MARK_START_ENTITY_CREATION(ecs);
             ecs->Add<
@@ -120,9 +119,10 @@ struct Player {
         if (heldItemStack)
         if (heldItemStack->item == Items::Grenade && heldItemStack->quantity > 0) {
             if (grenadeThrowCooldown <= 0) {
-                Entity grenade = Entities::ThrownGrenade(ecs, getPosition(), aimingPosition);
+                Entities::ThrownGrenade(ecs, getPosition(), aimingPosition);
                 grenadeThrowCooldown = GrenadeCooldown;
                 heldItemStack->reduceQuantity(1);
+                return true;
             }
         }
         

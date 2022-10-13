@@ -3,22 +3,16 @@
 
 #include <SDL2/SDL.h>
 #include "../sdl_gl.hpp"
-#include "../utils/random.hpp"
 #include "../GameState.hpp"
-#include "../Tiles.hpp"
 #include "../utils/Metadata.hpp"
-#include "../Textures.hpp"
-#include "../utils/Debug.hpp"
+#include "textures.hpp"
 #include "../GUI/GUI.hpp"
-#include "../utils/Log.hpp"
 
 #include "Drawing.hpp"
-#include "../EntitySystems/Rendering.hpp"
 #include "Shader.hpp"
 #include "../Camera.hpp"
 #include "utils.hpp"
 #include "context.hpp"
-#include "../My/Array.hpp"
 #include "../PlayerControls.hpp"
 
 #include <glm/vec2.hpp>

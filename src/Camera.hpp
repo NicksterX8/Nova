@@ -21,26 +21,24 @@ struct Camera {
     Camera() {}
 
     Camera(float baseUnitScale, glm::vec3 pos, int pixelWidth, int pixelHeight, float rotation = 0.0f)
-    : position(pos), rotation(rotation), baseScale(baseUnitScale), zoom(1.0f), pixelWidth(pixelWidth), pixelHeight(pixelHeight) {
-        displayViewport.w = pixelWidth;
-        displayViewport.h = pixelHeight;
-        displayViewport.x = 0;
-        displayViewport.y = 0;
+    : pixelWidth(pixelWidth), pixelHeight(pixelHeight), baseScale(baseUnitScale),
+    zoom(1.0f), position(pos), rotation(rotation), displayViewport({0, 0, pixelWidth, pixelHeight}) {
+
     }
 
-    float scale() const {
+    inline float scale() const {
         return baseScale * zoom;
     }
 
-    float aspectRatio() const {
+    inline float aspectRatio() const {
         return pixelWidth / pixelHeight;
     }
 
-    float viewWidth() const {
+    inline float viewWidth() const {
         return pixelWidth / scale();
     }
 
-    float viewHeight() const {
+    inline float viewHeight() const {
         return pixelHeight / scale();
     }
 
@@ -52,7 +50,7 @@ struct Camera {
         return rotated + glm::vec2(position);
     }
 
-    glm::vec2 pixelToWorld(int x, int y) const {
+    inline glm::vec2 pixelToWorld(int x, int y) const {
         return pixelToWorld({x, y});
     }
 
@@ -63,7 +61,7 @@ struct Camera {
         return scaled + glm::vec2(position);
     }
 
-    glm::vec2 minCorner() const {
+    inline glm::vec2 minCorner() const {
         return pixelToWorld({0, pixelHeight});
     }
 

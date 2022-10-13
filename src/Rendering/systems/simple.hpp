@@ -1,82 +1,10 @@
-#ifndef RENDERING_SYSTEMS_INCLUDED
-#define RENDERING_SYSTEMS_INCLUDED
-
-#include <vector>
-#include <tuple>
-#include "../ECS/EntitySystem.hpp"
-#include "../ECS/Query.hpp"
-#include "../ECS/ECS.hpp"
-#include "../utils/Log.hpp"
-#include "../Rendering/Drawing.hpp"
-#include "../Rendering/context.hpp"
-#include "../utils/Debug.hpp"
-#include "../constants.hpp"
-
-//using ECS::EntitySystem;
-
-/*
-class RenderSizeSystem : public EntitySystem {
-public:
-    const GameViewport* gameViewport;
-
-    #define SYSTEM_ACCESS(component) (sys.componentAccess[getID<component>()])
-
-    RenderSizeSystem(EntityWorld* ecs) : EntitySystem(ecs) {
-        using namespace ComponentAccess;
-        sys.GiveAccess<EC::Render>(Read | Write);
-        SYSTEM_ACCESS(EC::Size) = Read;
-    }
-
-    bool Query(ComponentFlags entitySignature) const {
-        return ((entitySignature & componentSignature<EC::Size, EC::Render>()) == componentSignature<EC::Size, EC::Render>());
-    }
-
-    void Update() {
-        ForEach([&](Entity entity){
-            SDL_FRect* renderDst = &sys.GetReadWrite<EC::Render>(entity)->destination;
-            renderDst->w = sys.GetReadOnly<EC::Size>(entity)->width * TileWidth;
-            renderDst->h = sys.GetReadOnly<EC::Size>(entity)->height * TileHeight;
-        });
-    }
-
-private:
-
-};
-
-class RenderPositionSystem : public EntitySystem {
-public:
-    const GameViewport* gameViewport;
-
-    RenderPositionSystem(ECS* ecs) : EntitySystem(ecs) {
-        using namespace ComponentAccess;
-        sys.GiveAccess<EC::Position>(Read);
-        sys.GiveAccess<EC::Render>(Read | Write);
-    }
-
-    bool Query(ComponentFlags entitySignature) const {
-        return ((entitySignature & componentSignature<EC::Position, EC::Render>()) == componentSignature<EC::Position, EC::Render>());
-    }
-
-    void Update() {
-        ForEach([&](Entity entity){
-            // copy rotation to render component
-            SDL_FRect* renderDst = &sys.GetReadWrite<EC::Render>(entity)->destination;
-            Vec2 dstPosition = gameViewport->worldToPixelPositionF(*sys.GetReadOnly<EC::Position>(entity));
-            renderDst->x = dstPosition.x;
-            renderDst->y = dstPosition.y;
-        });
-    }
-
-private:
-
-};
-*/
-
-
-const GLuint quadIndices[6] = {
-    0, 1, 3,   // first triangle
-    1, 2, 3    // second triangle
-};
+#include "../../SECS/EntityWorld.hpp"
+#include "../../gl.hpp"
+#include "../utils.hpp"
+#include "../context.hpp"
+#include "../../Chunks.hpp"
+#include "../../utils/Debug.hpp"
+#include "../../GameState.hpp"
 
 struct RenderSystem {
     typedef ECS::EntityQuery<
@@ -86,23 +14,23 @@ struct RenderSystem {
     float scale = 1.0f;
 
     ModelData model;
-    const GLuint entitiesPerBatch = 1000;
-    const GLuint verticesPerEntity = 4;
-    const GLuint indicesPerEntity = 6;
-    const GLuint verticesPerBatch = entitiesPerBatch*verticesPerEntity;
-    const GLuint indicesPerBatch = entitiesPerBatch*indicesPerEntity;
-    const GLuint vertexSize = 7 * sizeof(GLfloat);
-    const GLuint positionEntityVertexSize = verticesPerEntity * 3 * sizeof(GLfloat);
-    const GLuint texCoordEntityVertexSize = verticesPerEntity * 3 * sizeof(GLfloat);
-    const GLuint rotationEntityVertexSize = verticesPerEntity * 1 * sizeof(GLfloat);
-    const size_t bufferSize = verticesPerBatch * vertexSize;
+
+    const static GLuint entitiesPerBatch = 1000;
+    const static GLuint verticesPerEntity = 4;
+    const static GLuint indicesPerEntity = 6;
+    const static GLuint verticesPerBatch = entitiesPerBatch*verticesPerEntity;
+    const static GLuint indicesPerBatch = entitiesPerBatch*indicesPerEntity;
+    const static GLuint vertexSize = 7 * sizeof(GLfloat);
+    const static GLuint positionEntityVertexSize = verticesPerEntity * 3 * sizeof(GLfloat);
+    const static GLuint texCoordEntityVertexSize = verticesPerEntity * 3 * sizeof(GLfloat);
+    const static GLuint rotationEntityVertexSize = verticesPerEntity * 1 * sizeof(GLfloat);
+    const static size_t bufferSize = verticesPerBatch * vertexSize;
 
     RenderSystem() {
         GLuint vbo,ebo,vao;
         glGenBuffers(1, &vbo);
         glGenBuffers(1, &ebo);
         glGenVertexArrays(1, &vao);
-
 
         glBindVertexArray(vao);
 
@@ -182,26 +110,19 @@ struct RenderSystem {
         auto camTransform = camera.getTransformMatrix();
         shader.setMat4("transform", camTransform);
 
-        auto cameraMin = camera.minCorner();
-        auto cameraMax = camera.maxCorner();
-        Vec2 cameraSize = {camera.viewWidth(), camera.viewHeight()};
-
-        static float shaderSetAngle = 0.0f;
-
         struct EntityVertex {
             GLvec3 pos;
             GLvec3 texCoord;
             float rotation;
         };
 
+        glBindVertexArray(model.VAO);
         glBindBuffer(GL_ARRAY_BUFFER, model.VBO);
-        
-
         VertexDataArrays buffer = mapVertexBuffer();
 
+        Vec2 cameraSize = {camera.viewWidth(), camera.viewHeight()};
+
         int entityCounter = 0, entitiesRenderered = 0;
-        
-        glBindVertexArray(model.VAO);
         forEachEntityInBounds(ecs, &chunkmap, 
             Vec2(camera.position.x, camera.position.y),
             cameraSize*2.0f, 
@@ -280,5 +201,3 @@ struct RenderSystem {
         }
     }
 };
-
-#endif

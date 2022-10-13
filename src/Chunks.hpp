@@ -1,7 +1,6 @@
 #ifndef CHUNKS_INCLUDED
 #define CHUNKS_INCLUDED
 
-#include <vector>
 #include "My/Vec.hpp"
 #include "My/BucketArray.hpp"
 #include "My/HashMap.hpp"
@@ -10,10 +9,12 @@
 #include "constants.hpp"
 #include "utils/Vectors.hpp"
 #include "ECS/Entity.hpp"
+#include <array>
 
 using ECS::Entity;
 
 typedef Tile Chunk[CHUNKSIZE][CHUNKSIZE]; // 2d array of tiles
+//using Chunk = std::array< std::array<Tile, CHUNKSIZE>, CHUNKSIZE >;
 
 struct ChunkData {
     Chunk* chunk; // pointer to chunk tiles
@@ -46,7 +47,7 @@ struct ChunkData {
 // Get the tile from the chunk at the index, row ordered
 #define CHUNK_TILE_INDEX(chunk_ptr, index) ((&(*chunk_ptr)[0][0])[index])
 
-void generateChunk(Chunk* chunk);
+void generateChunk(ChunkData* chunk);
 
 #define CHUNK_BUCKET_SIZE 512
 #define CHUNKDATA_BUCKET_SIZE 512

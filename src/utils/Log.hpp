@@ -25,6 +25,7 @@ enum LogPriority {
     Warn,
     Error,
     Critical,
+    Crash,
     NumPriorities
 };
 }
@@ -112,8 +113,6 @@ void logInternal3(LogCategory category, LogPriority priority, const char* prefix
 #define LogLocGory(category_enum_name, priority_enum_name, ...) logAt(__FILE__, __LINE__, LogCategory::category_enum_name, LogPriority::priority_enum_name, __VA_ARGS__)
 #define LogLoc(priority_enum_name, ...) LogLocBase(Log.category, LogPriority::priority_enum_name, __VA_ARGS__)
 //#define Log(...) LogBase(Log.category, LogPriority::Info, __VA_ARGS__)
-
-#define LOG_FUNCTION __FUNCTION__
 
 #define LogCritical(...) logInternal(gLogger.category, LogPriority::Critical, "", __VA_ARGS__)
 #define LogError(...) logInternal3(gLogger.category, LogPriority::Error, __FILE__ ":", __FUNCTION__, ":" TOSTRING(__LINE__) " - ", __VA_ARGS__)

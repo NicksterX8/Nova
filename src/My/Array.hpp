@@ -53,6 +53,8 @@ struct Array {
     }
 
     using Type = T;
+    
+    using iterator = T*;
 
     inline T* begin() const { return data; }
     inline T* end() const { return data + size; }

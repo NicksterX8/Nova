@@ -5,22 +5,51 @@
 #include "../utils/common-macros.hpp"
 
 MY_CLASS_START
+/*
+template<typename ReturnType, typename Capture, typename ...Params> // captures
+struct Lambda {
+    Capture capture;
+    using Function = ReturnType(Capture&, Params...);
+    Function* function;
 
-Array<void> reallocate(void* data, int size, int newCapacity) {
-    newCapacity = (size > newCapacity) ? size : newCapacity; // new capacity can't be less than size
-
-    if (newCapacity != 0) {
-        void* newData = MY_realloc(data, newCapacity);
-        if (!newData) {
-            return -1;
-        }
-        data = newData;
-    } else {
-        MY_free(data);
-        data = nullptr;
+    ReturnType call(Params ...params) {
+        return function(capture, params...);
     }
-    
-    return Array<void>(newCapacity, data);
+
+    Lambda(Function* func, const Capture& capture) : function(func), capture(capture) {
+        
+    }
+};
+
+template<typename ReturnType, typename... Params>
+struct MyFunction {
+    using Self = MyFunction<ReturnType, Params...>;
+    using Function = ReturnType(void*, Params...);
+    Function* function;
+    void* capture;
+
+    template<typename... Captures>
+    static Self create(Function* function, Captures ...captures) {
+        Self self;
+        self.function = function;
+        std::tuple<Captures...>* tuple = new std::tuple<Captures...>;
+        //tuple = std::make_tuple<Captures...>(captures...);
+        self.capture = tuple;
+    }
+};
+
+inline void testLambda() {
+    void* ptr;
+    Lambda<int, void*> lambda([](void*& cap) -> int {
+
+    }, ptr);
+//
+    char c = 'a';
+    auto myFunc = MyFunction<bool, int, float>::
+    create([](void* captures, int i, float f) -> bool {
+        
+    }, c);
 }
+*/
 
 MY_CLASS_END

@@ -3,7 +3,7 @@
 namespace My {
 namespace Map {
 namespace Generic {
-
+/*
 void* hashmap_lookup(const HashMap* map, int keySize, int valueSize, const void* key, HashFunction* hashFunction, EqualityFunction* keyEquals) {
     // have to do this before doing hash % size because x % 0 is undefined behavior
     if (map->size < 1) return nullptr;
@@ -44,6 +44,7 @@ void* hashmap_lookup(const HashMap* map, int keySize, int valueSize, const void*
     // even after all that we couldn't find a value for the key
     return nullptr;
 }
+*/
 
 }
 }

@@ -104,10 +104,10 @@ struct Position : EntityComponent<Position>, Serializable<Position> {
     float x;
     float y;
 
-    Position(float x, float y);
-    Position(Vec2 vec);
+    Position(float x, float y) : x(x), y(y) {}
+    Position(Vec2 vec) : x(vec.x), y(vec.y) {}
     
-    inline Vec2 vec2() const {
+    Vec2 vec2() const {
         return Vec2(x, y);
     }
 };

@@ -7,13 +7,13 @@
 #include <math.h>
 
 #include "constants.hpp"
-#include "Textures.hpp"
+#include "rendering/textures.hpp"
 #include "GameState.hpp"
 #include "PlayerControls.hpp"
 #include "GUI/GUI.hpp"
 #include "sdl.hpp"
 #include "Camera.hpp"
-#include "Rendering/rendering.hpp"
+#include "rendering/rendering.hpp"
 
 struct Game;
 

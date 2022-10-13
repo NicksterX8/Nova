@@ -34,4 +34,9 @@ inline void memory_init(const std::function<void*(size_t size)>& onAllocFailCall
 #define free(ptr) free_func(ptr)
 #define realloc(ptr, size) realloc_func(ptr, size)
 
+template<class T>
+T* Alloc(size_t count) {
+    return static_cast<T*>(Malloc(count * sizeof(T)));
+}
+
 #endif

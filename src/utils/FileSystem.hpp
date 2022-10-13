@@ -1,7 +1,7 @@
 #ifndef FILE_SYSTEM_INCLUDED
 #define FILE_SYSTEM_INCLUDED
 
-#include "My/String.hpp"
+#include "../My/String.hpp"
 
 #define GLOBAL_FILEPATH_SIZE 1024
 
@@ -27,7 +27,7 @@ struct FileSystemT {
         }
 
         Directory(Directory root, const char* subpath) {
-            path = My::str_add_manual(root.path, subpath);
+            path = My::str_add_alloc(root.path, subpath);
         }
 
         My::String get(const char* unixFilepath) const {
@@ -69,12 +69,6 @@ struct FileSystemT {
         free(save.path);
     }
 };
-
-inline void teste() {
-    My::String s1;
-    My::String s2;
-    long c3 = s1 - s2;
-}
 
 extern FileSystemT FileSystem;
 

@@ -4,13 +4,10 @@
 #include <SDL2/SDL.h>
 #include <stdlib.h>
 #include <stddef.h>
-#include <bitset>
-#include <functional>
-#include <vector>
 
 #include "../constants.hpp"
 #include "../utils/Vectors.hpp"
-#include "../Textures.hpp"
+#include "../rendering/textures.hpp"
 #include "../utils/Log.hpp"
 
 #include "Entity.hpp"
@@ -19,7 +16,7 @@
 #include "EntityManager.hpp"
 #include "EntitySystemInterface.hpp"
 #include "ComponentPool.hpp"
-#include "../../ComponentMetadata/component.hpp"
+#include "../../ComponentMetadata/components.hpp"
 
 
 namespace ECS {

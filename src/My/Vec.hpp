@@ -109,14 +109,9 @@ struct Vec {
 
     // Try to reserve to atleast minCapacity
     inline bool reserve(int newCapacity) {
-        newCapacity = (size > newCapacity) ? size : newCapacity;
-        T* newData = (T*)MY_realloc(data, newCapacity * sizeof(T));
-        if (newData) {
-            data = newData;
-            capacity = newCapacity;
-            return true;
+        if (capacity < newCapacity) {
+            return reallocate((capacity*2 > newCapacity) ? capacity*2 : newCapacity);
         }
-        // failed to allocate
         return false;
     }
 
@@ -170,7 +165,7 @@ struct Vec {
         size--;
     }
 
-    bool push(T* elements, int count) {
+    bool push(const T* elements, int count) {
         /*
         if (reserveAtleast(size + count)) {
             memcpy(&data[size], elements, count * sizeof(T));
@@ -181,6 +176,8 @@ struct Vec {
         */
         return Generic::vec_push((Generic::Vec*)this, sizeof(T), elements, count);
     }
+
+    using iterator = T*; // no iterator bs, just pointer
 
     inline T* begin() const { return data; }
     inline T* end() const { return data + size; }

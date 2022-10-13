@@ -2,9 +2,6 @@
 
 namespace EC {
 
-Position::Position(float x, float y) : x(x), y(y) {}
-Position::Position(Vec2 vec) : x(vec.x), y(vec.y) {}
-
 Size::Size(float width, float height)
 : width(width), height(height) {}
 Size::Size(Vec2 vec) : width(vec.x), height(vec.y) {}

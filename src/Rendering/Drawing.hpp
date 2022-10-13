@@ -172,6 +172,8 @@ namespace Draw {
         }
 
         void flush() {
+            if (storedQuads == 0) return;
+
             glBindVertexArray(vao);
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
             glUnmapBuffer(GL_ARRAY_BUFFER);

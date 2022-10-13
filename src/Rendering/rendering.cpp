@@ -1,4 +1,11 @@
 #include "rendering.hpp"
+#include "systems/simple.hpp"
+#include "../Chunks.hpp"
+#include "../utils/Debug.hpp"
+#include "../utils/Log.hpp"
+#include "../utils/random.hpp"
+#include "../My/Vec.hpp"
+#include "../utils/Vectors.hpp"
 
 /*
 void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, const GUI* gui, const GameState* state, Vec2 playerTargetPos) {
@@ -95,11 +102,11 @@ static void renderChunk(RenderContext& ren, ChunkData& chunkdata, ModelData& chu
 
     glUnmapBuffer(GL_ARRAY_BUFFER);
 
-    glDrawElements(GL_TRIANGLES, Render::numChunkIndices, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, Render::numChunkIndices, GL_UNSIGNED_SHORT, 0);
 }
 
 static Shader loadShader(const char* name) {
-    return Shader(FileSystem.shaders.get(str_add(name, ".vs")), FileSystem.shaders.get(str_add(name, ".fs")));
+    return Shader(compileShaderProgram(FileSystem.shaders.get(str_add(name, ".vs")), FileSystem.shaders.get(str_add(name, ".fs"))));
 }
 
 static int loadShaders(RenderContext& ren) {
@@ -117,10 +124,10 @@ void renderInit(RenderContext& ren) {
     glActiveTexture(GL_TEXTURE0 + TextureUnit::Text);
 
     initFreetype();
-    ren.font = Font(4.0f, 1.0f);
-    ren.font.load(FileSystem.assets.get("fonts/FreeSans.ttf"), 64, true);
-    ren.debugFont = Font(4.0f, 1.0f);
-    ren.debugFont.load(FileSystem.assets.get("fonts/Ubuntu-Regular.ttf"), 24, false);
+    ren.font = Font(5.0f, 2.0f);
+    ren.font.load(FileSystem.assets.get("fonts/FreeSans.ttf"), 128, true);
+    ren.debugFont = Font(5.0f, 2.0f);
+    ren.debugFont.load(FileSystem.assets.get("fonts/Ubuntu-Regular.ttf"), 32, false);
 
     glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureArray);
 
@@ -136,6 +143,7 @@ void renderInit(RenderContext& ren) {
     ren.sdfShader.setInt("text", TextureUnit::Text);
 
     ren.textRenderer = TextRenderer::init(&ren.debugFont, ren.textShader);
+    ren.textRenderer.defaultFormatting = TextFormattingSettings::Default();
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
     glEnable(GL_PROGRAM_POINT_SIZE);
@@ -148,29 +156,14 @@ void renderInit(RenderContext& ren) {
     };
     ren.chunkModel = makeModel(
         Render::numChunkVerts * sizeof(TilemapVertex), NULL, GL_DYNAMIC_DRAW,
-        Render::numChunkIndices * sizeof(GLuint), NULL, GL_DYNAMIC_DRAW,
+        Render::numChunkIndices * sizeof(GLushort), NULL, GL_DYNAMIC_DRAW,
         attributes, sizeof(attributes) / sizeof(VertexAttribute)
     );
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ren.chunkModel.EBO);
-    GLuint* chunkIndexBuffer = static_cast<GLuint*>(glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY));
-
-    for (GLuint i = 0; i < CHUNKSIZE*CHUNKSIZE; i++) {
-        GLuint first = i*4;
-        GLuint ind = i * 6;
-        chunkIndexBuffer[ind+0] = first+0;
-        chunkIndexBuffer[ind+1] = first+1;
-        chunkIndexBuffer[ind+2] = first+3;
-        chunkIndexBuffer[ind+3] = first+1;
-        chunkIndexBuffer[ind+4] = first+2;
-        chunkIndexBuffer[ind+5] = first+3; 
-    }
-
-    GL::logErrors();
-
+    GLushort* chunkIndexBuffer = (GLushort*)glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+    generateQuadVertexIndices(CHUNKSIZE * CHUNKSIZE, chunkIndexBuffer);
     glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-
-    GL::logErrors();
 }
 
 void renderQuit(RenderContext& ren) {
@@ -192,25 +185,7 @@ static My::Array<Draw::ColorVertex> makeDemoQuads(SDL_Window* window) {
     int drawableWidth,drawableHeight;
     SDL_GL_GetDrawableSize(window, &drawableWidth, &drawableHeight);
 
-    Draw::ColorVertex list[] = {
-        {{200, 100, 0.5}, {0, 1, 0, 1}},
-        {{200, 200, 0.5}, {0, 1, 0, 1}},
-        {{400, 200, 0.5}, {0, 1, 0, 1}},
-        {{400, 100, 0.5}, {0, 1, 0, 1}},
-        
-        {{0, drawableHeight, 0.6}, {1, 0, 1, 1}},
-        {{50, drawableHeight, 0.6}, {0, 1, 1, 1}},
-        {{50, drawableHeight-50, 0.6}, {1, 1, 0, 1}},
-        {{0, drawableHeight-50, 0.6}, {0, 1, 0, 1}},
-
-        {{2, 1, 0.5}, {0, 1, 0, 1}},
-        {{2, 2, 0.5}, {0, 1, 1, 1}},
-        {{4, 2, 0.5}, {1, 1, 0, 1}},
-        {{4, 1, 0.5}, {0, 1, 0, 1}}
-    };
-    auto quadPoints = My::Vec<Draw::ColorVertex>(list, sizeof(list)/sizeof(Draw::ColorVertex));
-
-    auto vec = My::Vec<int>(500 * 4);
+    auto quadPoints = My::Vec<Draw::ColorVertex>::WithCapacity(500 * 4);
  
     for (int i = 0; i < 500; i++) {
         Vec2 min = {randomInt(-100, 100), randomInt(-100, 100)};
@@ -224,6 +199,59 @@ static My::Array<Draw::ColorVertex> makeDemoQuads(SDL_Window* window) {
     return {quadPoints.data, quadPoints.size};
 }
 
+using Draw::ColorQuadRenderBuffer;
+
+struct GuiRenderer {
+    ColorQuadRenderBuffer* quadRenderer;
+    TextRenderer* textRenderer;
+    Rect screen;
+    float z;
+    float scale;
+
+    #define CONST(name, val) const auto name = (val * scale)
+
+    void colorRect(Rect rect, Color color) {
+        ColorQuadRenderBuffer::UniformQuad2D quad;
+        quad.color = colorConvert(color);
+        glm::vec2* positions = quad.positions;
+        positions[0] = {rect.x,        rect.y,      };
+        positions[1] = {rect.x+rect.w, rect.y,      };
+        positions[2] = {rect.x+rect.w, rect.y+rect.h};
+        positions[3] = {rect.x,        rect.y+rect.h};
+        quadRenderer->bufferUniform(1, &quad, z);
+    }
+
+    void textBox(Rect rect, const My::StringBuffer& textBuffer) {
+        if (textBuffer.empty()) return;
+        const int padX = 20 * scale;
+        const int padY = 30 * scale;
+        static TextFormattingSettings settings = {
+             {1, 1, 0, 1},
+            TextAlignment::BottomLeft
+        };
+        settings.maxWidth = (float)rect.w;
+        //settings.sizeOffsetScale = 
+        FRect textRect = textRenderer->renderStringBufferAsLines(textBuffer, glm::vec2(rect.x+padX, rect.y+padY), settings);
+        Rect textBox = {
+            (int)textRect.x - padX,
+            (int)textRect.y - padY,
+            (int)textRect.w + padX*2,
+            (int)textRect.h + padY*2
+        };
+        this->colorRect(textBox, Color{50, 50, 50, 200});
+    }
+
+    void flush(Shader quadShader) {
+        quadShader.use();
+        quadRenderer->flush();
+        textRenderer->flush();
+    }
+};
+
+void renderTextBox(GuiRenderer& renderer) {
+    
+}
+
 void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera& camera, Vec2 playerTargetPos) {
     glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureArray);
     glBindTexture(GL_TEXTURE_2D_ARRAY, ren.textureArray);
@@ -231,6 +259,12 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
     /* Start Rendering */
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    int drawableWidth,drawableHeight;
+    SDL_GL_GetDrawableSize(ren.window, &drawableWidth, &drawableHeight);
+
+    IVec2 screenMin = {0, 0}; (void)screenMin;
+    IVec2 screenMax = {drawableWidth, drawableHeight};
 
     GL::logErrors();
 
@@ -259,7 +293,7 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
             if (!chunkdata) {
                 ChunkData* newChunk = state->chunkmap.newChunkAt({x, y});
                 if (newChunk) {
-                    generateChunk(newChunk->chunk);
+                    generateChunk(newChunk);
                     chunkdata = newChunk;
                 } else {
                     LogError("Failed to create missing chunk at tile (%d,%d) for rendering", x*CHUNKSIZE, y*CHUNKSIZE);
@@ -274,6 +308,7 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
 
     int numRenderedTiles = numRenderedChunks * CHUNKSIZE*CHUNKSIZE;
     //LogInfo("num rendered tiles: %d", numRenderedTiles);
+    (void)numRenderedTiles;
 
     static RenderSystem renderSystem = RenderSystem();
     renderSystem.Update(state->ecs, state->chunkmap, ren, camera);
@@ -281,7 +316,6 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
     My::Vec<Draw::ColoredPoint> points(0);
     points.push({{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.5f}, 15.0f});
     auto r1 = camera.minCorner();
-    auto r2 = camera.pixelToWorld({camera.pixelWidth/2.0f, camera.pixelHeight/2.0f});
     auto r3 = camera.maxCorner();
     points.push({glm::vec3(r1.x + 1, r1.y + 1, 0.0f), {0, 1, 0, 1}, 8.0f});
     points.push({glm::vec3(r3.x - 1, r3.y - 1, 0.0f), {0, 1, 0, 1}, 8.0f});
@@ -289,9 +323,6 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
 
     static Draw::ColorQuadRenderBuffer quadRenderer = Draw::ColorQuadRenderBuffer();
     static auto quadPoints = makeDemoQuads(ren.window);
-
-    int drawableWidth,drawableHeight;
-    SDL_GL_GetDrawableSize(ren.window, &drawableWidth, &drawableHeight);
 
     glm::mat4 quadTransform;
     glm::mat4 screenTransform = glm::ortho(0.0f, (float)drawableWidth, 0.0f, (float)drawableHeight);
@@ -363,10 +394,46 @@ void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera&
     textShader.use();
 
     glDepthMask(GL_FALSE);
-    renderText(textRenderer, "hello\nworld!\nWhats up guys  \n\n!", glm::vec2{100, 100}, camera.scale() / 10, glm::vec3{1, 0, 0});
-    renderText(textRenderer, "Howdy\tpal!", glm::vec2(drawableWidth/2.0f, drawableHeight/2.0f), camera.scale() / 10, glm::vec3(0, 0, 0));
-    renderText(textRenderer, "This is ubuntu with regular text!", glm::vec2{600, 500}, 1.0f, glm::vec3{0.0f, 0.0f, 0.0f});
+    textRenderer.font = &ren.debugFont;
+    TextFormattingSettings& textSettings = textRenderer.defaultFormatting;
+    textSettings.maxWidth = INFINITY;
+    textSettings.scale = glm::vec2(1.0f);
+    textSettings.wrapOnWhitespace = false;
+    textSettings.align = TextAlignment::MiddleCenter;
+    textRenderer.render("Howdy pal!    ", glm::vec2(drawableWidth/2.0f, drawableHeight/2.0f + 150.0f));
+    static auto otherSettings = TextFormattingSettings(
+        glm::vec4(0, 0, 0, 1),
+        TextAlignment::TopRight,
+        2.0f,
+        80.0f
+    );
+    static auto otherSettings2 = TextFormattingSettings(
+        glm::vec4(0, 1, 0, 1),
+        TextAlignment::TopCenter
+    );
+    static auto otherSettings3 = TextFormattingSettings(
+        glm::vec4(0, 0, 0, 1),
+        TextAlignment::TopLeft,
+        0.5f
+    );
+    textRenderer.render("Howdy pal! jdfkjasd", glm::vec2(drawableWidth/2.0f, drawableHeight/2.0f), otherSettings);
+    textRenderer.render("This is ubuntu with regular text!", glm::vec2{600, 500}, otherSettings2);
+    textRenderer.render("this is centered\nAt the top! THis is even more garbage text!!!", {drawableWidth/2.0f, drawableHeight-100.0f}, otherSettings2);
+    textRenderer.render("hello\nworld!\nWhats up guys  \n\n!", glm::vec2{100, 100}, otherSettings3);
+
     textRenderer.flush();
+
+    GuiRenderer guiRenderer;
+    guiRenderer.quadRenderer = &quadRenderer;
+    guiRenderer.textRenderer = &textRenderer;
+    guiRenderer.scale = 1.0f;
+    guiRenderer.screen = {0, 0, drawableWidth, drawableHeight};
+    guiRenderer.z = 0.0f;
+    guiRenderer.textBox({50, 50, 200, 100}, gui->inputtedText);
+    ren.colorShader.use();
+    ren.colorShader.setMat4("transform", screenTransform);
+    guiRenderer.flush(ren.colorShader);
+
     glDepthMask(GL_TRUE);
 
     glEnable(GL_DEPTH_TEST);

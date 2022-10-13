@@ -10,7 +10,7 @@ EntityManager::EntityManager() {
 
 void EntityManager::destroy() {
     for (ComponentID id = 0; id < nComponents; id++) {
-        pools[id]->destroy();
+        pools[id].destroy();
     }
     delete pools;
 
@@ -56,7 +56,7 @@ int EntityManager::Destroy(Entity entity) {
     int code = 0;
     for (Uint32 id = 0; id < nComponents; id++) {
         if (entityData->flags[id])
-            code |= pools[id]->remove(entity.id);
+            code |= pools[id].remove(entity.id);
     }
 
     // swap last entity with this entity for 100% entity packing in array

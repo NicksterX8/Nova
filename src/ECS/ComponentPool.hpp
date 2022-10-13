@@ -2,30 +2,35 @@
 #define COMPONENT_POOL_INCLUDED
 
 #include "Entity.hpp"
-#include "../../ComponentMetadata/component.hpp"
+#include "../../ComponentMetadata/components.hpp"
+#include "../global.hpp"
 
 #define ECS_NULL_INDEX UINT32_MAX
 #define ECS_MAX_COMPONENT_NAME_SIZE 256
 
 namespace ECS {
 
-struct ComponentPool {
+constexpr Uint32 DEFAULT_COMPONENT_POOL_CAPACITY = 16;
+
+struct 
+alignas(64)
+ComponentPool {
     size_t componentSize;
-    Uint32 size = 0; // how many used components exist in the components array
-    Uint32 capacity = 0; // number of reserved component memory spaces
+    Uint32 size; // how many used components exist in the components array
+    Uint32 capacity; // number of reserved component memory spaces
 
-    Component* components = NULL; // array of components
-    EntityID* componentOwners = NULL;
-
-    Uint32* entityComponentSet = NULL; // array indexable by entity id to get the index of the component owned by that entity
-
+    Component* components; // array of components
+    EntityID* componentOwners; // array of components, same size as 'components'
+    Uint32* entityComponentSet; // array indexable by entity id to get the index of the component owned by that entity
+    
+    const char* name; // human readable name of component type
     ComponentID id;
-    char name[ECS_MAX_COMPONENT_NAME_SIZE] = "null";
 
+    
+    /*
     ComponentPool(ComponentID componentID, size_t componentSize, Uint32 startCapacity)
-    : componentSize(componentSize), id(componentID) {
+    : componentSize(componentSize), size(0), capacity(startCapacity), name(NULL), id(componentID) {
         if (componentSize != 0) {
-            capacity = startCapacity;
             components = (Component*)malloc(startCapacity * componentSize);
             componentOwners = (EntityID*)malloc(startCapacity * sizeof(EntityID));
             entityComponentSet = (Uint32*)malloc(MAX_ENTITIES * sizeof(Uint32));
@@ -34,17 +39,42 @@ struct ComponentPool {
             }
         }
     }
+    */
+
+    static ComponentPool Init(ComponentID componentID, size_t componentSize, Uint32 startCapacity) {
+        if (componentSize != 0) {
+            auto self = ComponentPool{
+                .componentSize = componentSize,
+                .size = 0,
+                .capacity = startCapacity,
+                .components = (Component*)malloc(startCapacity * componentSize),
+                .componentOwners = (EntityID*)malloc(startCapacity * sizeof(EntityID)),
+                .entityComponentSet = (Uint32*)malloc(MAX_ENTITIES * sizeof(Uint32)),
+                .name = NULL,
+                .id = componentID
+            };
+            if (!self.components || !self.componentOwners || !self.entityComponentSet) {
+                LogCrash(CrashReason::MemoryFail, "Failed to allocate memory for component pool %d!", componentID);
+            }
+            return self;
+        }
+        return ComponentPool{
+            .componentSize = 0,
+            .size = 0,
+            .capacity = 0,
+            .components = NULL,
+            .componentOwners = NULL,
+            .entityComponentSet = NULL,
+            .name = NULL,
+            .id = componentID
+        };
+    }
 
     // Destroy the component pool, deallocating all heap allocations
     void destroy() {
         free(components);
         free(componentOwners);
         free(entityComponentSet);
-    }
-
-    // set the name of the component type / pool, currently used only for debugging. Max size of 256, after that name is cut off.
-    void setName(const char* componentName) {
-        strncpy(name, componentName, ECS_MAX_COMPONENT_NAME_SIZE);
     }
 
     inline Component* atIndex(Uint32 index) const {
@@ -141,18 +171,6 @@ struct ComponentPool {
         capacity = newCapacity;
 
         return true;
-    }
-
-    void iterateComponents(std::function<void(void*)> callback) const {
-        for (int c = size-1; c >= 0; c--) {
-            callback(atIndex(c));
-        }
-    }
-
-    void iterateEntities(std::function<void(EntityID)> callback) const {
-        for (int c = size-1; c >= 0; c--) {
-            callback(componentOwners[c]);
-        }
     }
 };
 

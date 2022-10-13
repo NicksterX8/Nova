@@ -1,6 +1,6 @@
-#include "Textures.hpp"
-#include "sdl_gl.hpp"
-#include "utils/Log.hpp"
+#include "textures.hpp"
+#include "../sdl_gl.hpp"
+#include "../utils/Log.hpp"
 
 void flipSurface(SDL_Surface* surface) {
     SDL_LockSurface(surface);

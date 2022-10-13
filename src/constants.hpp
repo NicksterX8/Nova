@@ -20,7 +20,8 @@
 #define PLAYER_INVENTORY_SIZE 32
 
 #define NUM_RENDER_LAYERS 16
-#define CHUNKSIZE 32
+#define CHUNKSIZE 64
+static_assert(CHUNKSIZE > 0, "Chunks can't be empty");
 
 #define DEFAULT_TILE_PIXEL_SIZE 32.0f
 #define TILE_PIXEL_VERTICAL_SCALE 1

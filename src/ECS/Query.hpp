@@ -25,11 +25,10 @@ template<class... Components>
 constexpr ComponentPool* smallestComponentPool(const EntityManager* em) {
     if (sizeof...(Components) == 0) return NULL;
 
-    constexpr ComponentID ids[] = {0, ((void)0, getID<Components>()) ...};
-    ComponentPool* pools[] = {0, ((void)0, em->getPool<Components>()) ...};
-    Uint32 minSize = pools[1]->size;
-    ComponentPool* minSizePool = pools[1];
-    for (Uint32 i = 2; i < sizeof(pools) / sizeof(ComponentPool*); i++) {
+    ComponentPool* pools[] = {em->getPool<Components>() ...};
+    Uint32 minSize = pools[0]->size;
+    ComponentPool* minSizePool = pools[0];
+    for (Uint32 i = 1; i < sizeof...(Components); i++) {
         Uint32 poolSize = pools[i]->size;
         if (poolSize < minSize) {
             minSize = poolSize;
@@ -99,9 +98,9 @@ public:
 
     template<class... Sets>
     static constexpr ComponentFlags getLogicalOrSignature(LogicalOrComponents<Sets...> _logicalORs, int index) {
-        constexpr ComponentFlags setSignatures[] = {0, ((void)0, Sets::signature()) ...};
+        constexpr ComponentFlags setSignatures[] = {Sets::signature() ...};
 
-        return setSignatures[index+1];
+        return setSignatures[index];
     }
 
     static constexpr bool Check(ComponentFlags signature) {

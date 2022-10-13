@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <array>
-#include <bitset>
 #include <sstream>
 #include <string>
 #include "Component.hpp"
@@ -20,7 +19,7 @@ namespace ECS {
 
 typedef Uint32 EntityID;
 typedef Uint32 EntityVersion;
-typedef Uint32 ComponentID;
+typedef Sint32 ComponentID;
 
 struct ComponentFlags : public My::Bitset<NUM_COMPONENTS> {
     using My::Bitset<NUM_COMPONENTS>::Bitset;
