@@ -12,6 +12,7 @@
 #include "../utils/Log.hpp"
 #include "../constants.hpp"
 #include "../My/Bitset.hpp"
+#include "../My/String.hpp"
 
 typedef uint32_t Uint32;
 
@@ -116,7 +117,7 @@ struct EntityBase {
     * Get a string listing the entity's properties, useful for debug logs.
     * Warning: This is a slow method, should only be used for debugging.
     */
-    std::string DebugStr() const {
+    std::string DebugString() const {
         std::ostringstream stream;
         if (id == NULL_ENTITY_ID)
             stream << "ID: null";
@@ -128,6 +129,26 @@ struct EntityBase {
         else
             stream << " | Version: " << version;
         return stream.str();
+    }
+
+    const char* DebugStr() const {
+        static thread_local char buffer[128];
+        if (id != NULL_ENTITY_ID) {
+            if (version != NULL_ENTITY_VERSION) {
+                snprintf(buffer, 128, "ID: %u | Version: %u", id, version);
+            } else {
+                snprintf(buffer, 128, "ID: %u | Version: null", id);
+            }
+        } else {
+            if (version != NULL_ENTITY_VERSION) {
+                snprintf(buffer, 128, "ID: null | Version: %u", version);
+            } else {
+                return "ID: null | Version: null";
+            }
+        }
+        static_assert(std::is_unsigned<EntityID>::value == true, "change snprintf format specifier!");
+        static_assert(std::is_unsigned<EntityVersion>::value == true, "change snprintf format specifier!");
+        return buffer;
     }
 };
 

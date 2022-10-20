@@ -23,14 +23,14 @@ struct FileSystemT {
         Directory() {}
 
         Directory(const char* unixPath) {
-            path = My::duplicateStr(unixPath);
+            path = My::strdup(unixPath);
         }
 
         Directory(Directory root, const char* subpath) {
             path = My::str_add_alloc(root.path, subpath);
         }
 
-        My::String get(const char* unixFilepath) const {
+        My::CString get(const char* unixFilepath) const {
             // make this work for windows
             return My::str_add(path, FileSystemT::get(unixFilepath));
         }
@@ -54,11 +54,11 @@ struct FileSystemT {
         save = Directory(get(resources, "save/"));
     }
 
-    static My::String get(const char* unixFilepath) {
-        return My::String(unixFilepath);
+    static My::CString get(const char* unixFilepath) {
+        return My::CString(unixFilepath);
     }
 
-    static My::String get(Directory directory, const char* unixFilepath) {
+    static My::CString get(Directory directory, const char* unixFilepath) {
         return My::str_add(directory.path, get(unixFilepath));
     }
 

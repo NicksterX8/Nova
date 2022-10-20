@@ -12,6 +12,8 @@ namespace Draw {
     void itemStack(SDL_Renderer* renderer, float scale, ItemStack item, SDL_Rect* destination);
 }
 
+namespace GUI {
+
 /*
 
 class Hotbar {
@@ -131,10 +133,24 @@ public:
     }
 };
 */
-struct GUI {
+
+struct Console {
+    My::StringBuffer text = My::StringBuffer::FromStr("\0");
+    My::Vec<glm::vec4> textColors = My::Vec<glm::vec4>::Empty();
+
+    void pushNewLine() {
+
+    }
+};  
+
+struct Gui {
     My::Vec<SDL_FRect> area = My::Vec<SDL_FRect>(0);
     ItemStack* heldItemStack = nullptr;
-    My::StringBuffer inputtedText = My::StringBuffer::FromStr("\0");;
+    Console console = {};
+
+    Gui() {
+        console.textColors.push({0, 0, 0, 1});
+    }
 
     void draw(SDL_Renderer* ren, float scale, SDL_Rect viewport, const Player* player) {
         area.size = 0;
@@ -168,5 +184,8 @@ struct GUI {
     }
 };
 
+}
+
+using GUI::Gui;
 
 #endif

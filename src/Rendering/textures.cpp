@@ -105,6 +105,9 @@ unsigned int createTextureArray(int width, int height, int depth, SDL_Surface** 
 }
 
 int setTextureMetadata() {
+    TextureData[TextureIDs::Null].width = 0;
+    TextureData[TextureIDs::Null].height = 0;
+
     using namespace TextureIDs;
     TextureMetaDataStruct* tx = TextureMetaData;
     
@@ -133,11 +136,11 @@ int setTextureMetadata() {
     return code;
 }
 
-TextureMetaDataStruct TextureMetaData[TextureIDs::NumTextures];
-TextureDataStruct TextureData[TextureIDs::NumTextures];
+TextureMetaDataStruct TextureMetaData[TextureIDs::NumTextures+TextureIDs::First];
+TextureDataStruct TextureData[TextureIDs::NumTextures+TextureIDs::First];
 
 unsigned int makeTextureArray(const char* assetsPath) {
-    unsigned int depth = TextureIDs::NumTextures;
+    constexpr auto depth = TextureIDs::NumTextures;
     int fail = 0;
 
     SDL_Surface* images[TextureIDs::NumTextures];

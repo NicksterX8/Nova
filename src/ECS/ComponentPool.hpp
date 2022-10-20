@@ -5,7 +5,7 @@
 #include "../../ComponentMetadata/components.hpp"
 #include "../global.hpp"
 
-#define ECS_NULL_INDEX UINT32_MAX
+#define ECS_NULL_INDEX -1
 #define ECS_MAX_COMPONENT_NAME_SIZE 256
 
 namespace ECS {
@@ -21,7 +21,7 @@ ComponentPool {
 
     Component* components; // array of components
     EntityID* componentOwners; // array of components, same size as 'components'
-    Uint32* entityComponentSet; // array indexable by entity id to get the index of the component owned by that entity
+    Sint32* entityComponentSet; // array indexable by entity id to get the index of the component owned by that entity
     
     const char* name; // human readable name of component type
     ComponentID id;
@@ -49,12 +49,15 @@ ComponentPool {
                 .capacity = startCapacity,
                 .components = (Component*)malloc(startCapacity * componentSize),
                 .componentOwners = (EntityID*)malloc(startCapacity * sizeof(EntityID)),
-                .entityComponentSet = (Uint32*)malloc(MAX_ENTITIES * sizeof(Uint32)),
+                .entityComponentSet = (Sint32*)malloc(MAX_ENTITIES * sizeof(Sint32)),
                 .name = NULL,
                 .id = componentID
             };
             if (!self.components || !self.componentOwners || !self.entityComponentSet) {
                 LogCrash(CrashReason::MemoryFail, "Failed to allocate memory for component pool %d!", componentID);
+            }
+            for (Uint32 c = 0; c < MAX_ENTITIES; c++) {
+                self.entityComponentSet[c] = ECS_NULL_INDEX;
             }
             return self;
         }

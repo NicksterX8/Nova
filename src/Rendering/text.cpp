@@ -78,8 +78,9 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
 }
 
  void Font::unload() {
-    FT_Done_Face(face);
-    delete[] characters;
+    LogInfo("Unloading font %p", this->face);
+    FT_Done_Face(face); face = NULL;
+    free(characters);
     glDeleteTextures(1, &atlasTexture);
 }
 

@@ -20,7 +20,7 @@ enum Direction {
 
 struct Player {
     OptionalEntityT<Entities::Player> entity;
-    EntityWorld* ecs = NULL;
+    const EntityWorld* ecs = NULL;
     Direction facingDirection = DirectionUp;
 
     unsigned int numHotbarSlots = 9;
@@ -130,6 +130,8 @@ struct Player {
     }
 
     void selectHotbarSlot(int index) {
+        if (!entity.Has<EC::Inventory>(ecs)) return;
+
         selectedHotbarStack = index;
         if (inventory()->get(index).item) {
             heldItemStack = &inventory()->get(index);

@@ -59,7 +59,7 @@ int fff(int a) {
 }
 
 int main() {
-
+/*
     int count = 100000;
     
     auto before = getNow();
@@ -82,6 +82,15 @@ int main() {
     trash.~Trash();
 
     cout << trash.a << std::endl;
+*/
+    for (size_t s = 1; s < 1000000000; s += 100) {
+        size_t* ptr = (size_t*)malloc(s * sizeof(size_t));
+        if (!ptr) continue;
+        size_t stored = *(ptr);
+        if (s == stored) {
+            cout << "Stored == " << s;
+        }
+    }
 
     return 0;
 }

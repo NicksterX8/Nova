@@ -170,7 +170,7 @@ struct BucketArray {
             }
             return *this;
         }
-        bool operator!=(const iterator& other) const { return bucketPtr != other.bucketPtr && index != other.index; }
+        bool operator!=(const iterator& other) const { return bucketPtr != other.bucketPtr || index != other.index; }
         T& operator*() const { return (*bucketPtr)[index]; }
     };
 

@@ -45,13 +45,13 @@ struct TextureMetaDataStruct {
     const char* filename = NULL;
 };
 
-extern TextureMetaDataStruct TextureMetaData[TextureIDs::NumTextures];
+extern TextureMetaDataStruct TextureMetaData[TextureIDs::NumTextures+TextureIDs::First];
 
 struct TextureDataStruct {
     int width;
     int height;
 };
-extern TextureDataStruct TextureData[TextureIDs::NumTextures];
+extern TextureDataStruct TextureData[TextureIDs::NumTextures+TextureIDs::First];
 
 unsigned int createTextureArray(int width, int height, int depth, SDL_Surface** images);
 int setTextureMetadata();

@@ -7,7 +7,7 @@
 
 #include "sdl_gl.hpp"
 
-#include "GUI/GUI.hpp"
+#include "GUI/Gui.hpp"
 #include "utils/Debug.hpp"
 #include "loadData.hpp"
 
@@ -84,8 +84,7 @@ inline My::StringBuffer getMacroStringList(const char* macro, int length) {
             }
             nameEnd++;
         }
-        outList.push(nameStart, nameEnd - nameStart - 1);
-        outList.push('\0');
+        outList.pushUnterminatedStr(nameStart, nameEnd - nameStart - 1);
         c = nameEnd;
     }
     return outList;

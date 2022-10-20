@@ -97,7 +97,7 @@ public:
      */
     int Destroy(Entity entity) {
         if (!EntityExists(entity)) {
-            LogError("EntityWorld::Destroy : Entity passed does not exist! Entity: %s", entity.DebugStr().c_str());
+            LogError("EntityWorld::Destroy : Entity passed does not exist! Entity: %s", entity.DebugStr());
             return -1;
         }
 
@@ -206,6 +206,7 @@ public:
      */
     template<class T>
     int Add(Entity entity, const T& startValue) {
+        //LogInfo("Adding %s to entity: %s", em->getComponentName<T>(), entity.DebugStr());
         int ret = em->Add<T>(entity, startValue);
         if (!ret) {
             auto& onAddT = callbacksOnAdd[getID<T>()];
@@ -235,6 +236,7 @@ public:
             LogInfo("Entity type: %s", em->Get<EC::EntityTypeEC>(entity)->name);
         } else {
             for (size_t i = 0; i < ids.size(); i++) {
+                //LogInfo("Adding %s to entity: %s", em->getComponentName(ids[i]), entity.DebugStr());
                 auto& onAddT = callbacksOnAdd[ids[i]];
                 if (onAddT) {
                     if (deferringEvents) {

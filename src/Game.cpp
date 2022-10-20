@@ -5,7 +5,7 @@
 #include "utils/Log.hpp"
 #include "utils/Debug.hpp"
 #include "utils/random.hpp"
-#include "GUI/GUI.hpp"
+#include "GUI/Gui.hpp"
 #include "PlayerControls.hpp"
 #include "rendering/rendering.hpp"
 #include "GameSave/main.hpp"
@@ -89,7 +89,7 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
             // do airstrikes row by row
             for (int y = -100; y < 100; y += 5) {
                 for (int x = -100; x < 100; x += 5) {
-                    Entities::Airstrike(&ecs, Vec2(x, y * 2), {3.0f, 3.0f}, Vec2(x, y));
+                    //Entities::Airstrike(&ecs, Vec2(x, y * 2), {3.0f, 3.0f}, Vec2(x, y));
                 }
             }
         }),
@@ -103,12 +103,15 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
         }),
         new FunctionKeyBinding('5', [&](){
             const Entity* entities = ecs.GetEntityList();
-            for (int i = ecs.EntityCount()-1; i >= 0; i--) {
-                if (entities[i].id != 0)
-                    ecs.Destroy(entities[i]);
-            }
-        })
-
+            ecs.IterateEntities([&](Entity entity){
+                if (entity.id != player.entity.id) {
+                    if (ecs.Destroy(entity)) {
+                        LogError("Failed to destroy entity %s!", entity.DebugStr());
+                    }
+                }
+            });
+            ecs.Destroy(NullEntity);
+        }),
     };
 
     for (size_t i = 0; i < sizeof(keyBindings) / sizeof(KeyBinding*); i++) {
@@ -284,6 +287,44 @@ static void updateSystems(GameState* state) {
 int tick(GameState* state) {
     state->player.grenadeThrowCooldown--;
     updateSystems(state);
+    if (Metadata->ticks() % 10 == 0 && false) {
+        for (auto& chunk: state->chunkmap.chunkList) {
+            for (int x = 0; x < CHUNKSIZE; x++) {
+                for (int y = 0; y < CHUNKSIZE; y++) {
+                    //chunk[y][x].type = TileTypes::Grass;
+                    TileType& type = chunk[y][x].type;
+                    if (type == TileTypes::Grass) {
+                        type = TileTypes::Sand;
+                    }
+                    else if (type == TileTypes::Sand) {
+                        if (randomInt(0, 3) == 0) {
+                            type = TileTypes::Grass;
+                        }
+                    } else {
+                        chunk[y][x].type = randomInt(TileTypes::Grass, TileTypes::Wall);
+                    }
+                }
+            }
+        }
+        for (int x = -200; x < 200; x++) {
+            for (int y = -200; y < 200; y++) {
+                #define GETT(x, y) getTileAtPosition(state->chunkmap, IVec2{x, y})
+                #define GETTT(x, y) GETT(x, y)->type
+                Tile* tile = getTileAtPosition(state->chunkmap, IVec2{x, y});
+                if (tile) {
+                    TileType& type = tile->type;
+                    if (GETT(x, y+1) && GETT(x, y-1) && GETTT(x, y+1) == GETTT(x, y-1)) {
+                        type = GETTT(x, y+1);
+                    }
+                    if (GETT(x+1, y) && GETT(x-1, y) && GETTT(x+1, y) == GETTT(x-1, y)) {
+                        GETTT(x+1, y) = type;
+                        GETTT(x-1, y) = type;
+                    }
+                }
+            }
+        }
+    }
+
     return 0;
 }
 
@@ -393,7 +434,7 @@ int Game::update() {
 
 void Game::init(int screenWidth, int screenHeight) {
 
-    this->gui = new GUI();
+    this->gui = new Gui();
 
     this->state = new GameState();
     this->state->init();
@@ -406,7 +447,7 @@ void Game::init(int screenWidth, int screenHeight) {
     this->renderContext = new RenderContext(sdlCtx.win, sdlCtx.gl);
     setTextureMetadata();
     this->worldScale = 1.0f;
-    this->playerControls = new PlayerControls(this->camera, &this->gui->inputtedText);
+    this->playerControls = new PlayerControls(this->camera);
     SDL_Point mousePos = SDL::getMousePixelPosition();
     this->lastUpdateMouseState = {
         .x = mousePos.x,

@@ -6,7 +6,7 @@
 #include "../GameState.hpp"
 #include "../utils/Metadata.hpp"
 #include "textures.hpp"
-#include "../GUI/GUI.hpp"
+#include "../GUI/Gui.hpp"
 
 #include "Drawing.hpp"
 #include "Shader.hpp"
@@ -30,7 +30,7 @@ namespace Render {
 
 void renderInit(RenderContext& ren);
 void renderQuit(RenderContext& ren);
-void render(RenderContext& ren, float scale, GUI* gui, GameState* state, Camera& camera, Vec2 playerTargetPos);
+void render(RenderContext& ren, float scale, Gui* gui, GameState* state, Camera& camera, Vec2 playerTargetPos);
 
 
 #endif

@@ -4,6 +4,16 @@
 #include <glm/vec2.hpp>
 #include <memory>
 
+// based on this article "https://straypixels.net/texture-packing-for-fonts/" by Edward Lu, with some minor modifications
+// TODO: Move away from using std::unique_ptr. Use a better method of allocation. Add a destroy method instead of using destructor
+
+/*
+struct TextureBuffer {
+    unsigned char* buffer;
+    glm::ivec2 textureSize;
+    TextureNode* rootNode;
+};
+*/
 struct TexturePacker {
     struct TextureNode {
         glm::ivec2 origin; // Top left of the rectangle this node represents

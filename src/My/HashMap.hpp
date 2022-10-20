@@ -79,7 +79,7 @@ public:
     HashMap(int startBuckets) : size(0), bucketCount(startBuckets) {
         memory = MY_malloc(startBuckets * (sizeof(Bucket) + sizeof(K) + sizeof(V)));
         // buckets states need to be set to Bucket_Empty which is 0, so set all buckets to 0
-        My::t_memset(buckets(), 0, startBuckets);
+        My::memsetT(buckets(), 0, startBuckets);
     }
 
     static inline Self WithBuckets(int buckets) {
@@ -212,7 +212,7 @@ public:
         K* newKeys         =    getKeys(newMemory, newBucketCount);
         V* newValues       =  getValues(newMemory, newBucketCount);
         
-        My::t_memset(newBuckets, 0, newBucketCount);
+        My::memsetT(newBuckets, 0, newBucketCount);
 
         // Walk through all the current elements and insert them into the new buckets
         for (int i = 0; i < bucketCount; ++i) {

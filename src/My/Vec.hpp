@@ -5,6 +5,7 @@
 #include "MyInternals.hpp"
 #include "Array.hpp"
 #include <initializer_list>
+#include "std.hpp"
 
 MY_CLASS_START
 
@@ -98,17 +99,51 @@ struct Vec {
         return vec_push((Generic::Vec*)this, sizeof(T), &val);
     }
 
-    inline void pop() {
+    bool pushFront(const T* values, int count) {
+        if (size + count > capacity) {
+            // reallocate. Fortunately this makes the algorithm a lot simpler. just copy the new values in, then the old values
+            int newCapacity = MAX(size + count, capacity*2);
+            T* newData = (T*)malloc(newCapacity * sizeof(T));
+            if (!newData) return false;
+            memcpy(&newData[0], values, count * sizeof(T));
+            memcpy(&newData[count], data, size * sizeof(T));
+            free(data);
+            data = newData;
+            size += count;
+            capacity = newCapacity;
+        } else {
+            // no allocation version, a bit more complicated
+            // move all current elements forward at 'count' sized batches
+            int elementsMoved = 0;
+            while (elementsMoved < size) {
+                int elementsLeftToMove = size - elementsMoved;
+                int batchSize = elementsLeftToMove < count ? elementsLeftToMove : count;
+                memcpy(&data[elementsMoved], &data[size - elementsMoved - 1], batchSize * sizeof(T));
+                elementsMoved += batchSize;
+            }
+
+            // copy new elements into now unused space at beginning
+            memcpy(&data[0], values, count * sizeof(T));
+            size += count;
+        }
+        return true;
+    }
+
+    inline bool pushFront(const T& val) {
+        return pushFront(&val, 1);
+    }
+
+    void pop() {
         assert(size > 0 && "can't pop back element of empty vector");
         size--;
     }
 
-    inline bool empty() const {
+    bool empty() const {
         return size == 0;
     }
 
     // Try to reserve to atleast minCapacity
-    inline bool reserve(int newCapacity) {
+    bool reserve(int newCapacity) {
         if (capacity < newCapacity) {
             return reallocate((capacity*2 > newCapacity) ? capacity*2 : newCapacity);
         }
@@ -175,6 +210,57 @@ struct Vec {
         return false;
         */
         return Generic::vec_push((Generic::Vec*)this, sizeof(T), elements, count);
+    }
+
+    inline void copyRange(T* srcBegin, T* srcEnd, T* dstBegin, T* dstEnd) {
+        assert(dstEnd > dstBegin);
+        assert(srcEnd > srcBegin);
+        assert(srcEnd - srcBegin == dstEnd - dstBegin);
+        memcpy(dstBegin, srcBegin, (srcEnd - srcBegin) * sizeof(T));
+    }
+
+    void insertAt(int index, const T* values, int count) {
+        T* at = &data[index];
+        if (size + count > capacity) {
+            // reallocate. Fortunately this makes the algorithm a lot simpler. just copy the new values in, then the old values
+            int newCapacity = MAX(size + count, capacity*2);
+            T* newData = (T*)malloc(newCapacity * sizeof(T));
+            if (!newData) return;
+            // copy old data before index to range 0 - index
+            memcpy(&newData[0], &data[0], index * sizeof(T));
+            // copy values to range index - index + count
+            memcpy(&newData[index], values, count * sizeof(T));
+            // copy old data after index to range index + count -  size + count
+            memcpy(&newData[index + count], &data[index], (size - index) * sizeof(T));
+            /*
+            copyRange(&data[index], &data[size], &newData[index + count], &newData[size + count]);
+            std::copy(&newData[0], &newData[index], &data[0]); // 0 - index
+            std::copy(values, &values[count], &newData[index]);
+            std::copy(&data[0], &data[size], &newData[index])
+            */
+            MY_free(data);
+            data = newData;
+            size += count;
+            capacity = newCapacity;
+        } else {
+            // no allocation version, a bit more complicated
+            // move all current elements forward at 'count' sized batches
+            int elementsMoved = 0;
+            while (elementsMoved < size) {
+                int elementsLeftToMove = size - elementsMoved;
+                int batchSize = elementsLeftToMove < count ? elementsLeftToMove : count;
+                memcpy(&at[elementsMoved], &at[size - elementsMoved - 1], batchSize * sizeof(T));
+                elementsMoved += batchSize;
+            }
+
+            // copy new elements into now unused space at beginning
+            memcpy(&at[0], values, count * sizeof(T));
+        }
+    }
+
+    template<typename T2>
+    Vec<T2> cast() const {
+        return Vec<T2>(data, size, capacity);
     }
 
     using iterator = T*; // no iterator bs, just pointer

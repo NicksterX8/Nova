@@ -10,7 +10,7 @@
 #include "rendering/textures.hpp"
 #include "GameState.hpp"
 #include "PlayerControls.hpp"
-#include "GUI/GUI.hpp"
+#include "GUI/Gui.hpp"
 #include "sdl.hpp"
 #include "Camera.hpp"
 #include "rendering/rendering.hpp"
@@ -28,7 +28,7 @@ struct Game {
     const Uint8 *keyboard;
     GameState* state;
     Camera camera;
-    GUI* gui;
+    Gui* gui;
     PlayerControls* playerControls;
     float worldScale;
     MouseState lastUpdateMouseState;

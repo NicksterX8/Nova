@@ -49,7 +49,7 @@ int EntityManager::Destroy(Entity entity) {
     EntityData* entityData = &entityDataList[entity.id];
 
     if (!EntityExists(entity)) {
-        LogError("ECS::Remove %s : Attempted to remove a non-existent entity! Returning -1. Entity: %s", entity.DebugStr().c_str());
+        LogError("ECS::Remove %s : Attempted to remove a non-existent entity! Returning -1. Entity: %s", entity.DebugStr());
         return -1;
     }
 

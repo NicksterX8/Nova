@@ -43,8 +43,6 @@ struct TextAlignment {
 };
 
 struct TextFormattingSettings {
-    glm::vec4 color = {0,0,0,1};
-    glm::vec2 scale = glm::vec2(1.0f);
     TextAlignment align = TextAlignment::TopLeft;
     float maxWidth = INFINITY;
     float sizeOffsetScale = 0.0f;
@@ -53,9 +51,9 @@ struct TextFormattingSettings {
     TextFormattingSettings() = default;
 
     TextFormattingSettings(
-        glm::vec4 color, TextAlignment alignment = TextAlignment::TopLeft,
-        float scale=1.0f, float maxWidth = INFINITY)
-        : color(color), align(alignment), maxWidth(maxWidth) {}
+        TextAlignment alignment,
+        float maxWidth = INFINITY)
+        : align(alignment), maxWidth(maxWidth) {}
 
 private:
     using Self = TextFormattingSettings;
@@ -64,6 +62,16 @@ public:
     static Self Default() {
         return Self();
     }
+};
+
+struct TextRenderingSettings {
+    glm::vec4 color = {0,0,0,1};
+    glm::vec2 scale = glm::vec2(1.0f);
+
+    TextRenderingSettings() = default;
+
+    TextRenderingSettings(glm::vec4 color, glm::vec2 scale = glm::vec2{1.0f})
+    : color(color), scale(scale) {}
 };
 
 struct Character {
@@ -84,9 +92,9 @@ inline int initFreetype() {
     return 0;
 }
 
-inline void doneFreetype() {
+inline void quitFreetype() {
     // seg faults for some reason
-    //FT_Done_FreeType(freetype);
+    FT_Done_FreeType(freetype);
 }
 
 inline GLuint generateFontAtlasTexture(const TexturePacker& packer) {
@@ -160,6 +168,8 @@ struct TextRenderer {
     unsigned int spaceCharAdvance;
     using FormattingSettings = TextFormattingSettings;
     FormattingSettings defaultFormatting;
+    using RenderingSettings = TextRenderingSettings;
+    RenderingSettings defaultRendering;
 
     struct CharacterRenderData {
         char c;
@@ -257,7 +267,7 @@ struct TextRenderer {
         }
     }
 
-    CharacterLayoutData formatText(const char* text, int textLength, float maxWidth, char* characters, glm::vec2 *offsets, TextAlignment align = TextAlignment::TopLeft, bool wrapOnSpace=true) {
+    CharacterLayoutData formatText(const char* text, int textLength, char* characters, glm::vec2 *offsets, FormattingSettings settings) {
         float cx = 0.0f,cy = 0.0f;
         float mx = 0.0f,my = 0.0f;
         int charCount = 0;
@@ -267,7 +277,7 @@ struct TextRenderer {
             bool whitespaceChar = false; // character that makes whitespace like space, tab, newline
             if (c == ' ') {
                 whitespaceChar = true;
-                if (cx + (float)(spaceCharAdvance >> 6) >= maxWidth) {
+                if (cx + (float)(spaceCharAdvance >> 6) >= settings.maxWidth) {
                     goto newline;
                 }
                 cx += spaceCharAdvance >> 6;
@@ -276,12 +286,12 @@ struct TextRenderer {
             else if (c == '\n') {
                 whitespaceChar = true;
             newline:
-                if (align.horizontal != HoriAlignment::Left) {
+                if (settings.align.horizontal != HoriAlignment::Left) {
                     // shift whole line over to correct alignment location (center or right)
                     float lineMovement = 0.0f;
-                    if (align.horizontal == HoriAlignment::Right) {
+                    if (settings.align.horizontal == HoriAlignment::Right) {
                         lineMovement = cx;
-                    } else if (align.horizontal == HoriAlignment::Center) {
+                    } else if (settings.align.horizontal == HoriAlignment::Center) {
                         lineMovement = cx/2.0f;
                     }
                     for (int j = 0; j < lineLength; j++) {
@@ -292,7 +302,7 @@ struct TextRenderer {
                 }
 
                 cy -= font->lineHeight * (font->face->height >> 6);
-                mx = cx > mx ? cx : mx;
+                mx = MAX(MAX(mx, cx), settings.maxWidth);
                 cx = 0.0f;
                 continue;
             }
@@ -316,21 +326,22 @@ struct TextRenderer {
             // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
             cx += (font->characters[c - font->firstChar].advance >> 6); // bitshift by 6 to get value in pixels (2^6 = 64)
         cx_changed:
-            if (cx >= maxWidth) {
+            if (cx >= settings.maxWidth) {
                 // TODO: this doesn't work
-                if (wrapOnSpace) {
+                /*
+                if (settings.wrapOnSpace) {
 
-                }
+                }*/
                 goto newline;
             }
         }
 
-        if (align.horizontal != HoriAlignment::Left) {
+        if (settings.align.horizontal != HoriAlignment::Left) {
             // move whole line back to align
             float lineMovement = 0.0f;
-            if (align.horizontal == HoriAlignment::Right) {
+            if (settings.align.horizontal == HoriAlignment::Right) {
                 lineMovement = cx;
-            } else if (align.horizontal == HoriAlignment::Center) {
+            } else if (settings.align.horizontal == HoriAlignment::Center) {
                 lineMovement = cx/2.0f;
             }
             for (int j = 0; j < lineLength; j++) {
@@ -345,7 +356,7 @@ struct TextRenderer {
         mx = cx > mx ? cx : mx;
         my = cy < my ? cy : my;
 
-        switch (align.vertical) {
+        switch (settings.align.vertical) {
         case VertAlignment::Middle:
             origin.y += my/2.0f;
             break;
@@ -362,17 +373,17 @@ struct TextRenderer {
         };
     }
 
-    void buffer(int numChars, const char* characters, const glm::vec2* offsets, glm::vec2 pos, glm::vec2 scale, glm::vec4 color) {
+    void buffer(int numChars, const char* characters, const glm::vec2* offsets, glm::vec2 pos, RenderingSettings settings) {
         assert(bufferSize + numChars <= bufferCapacity);
         for (int i = 0; i < numChars; i++) {
             char c = characters[i];
             glm::vec2 offset = offsets[i];
             Font::Character ch = font->characters[c - font->firstChar];
 
-            GLfloat x  = pos.x + (offset.x + ch.bearing.x) * scale.x;
-            GLfloat y  = pos.y + (offset.y - (ch.size.y - ch.bearing.y)) * scale.y;
-            GLfloat x2 = x + ch.size.x * scale.x;
-            GLfloat y2 = y + ch.size.y * scale.y;
+            GLfloat x  = pos.x + (offset.x + ch.bearing.x) * settings.scale.x;
+            GLfloat y  = pos.y + (offset.y - (ch.size.y - ch.bearing.y)) * settings.scale.y;
+            GLfloat x2 = x + ch.size.x * settings.scale.x;
+            GLfloat y2 = y + ch.size.y * settings.scale.y;
 
             GLfloat tx  = (GLfloat)(ch.texPos.x + 0.0f) / font->atlasSize.x;
             GLfloat ty  = (GLfloat)(ch.texPos.y + 0.0f) / font->atlasSize.y;
@@ -400,67 +411,49 @@ struct TextRenderer {
     }
 
     inline FRect render(const char* text, glm::vec2 pos) {
-        return render(text, pos, defaultFormatting);
+        return render(text, pos, defaultFormatting, defaultRendering);
     }
 
-    inline FRect render(const char* text, glm::vec2 pos, const TextFormattingSettings& settings) {
-        return render(text, strlen(text), pos, settings);
+    inline FRect render(const char* text, glm::vec2 pos, const TextFormattingSettings& formatSettings, const TextRenderingSettings& renderSettings) {
+        return render(text, strlen(text), pos, formatSettings, renderSettings);
     }
 
     inline void unionRectInPlace(FRect* r, FRect* b) {
         r->x = MIN(r->x, b->x);
         r->y = MIN(r->y, b->y);
-        r->w = MAX(r->w, b->w);
-        r->h = MAX(r->h, b->h);
+        r->w = MAX(r->x + r->w, b->x + b->w) - r->x;
+        r->h = MAX(r->y + r->h, b->y + b->h) - r->y;
     }
 
-    FRect renderStringBufferAsLines(const My::StringBuffer& strings, glm::vec2 pos, const FormattingSettings& settings) {
-        FRect maxRect = {0,0,0,0};
+    FRect renderStringBufferAsLinesReverse(const My::StringBuffer& strings, glm::vec2 pos, My::Vec<glm::vec4> colors, glm::vec2 scale, FormattingSettings formatSettings) {
+        FRect maxRect = {pos.x,pos.y,0,0};
         glm::vec2 offset = {0, 0};
-        for (char* str : strings) {
-            FRect rect = render(str, pos + offset, settings);
+        int i = 0;
+        strings.forEachStrReverse([&](char* str){
+            FRect rect = render(str, pos + offset, formatSettings, TextRenderingSettings{colors[colors.size - 1 - i], scale});
+            this->flush();
             unionRectInPlace(&maxRect, &rect);
-            offset.y -= rect.y;
-        }
-        return maxRect;
-    }
-
-     
-    //#define FOR_MY_STRING_BUFFER_REVERSE(name, buffer) char* name = *buffer.end(); name != *buffer.begin(); name = My::StringBuffer::iterator::backward(name)
-
-    //#define FOR_EACH(name, iterable) for (auto name = iterable.)
-
-    FRect renderStringBufferAsLinesReverse(const My::StringBuffer& strings, glm::vec2 pos, const FormattingSettings& settings) {
-        FRect maxRect = {0,0,0,0};
-        glm::vec2 offset = {0, 0};
-
-        /*
-        for (auto str : My::reverse(strings)) {
-            FRect rect = render(str, pos + offset, settings);
-            unionRectInPlace(&maxRect, &rect);
-            offset.y -= rect.y;
-        }
-        */
-        FOR_MY_STRING_BUFFER_REVERSE(str, strings, {
-            FRect rect = render(str, pos + offset, settings);
-            unionRectInPlace(&maxRect, &rect);
-            offset.y -= rect.y;
+            offset.y += rect.h;
+            // do line break
+            offset.y += font->lineHeight * (font->face->height >> 6);
+            i++;
         });
         return maxRect;
     }
 
-    FRect render(const char* text, int textLength, glm::vec2 pos, const TextFormattingSettings& settings) {
-        if (settings.color != currentColor) {
+    FRect render(const char* text, int textLength, glm::vec2 pos, const TextFormattingSettings& formatSettings, RenderingSettings renderSettings) {
+        if (currentColor != renderSettings.color || true) {
             // can only buffer one color text at a time. may be changed to have color in vertex data.
             if (bufferSize > 0) {
                 flush();
             }
             shader.use();
-            shader.setVec3("textColor", glm::vec3(settings.color));
-            currentColor = settings.color;
+            shader.setVec3("textColor", glm::vec3(renderSettings.color));
+            currentColor = renderSettings.color;
         }
 
-        FRect outputRect = {pos.x,pos.y,0,0};
+        Vec2 bigMin = {pos.x, pos.y};
+        Vec2 maxSize = {0, 0};
         int textParsed = 0;
         while (textParsed < textLength) {
             if (bufferSize >= bufferCapacity) {
@@ -470,23 +463,25 @@ struct TextRenderer {
             int bufferSpace = bufferCapacity - bufferSize;
             int batchSize = MIN(bufferSpace, textLength);
 
-            auto layoutData = formatText(&text[textParsed], batchSize, settings.maxWidth, charBuffer, charOffsetBuffer, settings.align, settings.wrapOnWhitespace);
+            auto layoutData = formatText(&text[textParsed], batchSize, charBuffer, charOffsetBuffer, formatSettings);
             int charsToBuffer = layoutData.characterCount; // not all characters need to actually be buffered (space, tab, etc)
-            glm::vec2 origin = pos - layoutData.origin;
-            FRect rect = {
-                -layoutData.origin.x + pos.x,
-                -layoutData.origin.y + pos.y,
-                layoutData.size.x,
-                layoutData.size.y
-            };
+            Vec2 origin = pos - layoutData.origin;
+            Vec2 size = layoutData.size;
+            //bigMin.x = MIN(bigMin.x, origin.x);
+            //bigMin.y = MIN(bigMin.y, origin.y);
+            maxSize.x = MAX(maxSize.x, size.x);
+            maxSize.y = MAX(maxSize.y, size.y);
 
-            unionRectInPlace(&outputRect, &rect);
-
-            buffer(charsToBuffer, charBuffer, charOffsetBuffer, origin, settings.scale, settings.color);
+            buffer(charsToBuffer, charBuffer, charOffsetBuffer, origin, renderSettings);
             textParsed += batchSize;
             bufferSize += charsToBuffer;
         }
-        return outputRect;
+        return SDL_FRect{
+            bigMin.x,
+            bigMin.y,
+            maxSize.x,
+            maxSize.y
+        };
     }
 
     void flush() {

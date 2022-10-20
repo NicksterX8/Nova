@@ -9,35 +9,88 @@
 #include "Iteration.hpp"
 #include "Exp.hpp"
 
-namespace MY_NAMESPACE_NAME {
+MY_CLASS_START
 
-inline char* duplicateStr(const char* str) {
+inline char* strdup(const char* str) {
     int strSize = strlen(str)+1;
     char* copy = (char*)MY_malloc(strSize);
     memcpy(copy, str, strSize);
     return copy;
 }
 
-struct String {
+inline bool streq(const char* a, const char* b) {
+    if (a == b) return true;
+    if (a == nullptr || b == nullptr) return false; 
+    for (;;) {
+        if (*a == *b) {
+            if (*a == '\0') return true; // only need to check one since we know they are equal
+        } else {
+            return false;
+        }
+        a++; b++;
+    }
+    return true;
+}
+
+inline bool streq(const char* a, const char* b, int lenA, int lenB) {
+    if (a == b) return true;
+    if (lenA != lenB) return false; // not entirely necessary, but probably best for performance for a lot of cases
+    if (a == nullptr || b == nullptr) return false; 
+    
+    for (int i = 0; i < lenA; i++) { // lenA is already known to be equal to lenB
+        if (a[i] != b[i]) return false;
+    }
+    return true;
+}
+
+struct CString {
     char* str;
 
-    String() : str(nullptr) {}
+    CString() : str(nullptr) {}
 
-    String(size_t size) {
-        str = new char[size];
+    explicit CString(size_t size) {
+        str = (char*)MY_malloc(size * sizeof(char));
     }
 
-    String(const char* _str) {
-        str = duplicateStr(_str);
+    CString(const char* _str) {
+        str = strdup(_str);
     }
 
-    static String take(char* _str) {
-        String string;
-        string.str = _str;
+    // copy constructor
+    CString(const CString& other)
+    : str(strdup(other.str)) {}
+
+    CString(CString&& other) {
+        this->str = other.str;
+        other.str = nullptr;
+    }
+
+    // copy assignment operator
+    CString& operator=(const CString& other) {
+        if (&other != this) {
+            // first free this
+            MY_free(str);
+            // then copy
+            str = strdup(other.str);
+        }
+        return *this;
+    }
+
+    static CString From(const char* str) {
+        return CString(str);
+    }
+
+    static CString WithCapacity(size_t capacity) {
+        return CString(capacity);
+    }
+
+    static CString MakeUsing(char* str) {
+        CString string;
+        string.str = str;
         return string;
     }
 
-    ~String() {
+    ~CString() {
         MY_free(str);
     }
 
@@ -48,63 +101,65 @@ struct String {
     operator const char*() const {
         return str;
     }
-};
 
-struct StringView {
-    const char* str;
-
-    StringView(const char* _str) : str(_str) {}
-
-    StringView(const std::string& _str) {
-        str = _str.data();
+    char& operator[](int i) {
+        return str[i];
+    }
+    const char& operator[](int i) const {
+        return str[i];
     }
 
-    operator char*() {
-        return (char*)str;
+    void operator+=(const char* other) {
+        int currentLength = strlen(str)+1;
+        int addedLength = strlen(other);
+        char* newStr = (char*)MY_realloc(str, currentLength + addedLength + 1); // add 1 for null byte
+        if (newStr) {
+            str = newStr;
+            char* lastChar = str + currentLength;
+            memcpy(lastChar, other, addedLength+1); // add 1 for null byte
+        } // do nothing in case of memory fail
     }
 };
 
-}
-
-namespace My {
-
-inline String str_add(const char* str_a, const char* str_b) {
+inline CString str_add(const char* str_a, const char* str_b) {
     int lenA = strlen(str_a);
     int lenB = strlen(str_b);
 
-    char* result = new char[lenA + lenB + 1];
+    char* result = (char*)MY_malloc((lenA + lenB + 1) * sizeof(char));
     memcpy(result, str_a, lenA);
     memcpy(result + lenA, str_b, lenB+1);
-    return My::String::take(result);
+    return My::CString::MakeUsing(result);
 }
 
 inline char* str_add_alloc(const char* str_a, const char* str_b) {
     int lenA = strlen(str_a);
     int lenB = strlen(str_b);
 
-    char* result = new char[lenA + lenB + 1];
+    char* result = (char*)MY_malloc((lenA + lenB + 1) * sizeof(char));
     memcpy(result, str_a, lenA);
     memcpy(result + lenA, str_b, lenB+1);
     return result;
 }
 
+struct StringSizePair {
+    char* str;
+    int size;
+};
+
 struct StringBuffer {
     Vec<char> buffer;
 
     static StringBuffer Empty() {
-        return {Vec<char>("\0", 2)}; // buffer with 2 nul bytes
+        return {Vec<char>::Empty()}; // buffer with 2 nul bytes
     }
 
     static StringBuffer WithCapacity(int capacity) {
-        auto buffer = Vec<char>::WithCapacity(capacity);
-        buffer.push("\0", 2);
-        return {buffer};
+        return {Vec<char>::WithCapacity(capacity)};
     }
 
     static StringBuffer FromStr(const char* str) {
         int strSize = strlen(str)+1;
-        auto buffer = Vec<char>::WithCapacity(1 + strSize);
-        buffer.push('\0');
+        auto buffer = Vec<char>::WithCapacity(strSize);
         buffer.push(str, strSize);
         return {buffer};
     }
@@ -117,23 +172,31 @@ struct StringBuffer {
     inline bool push(const char* str, int size) {
         return buffer.push(str, size);
     }
-
-    inline bool push(char c) {
-        return buffer.push(c);
+    inline bool push(const char* str) {
+        return buffer.push(str, strlen(str)+1);
     }
 
-    char* getLastStr() const {
-        if (buffer.size < 2) return nullptr; // a size of 1 is just nul byte, so that's unusable as well
-        char* last = &buffer[buffer.size-2]; // get pointer to char right before nul byte
+    inline bool pushFront(const char* str) {
+        return buffer.pushFront(str, strlen(str)+1);
+    }
+
+    inline bool pushUnterminatedStr(const char* str, int length) {
+        return buffer.push(str, length) && buffer.push('\0');
+    }
+
+    char* lastStr(int* size=nullptr) const {
+        if (buffer.size == 0) return nullptr; // no string to get
+        char* last = &buffer[buffer.size-1]; // get pointer to first char  behing nul byte
         // and move backwards from there
-        while (*last != '\0' && last != &buffer[0]) {
+        while (last > buffer.data && *(last-1) != '\0') {
             last--;
         }
-        return last+1;
+        if (size) *size = last - &buffer[buffer.size-1];
+        return last;
     }
 
     inline void appendToLast(char c) {
-        if (buffer.empty()) {
+        if (buffer.size == 0) {
             buffer.push(c);
         } else {
             buffer.back() = c; // replace nul byte with char and replace nul byte
@@ -141,16 +204,15 @@ struct StringBuffer {
         buffer.push('\0');
     }
 
-    inline void appendToLast(const char* str) {
-        int length = strlen(str);
-        if (buffer.empty()) {
-            buffer.pop(); // remove nul byte
-            buffer.push(str, length+1);
-        } else {
-            buffer.reserve(buffer.size + length);
-            memcpy(&buffer[buffer.size-1], str, (length+1) * sizeof(char));
-            buffer.size += length;
+    inline void appendToLast(const char* str, int size) {
+        if (buffer.size > 0) {
+            buffer.pop(); // pop off nul byte
         }
+        buffer.push(str, size);
+    }
+
+    void appendToLast(const char* str) {
+        return appendToLast(str, strlen(str)+1);
     }
 
     inline void popLastChar() {
@@ -158,8 +220,8 @@ struct StringBuffer {
         buffer.back() = '\0';
     }
 
-    inline void endStr() {
-        appendToLast('\0');
+    inline void endLastStr() {
+        buffer.push('\0');
     }
 
     inline void operator+=(const char* str) {
@@ -208,29 +270,55 @@ struct StringBuffer {
         }
     };
 
-    iterator begin() const { return {buffer.data}; } // pointer to first character past start nul byte
-    iterator end() const { return {buffer.data + buffer.size-1}; /* pointer to char past final nul byte */ }
+    template<typename T>
+    void forEachStr(const T& callback) const {
+        char* str = buffer.data;
+        while (str <= &buffer.back()) {
+            callback(str);
+            while (*str != '\0') {str++;}; str++;
+        };
+    }
 
-    iterator rbegin() const { return {getLastStr()-1}; }
+    template<typename T>
+    void forEachStrReverse(const T& callback) const {
+        char* str = lastStr();
+        if (!str) return;
+        for (;;) {
+            callback(str);
+            if (str >= buffer.data + 2) {
+                str -= 2;
+                while (str >= buffer.data && *str != '\0') {str--;}; str++;
+            } else {
+                break;
+            }
+        };
+    }
+
+    /*
+    iterator begin() const { return {buffer.data}; } // pointer to first character past start nul byte
+    iterator end() const { return {buffer.data + buffer.size-1}; / pointer to char past final nul byte / }
+
+    iterator rbegin() const { return {lastStr()-1}; }
     iterator rend() const { return {buffer.data}; }
+    */
 };
 
 #define FOR_MY_STRING_BUFFER(name, strbuf, code) {\
-        char* name = &strbuf.buffer[1];\
-        while (name < &strbuf.buffer[strbuf.buffer.size-1]) {\
-            code;\
-            while (*name != '\0') {name++;}; name++;\
-        };\
-        } 
-#define FOR_MY_STRING_BUFFER_REVERSE(name, strbuf, code) {\
-    char* name = strbuf.getLastStr();\
-    while (name > strbuf.buffer.data) {\
+    char* name = &strbuf.buffer[0];\
+    while (name <= &strbuf.buffer.back()) {\
         code;\
-        name -= 2;\
-        while (*name != '\0') {name--;}; name++;\
+        while (*name != '\0') {name++;}; name++;\
     };\
     }
+#define FOR_MY_STRING_BUFFER_REVERSE(name, strbuf, code) {\
+    char* name = strbuf.buffer.data + strbuf.buffer.size-1;\
+    while (name > strbuf.buffer.data) {\
+        if (*(name-1) == '\0') {code;}\
+        name--;\
+    }\
+    if (strbuf.buffer.size > 0) { name = &strbuf[0]; code; }\
+    }
 
-}
+MY_CLASS_END
 
 #endif

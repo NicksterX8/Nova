@@ -28,7 +28,7 @@ using EntityCallback = std::function<void(Entity)>;
 struct EntityData {
     EntityVersion version; // The current entity version
     ComponentFlags flags; // The entity's component signature
-    Uint32 index; // Where in the entities array the entity is stored
+    Sint32 index; // Where in the entities array the entity is stored
 };
 
 struct EntityManager {
@@ -190,7 +190,7 @@ struct EntityManager {
                 return static_cast<T*>(pool->get(entity.id));
         }
 
-        LogError("Attempted to get unowned component \"%s\" of an entity! Returning NULL. Entity: %s", getComponentName<T>(), entity.DebugStr().c_str());
+        LogError("Attempted to get unowned component \"%s\" of an entity! Returning NULL. Entity: %s", getComponentName<T>(), entity.DebugStr());
         return NULL;
     }
 
@@ -200,14 +200,14 @@ struct EntityManager {
         if (EntityExists(entity) && pool)
             return pool->get(entity.id);
 
-        LogError("Failed to get component \"%s\" of an entity! Returning NULL. Entity: %s", getComponentName(componentID), entity.DebugStr().c_str());
+        LogError("Failed to get component \"%s\" of an entity! Returning NULL. Entity: %s", getComponentName(componentID), entity.DebugStr());
         return NULL;
     }
 
     template<class... Components>
     int Add(Entity entity) {
         if (!EntityExists(entity)) {
-            LogError("Attempted to add components to a non-living entity! Entity: %s.", entity.DebugStr().c_str());
+            LogError("Attempted to add components to a non-living entity! Entity: %s.", entity.DebugStr());
             return -1;
         }
 
@@ -228,7 +228,7 @@ struct EntityManager {
         if (sizeof(T) == 0) return 1;
 
         if (!EntityExists(entity)) {
-            LogError("Attempted to add component %s to a non-living entity! Entity: %s", getComponentName<T>(), entity.DebugStr().c_str());
+            LogError("Attempted to add component %s to a non-living entity! Entity: %s", getComponentName<T>(), entity.DebugStr());
             return -1;
         }
 
@@ -241,7 +241,7 @@ struct EntityManager {
 
     int AddSignature(Entity entity, ComponentFlags signature) {
         if (!EntityExists(entity)) {
-            LogError("Attempted to add components to a non-existent entity! Entity: %s", entity.DebugStr().c_str());
+            LogError("Attempted to add components to a non-existent entity! Entity: %s", entity.DebugStr());
             return -1;
         }
         
@@ -258,7 +258,7 @@ struct EntityManager {
 
     int RemoveComponents(Entity entity, ComponentID* componentIDs, Uint32 numComponentIDs) {
         if (!EntityExists(entity)) {
-            LogError("Attempted to remove components from a non-living entity! Entity: %s", entity.DebugStr().c_str());
+            LogError("Attempted to remove components from a non-living entity! Entity: %s", entity.DebugStr());
             return -1;
         }
 
@@ -278,7 +278,7 @@ struct EntityManager {
     template<class... Components>
     int RemoveComponents(Entity entity) {
         if (!EntityExists(entity)) {
-            LogError("EntityManager::RemoveComponents : Attempted to remove components from a non-living entity! Entity: %s", entity.DebugStr().c_str());
+            LogError("EntityManager::RemoveComponents : Attempted to remove components from a non-living entity! Entity: %s", entity.DebugStr());
             return -1;
         }
 
