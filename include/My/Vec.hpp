@@ -28,7 +28,7 @@ namespace Generic {
  * Should be faster and smaller than std::vector most of the time, 
  * and result in faster compile times
  */ 
-template<typename T, class Allocator = DefaultAllocator>
+template<typename T, class AllocatorT = DefaultAllocator>
 struct Vec {
     static_assert(std::is_trivially_copyable<T>::value, "vec doesn't support complex types");
     using Type = T;
@@ -37,10 +37,11 @@ struct Vec {
     int size;
     int capacity;
 
+    struct Allocator : IAllocator<AllocatorT> {};
     static Allocator allocator;
 
 private: 
-    using Self = Vec<T, Allocator>;
+    using Self = Vec<T, AllocatorT>;
     using ValueParamT = FastestParamType<T>;
 public:
 
@@ -53,13 +54,12 @@ public:
 #endif
     }
 
-    Vec(int startCapacity) {
-        if (startCapacity > 0)
-            data = (T*)allocator.Alloc((size_t)startCapacity * sizeof(T));
-        else
+    Vec(int startCapacity) : size(0), capacity(startCapacity) {
+        if (startCapacity > 0) {
+            data = allocator.Alloc(startCapacity * sizeof(T));
+        } else {
             data = nullptr;
-        size = 0;
-        capacity = startCapacity;
+        }
     }
 
     inline static Self WithCapacity(int capacity) {
@@ -77,7 +77,7 @@ public:
      * 
      */
     Vec(const T* _data, int _size) {
-        data = (T*)allocator.Alloc(_size * sizeof(T));
+        data = allocator.Alloc<T>(_size);
         memcpy(data, _data, _size * sizeof(T));
         size = _size;
         capacity = _size;
@@ -101,19 +101,16 @@ public:
 
     inline void push(ValueParamT val) {
         /*
-        if (reserveAtleast(size+1)) {
-            memcpy(&data[size], &val, sizeof(T));
-            return &data[size++];
-        }
-        return nullptr;
+        reserve(size+1)
+        memcpy(&data[size], &val, sizeof(T));
         */
         //return vec_push((Generic::Vec*)this, sizeof(T), &val);
-        if (size+1 > vec->capacity) {
-            auto newData = ReallocMin<T>(vec->data, size+1, capacity*2);
-            data = newData.ptr;
-            capacity = newData.size;
+        if (size+1 > capacity) {
+            int newCapacity = capacity*2 > size+1 ? capacity*2 : size+1;
+            data = allocator.Realloc<T>(data, newCapacity);
+            capacity = newCapacity;
         }
-        memcpy(vec->data + vec->size, &val, sizeof(T));
+        memcpy(data + size, &val, sizeof(T));
         ++size;
     }
 
@@ -122,7 +119,7 @@ public:
         if (size + count > capacity) {
             // reallocate. Fortunately this makes the algorithm a lot simpler. just copy the new values in, then the old values
             int newCapacity = MAX(size + count, capacity*2);
-            T* newData = (T*)allocator.Alloc((size_t)newCapacity * sizeof(T));
+            T* newData = allocator.Alloc<T>((size_t)newCapacity);
             memcpy(&newData[0], values, (size_t)count * sizeof(T));
             memcpy(&newData[count], data, (size_t)size * sizeof(T));
             allocator.Free(data);
@@ -162,19 +159,11 @@ public:
     // reserve atleast capacity
     // \returns the new capacity of the vec
     int reserve(int capacity) {
+        // parameter capacity shadows this->capacity, so have to explicitly use 'this'
         if (this->capacity < capacity) {
-            return reallocate(capacity, this->capacity*2);
+            reallocate(this->capacity*2 > capacity ? this->capacity*2 : capacity);
         }
         return this->capacity;
-    }
-
-    /* TODO: comment this */
-    int reallocate(int min, int preferred) {
-        MemoryBlockT<T> block = allocator.ReallocMin(data, min, preferred);
-        data = block.ptr;
-        size = (size < newCapacity) ? size : newCapacity;
-        capacity = (int)block.size;
-        return capacity;
     }
 
     /* Resize the vector to the given new capacity. 
@@ -184,16 +173,15 @@ public:
      * When the new capacity couldn't be allocated, -1 will be returned
      */
     void reallocate(int newCapacity) {
-        T* newData = (T*)allocator.Realloc(data, newCapacity * sizeof(T));
-        data = newData;
+        data = (T*)allocator.Realloc(data, newCapacity * sizeof(T));
         size = (size < newCapacity) ? size : newCapacity;
         capacity = newCapacity;
     }
 
     void clear() {
         allocator.Free(data);
-        size = 0;
         data = nullptr;
+        size = 0;
         capacity = 0;
     }
 
@@ -239,7 +227,7 @@ public:
         if (size + count > capacity) {
             // reallocate. Fortunately this makes the algorithm a lot simpler. just copy the new values in, then the old values
             int newCapacity = MAX(size + count, capacity*2);
-            T* newData = (T*)allocator.Alloc(newCapacity * sizeof(T));
+            T* newData = (T*)allocator.template Alloc(newCapacity * sizeof(T));
             // copy old data before index to range 0 - index
             memcpy(&newData[0], &data[0], index * sizeof(T));
             // copy values to range index - index + count
@@ -278,8 +266,8 @@ public:
     inline T* end() const { return data + size; }
 };
 
-template<typename T, class Allocator>
-Allocator Vec<T, Allocator>::allocator = Allocator();
+template<typename T, class AllocatorT>
+Vec<T, AllocatorT>::Allocator Vec<T, AllocatorT>::allocator = Vec<T, AllocatorT>::Allocator();
 
 static_assert(sizeof(Generic::Vec) == sizeof(Vec<int>), "GenericVec must have same binary layout as normal vec");
 

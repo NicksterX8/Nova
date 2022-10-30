@@ -136,7 +136,7 @@ inline MemoryBlock AllocMin(size_t min, size_t preferred, size_t typeSize) {
 
 template<typename T>
 T* Realloc(T* old, size_t newCount) {
-    return safe_realloc(old, newCount * sizeof(T));
+    return (T*)safe_realloc(old, newCount * sizeof(T));
 }
 
 inline void* Realloc(void* old, size_t newSize) {
@@ -186,6 +186,8 @@ inline MemoryBlock AllocMinAligned(size_t minSize, size_t preferredSize, size_t 
 }
 
 struct DefaultAllocator {
+    using size_type = size_t;
+
     void* Alloc(size_t size) const {
         return Mem::Alloc(size);
     }
@@ -201,6 +203,8 @@ struct DefaultAllocator {
 
 template<size_t Alignment>
 struct AlignmentAllocator {
+    using size_type = size_t;
+
     void* Alloc(size_t size) const {
         return Mem::AllocAligned(size, Alignment);
     }

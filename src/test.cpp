@@ -11,7 +11,6 @@
 #include <unistd.h>
 #include <time.h>
 #include <chrono>
-#include "utils/llvm/SmallVector.h"
 
 std::chrono::time_point<std::chrono::high_resolution_clock> getNow() {
     return std::chrono::high_resolution_clock::now();
@@ -33,35 +32,30 @@ void func2(int* a, const int* b) {
 int* a = new int(0);
 int* b = new int(12);
 
-struct Trash {
-    int a;
-
-    Trash(int x): a(x) {}
-
-    ~Trash() {
-        a = 3;
-    }
+struct Foo {
+    int a() {return 0;}
 };
 
+template<typename T2>
 struct S {
-    int a;
-    double d;
-    int b;
+    T2 t2;
+
+
+
+    template<typename T>
+    T* A(int x) {
+        return (T*)t2.a();
+    }
 };
 
-using std::cout;
+template<class Parent>
+struct InheritanceWrapper : Parent {};
 
-int fff(int a) {
-    if (a) {
-        return 0;
-    } else {
-        return 1;
-    }
-}
-
-int print() {
-    cout << "static func";
-    return 2;
+template<typename T>
+void test() {
+    InheritanceWrapper< S<T> > s;
+    int* i = s.A<int>(2);
+    s.a();
 }
 
 int main() {
@@ -98,12 +92,7 @@ int main() {
         }
     }
 */
-
-    std::vector<int> nums(10);
-    nums.push_back(1);
-    cout << nums.size();
-
-    cout << "size of small vec: " << sizeof(llvm::SmallVector<int, 0>);
-
+    
+    
     return 0;
 }
