@@ -1,7 +1,11 @@
-#include "HashMap.hpp"
+#include "My/HashMap.hpp"
 
 namespace My {
 namespace Map {
+
+int collisionCount = 0;
+int lookupCount = 0;
+
 namespace Generic {
 /*
 void* hashmap_lookup(const HashMap* map, int keySize, int valueSize, const void* key, HashFunction* hashFunction, EqualityFunction* keyEquals) {

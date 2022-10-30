@@ -1,4 +1,4 @@
-#include "utils.hpp"
+#include "rendering/utils.hpp"
 
 unsigned int enableVertexAttribs(const VertexAttribute* attributes, unsigned int count) {
     unsigned int stride = 0;

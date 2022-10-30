@@ -10,9 +10,3 @@ float TileHeight = TileWidth * M_SQRT2;
 
 TileTypeDataStruct TileTypeData[NUM_TILE_TYPES];
 
-Tile::Tile() {
-    type = TileTypes::Empty;
-}
-Tile::Tile(TileType type): type(type) {
-
-}

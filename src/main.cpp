@@ -197,11 +197,15 @@ int main(int argc, char** argv) {
     loadItemData();
 
     Game* game = new Game(sdlCtx);
-    memory_init([game](size_t size) -> void* {
-        auto state = game->state;
-        state->ecs.reduceMemoryUsage(1);
-        return nullptr;
-    });
+    Mem::init(
+        [&]() { // need memory
+            auto state = game->state;
+            state->ecs.minmizeMemoryUsage();
+        },
+        [&]() { // failed to get enough memory, crash.
+            logCrash(CrashReason::MemoryFail, "Out of memory!");
+        }
+    );
 
     game->init(screenWidth, screenHeight);
     game->start(); // start indefinitely long game loop

@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include "Entities/Entities.hpp"
+#include "entities/entities.hpp"
 #include "Log.hpp"
 
 typedef int(*TestFunction)(void);

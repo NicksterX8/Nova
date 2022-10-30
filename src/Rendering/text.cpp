@@ -1,4 +1,4 @@
-#include "text.hpp"
+#include "rendering/text.hpp"
 
 FT_Library freetype;
 

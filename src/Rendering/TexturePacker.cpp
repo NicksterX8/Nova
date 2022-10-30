@@ -1,4 +1,5 @@
-#include "TexturePacker.hpp"
+#include "rendering/TexturePacker.hpp"
+#include "memory.hpp"
 
 TexturePacker::TextureNode* TexturePacker::pack(TextureNode* node, glm::ivec2 size) {
     if (!node->empty) {

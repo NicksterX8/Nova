@@ -1,11 +1,12 @@
-#include "rendering.hpp"
-#include "systems/simple.hpp"
-#include "../Chunks.hpp"
-#include "../utils/Debug.hpp"
-#include "../utils/Log.hpp"
-#include "../utils/random.hpp"
-#include "../My/Vec.hpp"
-#include "../utils/Vectors.hpp"
+#include "rendering/rendering.hpp"
+#include "rendering/systems/simple.hpp"
+#include "Chunks.hpp"
+#include "utils/Debug.hpp"
+#include "utils/Log.hpp"
+#include "utils/random.hpp"
+#include "My/Vec.hpp"
+#include "utils/vectors.hpp"
+#include "llvm/ArrayRef.h"
 
 /*
 void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, const Gui* gui, const GameState* state, Vec2 playerTargetPos) {
@@ -63,7 +64,7 @@ static void renderChunk(RenderContext& ren, ChunkData& chunkdata, ModelData& chu
 
     for (int row = 0; row < CHUNKSIZE; row++) {
         for (int col = 0; col < CHUNKSIZE; col++) {
-            unsigned int index = row * CHUNKSIZE + col;
+            int index = row * CHUNKSIZE + col;
             TileType type = (*chunkdata.chunk)[row][col].type;
             if (type == TileTypes::Empty) continue;
             
@@ -97,6 +98,7 @@ static void renderChunk(RenderContext& ren, ChunkData& chunkdata, ModelData& chu
                 x2, y,
                 texMaxX, 0.0f, tex
             };
+            // just in case padding or anything happens
             static_assert(sizeof(tileVerts) == 4 * sizeof(TilemapVertex), "incorrect number of floats in vertex data");
 
             memcpy(&chunkVerts[index * 20], tileVerts, sizeof(tileVerts));
@@ -187,22 +189,23 @@ void renderQuit(RenderContext& ren) {
     glDeleteTextures(1, &ren.textureArray);
 }
 
-static My::Array<Draw::ColorVertex> makeDemoQuads(SDL_Window* window) {
+static llvm::SmallVector<Draw::ColorVertex, 0> makeDemoQuads(SDL_Window* window) {
     int drawableWidth,drawableHeight;
     SDL_GL_GetDrawableSize(window, &drawableWidth, &drawableHeight);
 
-    auto quadPoints = My::Vec<Draw::ColorVertex>::WithCapacity(500 * 4);
+    auto quadPoints = llvm::SmallVector<Draw::ColorVertex, 0>();
+    quadPoints.reserve(500 * 4);
  
     for (int i = 0; i < 500; i++) {
         Vec2 min = {randomInt(-100, 100), randomInt(-100, 100)};
         Vec2 max = min + Vec2{randomInt(1, 3), randomInt(1, 3)};
-        quadPoints.push({glm::vec3(min.x, min.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
-        quadPoints.push({glm::vec3(min.x, max.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
-        quadPoints.push({glm::vec3(max.x, max.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
-        quadPoints.push({glm::vec3(max.x, min.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
+        quadPoints.push_back({glm::vec3(min.x, min.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
+        quadPoints.push_back({glm::vec3(min.x, max.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
+        quadPoints.push_back({glm::vec3(max.x, max.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
+        quadPoints.push_back({glm::vec3(max.x, min.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
     }
 
-    return {quadPoints.data, quadPoints.size};
+    return std::move(quadPoints);
 }
 
 using Draw::ColorQuadRenderBuffer;
@@ -216,7 +219,7 @@ struct GuiRenderer {
 
     #define CONST(name, val) const auto name = (val * scale)
 
-    void colorRect(Rect rect, Color color) {
+    void colorRect(FRect rect, SDL_Color color) {
         ColorQuadRenderBuffer::UniformQuad2D quad;
         quad.color = colorConvert(color);
         glm::vec2* positions = quad.positions;
@@ -227,10 +230,10 @@ struct GuiRenderer {
         quadRenderer->bufferUniform(1, &quad, z);
     }
 
-    void textBox(Rect rect, const My::StringBuffer& textBuffer, My::Vec<glm::vec4> textColors) {
+    void textBox(FRect rect, const My::StringBuffer& textBuffer, My::Vec<glm::vec4> textColors) {
         if (textBuffer.empty()) return;
-        const int padX = 20 * scale;
-        const int padY = 30 * scale;
+        const float padX = 20 * scale;
+        const float padY = 30 * scale;
         static TextFormattingSettings formatting = {
             TextAlignment::BottomLeft
         };
@@ -239,14 +242,14 @@ struct GuiRenderer {
         };
         formatting.maxWidth = (float)rect.w;
         FRect textRect = textRenderer->renderStringBufferAsLinesReverse(textBuffer, glm::vec2(rect.x+padX, rect.y+padY), textColors, glm::vec2(scale), formatting);
-        Rect textBox = {
-            (int)textRect.x - padX,
-            (int)textRect.y - padY,
-            (int)textRect.w + padX*2,
-            (int)textRect.h + padY*2
+        FRect textBox = {
+            textRect.x - padX,
+            textRect.y - padY,
+            textRect.w + padX*2,
+            textRect.h + padY*2
         };
         textRenderer->flush();
-        this->colorRect(textBox, Color{50, 50, 50, 200});
+        this->colorRect(textBox, SDL_Color{50, 50, 50, 200});
         this->quadRenderer->flush();
     }
 
@@ -351,6 +354,8 @@ void render(RenderContext& ren, float scale, Gui* gui, GameState* state, Camera&
 
     Draw::chunkBorders(quadRenderer, camera, {1, 0, 0, 1}, 4.0f, 0.5f);
 
+    auto arr = makeDemoQuads(ren.window);
+
     quadRenderer.flush();
 
     GL::logErrors();
@@ -388,6 +393,13 @@ void render(RenderContext& ren, float scale, Gui* gui, GameState* state, Camera&
     //textRenderer.render("this is centered\nAt the top! THis is even more garbage text!!!", {drawableWidth/2.0f, drawableHeight-100.0f}, otherSettings2);
     //textRenderer.render("hello\nworld!\nWhats up guys  \n\n!", glm::vec2{100, 100}, otherSettings3);
 
+    static char fpsCounter[128];
+    if (Metadata->ticks() % 10 == 0) {
+        snprintf(fpsCounter, 128, "FPS: %.1f", (float)Metadata->fps());
+    }
+    textRenderer.render(fpsCounter, {10, drawableHeight - 70}, 
+        TextFormattingSettings(TextAlignment::TopLeft), 
+        TextRenderingSettings(glm::vec4{1,0,0,1}, glm::vec2{2.0f}));
     textRenderer.flush();
 
     GuiRenderer guiRenderer;

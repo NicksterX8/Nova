@@ -1,2 +1,2 @@
-#include "EntitySystem.hpp"
-#include "EntityManager.hpp"
+#include "ECS/EntitySystem.hpp"
+#include "ECS/EntityManager.hpp"

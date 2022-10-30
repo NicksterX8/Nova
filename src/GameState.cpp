@@ -6,12 +6,12 @@
 #include <SDL2/SDL.h>
 #include "constants.hpp"
 #include "rendering/textures.hpp"
-#include "utils/Vectors.hpp"
+#include "utils/vectors.hpp"
 #include "Tiles.hpp"
 #include "Player.hpp"
-#include "Entities/Entities.hpp"
-#include "EntitySystems/Systems.hpp"
-#include "../ComponentMetadata/components.hpp"
+#include "ECS/entities/entities.hpp"
+#include "ECS/systems/systems.hpp"
+#include "ComponentMetadata/components.hpp"
 
 #include <glm/geometric.hpp>
 
@@ -81,10 +81,10 @@ void GameState::init() {
     player = Player(&ecs, Vec2(0, 0));
 
     ItemStack startInventory[] = {
-        {Items::SpaceFloor, INFINITE_ITEM_QUANTITY},
+        {Items::SpaceFloor, ItemQuantityInfinity},
         {Items::Grass, 64},
         {Items::Wall, 64},
-        {Items::Grenade, INFINITE_ITEM_QUANTITY},
+        {Items::Grenade, ItemQuantityInfinity},
         {Items::SandGun, 1}
     };
 
@@ -108,7 +108,7 @@ IVec2* worldLine(Vec2 start, Vec2 end, int* lineSize) {
     IVec2 startTile = {(int)floor(start.x), (int)floor(start.y)};
     IVec2 endTile = {(int)floor(end.x), (int)floor(end.y)};
     int lineTileLength = (abs(endTile.x - startTile.x) + abs(endTile.y - startTile.y)) + 1;
-    IVec2* line = (IVec2*)malloc(lineTileLength * sizeof(IVec2));
+    IVec2* line = Alloc<IVec2>(lineTileLength);
     if (lineSize) *lineSize = lineTileLength;
 
     Vec2 dir = glm::normalize((Vec2)(end - start));
@@ -262,12 +262,14 @@ OptionalEntity<> findTileEntityAtPosition(const GameState* state, Vec2 position)
     IVec2 tilePosition = vecFloori(position);
     Tile* selectedTile = getTileAtPosition(state->chunkmap, tilePosition);
     if (selectedTile) {
+        /*
         auto tileEntity = selectedTile->entity;
         if (tileEntity.Exists(&state->ecs)) {
             if (pointIsOnTileEntity(&state->ecs, tileEntity, tilePosition, position)) {
                 return tileEntity;
             }
         }
+        */
     }
 
     // no entity could be found at that position
@@ -275,19 +277,23 @@ OptionalEntity<> findTileEntityAtPosition(const GameState* state, Vec2 position)
 }
 
 bool removeEntityOnTile(EntityWorld* ecs, Tile* tile) {
+    /*
     if (tile->entity.Exists(ecs)) {
         ecs->Destroy(tile->entity);
         return true;
     }
     tile->entity = NullEntity;
+    */
     return false;
 }
 
 bool placeEntityOnTile(EntityWorld* ecs, Tile* tile, Entity entity) {
+    /*
     if (!tile->entity.Exists(ecs)) {
         tile->entity = entity;
         return true;
     }
+    */
     return false;
 }
 

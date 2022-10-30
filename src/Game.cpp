@@ -10,10 +10,13 @@
 #include "rendering/rendering.hpp"
 #include "GameSave/main.hpp"
 
-#include "EntitySystems/Systems.hpp"
-#include "Entities/Entities.hpp"
-#include "EntityComponents/Components.hpp"
 #include "ECS/ECS.hpp"
+#include "ECS/systems/systems.hpp"
+#include "ECS/entities/entities.hpp"
+#include "ECS/components/components.hpp"
+
+#include "llvm/SmallVector.h"
+#include "llvm/ArrayRef.h"
 
 static void updateTilePixels(float scale) {
     if (scale == 0) {
@@ -28,7 +31,8 @@ static void updateTilePixels(float scale) {
 
 void placeInserter(ChunkMap& chunkmap, EntityWorld* ecs, Vec2 mouseWorldPos) {
     Tile* tile = getTileAtPosition(chunkmap, mouseWorldPos);
-    if (tile && !tile->entity.Exists(ecs)) {
+    // TODO: entity collision stuff
+    if (tile) {
         Vec2 inputPos = {mouseWorldPos.x + 1, mouseWorldPos.y};
         Vec2 outputPos = {mouseWorldPos.x - 1, mouseWorldPos.y};
         Entity inserter = Entities::Inserter(ecs, Vec2(floor(mouseWorldPos.x), floor(mouseWorldPos.y)) + Vec2(0.5f, 0.5f), 1, vecFloori(inputPos), vecFloor(outputPos));
@@ -85,7 +89,7 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
             auto chest = Entities::Chest(&ecs, position, 3, width, height);
             (void)chest;
         }),
-        new FunctionKeyBinding('l', [&ecs](){
+        new FunctionKeyBinding('l', [](){
             // do airstrikes row by row
             for (int y = -100; y < 100; y += 5) {
                 for (int x = -100; x < 100; x += 5) {
@@ -101,9 +105,10 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
             if (focusedEntity.Has<EC::Rotation, EC::Rotatable>(&ecs))
                 rotateEntity(ComponentManager<EC::Rotation, EC::Rotatable, EC::Position>(&ecs), focusedEntity.cast<EC::Rotation, EC::Rotatable>(), playerControls.keyboardState[SDL_SCANCODE_LSHIFT]);
         }),
+        // testing stuff
         new FunctionKeyBinding('5', [&](){
-            const Entity* entities = ecs.GetEntityList();
             ecs.IterateEntities([&](Entity entity){
+                // dont kill player plz
                 if (entity.id != player.entity.id) {
                     if (ecs.Destroy(entity)) {
                         LogError("Failed to destroy entity %s!", entity.DebugStr());
@@ -284,10 +289,10 @@ static void updateSystems(GameState* state) {
     });
 }
 
-int tick(GameState* state) {
+int  tick(GameState* state) {
     state->player.grenadeThrowCooldown--;
     updateSystems(state);
-    if (Metadata->ticks() % 10 == 0 && false) {
+    if (Metadata->ticks() % 1 == 0 && false) {
         for (auto& chunk: state->chunkmap.chunkList) {
             for (int x = 0; x < CHUNKSIZE; x++) {
                 for (int y = 0; y < CHUNKSIZE; y++) {
@@ -323,6 +328,21 @@ int tick(GameState* state) {
                 }
             }
         }
+    }
+
+    LogInfo("collision count: %d. lookups: %d", My::Map::collisionCount, My::Map::lookupCount);
+    My::Map::collisionCount = 0;
+    My::Map::lookupCount = 0;
+
+    llvm::SmallVector<int> smallVec;
+    smallVec.push_back(5);
+    smallVec.pop_back();
+    smallVec.reserve(200);
+
+    llvm::ArrayRef<int> ref{1,2,3,4};
+    //ref = smallVec;
+    for (auto i : My::reverse(ref)) {
+        LogInfo("ref element: %d", i);
     }
 
     return 0;

@@ -1,8 +1,8 @@
 #ifndef GAMESAVE_CHUNKS_INCLUDED
 #define GAMESAVE_CHUNKS_INCLUDED
 
-#include "../Chunks.hpp"
-#include "../utils/Log.hpp"
+#include "Chunks.hpp"
+#include "utils/Log.hpp"
 #include <stdio.h>
 
 namespace GameSave {

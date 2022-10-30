@@ -1,0 +1,64 @@
+#ifndef METADATA_INCLUDED
+#define METADATA_INCLUDED
+
+#include "../constants.hpp"
+#include <SDL2/SDL.h>
+
+/*
+* Useful metadata information and utilities
+*/
+struct MetadataTracker {
+    double _fps; // actual fps
+    double targetFps; // Desired fps, currently unused
+    double deltaTime; // the change in milliseconds from the last tick to the current tick
+    double perfCountCurrentTick; // performance count of the tick that has not yet finished
+    double perfCountLastTick; // performance count of the last finished tick
+    int _ticks; // the number of ticks that have passed
+    Uint32 startTicks; // The start time of the game in ticks
+public:
+    bool vsyncEnabled;
+
+    MetadataTracker(double targetFps, bool vsync);
+
+    /*
+    * Mark the start time of the application, for better tracking of various data (like start time)
+    * @return The current time in ticks.
+    */ 
+    Uint32 start();
+
+    /*
+    * Mark the end of the application's main loop.
+    * @return The time elapsed in seconds.
+    */
+    double end();
+
+    /* 
+    * Tick to signify one update passing, allowing update time tracking
+    * @return The deltaTime of latest tick
+    */
+    double tick();
+
+    /*
+    * Get the current estimated frames (more accurately, ticks) per second,
+    * based on the deltatime between ticks
+    */
+    double fps() const;
+
+    void setTargetFps(double newTargetFps);
+    double getTargetFps() const;
+
+    // Get the number of ticks (incremented each time Metadata::tick() is called) since the start of the application
+    int ticks() const;
+
+    double seconds() const {
+        return (GetTicks() - startTicks) / 1000.0f;
+    }
+
+    // Get the start time (when start() was called) of the game in ticks.
+    Uint32 getStartTicks() const;
+
+};
+
+extern const MetadataTracker* Metadata;
+
+#endif

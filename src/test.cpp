@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <chrono>
+#include "utils/llvm/SmallVector.h"
 
 std::chrono::time_point<std::chrono::high_resolution_clock> getNow() {
     return std::chrono::high_resolution_clock::now();
@@ -58,6 +59,11 @@ int fff(int a) {
     }
 }
 
+int print() {
+    cout << "static func";
+    return 2;
+}
+
 int main() {
 /*
     int count = 100000;
@@ -82,7 +88,7 @@ int main() {
     trash.~Trash();
 
     cout << trash.a << std::endl;
-*/
+
     for (size_t s = 1; s < 1000000000; s += 100) {
         size_t* ptr = (size_t*)malloc(s * sizeof(size_t));
         if (!ptr) continue;
@@ -91,6 +97,13 @@ int main() {
             cout << "Stored == " << s;
         }
     }
+*/
+
+    std::vector<int> nums(10);
+    nums.push_back(1);
+    cout << nums.size();
+
+    cout << "size of small vec: " << sizeof(llvm::SmallVector<int, 0>);
 
     return 0;
 }

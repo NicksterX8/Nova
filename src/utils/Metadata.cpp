@@ -1,5 +1,5 @@
-#include "Metadata.hpp"
-#include "../constants.hpp"
+#include "utils/Metadata.hpp"
+#include "constants.hpp"
 
 MetadataTracker::MetadataTracker(double targetFps, bool vsync) {
     _fps = 0.0;
@@ -16,7 +16,7 @@ Uint32 MetadataTracker::start() {
 }
 
 double MetadataTracker::end() {
-    return (GetTicks() - startTicks) / 1000.0f;
+    return seconds();
 }
 
 double MetadataTracker::tick() {

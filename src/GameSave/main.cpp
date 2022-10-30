@@ -1,10 +1,12 @@
-#include "main.hpp"
+#include "GameSave/main.hpp"
 #include <string.h>
-#include "GameSave.hpp"
+#include "GameSave/GameSave.hpp"
 #include "Chunks.hpp"
-#include "../GameState.hpp"
-#include "../utils/Log.hpp"
+#include "GameState.hpp"
+#include "utils/Log.hpp"
 #include <map>
+#include "ECS/EntityWorld.hpp"
+#include "ECS/SECS.hpp"
 
 namespace GameSave {
 

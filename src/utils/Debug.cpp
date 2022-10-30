@@ -1,4 +1,4 @@
-#include "Debug.hpp"
+#include "utils/Debug.hpp"
 
 DebugClass::DebugClass() {
     /* Initialize all settings to 0 */

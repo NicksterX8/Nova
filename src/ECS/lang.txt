@@ -1,0 +1,70 @@
+struct Size {
+    size : int,
+    count : int
+}
+
+empty :: (t : $T) -> bool { t.size == 0 }
+
+not :: (b : bool) -> bool { b ? 0 : 1 }
+
+clone :: (s : S*, out : S&) -> S {
+    *out = {size = s.size, count = s.count - 1}
+}
+
+if :: (b : bool, code : #code) {
+    c_if (b) {
+        #execute code
+    }
+}
+
+[operator +, hidden] 
+add :: (a : int, b : int) -> int { a + b }
+
+[Traits(IntLike, Primitive)] struct Inty {
+    x : int;
+}
+
+[implicit, hidden]
+intToBool :: (a : $I %IntLike) -> bool { a != 0 }
+
+fn main(count c : int, noname : int) -> int {
+
+}
+
+fn main :: (count c : int) -> (sum : int; square : float; a,b,c,d : int*) {
+    s : S = {0}
+    s2 : S = ---
+    clone s &s2
+    destroy s
+    
+}
+
+[inline(sometimes)] {
+
+    [no_discard; inline(never); optimization(0)]
+    fn callMain() {
+        main(count: 2, 3);
+        S := Size::withCapacity(3)
+
+        if S not empty { // translates to if(not(empty(S)), print("hello world))
+            print("hello world")
+        }
+
+        if not empty S {
+
+        }
+
+        if not lookup S {
+
+        }
+    }
+
+}
+
+fn killEnemies(count : int; enemies : Enemy*) -> (numEnemiesKilled : int) {
+    loop(over, reverse; index: i, value: enemy) enemies {
+        
+    }
+
+    loop(t = ) (enemies) 
+}

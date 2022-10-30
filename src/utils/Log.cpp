@@ -1,4 +1,4 @@
-#include "Log.hpp"
+#include "utils/Log.hpp"
 
 void Logger::logOutputFunction(LogCategory category, LogPriority priority, const char *message) const {
     const char* fg = "";

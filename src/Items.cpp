@@ -18,10 +18,10 @@ item(item), quantity(quantity) {
 }
 
 int ItemStack::reduceQuantity(Uint32 reduction) {
-    if (quantity == INFINITE_ITEM_QUANTITY) {
+    if (quantity == ItemQuantityInfinity) {
         return reduction;
     }
-    if (reduction == INFINITE_ITEM_QUANTITY) {
+    if (reduction == ItemQuantityInfinity) {
         return quantity;
     }
 
@@ -41,44 +41,44 @@ ItemStack Inventory::firstItemStack() {
             return get(i).item;
         }
     }
-    return ItemStack();
+    return ItemStack::Empty();
 }
 
-Uint32 Inventory::addItemStack(ItemStack stack) {
-    Uint32 itemsLeft = stack.quantity;
+ItemQuantity Inventory::addItemStack(ItemStack stack) {
+    ItemQuantity itemsLeft = stack.quantity;
     // find first unused slot or first slot of same type and add it to that slot
     for (Uint32 i = 0; i < size && itemsLeft > 0; i++) {
-        if (stack.quantity == INFINITE_ITEM_QUANTITY) {
-            if (!get(i).item) {
-                get(i) = stack;
-                return INFINITE_ITEM_QUANTITY;
+        auto& inventoryStack = get(i);
+        if (stack.quantity == ItemQuantityInfinity) {
+            if (!inventoryStack.item) {
+                inventoryStack = stack;
+                return ItemQuantityInfinity;
             }
         }
         // else need to use another slot
-        else if (!get(i).item) {
+        else if (!inventoryStack.item) {
             // add as many items as can fit based on the item's stack size and how many are in the stack
             // if it weren't for the possibility of a stack of items having a quantity higher
             // than the stack's stacksize it would work to just copy the stack straight into the inventory slot
-            get(i).item = stack.item;
-            Uint32 itemsToAdd = (ItemData[stack.item].stackSize < itemsLeft) ? 
+            inventoryStack.item = stack.item;
+            ItemQuantity itemsToAdd = (ItemData[stack.item].stackSize < itemsLeft) ? 
                                 ItemData[stack.item].stackSize : itemsLeft;
-            get(i).quantity = itemsToAdd;
+            inventoryStack.quantity = itemsToAdd;
             itemsLeft -= itemsToAdd;
         }
-        else if (get(i).item == stack.item) {
-            if (get(i).quantity == INFINITE_ITEM_QUANTITY) {
+        else if (inventoryStack.item == stack.item) {
+            if (inventoryStack.quantity == ItemQuantityInfinity) {
                 return stack.quantity;
             }
 
-            int room = ItemData[get(i).item].stackSize - get(i).quantity;
+            int room = ItemData[inventoryStack.item].stackSize - inventoryStack.quantity;
             // if the slot is entirely full this will be <= 0
             // get the minimum of how much items the slot can fit and how many items are in the stack that needs to be added
             if (room > 0) {
                 Uint32 itemsToAdd = (itemsLeft < (Uint32)room) ? itemsLeft : (Uint32)room;
                 // move as many items as can fit from the stack to the inventory
-                get(i).quantity += itemsToAdd;
+                inventoryStack.quantity += itemsToAdd;
                 itemsLeft -= itemsToAdd;
-                
             }
             // no room left in this slot, continue on
         }
@@ -87,15 +87,16 @@ Uint32 Inventory::addItemStack(ItemStack stack) {
     return stack.quantity - itemsLeft;
 }
 
-Uint32 Inventory::removeItemStack(ItemStack stack) {
-    Uint32 itemsLeft = stack.quantity;
+ItemQuantity Inventory::removeItemStack(ItemStack stack) {
+    ItemQuantity itemsLeft = stack.quantity;
     // go through slots of the same type as the stack and
     // remove as many items as possible from that slot
     for (Uint32 i = 0; i < size; i++) {
-        if (get(i).item == stack.item) {
+        auto& invStack = get(i);
+        if (invStack.item == stack.item) {
             // get the minimum of the two quanities, to not remove more than the stack said to,
             // and not to remove more than are in the slot
-            Uint32 itemsToRemove = (itemsLeft < get(i).quantity) ? itemsLeft : get(i).quantity;
+            Uint32 itemsToRemove = (itemsLeft < invStack.quantity) ? itemsLeft : invStack.quantity;
             itemsLeft -= itemsToRemove;
             if (itemsLeft == 0) {
                 break;
@@ -105,11 +106,13 @@ Uint32 Inventory::removeItemStack(ItemStack stack) {
     return stack.quantity - itemsLeft;
 }
 
-Uint32 Inventory::itemCount(Item item) {
-    Uint32 count = 0;
+ItemQuantity Inventory::itemCount(Item item) {
+    ItemQuantity count = 0;
     for (Uint32 i = 0; i < size; i++) {
-        if (get(i).item == item) {
-            count += get(i).quantity;
+        auto& inventoryStack = get(i);
+        if (inventoryStack.item == item) {
+            if (inventoryStack.infinite()) return ItemQuantityInfinity;
+            else count += inventoryStack.quantity;
         }
     }
     return count;
