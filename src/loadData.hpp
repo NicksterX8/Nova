@@ -2,7 +2,7 @@
 #define LOADDATA_INCLUDED
 
 #include "Tiles.hpp"
-#include "Items.hpp"
+#include "items/items.hpp"
 
 TileTypeDataStruct defaultTileTypeData = {
     .color = {0, 0, 0, 255},
@@ -50,7 +50,7 @@ void loadTileData() {
         .background = TextureIDs::Tiles::SpaceFloor,
         .flags = Walkable | Mineable,
         .mineable = {
-            .item = Items::SpaceFloor
+            .item = ItemIDs::SpaceFloor
         }
     };
     TileTypeData[Wall] = {
@@ -58,7 +58,7 @@ void loadTileData() {
         .background = TextureIDs::Tiles::Wall,
         .flags = Mineable,
         .mineable = {
-            .item = Items::Wall
+            .item = ItemIDs::Wall
         }
     };
 }

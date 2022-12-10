@@ -97,27 +97,27 @@ inline void quitFreetype() {
     FT_Done_FreeType(freetype);
 }
 
-inline GLuint generateFontAtlasTexture(const TexturePacker& packer) {
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+inline GLuint loadFontAtlasTexture(Texture atlas) {
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
     glTexImage2D(
         GL_TEXTURE_2D,
         0,
         GL_RED,
-        packer.textureSize.x,
-        packer.textureSize.y,
+        atlas.size.x,
+        atlas.size.y,
         0,
         GL_RED,
         GL_UNSIGNED_BYTE,
-        packer.buffer
+        atlas.buffer
     );
     // set texture options
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    return texture;
+    return textureID;
 }
 
 FT_Face newFontFace(const char* filepath, FT_UInt height);
@@ -125,18 +125,31 @@ FT_Face newFontFace(const char* filepath, FT_UInt height);
 struct Font {
     FT_Face face;
     glm::ivec2 atlasSize;
+    float tabWidth; // times space char advance
+    float lineHeight; // times the font face height
     GLuint atlasTexture;
-    char firstChar;
-    char lastChar;
-    float tabWidth;
-    float lineHeight;
+    unsigned short spaceCharAdvance; // advance in pixels
 
+    /*
     struct Character {
         glm::ivec2 texPos;
         glm::ivec2 size;
         glm::ivec2 bearing;
         unsigned int advance;
     } *characters;
+    */
+
+    struct AtlasCharacterData {
+        glm::ivec2* positions;
+        glm::ivec2* sizes;
+        glm::ivec2* bearings;
+        unsigned short* advances;
+    };
+
+    AtlasCharacterData characters;
+
+    char firstChar;
+    char lastChar;
 
     Font() = default;
 
@@ -147,9 +160,31 @@ struct Font {
     void load(const char* fontfile, FT_UInt height, bool useSDFs, char firstChar=32, char lastChar=127);
 
     void unload();
+
+    glm::ivec2 position(char c) const {
+        assert(c >= firstChar && c <= lastChar && "character not available in font!");
+        return characters.positions[c - firstChar];
+    }
+
+    glm::ivec2 size(char c) const {
+        assert(c >= firstChar && c <= lastChar && "character not available in font!");
+        return characters.sizes[c - firstChar];
+    }
+
+    glm::ivec2 bearing(char c) const {
+        assert(c >= firstChar && c <= lastChar && "character not available in font!");
+        return characters.bearings[c - firstChar];
+    }
+
+    unsigned int advance(char c) const {
+        assert(c >= firstChar && c <= lastChar && "character not available in font!");
+        return characters.advances[c - firstChar];
+    }
 };
 
 struct TextRenderer {
+    using FormattingSettings = TextFormattingSettings;
+    using RenderingSettings = TextRenderingSettings;
 
     const static GLint bufferCapacity = 500;
     const static GLint bufferPositionStart = 0;
@@ -165,16 +200,36 @@ struct TextRenderer {
     GLuint vao,vbo,ebo;
     GLint bufferSize;
     int charBufferSize;
-    unsigned int spaceCharAdvance;
-    using FormattingSettings = TextFormattingSettings;
     FormattingSettings defaultFormatting;
-    using RenderingSettings = TextRenderingSettings;
     RenderingSettings defaultRendering;
+
+    std::array<glm::vec2, 4>* characterTexCoords;
 
     struct CharacterRenderData {
         char c;
         glm::ivec2 offset;
     };
+
+    void calculateCharacterTexCoords() {
+        const float textureWidth = font->atlasSize.x;
+        const float textureHeight = font->atlasSize.y;
+
+        for (char c = font->firstChar; c <= font->lastChar; c++) {
+            glm::vec2* coords = characterTexCoords[c].data();
+            const auto pos = font->position(c);
+            const auto size = font->size(c);
+
+            auto tx = (GLfloat)(pos.x + 0.0f) / textureWidth;
+            auto ty = (GLfloat)(pos.y + 0.0f) / textureHeight;
+            auto tx2 = (GLfloat)(pos.x + size.x + 0.0f) / textureWidth;
+            auto ty2 = (GLfloat)(pos.y + size.y + 0.0f) / textureHeight;
+
+            coords[0] = {tx,  ty2};
+            coords[1] = {tx,  ty};
+            coords[2] = {tx2, ty};
+            coords[3] = {tx2, ty2};
+        }
+    }
 
     static TextRenderer init(Font* font, Shader shader) {
         TextRenderer self;
@@ -183,7 +238,6 @@ struct TextRenderer {
         self.defaultColor = {0,0,0,0};
         self.currentColor = {NAN, NAN, NAN, NAN};
         self.shader = shader;
-        self.spaceCharAdvance = font->characters[' ' - font->firstChar].advance;
 
         glGenVertexArrays(1, &self.vao);
         glGenBuffers(1, &self.vbo);
@@ -210,6 +264,8 @@ struct TextRenderer {
         self.charBufferSize = 0;
         self.defaultFormatting = FormattingSettings::Default();
 
+        self.calculateCharacterTexCoords();
+
         return self;
     }
 
@@ -226,7 +282,7 @@ struct TextRenderer {
             }
             else if (c == '\t') {
                 // tab
-                cx += font->tabWidth * (font->characters[' ' - font->firstChar].advance >> 6);
+                cx += font->tabWidth * (font->spaceCharAdvance >> 6);
                 continue;
             }
             else if (c < font->firstChar || c > font->lastChar) {
@@ -234,10 +290,8 @@ struct TextRenderer {
                 continue;
             }
 
-            Font::Character ch = font->characters[c - font->firstChar];
-
             // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-            cx += (ch.advance >> 6); // bitshift by 6 to get value in pixels (2^6 = 64)
+            cx += (font->advance(c) >> 6); // bitshift by 6 to get value in pixels (2^6 = 64)
         }
         mx = cx > mx ? cx : mx;
         my = cy < my ? cy : my;
@@ -277,10 +331,10 @@ struct TextRenderer {
             bool whitespaceChar = false; // character that makes whitespace like space, tab, newline
             if (c == ' ') {
                 whitespaceChar = true;
-                if (cx + (float)(spaceCharAdvance >> 6) >= settings.maxWidth) {
+                if (cx + (float)(font->spaceCharAdvance >> 6) >= settings.maxWidth) {
                     goto newline;
                 }
-                cx += spaceCharAdvance >> 6;
+                cx += font->spaceCharAdvance >> 6;
                 goto cx_changed;
             }
             else if (c == '\n') {
@@ -308,7 +362,7 @@ struct TextRenderer {
             }
             else if (c == '\t') {
                 whitespaceChar = true;
-                cx += font->tabWidth * (spaceCharAdvance >> 6);
+                cx += font->tabWidth * (font->spaceCharAdvance >> 6);
                 goto cx_changed;
             }
             else if (c < font->firstChar || c > font->lastChar) {
@@ -324,7 +378,7 @@ struct TextRenderer {
             lineLength++;
 
             // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-            cx += (font->characters[c - font->firstChar].advance >> 6); // bitshift by 6 to get value in pixels (2^6 = 64)
+            cx += (font->advance(c) >> 6); // bitshift by 6 to get value in pixels (2^6 = 64)
         cx_changed:
             if (cx >= settings.maxWidth) {
                 // TODO: this doesn't work
@@ -373,22 +427,20 @@ struct TextRenderer {
         };
     }
 
-    void buffer(int numChars, const char* characters, const glm::vec2* offsets, glm::vec2 pos, RenderingSettings settings) {
+    void buffer(int numChars, const char* chars, const glm::vec2* offsets, glm::vec2 pos, RenderingSettings settings) {
         assert(bufferSize + numChars <= bufferCapacity);
         for (int i = 0; i < numChars; i++) {
-            char c = characters[i];
+            char c = chars[i];
             glm::vec2 offset = offsets[i];
-            Font::Character ch = font->characters[c - font->firstChar];
+            auto bearing = font->bearing(c);
+            auto size = font->size(c);
 
-            GLfloat x  = pos.x + (offset.x + ch.bearing.x) * settings.scale.x;
-            GLfloat y  = pos.y + (offset.y - (ch.size.y - ch.bearing.y)) * settings.scale.y;
-            GLfloat x2 = x + ch.size.x * settings.scale.x;
-            GLfloat y2 = y + ch.size.y * settings.scale.y;
+            GLfloat x  = pos.x + (offset.x + bearing.x) * settings.scale.x;
+            GLfloat y  = pos.y + (offset.y - (size.y - bearing.y)) * settings.scale.y;
+            GLfloat x2 = x + size.x * settings.scale.x;
+            GLfloat y2 = y + size.y * settings.scale.y;
 
-            GLfloat tx  = (GLfloat)(ch.texPos.x + 0.0f) / font->atlasSize.x;
-            GLfloat ty  = (GLfloat)(ch.texPos.y + 0.0f) / font->atlasSize.y;
-            GLfloat tx2 = (GLfloat)(ch.texPos.x + ch.size.x + 0.0f) / font->atlasSize.x;
-            GLfloat ty2 = (GLfloat)(ch.texPos.y + ch.size.y + 0.0f) / font->atlasSize.y;
+            auto coords = characterTexCoords[c - font->firstChar];
             // update VBO for each character
             // rendering glyph texture over quad
             const GLfloat positions[4][2] = {
@@ -396,17 +448,12 @@ struct TextRenderer {
                 {x,  y2},
                 {x2, y2},
                 {x2, y}
-            };
-            const GLfloat texCoords[4][2] = {
-                {tx,  ty2},
-                {tx,  ty},
-                {tx2, ty},
-                {tx2, ty2}
-            };
+            };  
         
             // add to vertex buffer
             memcpy((char*)vertexBuffer + bufferPositionStart + (i + bufferSize) * sizeof(positions), positions, sizeof(positions));
-            memcpy((char*)vertexBuffer + bufferTexCoordStart + (i + bufferSize) * sizeof(texCoords), texCoords, sizeof(texCoords));
+            const float* texCoords = (float*)characterTexCoords[c - font->firstChar].data();
+            memcpy((char*)vertexBuffer + bufferTexCoordStart + (i + bufferSize) * 4 * sizeof(glm::vec2), texCoords, 4 * sizeof(glm::vec2));
         }
     }
 

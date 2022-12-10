@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <array>
+#include <glm/geometric.hpp>
 
 #include <SDL2/SDL.h>
 #include "constants.hpp"
@@ -11,9 +12,7 @@
 #include "Player.hpp"
 #include "ECS/entities/entities.hpp"
 #include "ECS/systems/systems.hpp"
-#include "ComponentMetadata/components.hpp"
-
-#include <glm/geometric.hpp>
+#include "metadata/ecs/ecs.hpp"
 
 void GameState::init() {
 
@@ -31,7 +30,7 @@ void GameState::init() {
         }
     }
 
-    ecs.init<COMPONENTS>();
+    ecs = EntityWorld::Init<ECS_COMPONENTS>();
     ecs.SetOnAdd<EC::Position>([&](EntityWorld* ecs, Entity entity){
         //entityPositionChanged(&chunkmap, ecs, entity, {NAN, NAN});
         Vec2 pos = ecs->Get<EC::Position>(entity)->vec2();
@@ -80,12 +79,11 @@ void GameState::init() {
 
     player = Player(&ecs, Vec2(0, 0));
 
+    ItemManager manager;
+
     ItemStack startInventory[] = {
-        {Items::SpaceFloor, ItemQuantityInfinity},
-        {Items::Grass, 64},
-        {Items::Wall, 64},
-        {Items::Grenade, ItemQuantityInfinity},
-        {Items::SandGun, 1}
+        Items::GrenadeItem(manager),
+        Items::Grass(manager),
     };
 
     Inventory* playerInventory = player.inventory();

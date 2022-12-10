@@ -5,7 +5,26 @@
 #include "ECS/EntityWorld.hpp"
 #include "Chunks.hpp"
 
+void makeEntities(EntityWorld& ecs, Entity* out) {
+    ecs.New
+}
+
 namespace Entities {
+
+Entity clone(EntityWorld* ecs, Entity entity) {
+    auto signature = ecs->EntitySignature(entity);
+    const char* type = ecs->Get<EC::EntityTypeEC>(entity)->name;
+    Entity newEntity = ecs->New(type);
+    ecs->AddSignature(newEntity, signature);
+    signature.forEachSet([&](auto componentID){
+        auto size = ecs->getComponentSize(componentID);
+        const void* oldComponent = ecs->Get(componentID, entity);
+        void* newComponent = ecs->Get(componentID, entity);
+        memcpy(newComponent, oldComponent, size);
+    });
+
+    
+}
 
 /* Throw the entity, adding motion and angle motion components.
  */

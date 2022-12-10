@@ -4,7 +4,7 @@
 #include "constants.hpp"
 #include "rendering/textures.hpp"
 #include <SDL2/SDL.h>
-#include "Items.hpp"
+#include "items/items.hpp"
 #include "ECS/SEntity.hpp"
 
 extern float TilePixels;
@@ -28,7 +28,7 @@ namespace TileTypes {
     };
 
     struct MineableTile {
-        Item item; // item given by being mined (or 0 for nothing)
+        ItemType item; // item given by being mined (or 0 for nothing)
     };
 }
 typedef Uint16 TileType;

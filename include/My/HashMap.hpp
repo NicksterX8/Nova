@@ -45,29 +45,23 @@ void* hashmap_lookup(const HashMap* map, int keySize, int valueSize, const void*
 }
 
 template<class T>
-struct TrivialHashT {
+struct StdHashT {
     Hash operator()(const T& val) const {
-        return val;
+        return std::hash<T>{}(val);
     }
 };
 
 extern int collisionCount;
 extern int lookupCount;
-//, typename PassedKeyT = K, typename PassedValueT = V
-template<typename K, typename V, typename H=TrivialHashT<K>>
+//, typename KeyParamT = K, typename ValueParamT = V
+template<typename K, typename V, typename H=StdHashT<K>>
 struct HashMap {
     static_assert(std::is_trivially_copyable<K>::value, "hashmap doesn't support complex types");
     static_assert(std::is_trivially_copyable<V>::value, "hashmap doesn't support complex types");
 private:
     using Self = HashMap<K, V, H>;
-    /*
-    static constexpr bool keyIsSmall = sizeof(K) <= 16;
-    using PassedKeyT = std::conditional_t<keyIsSmall, K, const K&>;
-    static constexpr bool valueIsSmall = sizeof(V) <= 16;
-    using PassedValueT = std::conditional_t<valueIsSmall, V, const V&>;
-    */
-    using PassedValueT = FastestParamType<V>;
-    using PassedKeyT   = FastestParamType<K>;
+    using ValueParamT = FastestParamType<V>;
+    using KeyParamT   = FastestParamType<K>;
 public:
 
     void* memory;
@@ -99,7 +93,7 @@ public:
         return HashMap(buckets);
     }
 
-    static inline Hash hashKey(PassedKeyT key) {
+    static inline Hash hashKey(KeyParamT key) {
         static constexpr H hashKeyType;
         return hashKeyType(key); 
     }
@@ -109,7 +103,7 @@ public:
         return hashKeyType(*((K*)key));
     }
 
-    V* lookup(PassedKeyT key) const {
+    V* lookup(KeyParamT key) const {
         lookupCount++;
         // have to do this before doing hash % size because x % 0 is undefined behavior
         if (size < 1) return nullptr;
@@ -137,7 +131,6 @@ public:
         //Failed to find filled bucket with key
         return nullptr;
         */
-        
         
         // linear probing
         for (int i = bucketStart; i < bucketCount; i++) {
@@ -179,7 +172,7 @@ public:
         return nullptr;
     }
 
-    void insert(PassedKeyT key, PassedValueT value) {
+    void insert(KeyParamT key, ValueParamT value) {
         // Resize larger if the load factor goes over 2/3 or if bucket count is 0
         if (!(size * 3 < bucketCount * 2)) {
             int minNewSize = bucketCount * 2 > 1 ? bucketCount * 2 : 1;
@@ -221,7 +214,7 @@ public:
         assert(false && "unable to find bucket target");        
     }
 
-    bool update(PassedKeyT key, PassedValueT value) {
+    bool update(KeyParamT key, ValueParamT value) {
         // Resize larger if the load factor goes over 2/3 or if bucket count is 0
         if (!(size * 3 < bucketCount * 2)) {
             int minNewSize = bucketCount * 2 > 1 ? bucketCount * 2 : 1;
@@ -278,11 +271,11 @@ public:
     }
 
     // remove empty buckets to save memory
-    inline void trim() {
+    void trim() {
         rehash(size);
     }
 
-    inline bool reserve(int maxSize) {
+    bool reserve(int maxSize) {
         return rehash(maxSize * 3 / 2);
     }
 
@@ -343,7 +336,7 @@ public:
     }
 
     // returns true on removal, false when failed to remove
-    bool remove(PassedKeyT key) {
+    bool remove(KeyParamT key) {
         if (bucketCount == 0) return false;
         // Hash the key and find the starting bucket
         size_t hash = hashKey(key) & BITMASK_BOTTOM_62;
@@ -383,6 +376,46 @@ public:
             }
         }
 
+        return false;
+    }
+
+    bool contains(KeyParamT key) {
+        lookupCount++;
+        // have to do this before doing hash % size because x % 0 is undefined behavior
+        if (size < 1) return false;
+
+        Hash hash = hashKey(key) & BITMASK_BOTTOM_62;
+        int bucketStart = (int)(hash % (unsigned)bucketCount);
+        // search buckets until we find a full one
+        for (int i = bucketStart; i < bucketCount; i++) {
+            Bucket* b = &buckets()[i];
+            if (b->state == Bucket_Filled) {
+                if (b->hash == hash && keys()[i] == key) {
+                    // found the value
+                    return true;
+                }
+            }
+            else if (b->state == Bucket_Empty) {
+                // lookup failed, no value exists for the key
+                return false;
+            }
+        }
+        // loop back to the begining to try the earlier buckets now
+        for (int i = 0; i < bucketStart; i++) {
+            Bucket* b = &buckets()[i];
+            if (b->state == Bucket_Filled) {
+                if (b->hash == hash && keys()[i] == key) {
+                    // found the value
+                    return true;
+                }
+            }
+            else if (b->state == Bucket_Empty) {
+                // lookup failed, no value exists for the key
+                return false;
+            }
+        }
+        
+        // even after all that we couldn't find a value for the key
         return false;
     }
 

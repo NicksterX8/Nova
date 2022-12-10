@@ -1,6 +1,7 @@
 #ifndef ENTITY_WORLD_INCLUDED
 #define ENTITY_WORLD_INCLUDED
 
+#include "utils/common-macros.hpp"
 #include "SECS.hpp"
 #include "components/components.hpp"
 #include <vector>
@@ -22,36 +23,32 @@ struct ComponentManager;
 
 struct EntityWorld {
 protected:
-    ECS::EntityManager* em = NULL;
+    ECS::EntityManager em;
     using EventCallback = std::function<void(EntityWorld*, Entity)>;
-    EventCallback callbacksOnAdd[NUM_COMPONENTS];
-    EventCallback callbacksBeforeRemove[NUM_COMPONENTS];
+    EventCallback callbacksOnAdd[ECS_NUM_COMPONENTS];
+    EventCallback callbacksBeforeRemove[ECS_NUM_COMPONENTS];
 
     bool deferringEvents = false;
     struct DeferredEvent {
         Entity entity;
         EventCallback callback;
     };
-    std::vector<DeferredEvent> deferredEvents;
+    llvm::SmallVector<DeferredEvent, 3> deferredEvents;
 public:
 
     friend int GameSave::writeEverythingToFiles(const char* outputSaveFolderPath, const GameState* state);
     friend int GameSave::readEntityDataFromFile(const char* filepath, EntityWorld* ecs);
-
-    EntityWorld() {
-        em = new ECS::EntityManager();
-        //deferredEvents = std::vector<DeferredEvent>();
-    }
 
     /* Initialize the entity world.
      * It is NOT safe to use an entity world without first calling this method on it.
      * Think of this function as a constructor.
      */
     template<class... Components>
-    void init() {
-        em->init<Components...>();
-        for (Uint32 i = 0; i < em->getComponentCount(); i++) {
-            ECS::ComponentPool* pool = em->getPool(i);
+    static EntityWorld Init() {
+        EntityWorld self;
+        self.em = EntityManager::Init<Components...>();
+        for (Uint32 i = 0; i < self.em.getComponentCount(); i++) {
+            ECS::ComponentPool* pool = em.getPool(i);
             if (pool) {
                 pool->name = componentNames[i];
             }
@@ -64,8 +61,12 @@ public:
      * Essentially a destructor.
      */
     void destroy() {
-        em->destroy();
-        delete em;
+        em.destroy();
+    }
+
+    Sint32 getComponentSize(ECS::ComponentID id) const {
+        auto pool = em.getPool(id);
+        return pool ? pool->size() : 0;
     }
 
     /* Create a new entity with just an entity type component using the type name given.
@@ -73,7 +74,7 @@ public:
      * @return A newly created entity.
      */
     Entity New(const char* type) {
-        Entity entity = em->New();
+        Entity entity = em.New();
         Add(entity, EC::EntityTypeEC(type));
         Add(entity, EC::Fresh());
         return entity;
@@ -95,14 +96,13 @@ public:
      * rendering it unusable. Attempting to destroy an entity that does not exist will do nothing other than trigger an error.
      * @return 0 if the destruction was successful, -1 on failure.
      */
-    int Destroy(Entity entity) {
+    void Destroy(Entity entity) {
         if (!EntityExists(entity)) {
             LogError("EntityWorld::Destroy : Entity passed does not exist! Entity: %s", entity.DebugStr());
-            return -1;
         }
 
-        ComponentFlags entityComponents = em->EntitySignature(entity.id);
-        for (ECS::ComponentID id = 0; id < em->getComponentCount(); id++) {
+        ComponentFlags entityComponents = em.EntitySignature(entity.id);
+        for (ECS::ComponentID id = 0; id < em.getComponentCount(); id++) {
             if (entityComponents[id]) {
                 auto& beforeRemoveT = callbacksBeforeRemove[id];
                 if (beforeRemoveT) {
@@ -114,14 +114,14 @@ public:
                 }
             }
         }
-        return em->Destroy(entity);
+        em.Destroy(entity);
     }
 
     /* Check whether an entity exists, AKA whether the entity was properly created using New and not yet Destroyed.
      * @return True if the entity exists, false if the entity is null or was destroyed.
      */
-    inline bool EntityExists(Entity entity) const {
-        return em->EntityExists(entity);
+    bool EntityExists(Entity entity) const {
+        return em.EntityExists(entity);
     }
 
     /* Get the entity component signature (AKA component flags) for an entity ID. 
@@ -130,8 +130,20 @@ public:
      * Do not use this method without knowing the entity passed has not been destroyed.
      * @return The component flags corresponding to the entity ID.
      */
-    inline ECS::ComponentFlags EntitySignature(EntityID entityID) const {
-        return em->EntitySignature(entityID);
+    ECS::ComponentFlags EntitySignature(EntityID entityID) const {
+        return em.EntitySignature(entityID);
+    }
+
+    /* Get the entity component signature (AKA component flags) for an entity ID. 
+     * Be warned this may be incorrect if the entity ID passed is for an outdated entity,
+     * that is, an entity that has been destroyed and then used again with a newer version.
+     * Do not use this method without knowing the entity passed has not been destroyed.
+     * @return The component flags corresponding to the entity ID.
+     */
+    ECS::ComponentFlags EntitySignature(Entity entity) const {
+        if (LIKELY(em.EntityExists(entity)))
+            return em.EntitySignature(entity.id);
+        return ECS::ComponentFlags(0);
     }
 
     /* Check if an entity exists and has all of the given components.
@@ -139,8 +151,8 @@ public:
      * @return True when the entity exists and has the components, otherwise false.
      */
     template<class... ECs>
-    inline bool EntityHas(Entity entity) const {
-        return EntityExists(entity) && em->EntityHas<ECs...>(entity);
+    bool EntityHas(Entity entity) const {
+        return EntityExists(entity) && em.EntityHas<ECs...>(entity);
     }
 
     /* Check if an entity exists and has all of the given components.
@@ -148,21 +160,21 @@ public:
      * @return True when the entity exists and has the components, otherwise false.
      */
     inline bool EntityHas(Entity entity, ComponentFlags components) const {
-        return (EntityExists(entity) && em->EntitySignature(entity.id).hasAll(components));
+        return (EntityExists(entity) && em.EntitySignature(entity.id).hasAll(components));
     }
 
     /* Get the latest entity version in use for the given ID.
      * In the case that the entity with the id given does not exist, the version returned will be the next version to be used for that entity.
      */
     inline EntityVersion GetEntityVersion(EntityID id) const {
-        return em->entityDataList[id].version;
+        return em.entityDataList[id].version;
     }
 
     /* Get the number of entities currently in existence.
      * This is equivalent to the size of the main entity list.
      */
     inline Uint32 EntityCount() const {
-        return em->getEntityCount();
+        return em.getEntityCount();
     }
 
     /* Get the list containing all entities in the world, length equal to the number of entities in existence (can be found using EntityCount()).
@@ -171,7 +183,7 @@ public:
      * Creating entities while iterating this list is also safe only while iterating in reverse order, but keep in mind that that will not iterate the newly created entities.
      */
     const Entity* GetEntityList() const {
-        return (Entity*)em->entities;
+        return (Entity*)em.entities;
     }
 
     /* Get a component from the entity of the type T.
@@ -182,7 +194,17 @@ public:
      */
     template<class T>
     T* Get(Entity entity) const {
-        return em->Get<T>(entity);
+        return em.Get<T>(entity);
+    }
+
+    /* Get a component from the entity of the type T.
+     * Completely side-effect free. Will log an error and return null if the entity does not exist or if the entity does not own a component of the type.
+     * Passing a type that has not been initialized with init() will result in an error message and getting null.
+     * In order to not be wasteful, types with a size of 0 (AKA flag components) will result in a return value of null.
+     * @return A pointer to a component of the type or null on error.
+     */
+    void* Get(EC_ID id, Entity entity) const {
+        return em.Get(id, entity);
     }
 
     template<class T>
@@ -190,7 +212,7 @@ public:
         static_assert(std::is_const<T>(), "Component must be const to set values!");
         if (sizeof(T) == 0) return NULL;
 
-        T* component = em->Get<T>(entity);
+        T* component = em.Get<T>(entity);
         // perhaps add a NULL check here and log an error instead of dereferencing immediately?
         // could hurt performance depending on where it's used
         // decided to add check as otherwise this method is useless, so only use it if a null check is intended.
@@ -206,8 +228,8 @@ public:
      */
     template<class T>
     int Add(Entity entity, const T& startValue) {
-        //LogInfo("Adding %s to entity: %s", em->getComponentName<T>(), entity.DebugStr());
-        int ret = em->Add<T>(entity, startValue);
+        //LogInfo("Adding %s to entity: %s", em.getComponentName<T>(), entity.DebugStr());
+        int ret = em.Add<T>(entity, startValue);
         if (!ret) {
             auto& onAddT = callbacksOnAdd[getID<T>()];
             if (onAddT) {
@@ -221,6 +243,31 @@ public:
         return ret;
     }
 
+    /* Add the component corresponding to the id to the given entity
+     * Triggers the relevant 'onAdd' event directly after adding and setting start value if not currently deferring events,
+     * otherwise it will be added to the back of the deferred events queue to be executed when finished deferring.
+     * @return 0 on success, any other value otherwise. A relevant error message should be logged.
+     */
+    int Add(Entity entity, ECS::ComponentID id) {
+        //LogInfo("Adding %s to entity: %s", em.getComponentName<T>(), entity.DebugStr());
+        int ret = em.Add(id, entity);
+        if (!ret) {
+            auto& onAddT = callbacksOnAdd[id];
+            if (onAddT) {
+                if (deferringEvents) {
+                    deferredEvents.push_back({entity, onAddT});
+                } else {
+                    onAddT(this, entity);
+                }
+            }
+        }
+        return ret;
+    }
+
+    int AddSignature(Entity entity, ECS::ComponentFlags signature) {
+        // TODO: idk
+    }
+
     /* Add the template argument components to the entity.
      * Triggers the relevant 'onAdd' events directly after adding all of the components if not currently deferring events.
      * Keep in mind the components will be left unitialized, meaning you may get either garbage or old component data if read to before being written to.
@@ -231,12 +278,11 @@ public:
     template<class... Components>
     int Add(Entity entity) {
         constexpr auto ids = ECS::getComponentIDs<Components...>();
-        int ret = em->Add<Components...>(entity);
+        int ret = em.Add<Components...>(entity);
         if (ret) {
-            LogInfo("Entity type: %s", em->Get<EC::EntityTypeEC>(entity)->name);
+            LogInfo("Entity type: %s", em.Get<EC::EntityTypeEC>(entity)->name);
         } else {
             for (size_t i = 0; i < ids.size(); i++) {
-                //LogInfo("Adding %s to entity: %s", em->getComponentName(ids[i]), entity.DebugStr());
                 auto& onAddT = callbacksOnAdd[ids[i]];
                 if (onAddT) {
                     if (deferringEvents) {
@@ -261,7 +307,7 @@ public:
                 beforeRemoveT(this, entity);
             }
         }
-        int ret = em->RemoveComponents<T>(entity);
+        int ret = em.RemoveComponents<T>(entity);
         
         return ret;
     }
@@ -291,11 +337,13 @@ public:
 
     /* Iterate all entities in the world.
      * It is safe to destroy entities while iterating.
-     * Creating entities while iterating this list is also safe, but keep in mind that entities created during iteration will be skipped.
+     * Creating entities while iterating this list is also safe,
+     * but keep in mind that entities created during iteration will not themselves be iterated over.
      */
-    inline void IterateEntities(std::function<void(Entity)> callback) const {
-        for (int e = em->getEntityCount()-1; e >= 0; e--) {
-            callback(em->entities[e]);
+    template<class F>
+    inline void IterateEntities(const F& callback) const {
+        for (int e = em.getEntityCount()-1; e >= 0; e--) {
+            callback(em.entities[e]);
         }
     }
 
@@ -314,16 +362,16 @@ public:
     /* Get a pointer to the component pool for a given component type */
     template<class T>
     inline const ECS::ComponentPool* GetPool() const {
-        return em->getPool<T>();
+        return em.getPool<T>();
     }
 
     /* Get a pointer to the component pool for a given component type */
     inline const ECS::ComponentPool* GetPool(ECS::ComponentID id) const {
-        return em->getPool(id);
+        return em.getPool(id);
     }
 
     inline Uint32 NumComponentPools() const {
-        return em->nComponents;
+        return em.nComponents;
     }
 
     template<class... Components>
@@ -332,10 +380,10 @@ public:
     }
 
     void minmizeMemoryUsage() {
-        for (Uint32 i = 0; i < em->nComponents; i++) {
-            ECS::ComponentPool* pool = em->getPool(i);
+        for (Uint32 i = 0; i < em.nComponents; i++) {
+            ECS::ComponentPool* pool = em.getPool(i);
             if (pool)
-                pool->reallocate(pool->size);
+                pool->reallocate(pool->size());
         }
     }
 };

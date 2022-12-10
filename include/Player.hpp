@@ -6,6 +6,7 @@
 #include "rendering/textures.hpp"
 #include "ECS/entities/entities.hpp"
 #include "ECS/entities/methods.hpp"
+#include "items/items.hpp"
 
 enum Direction {
     DirectionUp,
@@ -89,7 +90,7 @@ struct Player {
     }
 
     bool tryShootSandGun(EntityWorld* ecs, Vec2 aimingPosition) {
-        if (heldItemStack && heldItemStack->item == Items::SandGun) {
+        if (heldItemStack && heldItemStack->item.type == ItemTypes::SandGun) {
             Entity sand = ecs->New("sand");
             MARK_START_ENTITY_CREATION(ecs);
             ecs->Add<
@@ -117,7 +118,7 @@ struct Player {
 
     bool tryThrowGrenade(EntityWorld* ecs, Vec2 aimingPosition) {
         if (heldItemStack)
-        if (heldItemStack->item == Items::Grenade && heldItemStack->quantity > 0) {
+        if (heldItemStack->item.type == ItemTypes::Grenade && heldItemStack->quantity > 0) {
             if (grenadeThrowCooldown <= 0) {
                 Entities::ThrownGrenade(ecs, getPosition(), aimingPosition);
                 grenadeThrowCooldown = GrenadeCooldown;
@@ -133,8 +134,9 @@ struct Player {
         if (!entity.Has<EC::Inventory>(ecs)) return;
 
         selectedHotbarStack = index;
-        if (inventory()->get(index).item) {
-            heldItemStack = &inventory()->get(index);
+        auto* slot = &inventory()->get(index);
+        if (!slot->empty()) {
+            heldItemStack = slot;
         }
     }
 
@@ -150,8 +152,8 @@ struct Player {
     }
 
     bool canPlaceHeldItem() {
-        if (heldItemStack) {
-            if (ItemData[heldItemStack->item].flags & Items::Placeable) {
+        if (heldItemStack && !heldItemStack->empty()) {
+            if (heldItemStack->item.has<ITC::Placeable>()) {
                 if (heldItemStack->quantity > 0) {
                     return true;
                 }
@@ -160,15 +162,16 @@ struct Player {
         return false;
     }
 
-    bool tryPlaceHeldItem(Tile* targetTile) {
+    bool tryPlaceHeldItem(Tile* targetTile, ItemManager& itemManager) {
         if (canPlaceHeldItem()) {
-            TileType newTileType = ItemData[heldItemStack->item].placeable.tile;
+            auto placeable = itemManager.get<ITC::Placeable>(heldItemStack->item);
+            TileType newTileType = placeable->tile;
             if (targetTile->type != newTileType) {
                 // place it
                 targetTile->type = newTileType;
                 heldItemStack->reduceQuantity(1);
                 // when held item stack runs out, automatically drop it so the player isnt holding nothing
-                if (!heldItemStack->item) {
+                if (!heldItemStack->id) {
                     heldItemStack = NULL;
                 }
                 return true;

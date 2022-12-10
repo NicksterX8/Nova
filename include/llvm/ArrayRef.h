@@ -646,4 +646,8 @@ namespace llvm {
 
 } // end namespace llvm
 
+// added by NickW for convenience
+using llvm::ArrayRef;
+#define ARRAY_REF(ptr, size) ArrayRef<decltype(*ptr)>(ptr, size)
+
 #endif // LLVM_ADT_ARRAYREF_H

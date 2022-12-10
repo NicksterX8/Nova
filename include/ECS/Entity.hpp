@@ -5,8 +5,7 @@
 #include <string.h>
 #include <array>
 #include "Component.hpp"
-#include "ComponentMetadata/macro.hpp"
-#include "ComponentMetadata/getID.hpp"
+#include "metadata/ecs/ecs.hpp"
 #include "utils/Log.hpp"
 #include "constants.hpp"
 #include "My/Bitset.hpp"
@@ -20,10 +19,12 @@ typedef Uint32 EntityID;
 typedef Uint32 EntityVersion;
 typedef Sint32 ComponentID;
 
-struct ComponentFlags : public My::Bitset<NUM_COMPONENTS> {
-    using My::Bitset<NUM_COMPONENTS>::Bitset;
+using ComponentFlagsBase = My::Bitset<NUM_COMPONENTS>;
+
+struct ComponentFlags : ComponentFlagsBase {
+    using ComponentFlagsBase::ComponentFlagsBase;
     
-    constexpr ComponentFlags(My::Bitset<NUM_COMPONENTS> bitset) : My::Bitset<NUM_COMPONENTS>(bitset) {
+    constexpr ComponentFlags(ComponentFlagsBase bitset) : ComponentFlagsBase(bitset) {
         
     }
 
@@ -40,7 +41,7 @@ struct ComponentFlags : public My::Bitset<NUM_COMPONENTS> {
     }
 };
 
-#define MAX_ENTITIES 100000
+#define MAX_ENTITIES 64000
 #define ECS_BAD_COMPONENT_ID(id) (id < 0)
 
 constexpr EntityID NULL_ENTITY_ID = (MAX_ENTITIES-1);
@@ -201,6 +202,20 @@ public:
 
     constexpr operator Self&() const {
         return cast<>();
+    }
+};
+
+struct ConstEntity : protected EntityType<> {
+    EntityID ID() const {
+        return this->id;
+    }
+
+    EntityVersion Version() const {
+        return this->version;
+    }
+
+    EntityType<> CastMut() const {
+        return *this;
     }
 };
 

@@ -69,7 +69,7 @@ MemoryBlock min_aligned_malloc(size_t min, size_t preferred, size_t alignment, b
         return min_aligned_malloc(min, preferred, alignment, nonnull);
     });
 }
-
+/*
 MemoryBlock min_realloc(void* ptr, size_t min, size_t preferred, bool nonnull) {
     assert(preferred >= min && "preferred can't be less than minimum");
     if (min == 0) return {nullptr, 0};
@@ -83,7 +83,7 @@ MemoryBlock min_realloc(void* ptr, size_t min, size_t preferred, bool nonnull) {
         return min_realloc(ptr, min, preferred, nonnull);
     });
 }
-
+*/
 void* safe_malloc(size_t size) {
     void* ptr = _malloc(size);
     if (ptr || !size) return ptr;

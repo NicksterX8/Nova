@@ -163,7 +163,8 @@ public:
             if (!gui->pointInArea({mouseState.x, mouseState.y}) || !gui->pointInArea({prevMouseState.x, prevMouseState.y})) {
                 int lineSize;
                 IVec2* line = worldLine(prevWorldPos, newWorldPos, &lineSize); defer {Free(line);};
-                Tile* tiles = Alloc<Tile>(lineSize); defer {Free(tiles);};
+                //Tile* tiles = Alloc<Tile>(lineSize); defer {Free(tiles);};
+                ScopedAlloc(Tile, tiles, lineSize);
                 getTiles(state->chunkmap, line, tiles, lineSize);
                 if (state->player.canPlaceHeldItem()) {
                     for (int i = 0; i < lineSize; i++) {
@@ -233,10 +234,10 @@ public:
                             // click was on slot
                             ItemStack* stack = &state->player.inventory()->get(slot);
                             if (state->player.heldItemStack) {
-                                // set held stack down in slot only if actually holding stack and if slot is open
-                                if (!stack->item) {
+                                // set held stack down in slot only if actually holding stack and if slot is empty
+                                if (stack->empty()) {
                                     *stack = *state->player.heldItemStack;
-                                    state->player.heldItemStack->item = 0;
+                                    state->player.heldItemStack->clear();
                                     state->player.heldItemStack = NULL;
                                 } else {
                                     // stop holding item but dont move anything
@@ -252,7 +253,7 @@ public:
                 } else {
 
                     ItemStack* heldItemStack = state->player.heldItemStack;
-                    if (heldItemStack && (ItemData[state->player.heldItemStack->item].flags & Items::Placeable)) {
+                    if (heldItemStack && (ItemData[state->player.heldItemStack->id].flags & ItemIDs::Placeable)) {
                         // place item
                         placeHeldItem(state, worldPos);
                     } else {
@@ -289,9 +290,9 @@ public:
 
                 ItemStack* heldItemStack = state->player.heldItemStack;
                 if (heldItemStack) {
-                    if (ItemData[state->player.heldItemStack->item].flags & Items::Usable) {
+                    if (ItemData[state->player.heldItemStack->id].flags & ItemIDs::Usable) {
                         state->player.tryThrowGrenade(&state->ecs, worldPos);
-                        auto onUse = ItemData[heldItemStack->item].usable.onUse;
+                        auto onUse = ItemData[heldItemStack->id].usable.onUse;
                         if (onUse)
                             onUse();
                     }
@@ -325,7 +326,7 @@ public:
             break;}
             case 'z': {
                 ItemStack* heldItemStack = state->player.heldItemStack;
-                if (heldItemStack && heldItemStack->item && heldItemStack->quantity > 0) {
+                if (heldItemStack && !heldItemStack->empty()) {
                     ItemStack dropStack = ItemStack(heldItemStack->item, 1);
                     heldItemStack->reduceQuantity(1);
                     Entities::ItemStack(&state->ecs, mouseWorldPos, dropStack);

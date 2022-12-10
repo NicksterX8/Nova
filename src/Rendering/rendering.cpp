@@ -205,7 +205,7 @@ static llvm::SmallVector<Draw::ColorVertex, 0> makeDemoQuads(SDL_Window* window)
         quadPoints.push_back({glm::vec3(max.x, min.y, 0.0f), glm::vec4(randomInt(0, 1), randomInt(0, 1), randomInt(0, 1), randomInt(1, 10) / 10.0f)});
     }
 
-    return std::move(quadPoints);
+    return quadPoints;
 }
 
 using Draw::ColorQuadRenderBuffer;

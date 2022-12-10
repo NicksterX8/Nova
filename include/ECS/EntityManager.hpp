@@ -26,9 +26,11 @@ namespace ECS {
 using EntityCallback = std::function<void(Entity)>;
 
 struct EntityData {
+    static constexpr Sint32 NullIndex = -1;
+
     EntityVersion version; // The current entity version
-    ComponentFlags flags; // The entity's component signature
     Sint32 index; // Where in the entities array the entity is stored
+    ComponentFlags flags; // The entity's component signature
 };
 
 struct EntityManager {
@@ -73,43 +75,32 @@ struct EntityManager {
         return pool;
     }
 
-    EntityManager();
-
     template<class... Components>
-    void init() {
-        pools = Alloc<ComponentPool>(NUM_COMPONENTS);
-        for (ComponentID i = 0; i < NUM_COMPONENTS; i++) {
-            pools[i].id = -1;
-        }
-        //FOR_EACH_VAR_TYPE(newComponent<Components>());
-        FOR_EACH_VAR_TYPE(([this](ComponentID id, size_t componentSize){
-            // make new pool for component
-            pools[id] = ComponentPool::Init(id, componentSize, DEFAULT_COMPONENT_POOL_CAPACITY);
-            nComponents++;
-            if (id > highestComponentID)
-                highestComponentID = id;
-            if (nComponents > NUM_COMPONENTS || highestComponentID > NUM_COMPONENTS) {
-                LogCritical("The number of components in the enity component system is greater than the constant NUM_COMPONENTS!"
-                    "number of components in system: %u, NUM_COMPONENTS: %d", nComponents, NUM_COMPONENTS);
-            }
-        })(getID<Components>(), sizeof(Components)));
+    static EntityManager Init() {
+        EntityManager self;
+        constexpr auto NumComponents = sizeof...(Components);
+        self.nComponents = NumComponents;
+    
+        // initialize entity lists
 
-        static_assert(NULL_ENTITY_VERSION == 0, "starting entity version should be 1");
+        self.freeEntities = My::Vec<EntityID>::WithCapacity(MAX_ENTITIES-1);
+        self.entities = (Entity*)malloc(MAX_ENTITIES * sizeof(Entity));
+        self.entityDataList = (EntityData*)malloc(MAX_ENTITIES * sizeof(EntityData));
 
         // set all entities to null at start just in case, even though these should be overwritten before they're read.
-        for (EntityID i = 0; i < MAX_ENTITIES; i++) {
-            entities[i] = NullEntity;
-        }
+        std::fill(self.entities, self.entities + MAX_ENTITIES, NullEntity);
         // the version must be set, as it is used when creating new entities.
         // the flags will be set to 0 again so it's a redundant safety measure.
         // the index is required to show that the entities are not in existence.
         for (EntityID i = 0; i < MAX_ENTITIES; i++) {
+            static_assert(NULL_ENTITY_VERSION == 0, "starting entity version should be 1");
             entityDataList[i] = {
                 .version = 1,
                 .flags = ComponentFlags(0),
                 .index = NULL_ENTITY_ID
             };
         }
+
         // all entities are free by default.
         // stop one shorter than the others to avoid making NULL_ENTITY_ID a free entity.
         freeEntities.size = MAX_ENTITIES-1;
@@ -118,6 +109,18 @@ struct EntityManager {
             // starting at 0, ending at NULL_ENTITY_ID-1
             freeEntities[(NULL_ENTITY_ID-1)-i] = i;
         }
+        
+        // initialize component pools
+
+        self.pools = Alloc<ComponentPool>(NumComponents);
+        for (ComponentID i = 0; i < NumComponents; i++) {
+            self.pools[i].id = -1;
+        }
+        // make new pool for each component type
+        FOR_EACH_VAR_TYPE(([&self](ComponentID id, size_t componentSize){
+            self.pools[id] = ComponentPool(id, componentSize);
+            self.highestComponentID = MAX(id, self.highestComponentID);
+        })(getID<Components>(), sizeof(Components)));
     }
 
     // destroy the entity manager and deallocate everything
@@ -164,7 +167,10 @@ struct EntityManager {
 
     Entity New();
 
-    int Destroy(Entity entity);
+    Entity* New(int count, Entity* out);
+
+    void Destroy(Entity entity);
+    void Destroy(int count, const Entity* entities);
 
     ComponentFlags EntitySignature(EntityID entityID) const;
 
@@ -223,20 +229,17 @@ struct EntityManager {
         return code;
     }
 
-    template<class T>
-    int Add(Entity entity, const T& startValue) {
-        if (sizeof(T) == 0) return 1;
-
-        if (!EntityExists(entity)) {
-            LogError("Attempted to add component %s to a non-living entity! Entity: %s", getComponentName<T>(), entity.DebugStr());
+    int Add(ComponentID id, Entity entity) {
+        if (EntityExists(entity)) {
+            auto pool = getPool(id);
+            if (pool) {
+                entityDataList[entity.id].flags |= (1U << id);
+                return pool->add(entity.id);
+            }
+            LogError("Attempted to add component %s to a non-living entity! Entity: %s", getComponentName(id), entity.DebugStr());
             return -1;
         }
-
-        entityDataList[entity.id].flags |= componentSignature<T>();
-        if (!getPool<T>()->add(entity.id))
-            *static_cast<T*>(getPool<T>()->get(entity.id)) = startValue;
-
-        return 0;
+        return -1;
     }
 
     int AddSignature(Entity entity, ComponentFlags signature) {
@@ -253,6 +256,24 @@ struct EntityManager {
             if (signature[id])
                 code |= pools[id].add(entity.id);
         }
+        signature.forEachSet([&](auto id){
+            code |= pools[id].add(entity.id);
+        });
+        /*
+        for (int i = 0; i < signature.nInts; i++) {
+            uint64_t bits = signature.bits[i];
+            static_assert(sizeof(bits) == 8);
+            // no h
+            uint32_t bottomHalf = (uint32_t)(bits & 0xFFFFFFFF);
+            uint32_t topHalf = (uint32_t)(bits >> 32);
+            while (bottomHalf != 0) {
+                auto id = (ComponentID)highestBit(bottomHalf);
+                code |= pools[id].add(entity.id);
+                // erase bit from signature and move rest of the bits up
+                signature.bits
+            }
+        }
+        */
         return code;
     }
 

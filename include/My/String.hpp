@@ -110,8 +110,8 @@ struct CString {
     }
 
     void operator+=(const char* other) {
-        int currentLength = strlen(str)+1;
-        int addedLength = strlen(other);
+        int currentLength = (int)strlen(str)+1;
+        int addedLength = (int)strlen(other);
         char* newStr = (char*)MY_realloc(str, currentLength + addedLength + 1); // add 1 for null byte
         if (newStr) {
             str = newStr;

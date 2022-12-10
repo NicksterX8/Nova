@@ -339,11 +339,8 @@ int  tick(GameState* state) {
     smallVec.pop_back();
     smallVec.reserve(200);
 
-    llvm::ArrayRef<int> ref{1,2,3,4};
-    //ref = smallVec;
-    for (auto i : My::reverse(ref)) {
-        LogInfo("ref element: %d", i);
-    }
+    ArrayRef<int> ref{1,2,3,4};
+
 
     return 0;
 }

@@ -15,7 +15,7 @@
 #include "SystemsConstants.hpp"
 #include "EntityManager.hpp"
 #include "ComponentPool.hpp"
-#include "ComponentMetadata/components.hpp"
+#include "metadata/ecs/ecs.hpp"
 
 
 namespace ECS {

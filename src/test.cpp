@@ -11,6 +11,12 @@
 #include <unistd.h>
 #include <time.h>
 #include <chrono>
+#include <type_traits>
+#include <array>
+
+#define COMBINE1(X,Y) X##Y  // helper macro
+#define COMBINE(X,Y) COMBINE1(X,Y)
+#define FOR_EACH_VAR_TYPE(func_call) int COMBINE(_dummy_for_each_var_type_helper, __LINE__)[] = {0, (func_call, 0) ...}; (void)COMBINE(_dummy_for_each_var_type_helper, __LINE__);
 
 std::chrono::time_point<std::chrono::high_resolution_clock> getNow() {
     return std::chrono::high_resolution_clock::now();
@@ -29,70 +35,203 @@ void func2(int* a, const int* b) {
     *a = *b;
 }
 
-int* a = new int(0);
-int* b = new int(12);
-
-struct Foo {
-    int a() {return 0;}
-};
-
-template<typename T2>
-struct S {
-    T2 t2;
 
 
+#define COUNTER_READ_CRUMB( TAG, RANK, ACC ) counter_crumb( TAG(), constant_index< RANK >(), constant_index< ACC >() )
+#define COUNTER_READ( TAG ) COUNTER_READ_CRUMB( TAG, 1, COUNTER_READ_CRUMB( TAG, 2, COUNTER_READ_CRUMB( TAG, 4, COUNTER_READ_CRUMB( TAG, 8, \
+    COUNTER_READ_CRUMB( TAG, 16, COUNTER_READ_CRUMB( TAG, 32, COUNTER_READ_CRUMB( TAG, 64, COUNTER_READ_CRUMB( TAG, 128, 0 ) ) ) ) ) ) ) )
+ 
+#define COUNTER_INC( TAG ) \
+constant_index< COUNTER_READ( TAG ) + 1 > \
+constexpr counter_crumb( TAG, constant_index< ( COUNTER_READ( TAG ) + 1 ) & ~ COUNTER_READ( TAG ) >, \
+          					constant_index< ( COUNTER_READ( TAG ) + 1 ) & COUNTER_READ( TAG ) > ) { return {}; }
+ 
+#define COUNTER_LINK_NAMESPACE( NS ) using NS::counter_crumb;
+ 
+#include <utility>
+ 
+template< std::size_t n >
+struct constant_index : std::integral_constant< std::size_t, n > {};
+ 
+template< typename id, std::size_t rank, std::size_t acc >
+constexpr constant_index< acc > counter_crumb( id, constant_index< rank >, constant_index< acc > ) { return {}; } // found by ADL via constant_index
+ 
+struct ComponentCounter {};
 
-    template<typename T>
-    T* A(int x) {
-        return (T*)t2.a();
+#define TAS ComponentCounter
+
+template<class T>
+constexpr int readCounter() {
+    return COUNTER_READ(ComponentCounter);
+}
+
+template<class T, int id>
+struct Struct {
+    // read
+    /*
+    constexpr int GetID() const { COUNTER_READ_CRUMB( TAS, 1, 
+            COUNTER_READ_CRUMB( TAS, 2, 
+                COUNTER_READ_CRUMB( TAS, 4, 
+                    COUNTER_READ_CRUMB( TAS, 8,
+                        COUNTER_READ_CRUMB( TAS, 16,
+                            COUNTER_READ_CRUMB( TAS, 32,
+                                COUNTER_READ_CRUMB( TAS, 64, 
+                                    COUNTER_READ_CRUMB( TAS, 128, 0 ) ) ) ) ) ) ) ); return 0; };
+
+    constexpr static int getID() {
+        Struct<T> self;
+        return self.GetID();
     }
+
+    // increment
+    constant_index< COUNTER_READ( TAS ) + 1 >
+    constexpr counter_crumb( TAS, constant_index< ( COUNTER_READ( TAS ) + 1 ) & ~ COUNTER_READ( TAS ) >, \
+          					constant_index< ( COUNTER_READ( TAS ) + 1 ) & COUNTER_READ( TAS ) > ) const { return {}; }
+    */
+    constexpr static int ID = id;
 };
 
-template<class Parent>
-struct InheritanceWrapper : Parent {};
+template<class C>
+struct Struct2 {
 
-template<typename T>
-void test() {
-    InheritanceWrapper< S<T> > s;
-    int* i = s.A<int>(2);
-    s.a();
+};
+
+#define MIN(a, b) ((a < b) ? a : b)
+#define MAX(a, b) ((a > b) ? a : b)
+
+#define IABS(integer) ((integer) >= 0 ? (integer) : -(integer))
+
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
+#define COMBINE1(X,Y) X##Y  // helper macro
+#define COMBINE(X,Y) COMBINE1(X,Y)
+
+#define FOR_EACH_VAR_TYPE(func_call) int COMBINE(_dummy_for_each_var_type_helper, __LINE__)[] = {0, (func_call, 0) ...}; (void)COMBINE(_dummy_for_each_var_type_helper, __LINE__);
+
+#define ssizeof(v) ((ssize_t)sizeof(v)) 
+
+#define LIKELY(expr) LLVM_LIKELY(expr)
+#define UNLIKELY(expr) LLVM_UNLIKELY(expr)
+
+ 
+#include <iostream>
+
+//#define STRUCT_BEGIN(name) struct name { constexpr static int ID = COUNTER_READ(ComponentCounter);
+//#define STRUCT_END(name) }; COUNTER_INC(ComponentCounter);
+#define STRUCT_BEGIN_EX(cname, display_name, optional) struct cname : Struct2<cname> {\
+    constexpr static int ID = COUNTER_READ(ComponentCounter);\
+    constexpr static auto Name = display_name;\
+    constexpr static bool Optional = optional;
+#define STRUCT_BEGIN(cname) STRUCT_BEGIN_EX(cname, TOSTRING(cname), false)
+#define STRUCT_END }; COUNTER_INC(ComponentCounter);
+
+#define STRUCT_DECL(name) COUNTER_INC(ComponentCounter); struct name : Struct<name, COUNTER_READ(ComponentCounter)-1>
+#define STRUCT_DECL_EX(name) COUNTER_INC(ComponentCounter); struct name : Struct<name, COUNTER_READ(ComponentCounter)-1>
+
+/*
+STRUCT_BEGIN(A)
+STRUCT_END(A)
+
+STRUCT_BEGIN(B)
+STRUCT_END(B)
+
+STRUCT_BEGIN(C)
+STRUCT_END(C)
+*/
+
+STRUCT_DECL(A) {
+
+};
+
+STRUCT_DECL(D) {
+    constexpr static auto Name = "Deez nutz";
+};
+
+STRUCT_BEGIN_EX(B, "B", true)
+    
+STRUCT_END
+
+constexpr std::array<char, 32> name = {'w', 'h'};
+
+template<char... chars>
+using tstring = std::integer_sequence<char, chars...>;
+
+template<typename T, T... chars>
+constexpr tstring<chars...> operator""_tstr() { return {}; }
+
+STRUCT_DECL_EX(C) {
+    int x;
+
+    static constexpr auto name = "eheyfuaeof";
+};
+
+template<class Cl>
+constexpr int getID() {
+    return Cl::ID;
+}
+
+// after all components...
+
+constexpr int NumComponents = COUNTER_READ(ComponentCounter);
+
+
+
+//using ConstGenericList = RefList<const void>;
+
+int sum(VirtualList<const int> list, int count) {
+    int s = 0;
+    for (int i = 0; i < count; i++) {
+        s += list[i];
+        //list[i] += s;
+    }
+    return s;
+}
+
+int sum2(VirtualValueList<int> list, int count) {
+    int s = 0;
+    for (int i = 0; i < count; i++) {
+        s += list[i];
+    }
+    return s;
+}
+
+void copy(GenericVirtualList dst, ConstGenericVirtualList src, int typeSize, int size) {
+    for (int i = 0; i < size; i++) {
+        memcpy(dst[i], src[i], typeSize);
+    }
 }
 
 int main() {
-/*
-    int count = 100000;
-    
-    auto before = getNow();
-    for(int i = 0; i < count; i++) {
-        func1(a, b);
-    }
-    auto after1 = getNow();
-    for(int i = 0; i < count; i++) {
-        func2(a, b);
-    }
-    auto after2 = getNow();
-    auto time1 = after1 - before;
-    auto time2 = after2 - after1;
-    printf("time1: %llu. time2: %llu\n", time1.count(), time2.count());
+    using std::cout;
+    cout << "a id: " << getID<A>() << " b id: " << getID<B>() << " c id: " << getID<C>() << "\n";
+    std::cout << NumComponents << '\n';
 
-    const Trash trash = Trash(1);
-    cout << trash.a << std::endl;
-    
+    struct S {
+        int x;
+        int y;
+    };
 
-    trash.~Trash();
-
-    cout << trash.a << std::endl;
-
-    for (size_t s = 1; s < 1000000000; s += 100) {
-        size_t* ptr = (size_t*)malloc(s * sizeof(size_t));
-        if (!ptr) continue;
-        size_t stored = *(ptr);
-        if (s == stored) {
-            cout << "Stored == " << s;
-        }
-    }
-*/
     
+    auto arr = (S*)calloc(10000000, 1);
+
+    auto list = VirtualList<int>([arr](int index){
+        return &arr[index].x;
+    });
+
+    auto valuelist = VirtualValueList<int>([arr](int index)-> int {
+        return arr[index].x;
+    });
+
+    list[2] = 12;
+    list[6] = 4;//2
+
+    cout << "sum: " << sum2(valuelist, 10) << "\n";
+
+    copy(list, valuelist, 4, 2);
+
+    int x = 0.5;
+
+
     
-    return 0;
 }

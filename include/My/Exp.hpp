@@ -105,12 +105,4 @@ inline int testestts() {
 }
 */
 
-template<typename T>
-inline void copyRange(T* srcBegin, T* srcEnd, T* dstBegin, T* dstEnd) {
-    assert(dstEnd > dstBegin);
-    assert(srcEnd > srcBegin);
-    assert(srcEnd - srcBegin == dstEnd - dstBegin);
-    memcpy(dstBegin, srcBegin, (srcEnd - srcBegin) * sizeof(T));
-}
-
 MY_CLASS_END

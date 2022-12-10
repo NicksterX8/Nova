@@ -3,7 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include "utils/vectors.hpp"
-#include "Items.hpp"
+#include "items/items.hpp"
 #include "ECS/SEntity.hpp"
 
 struct RawArray {
@@ -65,7 +65,7 @@ struct EntityComponent : public ECS::Component {
 #define ENTITY_TYPE_NAME_SIZE 64
 
 struct EntityTypeEC : EntityComponent<EntityTypeEC> {
-    Uint32 id;
+    //Uint32 id;
     char name[ENTITY_TYPE_NAME_SIZE];
 
     EntityTypeEC(const char* _name) {

@@ -5,7 +5,9 @@
 #include "ECS/Query.hpp"
 #include "Entity.hpp"
 
-extern const char* componentNames[NUM_COMPONENTS];
+extern const char* componentNames[ECS_NUM_COMPONENTS];
+
+using EC_ID = ECS::ComponentID;
 
 using ECS::EntityQuery;
 

@@ -113,7 +113,7 @@ MemoryBlock aligned_min_realloc(void* mem, size_t min, size_t preferred, size_t 
 /* Interface */
 
 template<typename T>
-T* Alloc(size_t count) {
+T* Alloc(size_t count = 1) {
     return (T*)safe_malloc(count * sizeof(T));
 }
 
@@ -139,7 +139,8 @@ T* Realloc(T* old, size_t newCount) {
     return (T*)safe_realloc(old, newCount * sizeof(T));
 }
 
-inline void* Realloc(void* old, size_t newSize) {
+template<>
+inline void* Realloc<void>(void* old, size_t newSize) {
     return safe_realloc(old, newSize);
 }
 
@@ -185,39 +186,98 @@ inline MemoryBlock AllocMinAligned(size_t minSize, size_t preferredSize, size_t 
     return min_aligned_malloc(minSize, preferredSize, alignment, true);
 }
 
-struct DefaultAllocator {
+} // namespace Mem
+
+namespace My { 
+
+// CRTP based allocator
+template<typename Derived>
+struct IAllocator {
+    //A base;
     using size_type = size_t;
 
-    void* Alloc(size_t size) const {
+    Derived& derived() {
+        return *static_cast<Derived*>(this);
+    }
+
+    const Derived& derived() const {
+        return *static_cast<Derived*>(this);
+    }
+
+    constexpr size_t maxAllocationSize() const {
+        return std::numeric_limits<size_type>::max();
+    }
+
+    void assertSafeSize(size_t size) {
+        assert(size <= maxAllocationSize() && "Allocation too large!");
+    }
+
+    void* Alloc(size_t size) {
+        assertSafeSize(size);
+        //return base.Alloc(size);
+        return derived().allocate(size);
+    }
+
+    template<typename T>
+    T* Alloc(size_t count) {
+        assertSafeSize(count * sizeof(T));
+        //return (T*)base.Alloc(count * sizeof(T));
+       // return (T*)Alloc(count * sizeof(T));
+        return (T*)derived().allocate(count * sizeof(T));
+    }
+
+    void Free(void* ptr) {
+        derived().deallocate(ptr);
+    }
+
+    template<typename T>
+    T* Realloc(T* ptr, size_t count) {
+        //assertSafeSize(count * sizeof(T));
+        return (T*)Realloc<void>((void*)ptr, count * sizeof(T));
+    }
+
+    template<>
+    void* Realloc<void>(void* ptr, size_t size) {
+        return derived().reallocate(ptr, size);
+    }
+};
+
+}
+
+namespace Mem {
+
+struct DefaultAllocator : My::IAllocator<DefaultAllocator> {
+    using size_type = size_t;
+
+    void* allocate(size_t size) const {
         return Mem::Alloc(size);
     }
 
-    void Free(void* ptr) const {
+    void deallocate(void* ptr) const {
         Mem::Free(ptr);
     }
 
-    void* Realloc(void* ptr, size_t size) const {
+    void* reallocate(void* ptr, size_t size) const {
         return Mem::Realloc(ptr, size);
     }
 };
 
 template<size_t Alignment>
-struct AlignmentAllocator {
+struct AlignmentAllocator : My::IAllocator< AlignmentAllocator<Alignment> > {
     using size_type = size_t;
 
-    void* Alloc(size_t size) const {
+    void* allocate(size_t size) const {
         return Mem::AllocAligned(size, Alignment);
     }
-    void Free(void* ptr) const {
+    void deallocate(void* ptr) const {
         Mem::FreeAligned(ptr);
     }
-    void* Realloc(void* ptr, size_t size) const {
+    void* reallocate(void* ptr, size_t size) const {
         return Mem::ReallocAligned(ptr, size, Alignment);
     }
 };
 
-#define new_debug new (__FILE__, __LINE__)
-#define delete_debug delete (__FILE__, __LINE__)
+#define ScopedAlloc(type, name, size) auto name = Alloc<type>(size); defer { Free(name); }; do {} while(0)
 
 } // namespace Mem
 
@@ -242,5 +302,8 @@ using Mem::MemoryBlockT;
 //#define malloc(size) safe_malloc(size)
 //#define free(ptr) _free(ptr)
 //#define realloc(ptr, size) safe_realloc(ptr, size)
+
+#define new_debug new (__FILE__, __LINE__)
+#define delete_debug delete (__FILE__, __LINE__)
 
 #endif

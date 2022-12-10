@@ -19,6 +19,20 @@ FT_Face newFontFace(const char* filepath, FT_UInt height) {
     return face;
 }
 
+struct List {
+    void* data;
+    size_t stride;
+};
+
+template<typename T>
+struct ListT {
+    T* data;
+    size_t stride;
+    
+};
+
+
+
 void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstChar, char lastChar) {
     if (lastChar > 127 || firstChar > 127) {
         LogError("Can't load font characters higher than 127!");
@@ -30,17 +44,33 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
 
     this->face = newFontFace(fontfile, height);
 
-    this->characters = new Character[lastChar - firstChar];
+    char numChars = lastChar - firstChar;
+    if (numChars <= 0) {
+        this->characters.advances = nullptr;
+        this->characters.bearings = nullptr;
+        this->characters.positions = nullptr;
+        this->characters.sizes = nullptr;
+        this->atlasSize = {0, 0};
+        this->atlasTexture = 0;
+        return;
+    }
 
-    TexturePacker packer({256, 256});
+    size_t nChars = (size_t)numChars;
+    this->characters.advances  = Alloc<unsigned short>(nChars);
+    this->characters.bearings  = Alloc<glm::ivec2>(nChars);
+    this->characters.positions = Alloc<glm::ivec2>(nChars);
+    this->characters.sizes     = Alloc<glm::ivec2>(nChars);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
 
     FT_GlyphSlot slot = face->glyph;
 
     FT_Error error;
+
+    Texture* characterTextures = Alloc<Texture>((size_t)numChars); defer { Free(characterTextures); };
     
-    for (unsigned char c = firstChar; c <= lastChar; c++) {
+    for (char c = firstChar; c <= lastChar; c++) {
+        int i = (int)(c - firstChar);
         // load character glyph 
         if ((error = FT_Load_Char(face, c, FT_LOAD_RENDER))) {
             LogError("Failed to load glyph charcter \'%c\'. Error: %s", c, FT_Error_String(error));
@@ -57,20 +87,19 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
             }
         }
 
-        glm::ivec2 texPos = packer.packTexture(slot->bitmap.buffer, glm::ivec2(slot->bitmap.width, slot->bitmap.rows));
-
-        // now store character for later use3
-        characters[c-firstChar] = Font::Character{
-            texPos,
-            glm::ivec2(slot->bitmap.width, slot->bitmap.rows),
-            glm::ivec2(slot->bitmap_left, slot->bitmap_top),
-            (unsigned int)slot->advance.x
-        };
+        characters.advances[i] = slot->advance.x;
+        characters.bearings[i] = glm::ivec2{slot->bitmap_left, slot->bitmap_top};
+        characters.sizes[i]    = glm::ivec2{slot->bitmap.width, slot->bitmap.rows};
+        characterTextures[i]   = {.buffer = slot->bitmap.buffer, .size = characters.sizes[i]};
     }
 
-    this->atlasSize = packer.textureSize;
-    this->atlasTexture = generateFontAtlasTexture(packer);
-    if (!atlasTexture) {
+    this->spaceCharAdvance = characters.advances[' ' - firstChar];
+
+    auto packedTexture = packTextures((int)numChars, characterTextures, characters.positions);
+
+    this->atlasSize = packedTexture.size;
+    this->atlasTexture = loadFontAtlasTexture(packedTexture);
+    if (!this->atlasTexture) {
         LogError("Font atlas texture failed to generate!");
     }
 
@@ -80,7 +109,10 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
  void Font::unload() {
     LogInfo("Unloading font %p", this->face);
     FT_Done_Face(face); face = NULL;
-    free(characters);
+    Free(characters.advances);
+    Free(characters.bearings);
+    Free(characters.positions);
+    Free(characters.sizes);
     glDeleteTextures(1, &atlasTexture);
 }
 

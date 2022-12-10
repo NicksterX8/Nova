@@ -1,7 +1,7 @@
 #include "Tiles.hpp"
 #include "constants.hpp"
 #include <SDL2/SDL.h>
-#include "Items.hpp"
+#include "items/items.hpp"
 #include "ECS/Entity.hpp"
 
 float TilePixels = DEFAULT_TILE_PIXEL_SIZE;

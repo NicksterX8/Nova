@@ -12,8 +12,10 @@ MY_CLASS_START
 
 template<typename T, size_t BucketSize, class Allocator = DefaultAllocator, class BucketAllocator = DefaultAllocator>
 struct BucketArray {
+    static_assert(BucketSize > 0, "BucketArray bucket size cannot be zero!");
+private:
     using Self = BucketArray<T, BucketSize, Allocator, BucketAllocator>;
-
+public:
     using BucketContainer = Vec<T*, BucketAllocator>;
     BucketContainer buckets;
     int topBucketSlotsUsed;
@@ -80,18 +82,8 @@ struct BucketArray {
         return buckets.size == 0 && topBucketSlotsUsed == 0;
     }
 
-    bool pushNewBucket() {
-        bool result = false;
-        T* bucket = (T*)allocator.Alloc(BucketSize * sizeof(T));
-        if (bucket) {
-            result = buckets.push(bucket);
-            if (result) {
-                topBucketSlotsUsed = 0;
-            } else {
-                allocator.Free(bucket);
-            }
-        }
-        return result;
+    void pushNewBucket() {
+        buckets.push(allocator.template Alloc<T>(BucketSize));
     }
 
     T& back() const {
@@ -113,9 +105,7 @@ struct BucketArray {
     T* push(FastestParamType<T> val) {
         // room for another element in top bucket?
         if (topBucketSlotsUsed >= BucketSize || buckets.size == 0) {
-            if (!pushNewBucket()) { // failable on memory error
-                return nullptr;
-            }
+            pushNewBucket();
         }
 
         T* location = &buckets.back()[topBucketSlotsUsed++];
@@ -124,15 +114,14 @@ struct BucketArray {
     }
 
     /* Same as push, but leave the value at the back uninitialized */
-    T* reserveBack() {
+    T* reserveBack(int size = 1) {
         // room for another element in top bucket?
-        if (topBucketSlotsUsed >= BucketSize || buckets.size == 0) {
-            if (!pushNewBucket()) { // failable on memory error
-                return nullptr;
-            }
+        if (topBucketSlotsUsed + size > BucketSize || buckets.size == 0) {
+            pushNewBucket();
         }
-
-        return &buckets.back()[topBucketSlotsUsed++];
+        auto reserved =  &buckets.back()[topBucketSlotsUsed];
+        topBucketSlotsUsed += size;
+        return reserved;
     }
 
     void pop() {

@@ -1,3 +1,6 @@
+#namespace=EC
+#function_name=getID
+#macro_prefix=ECS_
 Position
 Size
 Render

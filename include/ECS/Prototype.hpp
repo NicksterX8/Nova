@@ -102,6 +102,54 @@ struct TaggedPointer {
 */
 using TaggedPointer = void*;
 
+struct NumericUID {
+    uint32_t num;
+    uint32_t type;
+};
+
+enum GlobalIDs : uint32_t {
+    ExplosionTypes = 1,
+    GrenadeExplosion,
+    AirstrikeExplosion,
+
+    Prototypes = 100,
+    ItemPrototype,
+    GrenadePrototype
+};
+
+class Registry {
+    struct InternalUID {
+        NumericUID numeric;
+        const char* name;
+    };
+    
+    using Ref = InternalUID;
+
+    My::HashMap<NumericUID, void*> numMap;
+    std::unordered_map<std::string, void*> nameMap;
+
+public:
+
+    void registerID(void* resource, NumericUID uid) {
+        numMap.insert(uid, resource);
+    }
+
+    void registerName(void* resource, std::string name) {
+        nameMap.insert({name, resource});
+    }
+
+    // later
+
+    void* reference(NumericUID uid) {
+        return *numMap.lookup(uid);
+    }
+
+    void* reference(std::string name) {
+        return nameMap.at(name);
+    }
+
+};
+
 template<typename T>
 struct ResourceRef {
     TaggedPointer pointer;

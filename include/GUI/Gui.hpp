@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "sdl_gl.hpp"
-#include "Items.hpp"
+#include "items/items.hpp"
 #include "constants.hpp"
 #include "rendering/Drawing.hpp"
 #include "Player.hpp"

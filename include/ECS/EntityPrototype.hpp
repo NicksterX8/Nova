@@ -1,7 +1,7 @@
 #ifndef ENTITY_PROTOTYPE_INCLUDED
 #define ENTITY_PROTOTYPE_INCLUDED
 
-#include "Entity.hpp"
+#include "SEntity.hpp"
 
 #include <stdint.h>
 
@@ -32,5 +32,13 @@ namespace EntityPrototype {
 }
 
 #define NEW_ENTITY(name) {}
+
+/*
+struct EntityMetaData {
+    WithHealth {
+        startHealth: 100
+    }
+};
+*/
 
 #endif

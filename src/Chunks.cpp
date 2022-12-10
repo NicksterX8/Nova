@@ -1,5 +1,6 @@
 #include "Tiles.hpp"
 #include "Chunks.hpp"
+#include "global.hpp"
 
 ChunkData::ChunkData(Chunk* chunk, IVec2 position) {
     this->chunk = chunk;
@@ -36,11 +37,14 @@ void ChunkMap::init() {
     map = InternalChunkMap::WithBuckets(32);
     chunkList = ChunkBucketArray::WithBuckets(1);
     chunkdataList = ChunkDataBucketArray::WithBuckets(1);
-    /*
+    
     // pre-cache atleast one chunk so there's no special cases when a chunk has not yet been cached
     cachedChunkCoord = IVec2{0, 0};
-    cachedChunk = get(cachedChunkCoord);
-    */
+    auto chunkdata = newChunkAt(cachedChunkCoord);
+    if (!chunkdata) {
+        LogCrash(CrashReason::MemoryFail, "Failed to reserve new chunk in chunkmap");
+    }
+    cachedChunk = chunkdata->chunk;
 }
 
 void ChunkMap::destroy() {
