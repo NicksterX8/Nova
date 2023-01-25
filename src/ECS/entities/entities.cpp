@@ -27,12 +27,12 @@ namespace Entities {
         return grenade;
     }
 
-    Entity Chest(EntityWorld* ecs, Vec2 position, int inventorySize, int width, int height) {
+    Entity Chest(EntityWorld* ecs, Vec2 position, int inventorySize, int width, int height, items::InventoryAllocator& allocator) {
         Entity chest = ecs->New("chest");
         ecs->Add<EC::Position>(chest, position);
         ecs->Add<EC::Size>(chest, {(float)width - 0.2f, (float)height - 0.2f});
         ecs->Add<EC::Render>(chest, EC::Render(TextureIDs::Chest, RenderLayer::Buildings));
-        Inventory inventory = Inventory(inventorySize);
+        Inventory inventory = Inventory(allocator, inventorySize);
         ecs->Add<EC::Inventory>(chest, {inventory});
         ecs->Add<EC::Growth>(chest, {0});
         return chest;

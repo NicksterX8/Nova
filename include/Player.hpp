@@ -7,6 +7,7 @@
 #include "ECS/entities/entities.hpp"
 #include "ECS/entities/methods.hpp"
 #include "items/items.hpp"
+#include "items/Item.hpp"
 
 enum Direction {
     DirectionUp,
@@ -35,8 +36,8 @@ struct Player {
 
     Player() {}
 
-    Player(EntityWorld* ecs, Vec2 startPosition) : ecs(ecs) {
-        entity = Entities::Player(ecs, startPosition);
+    Player(EntityWorld* ecs, Vec2 startPosition, items::InventoryAllocator& inventoryAllocator) : ecs(ecs) {
+        entity = Entities::Player(ecs, startPosition, inventoryAllocator);
     }
 
     Vec2 getSize() const {
@@ -151,27 +152,25 @@ struct Player {
         }
     }
 
-    bool canPlaceHeldItem() {
-        if (heldItemStack && !heldItemStack->empty()) {
-            if (heldItemStack->item.has<ITC::Placeable>()) {
-                if (heldItemStack->quantity > 0) {
-                    return true;
-                }
+    bool canPlaceItemStack(ItemStack stack) {
+        if (heldItemStack->item.has<ITC::Placeable>()) {
+            if (stack.quantity > 0) {
+                return true;
             }
         }
         return false;
     }
 
-    bool tryPlaceHeldItem(Tile* targetTile, ItemManager& itemManager) {
-        if (canPlaceHeldItem()) {
-            auto placeable = itemManager.get<ITC::Placeable>(heldItemStack->item);
+    bool tryPlaceItemStack(ItemStack stack, Tile* targetTile, ItemManager& itemManager) {
+        if (canPlaceItemStack(stack)) {
+            auto placeable = items::getComponent<ITC::Placeable>(stack.item, itemManager);
             TileType newTileType = placeable->tile;
             if (targetTile->type != newTileType) {
                 // place it
                 targetTile->type = newTileType;
                 heldItemStack->reduceQuantity(1);
                 // when held item stack runs out, automatically drop it so the player isnt holding nothing
-                if (!heldItemStack->id) {
+                if (stack.empty()) {
                     heldItemStack = NULL;
                 }
                 return true;

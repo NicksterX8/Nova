@@ -9,6 +9,7 @@
 #include "PlayerControls.hpp"
 #include "rendering/rendering.hpp"
 #include "GameSave/main.hpp"
+#include "loadData.hpp"
 
 #include "ECS/ECS.hpp"
 #include "ECS/systems/systems.hpp"
@@ -110,9 +111,7 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
             ecs.IterateEntities([&](Entity entity){
                 // dont kill player plz
                 if (entity.id != player.entity.id) {
-                    if (ecs.Destroy(entity)) {
-                        LogError("Failed to destroy entity %s!", entity.DebugStr());
-                    }
+                    ecs.Destroy(entity);
                 }
             });
             ecs.Destroy(NullEntity);
@@ -349,8 +348,8 @@ void logComponentPoolSizes(const EntityWorld& ecs) {
     LogInfo("Total number of entities: %u", ecs.EntityCount());
     for (ECS::ComponentID id = 0; id < ecs.NumComponentPools(); id++) {
         const ECS::ComponentPool* pool = ecs.GetPool(id);
-        LogInfo("%s || Size: %u", pool->name, pool->size);
-        if (pool->size > ecs.EntityCount()) {
+        LogInfo("%s || Size: %u", pool->name, pool->size());
+        if (pool->size() > ecs.EntityCount()) {
             LogError("Size is too large!");
         }
     }
@@ -454,6 +453,8 @@ void Game::init(int screenWidth, int screenHeight) {
     this->gui = new Gui();
 
     this->state = new GameState();
+    loadTileData(this->state->itemManager);
+    loadItemData();
     this->state->init();
     for (int e = 0; e < 2000; e++) {
         Vec2 pos = {(float)randomInt(-200, 200), (float)randomInt(-200, 200)};

@@ -7,6 +7,8 @@
 #define MIN(a, b) ((a < b) ? a : b)
 #define MAX(a, b) ((a > b) ? a : b)
 
+#define COMMA ,
+
 #define IABS(integer) ((integer) >= 0 ? (integer) : -(integer))
 
 #define STRINGIFY(x) #x
@@ -23,5 +25,6 @@
 #define UNLIKELY(expr) LLVM_UNLIKELY(expr)
 
 #define FIRST(first, ...) first
+#define ALL_AFTER_FIRST(first, ...) __VA_ARGS__
 
 #endif

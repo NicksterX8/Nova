@@ -15,37 +15,39 @@ inline int highestBit(unsigned long long x) {
     return 31 - __builtin_clzll(x);
 }
 
-template<typename IntegerT, class F>
-void forEachSetBit(IntegerT bits, const F& functor) {
-    for (size_t j = 0; bits != 0 && j < sizeof(IntegerT) * 8; j++) {
-        if (bits & (1 << j)) {
-            functor(j);
-            bits ^= (1 << j);
-        }
-    }
-}
-
-template<typename IntegerT, class F>
-void forEachSetBit<unsigned int>(unsigned int bits, const F& functor) {
+template<class F>
+void forEachSetBitUint(unsigned int bits, const F& functor) {
     while (bits != 0) {
-        auto bitIndex = highestBit(bits);
+        auto bitIndex = (unsigned int)highestBit(bits);
         functor(bitIndex);
         bits ^= (1U << bitIndex);
     }
 }
 
-template<typename IntegerT, class F>
-void forEachSetBit<unsigned long long>(unsigned long long bits, const F& functor) {
+template<class F>
+void forEachSetBitULL(unsigned long long bits, const F& functor) {
     while (bits != 0) {
-        auto bitIndex = highestBit(bits);
+        auto bitIndex = (unsigned long long)highestBit(bits);
         functor(bitIndex);
         bits ^= (1ULL << bitIndex);
     }
 }
 
 template<typename IntegerT, class F>
-void forEachSetBit<unsigned long>(unsigned long bits, const F& functor) {
-    forEachSetBit(bits, functor);
+void forEachSetBit(IntegerT bits, const F& functor) {
+    static_assert(std::is_unsigned<IntegerT>::value, "Invalid type");
+    if (std::is_same<IntegerT, unsigned long long>::value) {
+        forEachSetBitULL(bits, functor);
+    } else if (std::is_same<IntegerT, unsigned int>::value) {
+        forEachSetBitUint(bits, functor);
+    } else {
+        for (IntegerT j = 0; bits != 0 && j < sizeof(IntegerT) * 8; j++) {
+            if (bits & ((IntegerT)1 << j)) {
+                functor(j);
+                bits ^= ((IntegerT)1 << j);
+            }
+        }
+    }
 }
 
 template<typename IntegerT, class F>
@@ -62,15 +64,15 @@ struct Bitset {
     constexpr static size_t IntegerBits = IntegerSize * CHAR_BIT;
     constexpr static size_t nInts  = (N/IntegerBits) + (N%IntegerBits != 0);
     constexpr static size_t nBytes = N/CHAR_BIT + (N%CHAR_BIT != 0);
-    using IntegerType = IntegerT:
+    using IntegerType = IntegerT;
 private:
     using Self = Bitset<N>;
 public:
     static_assert(std::is_unsigned<IntegerT>::value, "Bitset integer types must be unsigned!");
 
-    using SelfParamT = FastestParamType<Self>;
+    using SelfParamT = Self;
 
-    IntegerT bits[nInts];
+    IntegerT bits[nInts] = {0};
 
     constexpr Bitset() = default;
 
@@ -89,12 +91,10 @@ public:
     }
 
     constexpr bool get(uint32_t position) const {
-        assert(position < N && "bitset index out of bounds");
         return bits[position/IntegerBits] & (1 << (position%IntegerBits));
     }    
 
     constexpr bool get(int32_t position) const {
-        assert(position < N && position >= 0 && "bitset index out of bounds");
         return bits[position/IntegerBits] & (1 << (position%IntegerBits));
     }
 
@@ -107,21 +107,18 @@ public:
     }
 
     constexpr void set(uint32_t position) {
-        assert(position < N && "bitset index out of bounds");
         uint32_t position64 = position / IntegerBits;
         IntegerT digit = 1 << (position - (position64 * IntegerBits));
         bits[position64] |= digit;
     }
 
     constexpr void flipBit(uint32_t position) {
-        assert(position < N && "bitset index out of bounds");
         uint32_t position64 = position / IntegerBits;
         IntegerT digit = 1 << (position - (position64 * IntegerBits));
         bits[position64] ^= digit;
     }
 
     constexpr void set(uint32_t position, bool value) {
-        assert(position < N && "bitset index out of bounds");
         uint32_t position64 = position / IntegerBits;
         uint32_t remainder = (position - (position64 * IntegerBits));
         IntegerT digit = (uint64_t)value << (uint64_t)remainder;
@@ -234,20 +231,6 @@ public:
             forEachUnsetBit<IntegerT, F>(bits[i], functor);
     }
 };
-
-template<typename Bitset1, typename Bitset2>
-using CombinedBitset = Bitset<Bitset1:Size + Bitset2::Size, Bitset1::IntegerType>;
-
-template<size_t N1, size_t N2, typename IntegerT>
-constexpr Bitset<N1+N2, IntegerT> combine(Bitset<N1, IntegerT> lhs, Bitset<N2, IntegerT> rhs) {
-    Bitset<N+OtherN, IntegerT> result = 0;
-    for (int i = 0; i < lhs.nInts; i++) {
-        result.bits[i] |= lhs.bits[i];
-    }
-    for (int i = 0; i < rhs.nInts; i++) {
-        result.bits[i] |= rhs.bits[i];
-    }
-}
 
 MY_CLASS_END
 

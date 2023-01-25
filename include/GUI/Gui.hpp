@@ -156,7 +156,7 @@ struct Gui {
         area.size = 0;
         //SDL_FRect hotbarArea = hotbar.draw(ren, scale, viewport, player);
         heldItemStack = player->heldItemStack;
-        if (heldItemStack && heldItemStack->item)
+        if (heldItemStack && !heldItemStack->empty())
             drawHeldItemStack(ren, scale, viewport);
         //area.push_back(hotbarArea);
     }

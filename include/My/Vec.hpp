@@ -389,7 +389,7 @@ struct VecTuple {
 
     template<typename T>
     void reallocateDataTupleMember(Size_T capacity) {
-        std::get<T>(data) = (T*)MY_realloc(std::get<T>(), capacity * sizeof(T));
+        std::get<T>(data) = (T*)MY_realloc(std::get<T>(data), capacity * sizeof(T));
     }
 
     void reallocateDataTuple(Size_T newCapacity) {

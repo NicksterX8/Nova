@@ -166,11 +166,12 @@ public:
                 //Tile* tiles = Alloc<Tile>(lineSize); defer {Free(tiles);};
                 ScopedAlloc(Tile, tiles, lineSize);
                 getTiles(state->chunkmap, line, tiles, lineSize);
-                if (state->player.canPlaceHeldItem()) {
+                auto heldItemStack = state->player.heldItemStack;
+                if (heldItemStack && state->player.canPlaceItemStack(*heldItemStack)) {
                     for (int i = 0; i < lineSize; i++) {
                         Tile* tile = getTileAtPosition(state->chunkmap, line[i]);
                         if (tile) {
-                            state->player.tryPlaceHeldItem(tile);
+                            state->player.tryPlaceItemStack(*heldItemStack, tile, state->itemManager);
                         }
                     }
                 }
@@ -178,10 +179,10 @@ public:
         }
     }
 
-    void placeHeldItem(GameState* state, Vec2 at) {
+    void placeItem(Item item, GameState* state, Vec2 at) {
         Tile* tile = getTileAtPosition(state->chunkmap, at);
         if (tile) {
-            //state->player.tryPlaceHeldItem(tile);
+            //state->player.tryPlaceItem(tile);
         }
     }
 
@@ -237,8 +238,8 @@ public:
                                 // set held stack down in slot only if actually holding stack and if slot is empty
                                 if (stack->empty()) {
                                     *stack = *state->player.heldItemStack;
-                                    state->player.heldItemStack->clear();
-                                    state->player.heldItemStack = NULL;
+                                    *state->player.heldItemStack = ItemStack::Empty();
+                                    state->player.heldItemStack = nullptr;
                                 } else {
                                     // stop holding item but dont move anything
                                     state->player.releaseHeldItem();
@@ -253,9 +254,9 @@ public:
                 } else {
 
                     ItemStack* heldItemStack = state->player.heldItemStack;
-                    if (heldItemStack && (ItemData[state->player.heldItemStack->id].flags & ItemIDs::Placeable)) {
-                        // place item
-                        placeHeldItem(state, worldPos);
+                    // if the held item stack exists and is placeable, place it
+                    if (heldItemStack && heldItemStack->item.has<ITC::Proto::Placeable>()) {
+                        placeItem(heldItemStack->item, state, worldPos);
                     } else {
                         state->player.heldItemStack = NULL;
                     }
@@ -290,9 +291,10 @@ public:
 
                 ItemStack* heldItemStack = state->player.heldItemStack;
                 if (heldItemStack) {
-                    if (ItemData[state->player.heldItemStack->id].flags & ItemIDs::Usable) {
+                    if (heldItemStack->item.has<ITC::Usable>()) {
                         state->player.tryThrowGrenade(&state->ecs, worldPos);
-                        auto onUse = ItemData[heldItemStack->id].usable.onUse;
+                        auto usable = items::getComponent<ITC::Usable>(heldItemStack->item, state->itemManager);
+                        auto onUse = usable->onUse;
                         if (onUse)
                             onUse();
                     }
@@ -329,7 +331,7 @@ public:
                 if (heldItemStack && !heldItemStack->empty()) {
                     ItemStack dropStack = ItemStack(heldItemStack->item, 1);
                     heldItemStack->reduceQuantity(1);
-                    Entities::ItemStack(&state->ecs, mouseWorldPos, dropStack);
+                    Entities::ItemStack(&state->ecs, mouseWorldPos, dropStack, state->itemManager);
                 }
             break;} 
             /*
@@ -402,8 +404,11 @@ public:
                         [&](Entity entity){
                             auto type = state->ecs.Get<const EC::EntityTypeEC>(entity);
                             if (My::streq(input, "ALL") || My::streq(input, type->name)) {
-                                if (state->ecs.Destroy(entity) == 0) {
+                                if (state->ecs.EntityExists(entity)) {
+                                    state->ecs.Destroy(entity);
                                     numDestroyed += 1;
+                                } else {
+                                    LogWarn("Entity didn't exist while killing entities");
                                 }
                             }
                         });

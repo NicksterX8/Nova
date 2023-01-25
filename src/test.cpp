@@ -24,7 +24,7 @@ std::chrono::time_point<std::chrono::high_resolution_clock> getNow() {
 
 //time elapsed: 949738584
 //time elapsed: 1358284833
-
+/*
 const size_t innerIterations = 100000;
 
 void func1(int *a, const int* b) {
@@ -67,7 +67,7 @@ constexpr int readCounter() {
 
 template<class T, int id>
 struct Struct {
-    // read
+    // read*/
     /*
     constexpr int GetID() const { COUNTER_READ_CRUMB( TAS, 1, 
             COUNTER_READ_CRUMB( TAS, 2, 
@@ -87,7 +87,7 @@ struct Struct {
     constant_index< COUNTER_READ( TAS ) + 1 >
     constexpr counter_crumb( TAS, constant_index< ( COUNTER_READ( TAS ) + 1 ) & ~ COUNTER_READ( TAS ) >, \
           					constant_index< ( COUNTER_READ( TAS ) + 1 ) & COUNTER_READ( TAS ) > ) const { return {}; }
-    */
+    *//*
     constexpr static int ID = id;
 };
 
@@ -113,125 +113,38 @@ struct Struct2 {
 
 #define LIKELY(expr) LLVM_LIKELY(expr)
 #define UNLIKELY(expr) LLVM_UNLIKELY(expr)
-
- 
-#include <iostream>
-
-//#define STRUCT_BEGIN(name) struct name { constexpr static int ID = COUNTER_READ(ComponentCounter);
-//#define STRUCT_END(name) }; COUNTER_INC(ComponentCounter);
-#define STRUCT_BEGIN_EX(cname, display_name, optional) struct cname : Struct2<cname> {\
-    constexpr static int ID = COUNTER_READ(ComponentCounter);\
-    constexpr static auto Name = display_name;\
-    constexpr static bool Optional = optional;
-#define STRUCT_BEGIN(cname) STRUCT_BEGIN_EX(cname, TOSTRING(cname), false)
-#define STRUCT_END }; COUNTER_INC(ComponentCounter);
-
-#define STRUCT_DECL(name) COUNTER_INC(ComponentCounter); struct name : Struct<name, COUNTER_READ(ComponentCounter)-1>
-#define STRUCT_DECL_EX(name) COUNTER_INC(ComponentCounter); struct name : Struct<name, COUNTER_READ(ComponentCounter)-1>
-
-/*
-STRUCT_BEGIN(A)
-STRUCT_END(A)
-
-STRUCT_BEGIN(B)
-STRUCT_END(B)
-
-STRUCT_BEGIN(C)
-STRUCT_END(C)
 */
 
-STRUCT_DECL(A) {
-
-};
-
-STRUCT_DECL(D) {
-    constexpr static auto Name = "Deez nutz";
-};
-
-STRUCT_BEGIN_EX(B, "B", true)
-    
-STRUCT_END
-
-constexpr std::array<char, 32> name = {'w', 'h'};
-
-template<char... chars>
-using tstring = std::integer_sequence<char, chars...>;
-
-template<typename T, T... chars>
-constexpr tstring<chars...> operator""_tstr() { return {}; }
-
-STRUCT_DECL_EX(C) {
+struct Class {
     int x;
-
-    static constexpr auto name = "eheyfuaeof";
+    constexpr int method() const {
+        return 3;
+    }
 };
 
-template<class Cl>
-constexpr int getID() {
-    return Cl::ID;
-}
+constexpr Class cls;
 
-// after all components...
-
-constexpr int NumComponents = COUNTER_READ(ComponentCounter);
-
-
-
-//using ConstGenericList = RefList<const void>;
-
-int sum(VirtualList<const int> list, int count) {
-    int s = 0;
-    for (int i = 0; i < count; i++) {
-        s += list[i];
-        //list[i] += s;
-    }
-    return s;
-}
-
-int sum2(VirtualValueList<int> list, int count) {
-    int s = 0;
-    for (int i = 0; i < count; i++) {
-        s += list[i];
-    }
-    return s;
-}
-
-void copy(GenericVirtualList dst, ConstGenericVirtualList src, int typeSize, int size) {
-    for (int i = 0; i < size; i++) {
-        memcpy(dst[i], src[i], typeSize);
-    }
+constexpr int func() {
+    return cls.method();
 }
 
 int main() {
+
     using std::cout;
-    cout << "a id: " << getID<A>() << " b id: " << getID<B>() << " c id: " << getID<C>() << "\n";
-    std::cout << NumComponents << '\n';
 
-    struct S {
-        int x;
-        int y;
-    };
+    constexpr auto i = func();
 
-    
-    auto arr = (S*)calloc(10000000, 1);
-
-    auto list = VirtualList<int>([arr](int index){
-        return &arr[index].x;
-    });
-
-    auto valuelist = VirtualValueList<int>([arr](int index)-> int {
-        return arr[index].x;
-    });
-
-    list[2] = 12;
-    list[6] = 4;//2
-
-    cout << "sum: " << sum2(valuelist, 10) << "\n";
-
-    copy(list, valuelist, 4, 2);
-
-    int x = 0.5;
+    cout << i;
 
 
-    
+    #define LIST "1", "2", "3", "4"
+    #define FIRST(first, ...) first
+    #define ALL_AFTER_FIRST(first, ...) __VA_ARGS__
+    #define STRINGIFY(x) #x
+    #define TOSTRING(x) STRINGIFY(x)
+
+    Class c;
+    auto hash = std::hash<int>{};
+    hash(3);
+
 }

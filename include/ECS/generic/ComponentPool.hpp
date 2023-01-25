@@ -34,7 +34,7 @@ void destructInventory(items::InventoryAllocator& allocator, Inventory* inventor
 // 65000 - 16 unsigned. 32000 - 16 signed
 
 template<typename EntityID, EntityID MaxEntityID, EntityID NullEntityID>
-struct ComponentPool : protected My::GenericDenseSparseSet<EntityID, MaxEntityID> {
+struct ComponentPool : My::GenericDenseSparseSet<EntityID, MaxEntityID> {
 private:
     using Base = My::GenericDenseSparseSet<EntityID, MaxEntityID>;
 public:
@@ -64,29 +64,13 @@ public:
     }
 
     // returns true when the component is added, false otherwise
-    bool add(EntityID entity) {
+    bool add(EntityID entity, void* value = nullptr) {
         // error checking
         if (UNLIKELY(entity == NullEntityID)) {
-            return false;
+            return false; // cant add to null entities
         }
-        if (UNLIKELY(Base::contains(entity))) {
-            LogError("ComponentPool(%s)::add : Entity already has this component! Entity: %u", name, entity);
-            return true;
-        }
-
-        Base::insert(entity);
-        return true;
-    }
-
-    // returns true when the component is added, false otherwise
-    bool add(EntityID entity, void* value) {
-        // error checking
-        if (UNLIKELY(entity == NullEntityID)) {
-            return false;
-        }
-        if (UNLIKELY(Base::contains(entity))) {
-            LogError("ComponentPool(%s)::add : Entity already has this component! Entity: %u", name, entity);
-            return true;
+        if (UNLIKELY(Base::contains(entity))) { 
+            return true; // entity already has this component
         }
 
         Base::insert(entity, value);
@@ -100,7 +84,7 @@ public:
 
     // returns true if the entity was removed, false if not
     bool remove(EntityID entity) {
-        if (Base::exists(entity)) {
+        if (Base::contains(entity)) {
             Base::remove(entity);
             return true;
         }
@@ -111,7 +95,7 @@ public:
         return Base::size;
     }
 
-    bool reallocate(Sint32 newCapacity) {
+    void reallocate(Sint32 newCapacity) {
         Base::reallocate(newCapacity);
     }
 };

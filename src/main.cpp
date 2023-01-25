@@ -67,7 +67,7 @@ inline My::StringBuffer getMacroStringList(const char* macro, int length) {
     const char* c = start;
 
     auto outList = My::StringBuffer::WithCapacity(length+32);
-    for (int i = 0; i < NUM_COMPONENTS; i++) {
+    for (int i = 0; i < ECS_NUM_COMPONENTS; i++) {
         const char* nameStart = c;
         const char* nameEnd = c;
         while (true) {
@@ -171,7 +171,7 @@ void initPaths() {
     LOG("Base path: %s\n", basePath);
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv) { 
     gLogger.useEscapeCodes = true;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--no-color-codes") == 0) {
@@ -193,8 +193,6 @@ int main(int argc, char** argv) {
     SDL_GL_GetDrawableSize(sdlCtx.win, &screenWidth, &screenHeight);
 
     //load(sdlCtx.ren, sdlCtx.scale);
-    loadTileData();
-    loadItemData();
 
     Game* game = new Game(sdlCtx);
     Mem::init(

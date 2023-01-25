@@ -46,9 +46,9 @@ public:
     template<class... Components>
     static EntityWorld Init() {
         EntityWorld self;
-        self.em = EntityManager::Init<Components...>();
+        self.em = ECS::EntityManager::Init<Components...>();
         for (Uint32 i = 0; i < self.em.getComponentCount(); i++) {
-            ECS::ComponentPool* pool = em.getPool(i);
+            ECS::ComponentPool* pool = self.em.getPool(i);
             if (pool) {
                 pool->name = componentNames[i];
             }
@@ -229,9 +229,10 @@ public:
     template<class T>
     int Add(Entity entity, const T& startValue) {
         //LogInfo("Adding %s to entity: %s", em.getComponentName<T>(), entity.DebugStr());
-        int ret = em.Add<T>(entity, startValue);
+        int ret = em.Add<T>(entity);
         if (!ret) {
-            auto& onAddT = callbacksOnAdd[getID<T>()];
+            *em.Get<T>(entity) = startValue;
+            auto& onAddT = callbacksOnAdd[ECS::getID<T>()];
             if (onAddT) {
                 if (deferringEvents) {
                     deferredEvents.push_back({entity, onAddT});
@@ -266,6 +267,7 @@ public:
 
     int AddSignature(Entity entity, ECS::ComponentFlags signature) {
         // TODO: idk
+        
     }
 
     /* Add the template argument components to the entity.
@@ -299,7 +301,7 @@ public:
 
     template<class T>
     int Remove(Entity entity) {
-        auto& beforeRemoveT = callbacksBeforeRemove[getID<T>()];
+        auto& beforeRemoveT = callbacksBeforeRemove[ECS::getID<T>()];
         if (beforeRemoveT) {
             if (deferringEvents) {
                 deferredEvents.push_back({entity, beforeRemoveT});
@@ -327,12 +329,12 @@ public:
 
     template<class T>
     void SetOnAdd(EventCallback callback) {
-        callbacksOnAdd[getID<T>()] = callback;
+        callbacksOnAdd[ECS::getID<T>()] = callback;
     }
 
     template<class T>
     void SetBeforeRemove(EventCallback callback) {
-        callbacksBeforeRemove[getID<T>()] = callback;
+        callbacksBeforeRemove[ECS::getID<T>()] = callback;
     }
 
     /* Iterate all entities in the world.
@@ -356,7 +358,7 @@ public:
      */
     template<typename EntityQueryT>
     inline void ForEach(std::function<void(Entity entity)> callback) const {
-       EntityQueryT::ForEach(em, callback);
+       EntityQueryT::ForEach(&em, callback);
     }
 
     /* Get a pointer to the component pool for a given component type */
@@ -410,7 +412,7 @@ public:
     T* Get(Entity entity) const {
         static_assert(ECS::componentInComponents<T, Components...>(), "component manager must be manager of component");
         constexpr ComponentFlags mutSignature = ECS::componentMutSignature<Components...>();
-        constexpr ECS::ComponentID id = getID<T>();
+        constexpr ECS::ComponentID id = ECS::getID<T>();
         static_assert(mutSignature[id] || std::is_const<T>(), "need mutable signature to get mutable component");
         return ecs->Get<T>(entity);
     }
@@ -445,7 +447,7 @@ private:
         constexpr ECS::ComponentFlags mutFlags = ECS::componentMutSignature<Components...>();
         if (!otherFlags.hasAll(flags)) return false;
         if (!(mutFlags.count() <= otherMutFlags.count())) return false;
-        for (unsigned int i = 0; i < NUM_COMPONENTS; i++) {
+        for (unsigned int i = 0; i < flags.size(); i++) {
             if (flags[i]) {
                 if (!otherFlags[i]) return false;
                 if (mutFlags[i]) {

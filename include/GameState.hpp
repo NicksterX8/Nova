@@ -15,6 +15,7 @@ struct GameState {
     ChunkMap chunkmap;
     EntityWorld ecs;
     Player player;
+    ItemManager itemManager;
 
     void init();
     void destroy();

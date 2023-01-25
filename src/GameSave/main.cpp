@@ -9,7 +9,7 @@
 #include "ECS/SECS.hpp"
 
 namespace GameSave {
-
+/*
 struct ChunkPositionPair {
     IVec2 position;
     Chunk chunk;
@@ -200,7 +200,7 @@ void writeComponentPool(FileWriter& ef, const ECS::ComponentPool* pool) {
     number of components: 4
     components: component size * number of components
     component owners: 8 * number of components
-    */
+    *
 
     FileWriter cf;
 
@@ -238,7 +238,7 @@ void writeComponentPool(FileWriter& ef, const ECS::ComponentPool* pool) {
         cf.set("components", pool->components, pool->componentSize * pool->size);
         break;
     }
-    */
+    *
     C::Serialize(static_cast<C*>(pool->components), pool->size, [&cf](RawArray array){
         cf.back_write(array.data, array.size);
     });
@@ -418,9 +418,9 @@ const char* readFileContents(FILE* file, long* outFileSize=NULL) {
     }
     
     char *source = NULL;
-    /* Go to the end of the file. */
+    /* Go to the end of the file. *
     if (fseek(file, 0L, SEEK_END) == 0) {
-        /* Get the size of the file. */
+        /* Get the size of the file. *
         long bufsize = ftell(file);
         if (outFileSize)
             *outFileSize = bufsize;
@@ -430,15 +430,15 @@ const char* readFileContents(FILE* file, long* outFileSize=NULL) {
             return NULL;
         }
 
-        /* Allocate our buffer to that size. */
+        /* Allocate our buffer to that size. *
         source = (char*)malloc(sizeof(char) * (bufsize + 1));
 
-        /* Go back to the start of the file. */
+        /* Go back to the start of the file. *
         if (fseek(file, 0L, SEEK_SET)) {
             return NULL;
         }
 
-        /* Read the entire file into memory. */
+        /* Read the entire file into memory. *
         size_t newLen = fread(source, sizeof(char), bufsize, file);
         if (ferror(file)) {
             fputs("Error reading file", stderr);
@@ -446,7 +446,7 @@ const char* readFileContents(FILE* file, long* outFileSize=NULL) {
             fclose(file);
             return NULL;
         } else {
-            source[newLen++] = '\0'; /* Just to be safe. */
+            source[newLen++] = '\0'; /* Just to be safe. *
         }
     }
     return source;
@@ -554,18 +554,18 @@ int readEverythingFromFiles(const char* inputSaveFolderPath, GameState* state) {
     }
     return code;
 }
-
+*/
 int save(const GameState* state) {
-    int code = writeEverythingToFiles("save/", state);
+    //int code = writeEverythingToFiles("save/", state);
     LogInfo("Saved!");
-    return code;
+    return /*code*/0;
 }
 
 int load(GameState* state) {
-    int code = readEverythingFromFiles("save/", state);
+    //int code = readEverythingFromFiles("save/", state);
     state->player.releaseHeldItem();
     LogInfo("Loaded!");
-    return code;
+    return /*code*/0;
 }
 
 }

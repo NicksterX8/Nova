@@ -15,7 +15,7 @@
 #include "metadata/ecs/ecs.hpp"
 
 void GameState::init() {
-
+    /* Init Chunkmap */
     chunkmap.init();
     int chunkRadius = 3;
     for (int chunkX = -chunkRadius; chunkX < chunkRadius; chunkX++) {
@@ -30,8 +30,9 @@ void GameState::init() {
         }
     }
 
+    /* Init ECS */
     ecs = EntityWorld::Init<ECS_COMPONENTS>();
-    ecs.SetOnAdd<EC::Position>([&](EntityWorld* ecs, Entity entity){
+    ecs.SetOnAdd<EC::Position>([&](EntityWorld* ecs, Entity entity) {
         //entityPositionChanged(&chunkmap, ecs, entity, {NAN, NAN});
         Vec2 pos = ecs->Get<EC::Position>(entity)->vec2();
         if (ecs->EntityHas<EC::Size>(entity)) {
@@ -77,13 +78,14 @@ void GameState::init() {
         ecs->Get<EC::Inventory>(entity)->inventory.destroy();
     });
 
-    player = Player(&ecs, Vec2(0, 0));
+    /* Init Items */
+    itemManager = ItemManager();
 
-    ItemManager manager;
+    /* Init Player */
+    player = Player(&ecs, Vec2(0, 0), itemManager.inventoryAllocator);
 
     ItemStack startInventory[] = {
-        Items::GrenadeItem(manager),
-        Items::Grass(manager),
+        items::Items::sandGun(itemManager)
     };
 
     Inventory* playerInventory = player.inventory();

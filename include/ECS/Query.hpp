@@ -26,10 +26,10 @@ constexpr ComponentPool* smallestComponentPool(const EntityManager* em) {
     if (sizeof...(Components) == 0) return NULL;
 
     ComponentPool* pools[] = {em->getPool<Components>() ...};
-    Uint32 minSize = pools[0]->size;
+    Uint32 minSize = pools[0]->size();
     ComponentPool* minSizePool = pools[0];
     for (Uint32 i = 1; i < sizeof...(Components); i++) {
-        Uint32 poolSize = pools[i]->size;
+        Uint32 poolSize = pools[i]->size();
         if (poolSize < minSize) {
             minSize = poolSize;
             minSizePool = pools[i];
@@ -122,8 +122,8 @@ public:
             //Require::PoolArrayType requiredPools = Require::getPoolArray();
             //ComponentPool* iteratedPool = smallestComponentPool<RequiredComponents...>(ecs);
             ComponentPool* iteratedPool = Require::smallestPool(em);
-            for (int c = iteratedPool->size-1; c >= 0; c--) {
-                EntityID entityID = iteratedPool->componentOwners[c];
+            for (int c = iteratedPool->size()-1; c >= 0; c--) {
+                EntityID entityID = iteratedPool->keys[c];
                 EntityData entityData = em->entityDataList[entityID];
                 // check required and avoided
                 if (entityData.flags.hasAll(Require::signature()) && entityData.flags.hasNone(Avoid::signature())) {

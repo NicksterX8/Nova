@@ -85,6 +85,8 @@ struct EntityTypeEC : EntityComponent<EntityTypeEC> {
 
 struct Grabable : EntityComponent<Grabable>, Serializable<Grabable> {
     ::ItemStack itemGiven;
+
+    Grabable(::ItemStack itemGiven) : itemGiven(itemGiven) {}
 };
 
 struct Health : EntityComponent<Health>, Serializable<Health> {
@@ -204,19 +206,22 @@ struct Inventory : EntityComponent<Inventory> {
     }
 
     static int Deserialize(Inventory* components, Uint32 count, const char* serialized) {
+        
+        /*
         const void* component = serialized;
         for (Uint32 i = 0; i < count; i++) {
             Uint32 size = *static_cast<const Uint32*>(component);
             const ::ItemStack* items = (const ::ItemStack*)((const char*)component + sizeof(Uint32));
-            ::Inventory* inventory = &static_cast<EC::Inventory*>(components)[i].inventory;
+            items::Inventory* inventory = &static_cast<EC::Inventory*>(components)[i].inventory;
 
-            *inventory = ::Inventory(size);
+            inventory-> = items::Inventory(size);
             memcpy(inventory->items, items, sizeof(::ItemStack) * size);
             component = (const char*)component + (sizeof(size) + (sizeof(::ItemStack) * size));
 
             // PROBABLY LEAKING MEMORY ON LOAD BECAUSE OF INVENTORY
         }
         return 0;
+        */
     }
 };
 

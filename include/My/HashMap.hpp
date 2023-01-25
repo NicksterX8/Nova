@@ -139,12 +139,6 @@ public:
                 if (b->hash == hash && keys()[i] == key) {
                     // found the value
                     return &values()[i];
-                } else {
-                    // TODO: remove this @Debug
-                    const IVec2 key1 = key;
-                    const IVec2 key2 = keys()[i];
-                    //LogInfo("Hash map collision! key 1: %d,%d. key2: %d,%d. hash1: %zu. hash2: %zu", key1.x, key1.y, key2.x, key2.y, hash, b->hash);
-                    collisionCount += 1;
                 }
             }
             else if (b->state == Bucket_Empty) {

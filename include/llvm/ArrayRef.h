@@ -20,7 +20,7 @@
 */
 
 #include "SmallVector.h"
-#include "compiler.h"
+#include "Compiler.h"
 
 #include <algorithm>
 #include <array>

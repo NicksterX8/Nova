@@ -3,6 +3,8 @@
 
 #include "Item.hpp"
 #include "ComponentManager.hpp"
+#include "Prototype.hpp"
+//#include "Inventory.hpp"
 
 namespace items {
 
@@ -23,16 +25,11 @@ struct InventoryAllocator {
 };
 
 struct ItemManager {
-    ComponentManager    componentManager;
-    PrototypeManager    prototypeManager;
+    ComponentManager    components;
+    PrototypeManager    prototypes;
     InventoryAllocator  inventoryAllocator;
 
     ItemManager() {}
-
-    template<class C>
-    C* get() const {
-        return getComponent<C>(&componentManager, )
-    }
 
     bool stackable(ItemStack lhs, ItemStack rhs) const {
         return (lhs.item.type == rhs.item.type && lhs.item.signature == rhs.item.signature);
@@ -41,29 +38,56 @@ struct ItemManager {
     ItemStack combineStacks(ItemStack lhs, ItemStack rhs) const {
         return {lhs.item, lhs.quantity + rhs.quantity};
     }
-
-    ItemQuantity addItemStackToInventory(Inventory* dst, ItemStack stack, ItemQuantity itemStackSize) {
-        for (int s = 0; s < dst->size; s++) {
-            auto slotType = dst->type(s);
-            // the second check should become more complicated later on for stuff like durability stacks adding together
-            if (stackable(stack, dst->get(s))) {
-                
-            }
-            if (slotType == stack.item.type && dst->signature(s) == stack.item.signature) {
-                /*
-                auto maxQuantity = componentManager->getType(slotType)->stackSize;
-                auto maxQuantity2 = componentManager->get<ITC::StackSize>()->;
-                auto maxQuantity3 = slotType->stackSize;
-                */
-                
-                auto spaceLeft = itemStackSize - dst->quantity(s);
-                if (spaceLeft > 0) {
-                    // blah blah blah
-                }
-            }
-        }
-    }
 };
+
+inline const ItemPrototype* getPrototype(ItemType type, const ItemManager& manager) {
+    //TODO: check for null
+    if (type >= manager.prototypes.prototypes.size()) return nullptr;
+    return &manager.prototypes.prototypes[type];
+}
+
+template<class C>
+const C* getProtoComponent(const Item& item, const ItemManager& manager) {
+    // TODO: check for null
+    return getPrototype(item.type, manager)->get<C>();
+}
+
+template<class C>
+C* getRegularComponent(const Item& item, const ItemManager& manager) {
+    return static_cast<C*>(manager.components.getComponent(item.componentsLoc, C::ID));
+}
+
+template<class C>
+typename std::conditional<C::PROTOTYPE, const C*, C*>::type getComponent(const Item& item, const ItemManager& manager) {
+    if (C::PROTOTYPE) {
+        return getProtoComponent<C>(item, manager);
+    } else {
+        return getRegularComponent<C>(item, manager);
+    }
+}
+
+Item makeItem(ItemType type, ItemManager& manager) {
+    auto* prototype = getPrototype(type, manager);
+    ComponentSignature prototypeSignature = 0;
+    if (prototype) {
+        prototypeSignature = prototype->signature;
+    }
+    return Item(type, prototypeSignature, NullComponentsAddress);
+}
+
+template<class C>
+void addComponent(Item& item, ItemManager& manager, const C& startValue) {
+    manager.components.addComponent(item.componentsLoc, C::ID);
+    C* component = (C*)manager.components.getComponent(item.componentsLoc, C::ID);
+    *component = startValue;
+    item.signature.set(C::ID);
+}
+
+template<class C>
+void addComponent(Item& item, ItemManager& manager) {
+    manager.components.addComponent(item.componentsLoc, C::ID);
+    item.signature.set(C::ID);
+}
 
 } // namespace items
 

@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
     
     ostringstream stream;
     // idk whether to add constexpr here or not
-    stream << "template<class C> ID_Type " << functionName << "() { return -1; }\n";
+    stream << "template<class C> constexpr ID_Type " << functionName << "() { return -1; }\n";
     for (auto component : components) {
         stream << "template<> constexpr ID_Type " << functionName << "<" << _namespaceExtended << component.name << ">() { return " << component.id << "; }\n";   
     }

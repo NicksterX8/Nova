@@ -35,7 +35,7 @@ inline To bit_cast(const From &from) noexcept {
   return to;
 }
 
-template <typename T, typename = std::enable_if_t<std::is_unsigned_v<T>>>
+template <typename T, typename = typename std::enable_if<std::is_unsigned<T>::value>::type>
 constexpr inline bool has_single_bit(T Value) noexcept {
   return (Value != 0) && ((Value & (Value - 1)) == 0);
 }
@@ -74,7 +74,7 @@ template <typename T> struct PopulationCounter<T, 8> {
 /// Count the number of set bits in a value.
 /// Ex. popcount(0xF000F000) = 8
 /// Returns 0 if the word is zero.
-template <typename T, typename = std::enable_if_t<std::is_unsigned_v<T>>>
+template <typename T, typename = typename std::enable_if<std::is_unsigned<T>::value>::type>
 inline int popcount(T Value) noexcept {
   return detail::PopulationCounter<T, sizeof(T)>::count(Value);
 }

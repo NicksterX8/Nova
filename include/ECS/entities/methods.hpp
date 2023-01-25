@@ -5,10 +5,6 @@
 #include "ECS/EntityWorld.hpp"
 #include "Chunks.hpp"
 
-void makeEntities(EntityWorld& ecs, Entity* out) {
-    ecs.New
-}
-
 namespace Entities {
 
 Entity clone(EntityWorld* ecs, Entity entity) {
@@ -23,6 +19,7 @@ Entity clone(EntityWorld* ecs, Entity entity) {
         memcpy(newComponent, oldComponent, size);
     });
 
+    // TODO:
     
 }
 

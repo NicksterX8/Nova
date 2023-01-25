@@ -6,6 +6,7 @@
 #include "rendering/textures.hpp"
 #include "ECS/EntityWorld.hpp"
 #include "utils/vectors.hpp"
+#include "items/Prototype.hpp"
 
 using ExplosionCreateFunction = Entity(EntityWorld*, Vec2);
 
@@ -67,14 +68,14 @@ namespace Entities {
         EC::Rotation, EC::Size, EC::Inventory,\
         EC::Render, EC::Position, EC::Immortal
     struct Player : public EntityT<ENTITY_PLAYER_COMPONENTS> {
-        Player(EntityWorld* ecs, Vec2 position) : EntityT<ENTITY_PLAYER_COMPONENTS>(ecs, "player") {
+        Player(EntityWorld* ecs, Vec2 position, items::InventoryAllocator& inventoryAllocator) : EntityT<ENTITY_PLAYER_COMPONENTS>(ecs, "player") {
             MARK_START_ENTITY_CREATION(ecs);
 
             Add<EC::Position>(ecs, position);
             Add<EC::Health>(ecs, {1000});
             Add<EC::Rotation>(ecs, {0.0f});
             Add<EC::Size>(ecs, {0.8f, 0.8f});
-            Inventory inventory = Inventory(PLAYER_INVENTORY_SIZE);
+            Inventory inventory = Inventory(inventoryAllocator, PLAYER_INVENTORY_SIZE);
             Add<EC::Inventory>(ecs, {inventory});
             Add<EC::Render>(ecs, {TextureIDs::Player, RenderLayer::Player});
             Add<EC::Immortal>(ecs, {});
@@ -87,13 +88,14 @@ namespace Entities {
         EC::Grabable, EC::ItemStack
     struct ItemStack : EntityT<ENTITY_ITEMSTACK_COMPONENTS> {
         //using EntityT<ENTITY_ITEMSTACK_COMPONENTS>::EntityT;
-        ItemStack(EntityWorld* ecs, Vec2 position, ::ItemStack item) : EntityT<ENTITY_ITEMSTACK_COMPONENTS>(ecs, "itemstack") {
+        ItemStack(EntityWorld* ecs, Vec2 position, ::ItemStack item, const ItemManager& itemManager) : EntityT<ENTITY_ITEMSTACK_COMPONENTS>(ecs, "itemstack") {
             MARK_START_ENTITY_CREATION(ecs);
             Add<EC::Position>(ecs, position);
             Add<EC::Size>(ecs, {0.5f, 0.5f});
-            Add<EC::ItemStack>(ecs, ::ItemStack(item));
-            Add<EC::Grabable>(ecs, {});
-            Add<EC::Render>(ecs, EC::Render(ItemData[item.item].icon, RenderLayer::Items));
+            Add<EC::ItemStack>(ecs, {item});
+            Add<EC::Grabable>(ecs, {item});
+            Add<EC::Render>(ecs, EC::Render(getPrototype(item.item.type, itemManager)->inventoryIcon, RenderLayer::Items));
+            
             MARK_END_ENTITY_CREATION(ecs);
         }
     };
@@ -128,7 +130,6 @@ namespace Entities {
             Add(ecs, EC::Growth(0.0f));
             Add(ecs, EC::Render(TextureIDs::Tree, RenderLayer::Trees));
             Add(ecs, EC::Size(size.x, size.y));
-            Add(ecs, EC::Inventory(Inventory(10)));
             MARK_END_ENTITY_CREATION(ecs);
         }
     };

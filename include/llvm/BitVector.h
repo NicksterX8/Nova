@@ -26,7 +26,7 @@
 #include <utility>
 
 namespace llvm {
-
+/*
 // moved here by Nick W
 /// Provide wrappers to std::any_of which take ranges instead of having to pass
 /// begin/end explicitly.
@@ -34,6 +34,7 @@ template <typename R, typename UnaryPredicate>
 bool any_of(R &&Range, UnaryPredicate P) {
   return std::any_of(adl_begin(Range), adl_end(Range), P);
 }
+*/
 
 /// ForwardIterator for the bits that are set.
 /// Iterators get invalidated when resize / reserve is called.
@@ -168,7 +169,12 @@ public:
 
   /// any - Returns true if any bit is set.
   bool any() const {
-    return any_of(Bits, [](BitWord Bit) { return Bit != 0; });
+    //return any_of(Bits, [](BitWord Bit) { return Bit != 0; });
+    
+    for (auto bits : Bits) {
+      if (bits) return true;
+    }
+    return false;
   }
 
   /// all - Returns true if all bits are set.
@@ -547,7 +553,7 @@ public:
 
     return false;
   }
-
+  /*
   template <class F, class... ArgTys>
   static BitVector &apply(F &&f, BitVector &Out, BitVector const &Arg,
                           ArgTys const &...Args) {
@@ -561,7 +567,7 @@ public:
     Out.clear_unused_bits();
     return Out;
   }
-
+  */
   BitVector &operator|=(const BitVector &RHS) {
     if (size() < RHS.size())
       resize(RHS.size());

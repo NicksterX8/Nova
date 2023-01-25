@@ -45,7 +45,7 @@ class GenericDenseSparseSet {
     static_assert(MaxKeyValue > 0, "Max key value cannot be 0 or negative!");
     using Self = GenericDenseSparseSet<Key, MaxKeyValue>;
 protected:
-    using SizeT = SizeType;
+    using SizeT = int;
     using Index = SmallestUintToHoldNum<(size_t)MaxKeyValue+1>;
     static constexpr Index NullIndex = std::numeric_limits<Index>::max();
 
@@ -55,13 +55,15 @@ protected:
 
     Index* set; // a set connecting keys to values | Index by key to get the index of the element corresponding to that key
     char* values; // a byte buffer for values
+public:
     Key* keys; // keys corresponding to each value
+protected:
 
     void* getValue(Index index) const {
         return &values[index * valueSize];
     }
 
-    void assertValidKey(Key key) {
+    void assertValidKey(Key key) const {
         assert(key >= 0 && key <= MaxKeyValue && "DenseSparseSet key out of bounds!");
     }
 
@@ -95,7 +97,7 @@ public:
         return Self(valueSize);
     }
 
-    void* lookup(Key key) {
+    void* lookup(Key key) const {
         assertValidKey(key);
 
         auto index = set[key];
@@ -182,7 +184,7 @@ public:
         size--;
     }
 
-    bool exists(Key key) {
+    bool contains(Key key) const {
         assertValidKey(key);
         return set[key] != NullIndex;
     }
@@ -221,7 +223,7 @@ protected:
     Value* values; // a byte buffer for values
     Key* keys; // keys corresponding to each value
 
-    void assertValidKey(Key key) {
+    void assertValidKey(Key key) const {
         assert(key >= 0 && key <= MaxKeyValue && "DenseSparseSet key out of bounds!");
     }
 
@@ -230,13 +232,10 @@ protected:
             set[key] = NullIndex;
         }
     }
-
-    using Self = DenseSparseSet;
-
 public:
     DenseSparseSet() = default;
 
-    static Self New() {
+    static Self Empty() {
         Self self;
         self.size = 0;
         self.capacity = 0;
@@ -253,9 +252,9 @@ public:
     }
 
     DenseSparseSet(SizeT startCapacity)
-    : valueSize(valueSize), size(0), capacity(startCapacity) {
+    : size(0), capacity(startCapacity) {
         assert(capacity >= 0  && "Capacity can't be negative!");
-        values = Alloc<char>(startCapacity * valueSize);
+        values = Alloc<Value>(startCapacity);
         set    = Alloc<Index>(MaxKeyValue);
         keys   = Alloc<Key>(startCapacity);
         emptySet();
@@ -281,7 +280,7 @@ public:
         keys[index] = key;
         assert(set[key] == NullIndex && "Attempted to insert key already present in sparse set");
         set[key] = index;
-        memcpy(&values[index], &value, valueSize);
+        memcpy(&values[index], &value, sizeof(Value));
         size++;
     }
 
@@ -343,7 +342,7 @@ public:
         const auto topKey = keys[topIndex];
         // move key, value, and index over
         keys[indexOfRemoved] = topKey;
-        memcpy(getValue(indexOfRemoved), getValue(topIndex), valueSize);
+        memcpy(getValue(indexOfRemoved), getValue(topIndex), sizeof(Value));
         set[topKey] = NullIndex;
         assert(set[key] != NullIndex && "Attempted to remove key not present in sparse set");
         set[key] = indexOfRemoved; // mark removed key as gone

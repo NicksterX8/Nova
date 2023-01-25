@@ -2,6 +2,9 @@
 #define ITEMS_COMPONENTS_INCLUDED
 
 #include "utils/ints.hpp"
+#include "ECS/generic/components.hpp"
+#include "Item.hpp"
+#include <functional>
 
 // forward declare this
 typedef Uint16 TileType;
@@ -50,9 +53,9 @@ namespace ITC {
 */
 
 namespace ComponentIDs {
-    #define ITEM_COMPONENTS_LIST Durability, Wetness,
-    #define ITEM_PROTO_COMPONENTS_LIST Edible, Fuel, Wettable, StartDurability, Placeable
-    GEN_IDS(ComponentID, ITEM_COMPONENTS_LIST ITEM_PROTO_COMPONENTS_LIST, 0, Count);
+    #define ITEM_COMPONENTS_LIST Durability, Wetness, Tile
+    #define ITEM_PROTO_COMPONENTS_LIST Edible, Fuel, Wettable, StartDurability, Placeable, Usable
+    GEN_IDS(ComponentID, ITEM_COMPONENTS_LIST COMMA ITEM_PROTO_COMPONENTS_LIST, Count);
 }
 
 #define BEGIN_COMPONENT(name) struct name {\
@@ -79,6 +82,10 @@ namespace ITC {
         int h;
     END_COMPONENT(Wetness)
 
+    BEGIN_COMPONENT(Tile)
+        TileType type;
+    END_COMPONENT(Tile)
+
     namespace Proto {
         BEGIN_PROTO_COMPONENT(Edible)
             float hungerValue;
@@ -99,6 +106,10 @@ namespace ITC {
         BEGIN_PROTO_COMPONENT(Placeable)
             TileType tile;
         END_PROTO_COMPONENT(Placeable)
+
+        BEGIN_PROTO_COMPONENT(Usable)
+            std::function<void()> onUse;
+        END_PROTO_COMPONENT(Usable)
     }
 
     using namespace Proto;
@@ -108,11 +119,6 @@ namespace ITC {
 #undef END_COMPONENT
 #undef FLAG_COMPONENT
 
-}
-
-namespace ItemTypes {
-    #define ITEM_TYPE_LIST None, Grenade
-    GEN_IDS(ItemType, ITEM_TYPE_LIST, 0, Count);
 }
 
 namespace ITC = items::ITC;

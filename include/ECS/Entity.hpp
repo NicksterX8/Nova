@@ -10,6 +10,7 @@
 #include "constants.hpp"
 #include "My/Bitset.hpp"
 #include "My/String.hpp"
+#include "generic/components.hpp"
 
 typedef uint32_t Uint32;
 
@@ -18,28 +19,23 @@ namespace ECS {
 typedef Uint32 EntityID;
 typedef Uint32 EntityVersion;
 typedef Sint32 ComponentID;
+constexpr ComponentID NullComponentID = -1;
 
-using ComponentFlagsBase = My::Bitset<NUM_COMPONENTS>;
+template<class C>
+constexpr ComponentID getID() {
+    constexpr ComponentID id = ECS_ComponentIDs::getID<typename std::remove_const<C>::type>();
+    static_assert(id != NullComponentID, "Component failed check and is null! Check your template component parameters!");
+    return id;
+}
 
-struct ComponentFlags : ComponentFlagsBase {
-    using ComponentFlagsBase::ComponentFlagsBase;
-    
-    constexpr ComponentFlags(ComponentFlagsBase bitset) : ComponentFlagsBase(bitset) {
-        
-    }
-
+struct IDGetter {
     template<class C>
-    constexpr bool getComponent() const {
-        constexpr ComponentID id = getID<C>();
-        return this->operator[](id);
-    }
-
-    template<class C>
-    constexpr void setComponent(bool val) {
-        constexpr ComponentID id = getID<C>();
-        set(id, val);
+    constexpr static ComponentID get() {
+        return getID<C>();
     }
 };
+
+using ComponentFlags = GECS::Signature<ECS_NUM_COMPONENTS, IDGetter>;
 
 #define MAX_ENTITIES 64000
 #define ECS_BAD_COMPONENT_ID(id) (id < 0)

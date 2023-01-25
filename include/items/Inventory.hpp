@@ -35,7 +35,7 @@ struct Inventory {
     using SizeT = int;
     ItemStack* items = NULL;
     int size = 0;
-    ComponentManager* componentManager = NULL;
+    items::ComponentManager* componentManager = NULL;
     constexpr static int InfiniteSize = -1;
 
     Inventory() : items(NULL), size(0) {
@@ -130,10 +130,6 @@ struct Inventory {
 
     }
 };
-
-ItemQuantity addItemStackToInventory(ItemManager& itemManager, Inventory inventory) {
-
-}
 
 } // namespace items
 

@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+/*
 template<typename T>
 class ValueList;
 
@@ -42,7 +43,7 @@ struct VirtualInput {
         if (pointer)
             _get = [pointer](int index){
                 return pointer[index];
-            }
+            };
     }
 
     T get(int index) const {
@@ -202,6 +203,30 @@ struct ConstGenericVirtualList {
         return _get(index);
     }
 };
+*/
+
+template<typename T>
+struct VirtualOutput {
+private:
+    void* data;
+    size_t stride;
+public:
+
+    VirtualOutput(std::nullptr_t null) : data(nullptr), stride(0) {}
+
+    VirtualOutput(T* array) : data(array), stride(sizeof(T)) {}
+
+    VirtualOutput(void* data, size_t stride) : data(data), stride(stride) {}
+
+    T& operator[](int index) {
+        assert(index >= 0 && "no negative array indices");
+        return *(T*)((char*)data + (size_t)index*stride);
+    }
+
+    operator bool() const {
+        return data != nullptr;
+    }
+};
 
 // based on this article "https://straypixels.net/texture-packing-for-fonts/" by Edward Lu, with some minor modifications
 // TODO: Move away from using std::unique_ptr. Use a better method of allocation. Add a destroy method instead of using destructor
@@ -235,6 +260,6 @@ inline Texture resizeTexture(Texture texture, glm::ivec2 newSize) {
     return Texture{newBuffer, newSize};
 }
 
-Texture packTextures(const int numTextures, const Texture* textures, VirtualOutput<glm::ivec2> textureOrigins = nullptr, glm::ivec2 startSize = {-1, -1});
+Texture packTextures(const int numTextures, const Texture* textures, VirtualOutput<glm::ivec2> textureOrigins = nullptr, glm::ivec2 startSize = {128, 128});
 
 #endif

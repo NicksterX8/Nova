@@ -28,7 +28,7 @@ namespace TileTypes {
     };
 
     struct MineableTile {
-        ItemType item; // item given by being mined (or 0 for nothing)
+        ItemStack item; // item given by being mined (or 0 for nothing)
     };
 }
 typedef Uint16 TileType;
@@ -57,5 +57,20 @@ struct Tile {
 
     }
 };
+
+TileTypeDataStruct defaultTileTypeData = {
+    .color = {0, 0, 0, 255},
+    .background = TextureIDs::Null,
+    .flags = 0,
+    .mineable = {
+        .item = ItemStack::Empty()
+    }
+};
+
+namespace items {
+    struct ItemManager;
+}
+
+void loadTileData(items::ItemManager& itemManager);
 
 #endif

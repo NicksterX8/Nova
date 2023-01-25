@@ -117,10 +117,9 @@ void EntityManager::Destroy(int count, const Entity* targetEntities) {
             LogError("ECS::Remove %s : Attempted to remove a non-existent entity! Returning -1. Entity: %s", entity.DebugStr());
         }
 
-        int code = 0;
         for (Uint32 id = 0; id < nComponents; id++) {
             if (entityData->flags[id])
-                code |= pools[id].remove(entity.id);
+                pools[id].remove(entity.id);
         }
 
         // swap last entity with this entity for 100% entity packing in array

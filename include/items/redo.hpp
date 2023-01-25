@@ -4,11 +4,11 @@
 #include "My/Bitset.hpp"
 #include "My/Vec.hpp"
 #include "My/SparseSets.hpp"
-#include "generic.hpp"
+
 #include "Prototype.hpp"
 
 namespace items {
-
+/*
 struct IDGetter {
     template<class C>
     constexpr Sint16 get() const {
@@ -112,6 +112,7 @@ struct Inventory {
     SizeType padding2;
     SizeType padding3;
 };
+/
 */
 
 }

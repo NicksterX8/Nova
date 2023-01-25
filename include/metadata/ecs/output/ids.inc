@@ -1,4 +1,4 @@
-template<class C> ID_Type getID() { return -1; }
+template<class C> constexpr ID_Type getID() { return -1; }
 template<> constexpr ID_Type getID<EC::Position>() { return 0; }
 template<> constexpr ID_Type getID<EC::Size>() { return 1; }
 template<> constexpr ID_Type getID<EC::Render>() { return 2; }

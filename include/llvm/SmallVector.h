@@ -17,7 +17,7 @@
 /*
 #include "llvm/Support/Compiler.h"
 */
-#include "compiler.h"
+#include "Compiler.h"
 #include "type_traits.h"
 
 #include <algorithm>
@@ -355,6 +355,13 @@ protected:
       --E;
       E->~T();
     }
+  }
+
+  /// Move the range [I, E) into the uninitialized memory starting with "Dest",
+  /// constructing elements as needed.
+  template<typename It1, typename It2>
+  static void uninitialized_move(It1 I, It1 E, It2 Dest) {
+    std::uninitialized_move(I, E, Dest);
   }
 
   /// Grow the allocated memory (without initializing new elements), doubling

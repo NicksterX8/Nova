@@ -94,7 +94,7 @@ struct EntityManager {
         // the index is required to show that the entities are not in existence.
         for (EntityID i = 0; i < MAX_ENTITIES; i++) {
             static_assert(NULL_ENTITY_VERSION == 0, "starting entity version should be 1");
-            entityDataList[i] = {
+            self.entityDataList[i] = {
                 .version = 1,
                 .flags = ComponentFlags(0),
                 .index = NULL_ENTITY_ID
@@ -103,11 +103,11 @@ struct EntityManager {
 
         // all entities are free by default.
         // stop one shorter than the others to avoid making NULL_ENTITY_ID a free entity.
-        freeEntities.size = MAX_ENTITIES-1;
+        self.freeEntities.size = MAX_ENTITIES-1;
         for (EntityID i = 0; i < NULL_ENTITY_ID; i++) {
             // set free entities in reverse order so that when new entities are popped off the back the ids will go from lowest to highest,
             // starting at 0, ending at NULL_ENTITY_ID-1
-            freeEntities[(NULL_ENTITY_ID-1)-i] = i;
+            self.freeEntities[(NULL_ENTITY_ID-1)-i] = i;
         }
         
         // initialize component pools
@@ -155,7 +155,7 @@ struct EntityManager {
     template<class T>
     Uint32 getComponentPoolSize() const {
         const ComponentPool* pool = getPool<T>();
-        if (pool) return pool->size;
+        if (pool) return pool->size();
         return 0;
     }
 
@@ -256,7 +256,7 @@ struct EntityManager {
             if (signature[id])
                 code |= pools[id].add(entity.id);
         }
-        signature.forEachSet([&](auto id){
+        signature.forEachSet([&](uint32_t id){
             code |= pools[id].add(entity.id);
         });
         /*

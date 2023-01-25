@@ -150,7 +150,7 @@ template <typename T> struct TrailingZerosCounter<T, 8> {
 ///   valid arguments.
 template <typename T>
 unsigned countTrailingZeros(T Val, ZeroBehavior ZB = ZB_Width) {
-  static_assert(std::is_unsigned_v<T>,
+  static_assert(std::is_unsigned<T>::value,
                 "Only unsigned integral types are allowed.");
   return llvm::detail::TrailingZerosCounter<T, sizeof(T)>::count(Val, ZB);
 }
@@ -218,7 +218,7 @@ template <typename T> struct LeadingZerosCounter<T, 8> {
 ///   valid arguments.
 template <typename T>
 unsigned countLeadingZeros(T Val, ZeroBehavior ZB = ZB_Width) {
-  static_assert(std::is_unsigned_v<T>,
+  static_assert(std::is_unsigned<T>::value,
                 "Only unsigned integral types are allowed.");
   return llvm::detail::LeadingZerosCounter<T, sizeof(T)>::count(Val, ZB);
 }
@@ -294,6 +294,8 @@ static const unsigned char BitReverseTable256[256] = {
 #undef R6
 };
 
+/*
+Removed by Nick Wilson because it uses C++17 features and the function is not useful to me
 /// Reverse the bits in \p Val.
 template <typename T> T reverseBits(T Val) {
 #if __has_builtin(__builtin_bitreverse8)
@@ -321,6 +323,7 @@ template <typename T> T reverseBits(T Val) {
   std::memcpy(&Val, out, sizeof(Val));
   return Val;
 }
+*/
 
 // NOTE: The following support functions use the _32/_64 extensions instead of
 // type overloading so that signed and unsigned integers can be used without
@@ -474,7 +477,7 @@ constexpr inline bool isPowerOf2_64(uint64_t Value) {
 /// ZB_Undefined are valid arguments.
 template <typename T>
 unsigned countLeadingOnes(T Value, ZeroBehavior ZB = ZB_Width) {
-  static_assert(std::is_unsigned_v<T>,
+  static_assert(std::is_unsigned<T>::value,
                 "Only unsigned integral types are allowed.");
   return countLeadingZeros<T>(~Value, ZB);
 }
@@ -489,7 +492,7 @@ unsigned countLeadingOnes(T Value, ZeroBehavior ZB = ZB_Width) {
 /// ZB_Undefined are valid arguments.
 template <typename T>
 unsigned countTrailingOnes(T Value, ZeroBehavior ZB = ZB_Width) {
-  static_assert(std::is_unsigned_v<T>,
+  static_assert(std::is_unsigned<T>::value,
                 "Only unsigned integral types are allowed.");
   return countTrailingZeros<T>(~Value, ZB);
 }
@@ -499,9 +502,9 @@ unsigned countTrailingOnes(T Value, ZeroBehavior ZB = ZB_Width) {
 /// Returns 0 if the word is zero.
 template <typename T>
 inline unsigned countPopulation(T Value) {
-  static_assert(std::is_unsigned_v<T>,
+  static_assert(std::is_unsigned<T>::value,
                 "Only unsigned integral types are allowed.");
-  return (unsigned)llvm::popcount(Value);
+  return (unsigned)llvm::popcount<T>(Value);
 }
 
 /// Return true if the argument contains a non-empty sequence of ones with the

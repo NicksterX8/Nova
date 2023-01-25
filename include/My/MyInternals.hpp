@@ -25,8 +25,8 @@
 
 MY_CLASS_START
 
-template<typename T>
-using FastestParamType = typename std::conditional<(sizeof(T) <= 2 * sizeof(void*)) && std::is_trivially_copyable<T>::value, T, const T&>::type;
+template<typename T, size_t Size = sizeof(T)>
+using FastestParamType = typename std::conditional<(Size <= 2 * sizeof(void*)) && std::is_trivially_copyable<T>::value, T, const T&>::type;
 
 MY_CLASS_END
 

@@ -279,6 +279,7 @@ struct ComponentListC {
 };
 */
 
+/*
 // max 32 components
 struct SmallComponentList {
     using Signature = My::Bitset<32, uint32_t>;
@@ -349,6 +350,7 @@ struct SmallComponentList {
 
     }
 };
+*/
 
 /*
 template<typename... Components> 

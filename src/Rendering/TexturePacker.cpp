@@ -1,7 +1,7 @@
 #include "rendering/TexturePacker.hpp"
 #include "memory.hpp"
 
-Texture packTextures(const int numTextures, const Texture* textures, VirtualOutput<glm::ivec2> textureOrigins = nullptr, glm::ivec2 startSize = {64, 64}) {
+Texture packTextures(const int numTextures, const Texture* textures, VirtualOutput<glm::ivec2> textureOrigins, glm::ivec2 startSize) {
     static constexpr int NullNode = -1;
 
     struct Node {
@@ -26,7 +26,7 @@ Texture packTextures(const int numTextures, const Texture* textures, VirtualOutp
             if (!nodesEmpty[nodeIndex]) {
                 // The node is filled, not gonna fit anything else here
                 assert(node->left == NullNode && node->right == NullNode);
-                return NULL;
+                return NullNode;
             } else if (node->left != NullNode && node->right != NullNode) {
                 // Non-leaf, try inserting to the left and then to the right
                 int retval = pack(node->left, size);

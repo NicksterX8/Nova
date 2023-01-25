@@ -5,15 +5,13 @@
 #include <functional>
 #include "ECS/secsy.hpp"
 #include "My/Vec.hpp"
-#include "generic.hpp"
-
-#include "Prototype.hpp"
+#include "ECS/generic/components.hpp"
 
 typedef Uint32 TextureID;
 
 typedef Uint32 ItemType;
 typedef Sint32 ItemQuantity;
-
+/*
 namespace ItemTypes {
     enum IDs : ItemType {
         None = 0,
@@ -25,12 +23,12 @@ namespace ItemTypes {
         NumItems
     };
 }
-
+*/
 namespace items {
 
 struct IDGetter {
     template<class C>
-    constexpr Sint16 get() const {
+    static constexpr Sint16 get() {
         return C::ID;
     }
 };
@@ -46,9 +44,10 @@ template<class ...Cs>
 constexpr ComponentSignature getComponentSignature() {
     return ItemECS::getSignature<Cs...>();
 }
-using ComponentPtr = ItemECS::ComponentPtr;
+using ComponentPtr = GECS::ComponentPtr;
 
-using ComponentsAddress = ItemECS::ArchetypalComponentManager::ElementAddress;
+using ComponentsAddress = GECS::ArchetypeElementAddress;
+constexpr auto NullComponentsAddress = GECS::NullElementAddress;
 
 using GECS::ComponentInfo;
 using GECS::ComponentInfoRef;
@@ -58,14 +57,19 @@ using ItemQuantity = Sint32;
 constexpr ItemQuantity ItemQuantityInfinity = -1;
 constexpr ItemQuantity ItemQuantityNull = -2;
 
-struct Item {
-    ComponentSignature signature = 0;
-    ComponentsAddress componentsLoc = ComponentsAddress::Null;
-    ItemType type = ItemTypes::None;
- 
-    Item() = default;
+namespace ItemTypes {
+    #define ITEM_TYPE_LIST None, Grenade, SandGun, Tile
+    GEN_IDS(ItemType, ITEM_TYPE_LIST, Count);
+}
 
-    Item(ItemType type) : type(type) {}
+struct Item {
+    ComponentSignature signature;
+    ComponentsAddress componentsLoc;
+    ItemType type;
+ 
+    Item() : signature(0), componentsLoc(NullComponentsAddress), type(ItemTypes::None) {};
+
+    Item(ItemType type, ComponentSignature signature, ComponentsAddress components = NullComponentsAddress) : signature(signature), componentsLoc(components), type(type) {}
 
     template<class ...Cs>
     bool has() const {
@@ -84,9 +88,9 @@ struct Item {
 
 struct ItemStack {
     Item item;
-    ItemQuantity quantity = 0;
+    ItemQuantity quantity;
 
-    ItemStack() = default;
+    ItemStack() : item(Item()), quantity(0) {}
 
     ItemStack(Item item) : item(item), quantity(1) {}
 
@@ -240,5 +244,6 @@ inline void tester4() {
 
 using items::Item;
 using items::ItemStack;
+namespace ItemTypes = items::ItemTypes;
 
 #endif
