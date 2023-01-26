@@ -214,7 +214,7 @@ struct TextRenderer {
         const float textureWidth = font->atlasSize.x;
         const float textureHeight = font->atlasSize.y;
 
-        for (char c = font->firstChar; c <= font->lastChar; c++) {
+        for (unsigned char c = (unsigned char)font->firstChar; c <= font->lastChar; c++) {
             glm::vec2* coords = characterTexCoords[c].data();
             const auto pos = font->position(c);
             const auto size = font->size(c);
@@ -263,6 +263,7 @@ struct TextRenderer {
         self.charOffsetBuffer = (glm::vec2*)malloc(bufferCapacity * sizeof(glm::vec2));
         self.charBufferSize = 0;
         self.defaultFormatting = FormattingSettings::Default();
+        self.characterTexCoords = Alloc<std::array<glm::vec2, 4>>(font->lastChar - font->firstChar + 1);
 
         self.calculateCharacterTexCoords();
 
@@ -551,6 +552,7 @@ struct TextRenderer {
         glDeleteBuffers(1, &this->ebo);
         free(this->charBuffer);
         free(this->charOffsetBuffer);
+        Free(characterTexCoords);
     }
 };
 

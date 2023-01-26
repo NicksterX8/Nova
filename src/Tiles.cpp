@@ -21,6 +21,15 @@ static Uint32 flagsSignature(Flags... flagList) {
     return flags;
 }
 
+static const TileTypeDataStruct defaultTileTypeData = {
+    .color = {0, 0, 0, 255},
+    .background = TextureIDs::Null,
+    .flags = 0,
+    .mineable = {
+        .item = ItemStack::None()
+    }
+};
+
 #define NewTile(type) assert(type < NUM_TILE_TYPES && "Invalid tile type; type out of range"); tile = &Data[type]; *tile = defaultTileTypeData;
 #define Color(...) tile->color = __VA_ARGS__;
 #define Background(bg) tile->background = bg;

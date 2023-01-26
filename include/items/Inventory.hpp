@@ -34,17 +34,20 @@ struct SizedInventory {
 struct Inventory {
     using SizeT = int;
     ItemStack* items = NULL;
-    int size = 0;
-    items::ComponentManager* componentManager = NULL;
+    ItemQuantity size = 0;
+    Uint16 startIndex = 0; // The index of the first non-empty item slot, or 0 if the inventory is empty
+    Uint16 endIndex = 0; // the index one past the index of the last non-empty item slot
+    ItemManager* manager = NULL;
     constexpr static int InfiniteSize = -1;
 
-    Inventory() : items(NULL), size(0) {
-
-    }
+    Inventory() = default;
     
-    Inventory(InventoryAllocator& allocator, int size) : size(size) {
+    Inventory(ItemManager* manager, int size) : size(size), manager(manager) {
         assert(size >= 0 || size == InfiniteSize && "Inventory can not have negative size unless infinite");
-        items = allocator.allocate(size);
+        items = manager->inventoryAllocator.allocate(size);
+        for (int i = 0; i < size; i++) {
+            items[i] = ItemStack::None();
+        }
     }
 
     void destroy(InventoryAllocator& allocator) {
@@ -75,15 +78,15 @@ struct Inventory {
     }
 
     inline const ItemStack& get(Sint32 itemIndex) const {
-        assert(itemIndex >= 0 && itemIndex < this->size && "inventory item index out of bounds!");
+        assert(itemIndex >= this->startIndex && itemIndex < this->endIndex && "inventory item index out of bounds! The start and end indices may be incorrect.");
         return items[itemIndex];
     }
 
     bool empty() const {
-        return size == 0;
+        return endIndex == 0;
     }
 
-    bool infiniteSize() const {
+    bool isInfinite() const {
         return size == InfiniteSize;
     }
 
@@ -103,14 +106,7 @@ struct Inventory {
     */
     ItemQuantity addItemStack(ItemStack stack);
 
-    /*
-    * Remove a stack of items from the inventory, removing sequentially from the slots containing the item.
-    * If the inventory is empty, the stack will not be removed and the return value will be 0,
-    * if the inventory is near empty, only a partial amount of the stack may be added.
-    * In order to not remove more items than should be possible, it's likely necessary to use the return value of this function.
-    * @return The number of items of the stack that were removed from the inventory.
-    */
-    ItemQuantity removeItemStack(ItemStack stack);
+    ItemQuantity removeItemType(ItemType type, ItemQuantity quantity);
 
     /*
     * Get the number of items of the given type in the inventory,
@@ -124,10 +120,6 @@ struct Inventory {
 
     inline const ItemStack& operator[](Uint32 index) const {
         return get(index);
-    }
-
-    void destroy() {
-
     }
 };
 

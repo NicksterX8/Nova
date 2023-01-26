@@ -6,7 +6,8 @@
 namespace items {
 
 struct ComponentManager : ItemECS::ArchetypalComponentManager {
-    ComponentManager() {}
+    ComponentManager() = default;
+    ComponentManager(ComponentInfoRef info) : ItemECS::ArchetypalComponentManager(info) {}
 };
 
 } // namespace items

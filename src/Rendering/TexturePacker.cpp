@@ -22,33 +22,34 @@ Texture packTextures(const int numTextures, const Texture* textures, VirtualOutp
         llvm::BitVector nodesEmpty;
 
         int pack(int nodeIndex, glm::ivec2 size) {
-            Node* node = &nodes[nodeIndex];
+            //Node* node = &nodes[nodeIndex];
             if (!nodesEmpty[nodeIndex]) {
                 // The node is filled, not gonna fit anything else here
-                assert(node->left == NullNode && node->right == NullNode);
+                assert(nodes[nodeIndex].left == NullNode && nodes[nodeIndex].right == NullNode);
                 return NullNode;
-            } else if (node->left != NullNode && node->right != NullNode) {
+            } else if (nodes[nodeIndex].left != NullNode && nodes[nodeIndex].right != NullNode) {
                 // Non-leaf, try inserting to the left and then to the right
-                int retval = pack(node->left, size);
+                int retval = pack(nodes[nodeIndex].left, size);
                 if (retval != NullNode) {
                     return retval;
                 }
-                return pack(node->right, size);
+                return pack(nodes[nodeIndex].right, size);
             } else {
                 // This is an unfilled leaf - let's see if we can fill it
-                glm::ivec2 realSize(node->size.x, node->size.y);
+                glm::ivec2 realSize = nodes[nodeIndex].size;
 
                 // If we're along a boundary, calculate the actual size
-                if (node->origin.x + node->size.x == INT_MAX) {
-                    realSize.x = atlas.size.x - node->origin.x;
+                auto origin = nodes[nodeIndex].origin;
+                if (origin.x + nodes[nodeIndex].size.x == INT_MAX) {
+                    realSize.x = atlas.size.x - origin.x;
                 }
-                if (node->origin.y + node->size.y == INT_MAX) {
-                    realSize.y = atlas.size.y - node->origin.y;
+                if (origin.y + nodes[nodeIndex].size.y == INT_MAX) {
+                    realSize.y = atlas.size.y - origin.y;
                 }
 
-                if (node->size.x == size.x && node->size.y == size.y) {
+                if (nodes[nodeIndex].size.x == size.x && nodes[nodeIndex].size.y == size.y) {
                     // Perfect size - just pack into this node
-                    nodesEmpty[node->right] = false;
+                    nodesEmpty[nodeIndex] = false;
                     return nodeIndex;
                 } else {
                     glm::vec2 sizeDiff = size - realSize;
@@ -61,7 +62,7 @@ Texture packTextures(const int numTextures, const Texture* textures, VirtualOutp
                         int left  = nodes.size;
                         int right = nodes.size+1;
                         nodes.require(2);
-                        nodesEmpty.resize(nodesEmpty.size() + 2, false);
+                        nodesEmpty.resize(nodesEmpty.size() + 2, true);
 
                         // Determine how much space we'll have left if we split each way
                         int remainX = realSize.x - size.x;
@@ -72,26 +73,28 @@ Texture packTextures(const int numTextures, const Texture* textures, VirtualOutp
                         if (remainX == 0 && remainY == 0) {
                             // Edge case - we are are going to hit the border of
                             // the texture atlas perfectly, split at the border instead
-                            if (node->size.x > node->size.y) {
+                            if (nodes[nodeIndex].size.x > nodes[nodeIndex].size.y) {
                                 verticalSplit = false;
                             } else {
                                 verticalSplit = true;
                             }
                         }
 
+                        auto origin = nodes[nodeIndex].origin;
+                        auto nodeSize = nodes[nodeIndex].size;
                         if (verticalSplit) {
                             // Split vertically (left is top)
-                            nodes[left] = Node(node->origin, glm::ivec2(node->size.x, size.y));
-                            nodes[right] = Node(glm::ivec2(node->origin.x, node->origin.y + size.y),
-                                                    glm::ivec2(node->size.x, node->size.y - size.y));
+                            nodes[left] = Node(origin, glm::ivec2(nodeSize.x, size.y));
+                            nodes[right] = Node(glm::ivec2(origin.x, origin.y + size.y),
+                                                    glm::ivec2(nodeSize.x, nodeSize.y - size.y));
                         } else {
                             // Split horizontally
-                            nodes[left] = Node(node->origin, glm::ivec2(size.x, node->size.y));
-                            nodes[right] = Node(glm::ivec2(node->origin.x + size.x, node->origin.y), glm::ivec2(node->size.x - size.x, node->size.y));
+                            nodes[left] = Node(origin, glm::ivec2(size.x, nodeSize.y));
+                            nodes[right] = Node(glm::ivec2(origin.x + size.x, origin.y), glm::ivec2(nodeSize.x - size.x, nodeSize.y));
                         }
 
-                        node->left = left;
-                        node->right = right;
+                        nodes[nodeIndex].left = left;
+                        nodes[nodeIndex].right = right;
                         return pack(left, size);
                     }
                 }
@@ -105,14 +108,20 @@ Texture packTextures(const int numTextures, const Texture* textures, VirtualOutp
     atlas.atlas.buffer = (unsigned char*)malloc(startSize.x * startSize.y * sizeof(unsigned char));
 
     atlas.nodes.push(Node({0, 0}, {INT_MAX, INT_MAX}));
+    atlas.nodesEmpty.push_back(true);
     int root = 0;
 
     for (int i = 0; i < numTextures; i++) {
         const auto texture = textures[i];
+        if (texture.size.x <= 0 || texture.size.y <= 0) {
+            // bad texture, skip it
+            textureOrigins[i] = {0, 0};
+            continue;
+        }
 
         int nodeIndex = atlas.pack(root, texture.size);
         while (nodeIndex == NullNode) {
-            resizeTexture(atlas.atlas, glm::ivec2(MAX(atlas.atlas.size.x*2, texture.size.x*2), MAX(atlas.atlas.size.y*2, texture.size.y*2)));
+            atlas.atlas = resizeTexture(atlas.atlas, glm::ivec2(MAX(atlas.atlas.size.x*2, texture.size.x*2), MAX(atlas.atlas.size.y*2, texture.size.y*2)));
             nodeIndex = atlas.pack(root, texture.size);
         }
 

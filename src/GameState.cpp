@@ -74,15 +74,21 @@ void GameState::init() {
             chunkmap.get(toChunkPosition(entityPosition))->removeCloseEntity(entity);
         }
     });
-    ecs.SetBeforeRemove<EC::Inventory>([](EntityWorld* ecs, Entity entity){
-        ecs->Get<EC::Inventory>(entity)->inventory.destroy();
+    ecs.SetBeforeRemove<EC::Inventory>([this](EntityWorld* ecs, Entity entity){
+        ecs->Get<EC::Inventory>(entity)->inventory.destroy(this->itemManager.inventoryAllocator);
     });
 
     /* Init Items */
-    itemManager = ItemManager();
+    My::Vec<items::ComponentInfo> componentInfo; // TODO: Unimportant: This is leaked currently
+    {
+        using namespace ITC;
+        constexpr auto componentInfoArray = GECS::getComponentInfoList<ITEM_COMPONENTS_LIST>();
+        componentInfo = My::Vec<items::ComponentInfo>(&componentInfoArray[0], componentInfoArray.size());
+    }
+    itemManager = ItemManager(ArrayRef(componentInfo.data, componentInfo.size));
 
     /* Init Player */
-    player = Player(&ecs, Vec2(0, 0), itemManager.inventoryAllocator);
+    player = Player(&ecs, Vec2(0, 0), itemManager);
 
     ItemStack startInventory[] = {
         items::Items::sandGun(itemManager)

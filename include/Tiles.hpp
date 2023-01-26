@@ -58,15 +58,6 @@ struct Tile {
     }
 };
 
-TileTypeDataStruct defaultTileTypeData = {
-    .color = {0, 0, 0, 255},
-    .background = TextureIDs::Null,
-    .flags = 0,
-    .mineable = {
-        .item = ItemStack::Empty()
-    }
-};
-
 namespace items {
     struct ItemManager;
 }

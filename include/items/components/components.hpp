@@ -3,7 +3,7 @@
 
 #include "utils/ints.hpp"
 #include "ECS/generic/components.hpp"
-#include "Item.hpp"
+#include "items/Item.hpp"
 #include <functional>
 
 // forward declare this
@@ -11,62 +11,24 @@ typedef Uint16 TileType;
 
 namespace items {
 
-/*
-namespace ProtoITC {
-    struct Wettable {
-
-    };
-
-    struct Fuel {
-        float value; // what fuel value the item is worth
-    };
-}
-
-namespace ITC {
-    struct Base {};
-
-    #define ITEM_COMPONENT_DECL_BEGIN(name) struct name : Base {
-    #define ITEM_COMPONENT_DECL_END(name) };
-
-    struct Durability {
-        float durability;
-    };
-
-    struct Wetness {
-        int level;
-    };
-
-    struct Placeable {
-        TileType tile;
-    };
-
-    // bad
-    
-    ITEM_COMPONENT_DECL_BEGIN(Health)
-        float health;
-    ITEM_COMPONENT_DECL_END(Health)
-    
-    struct Health {
-        float health;
-    };
-}
-*/
-
 namespace ComponentIDs {
-    #define ITEM_COMPONENTS_LIST Durability, Wetness, Tile
+    #define ITEM_REGULAR_COMPONENTS_LIST Durability, Wetness, TileC
     #define ITEM_PROTO_COMPONENTS_LIST Edible, Fuel, Wettable, StartDurability, Placeable, Usable
-    GEN_IDS(ComponentID, ITEM_COMPONENTS_LIST COMMA ITEM_PROTO_COMPONENTS_LIST, Count);
+    #define ITEM_COMPONENTS_LIST ITEM_REGULAR_COMPONENTS_LIST, ITEM_PROTO_COMPONENTS_LIST
+    GEN_IDS(ComponentID, ITEM_COMPONENTS_LIST, Count);
 }
 
 #define BEGIN_COMPONENT(name) struct name {\
     constexpr static ComponentID ID = ComponentIDs::name;\
-    constexpr static bool PROTOTYPE = false; // names[id] = tostring(name); someday
+    constexpr static bool PROTOTYPE = false;\
+    constexpr static const char* NAME = TOSTRING(name);
 
 #define END_COMPONENT(name) }; static_assert(true | ComponentIDs::name, "Checking for id");
 
 #define BEGIN_PROTO_COMPONENT(name) struct name {\
     constexpr static ComponentID ID = ComponentIDs::name;\
-    constexpr static bool PROTOTYPE = true;
+    constexpr static bool PROTOTYPE = true;\
+    constexpr static const char* NAME = TOSTRING(name);
 
 #define END_PROTO_COMPONENT(name) }; static_assert(true | ComponentIDs::name, "Checking for id");
 
@@ -74,6 +36,8 @@ namespace ComponentIDs {
 #define FLAG_PROTO_COMPONENT(name) BEGIN_PROTO_COMPONENT(name) END_PROTO_COMPONENT(name)
 
 namespace ITC {
+    constexpr auto TotalNumComponents = ComponentIDs::Count;
+
     BEGIN_COMPONENT(Durability)
         int level;
     END_COMPONENT(Durability)
@@ -82,9 +46,9 @@ namespace ITC {
         int h;
     END_COMPONENT(Wetness)
 
-    BEGIN_COMPONENT(Tile)
+    BEGIN_COMPONENT(TileC)
         TileType type;
-    END_COMPONENT(Tile)
+    END_COMPONENT(TileC)
 
     namespace Proto {
         BEGIN_PROTO_COMPONENT(Edible)

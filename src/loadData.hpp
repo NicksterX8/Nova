@@ -3,9 +3,8 @@
 
 #include "Tiles.hpp"
 #include "items/items.hpp"
-
+/*
 void loadItemData() {
-    /*
     using namespace ItemTypes;
     for (int i = 0; i < Count; i++) {
         ItemData[i] = defaultItemData;
@@ -64,7 +63,7 @@ void loadItemData() {
             }
         }
     };
-    */
 }
+*/
 
 #endif

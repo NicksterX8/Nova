@@ -156,22 +156,6 @@ ItemPrototype New(PrototypeManager* manager, ItemType typeID) {
     return ItemPrototype(componentsStorage, manager->componentInfo, typeID, signature);
 }
 
-struct Grenade : public items::ItemPrototype {
-        Grenade(PrototypeManager* manager) : ItemPrototype(New<>(manager, ItemTypes::Grenade)) {
-            this->stackSize = 64;
-            this->inventoryIcon = TextureIDs::Grenade;
-            //ItemPrototype::set<Fuel>({100.0f, 20.0f});
-            //set<Edible>({.hungerValue = 1.0f, .saturation = 2.0f});
-            //this->set<Edible>({1.0f, 2.0f});
-            
-        }
-
-        void init() {
-
-            auto prt = static_cast<items::ItemPrototype*>(this);
-        }
-    };
-
 } // namespace items
 
 using items::ItemPrototype;

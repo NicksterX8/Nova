@@ -36,7 +36,7 @@ struct Player {
 
     Player() {}
 
-    Player(EntityWorld* ecs, Vec2 startPosition, items::InventoryAllocator& inventoryAllocator) : ecs(ecs) {
+    Player(EntityWorld* ecs, Vec2 startPosition, ItemManager& inventoryAllocator) : ecs(ecs) {
         entity = Entities::Player(ecs, startPosition, inventoryAllocator);
     }
 

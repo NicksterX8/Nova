@@ -171,7 +171,20 @@ void initPaths() {
     LOG("Base path: %s\n", basePath);
 }
 
+void tests() {
+    Item item = Item();
+    item.type = ItemTypes::Grenade;
+    ItemStack stack(item);
+    stack.quantity = 5;
+    assert(stack.reduceQuantity(3) == 3);
+    assert(stack.quantity == 2 && stack.item.type == ItemTypes::Grenade);
+    assert(stack.reduceQuantity(items::ItemQuantityInfinity) == 2);
+    assert(stack.quantity == 0 && stack.item.type == ItemTypes::None);
+}
+
 int main(int argc, char** argv) { 
+    tests();
+
     gLogger.useEscapeCodes = true;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--no-color-codes") == 0) {

@@ -22,7 +22,7 @@ void moveItemStack(Inventory* dst, int dstSlot, Inventory* src, int srcSlot) {
     assert(dstStack.empty() && "slot must be empty to be moved to");
 
     dstStack = srcStack;
-    srcStack = ItemStack::Empty();
+    srcStack = ItemStack::None();
 
     src->size--;
     dst->size++;
@@ -32,7 +32,7 @@ ItemQuantity addItemStackToInventory(ItemManager& manager, Inventory* dst, ItemS
     for (int s = 0; s < dst->size; s++) {
         auto slotType = dst->type(s);
         // the second check should become more complicated later on for stuff like durability stacks adding together
-        if (manager.stackable(stack, dst->get(s))) {
+        if (stackable(stack, dst->get(s), manager)) {
             
         }
         if (slotType == stack.item.type && dst->signature(s) == stack.item.signature) {

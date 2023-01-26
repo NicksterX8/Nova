@@ -238,7 +238,7 @@ public:
                                 // set held stack down in slot only if actually holding stack and if slot is empty
                                 if (stack->empty()) {
                                     *stack = *state->player.heldItemStack;
-                                    *state->player.heldItemStack = ItemStack::Empty();
+                                    *state->player.heldItemStack = ItemStack::None();
                                     state->player.heldItemStack = nullptr;
                                 } else {
                                     // stop holding item but dont move anything
@@ -534,7 +534,7 @@ public:
             Tile* selectedTile = getTileAtPosition(state->chunkmap, aimingPosition);
             // TODO: entity collision stuff
             if (selectedTile && false) {
-                Entity chest = Entities::Chest(&state->ecs, {floor(aimingPosition.x), floor(aimingPosition.y)}, 32, 1, 1);
+                Entity chest = Entities::Chest(&state->ecs, {floor(aimingPosition.x), floor(aimingPosition.y)}, 32, 1, 1, state->itemManager);
                 placeEntityOnTile(&state->ecs, selectedTile, chest);
             }
             

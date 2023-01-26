@@ -44,7 +44,7 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
 
     this->face = newFontFace(fontfile, height);
 
-    char numChars = lastChar - firstChar;
+    char numChars = lastChar - firstChar + 1;
     if (numChars <= 0) {
         this->characters.advances = nullptr;
         this->characters.bearings = nullptr;
@@ -67,10 +67,11 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
 
     FT_Error error;
 
-    Texture* characterTextures = Alloc<Texture>((size_t)numChars); defer { Free(characterTextures); };
+    Texture* characterTextures = Alloc<Texture>((size_t)numChars); defer {  };
     
-    for (char c = firstChar; c <= lastChar; c++) {
-        int i = (int)(c - firstChar);
+    // c must be unsigned so it cant overflow
+    for (unsigned char c = firstChar; c <= lastChar; c++) { 
+        int i = (int)(c - (unsigned char)firstChar);
         // load character glyph 
         if ((error = FT_Load_Char(face, c, FT_LOAD_RENDER))) {
             LogError("Failed to load glyph charcter \'%c\'. Error: %s", c, FT_Error_String(error));
@@ -95,7 +96,9 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
 
     this->spaceCharAdvance = characters.advances[' ' - firstChar];
 
+    // don't pack the first texture (space character, empty texture)
     auto packedTexture = packTextures((int)numChars, characterTextures, characters.positions);
+    //Texture packedTexture = {nullptr, {0, 0}};
 
     this->atlasSize = packedTexture.size;
     this->atlasTexture = loadFontAtlasTexture(packedTexture);
@@ -104,6 +107,8 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
     }
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4); // re enable default byte-alignment restriction
+
+    Free(characterTextures);
 }
 
  void Font::unload() {

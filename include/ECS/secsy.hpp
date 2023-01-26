@@ -6,7 +6,7 @@
 #include "My/Allocation.hpp"
 #include "llvm/ArrayRef.h"
 #include "utils/templates.hpp"
-
+/*
 namespace SECS {
 
 typedef int16_t ComponentID;
@@ -32,14 +32,14 @@ struct AnyComponent {
     void* component;
     ComponentID id;
 
-    /*
+    *
     AnyComponent() = default;
 
     AnyComponent(ComponentID id, size_t size) {
         this->component = malloc(size);
         this->id = id;
     }
-    */
+    *
 
     void destroy() {
         free(component);
@@ -63,7 +63,7 @@ AnyComponent makeAnyComponent() {
     return component;
 }
 
-AnyComponent makeAnyComponent(ComponentID id, size_t componentSize) {
+inline AnyComponent makeAnyComponent(ComponentID id, size_t componentSize) {
     return {.component = malloc(componentSize), .id = id};
 }
 
@@ -91,6 +91,7 @@ struct EntityManager {
 
     }
 };
+*/
 /*
 // possibly use some sort of bitset to be able to check if an entity has a component faster.
 // Annoying because ids would need to be in some sort of range so we can index by them
@@ -167,9 +168,10 @@ struct BasicComponentList {
     }
 };
 */
-
+/*
 using AnyComponentList = llvm::SmallVector<AnyComponent, 1>;
 using ComponentPtr = void*;
+*.
 /*
 template<size_t MaxComponentID = 64>
 struct ComponentList {
@@ -395,4 +397,4 @@ so get<int> wouldn't work because it does not inherit from Component.
 */
 
 
-}
+//}

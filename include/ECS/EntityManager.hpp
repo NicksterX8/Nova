@@ -121,6 +121,8 @@ struct EntityManager {
             self.pools[id] = ComponentPool(id, componentSize);
             self.highestComponentID = MAX(id, self.highestComponentID);
         })(getID<Components>(), sizeof(Components)));
+
+        return self;
     }
 
     // destroy the entity manager and deallocate everything
@@ -211,35 +213,36 @@ struct EntityManager {
     }
 
     template<class... Components>
-    int Add(Entity entity) {
+    bool Add(Entity entity) {
         if (!EntityExists(entity)) {
             LogError("Attempted to add components to a non-living entity! Entity: %s.", entity.DebugStr());
-            return -1;
+            return false;
         }
 
         constexpr auto ids = getComponentIDs<Components...>();
         // start at one to account for dummy value
-        int code = 0;
+        bool fail = false;
         for (Uint32 i = 0; i < sizeof...(Components); i++) {
             ComponentPool* pool = getPool(ids[i]);
             if (pool)
-                code |= pool->add(entity.id);
+                fail |= !pool->add(entity.id);
         }
         entityDataList[entity.id].flags |= componentSignature<Components...>();
-        return code;
+        return !fail;
     }
 
-    int Add(ComponentID id, Entity entity) {
+    bool Add(ComponentID id, Entity entity) {
         if (EntityExists(entity)) {
             auto pool = getPool(id);
             if (pool) {
                 entityDataList[entity.id].flags |= (1U << id);
                 return pool->add(entity.id);
             }
-            LogError("Attempted to add component %s to a non-living entity! Entity: %s", getComponentName(id), entity.DebugStr());
-            return -1;
+            LogError("Attempted to add component id %d that has no pool to entity %s", id, entity.DebugStr());
+            return false;
         }
-        return -1;
+        LogError("Attempted to add component %s to a non-living entity! Entity: %s", getComponentName(id), entity.DebugStr());
+        return false;
     }
 
     int AddSignature(Entity entity, ComponentFlags signature) {

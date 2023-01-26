@@ -1,44 +1,41 @@
 #include "items/items.hpp"
-/*
-int ItemStack::reduceQuantity(Uint32 reduction) {
-    if (quantity == ItemQuantityInfinity) {
-        return reduction;
-    }
-    if (reduction == ItemQuantityInfinity) {
-        return quantity;
-    }
 
-    int remaining = quantity - reduction;
-    if (remaining < 1) {
-        quantity = 0;
-         = 0;
-        return quantity - remaining;
+using namespace items;
+
+ItemQuantity ItemStack::reduceQuantity(ItemQuantity reduction) {
+    ItemQuantity oldQuantity = this->quantity;
+    quantity = oldQuantity - reduction;
+    if (reduction == ItemQuantityInfinity) goto remove_whole_stack;
+    else if (oldQuantity == ItemQuantityInfinity) return reduction;
+    else if (quantity < 1) {
+remove_whole_stack:
+        *this = ItemStack::None();
+        return oldQuantity;
+    } else {
+        return MIN(reduction, oldQuantity);
     }
-    quantity -= reduction;
-    return reduction;
 }
-*/
 
 ItemStack Inventory::takeFirstItemStack() {
     for (Uint32 i = 0; i < size; i++) {
         auto* stack = &get(i);
         if (!stack->empty()) {
             auto ret = *stack;
-            *stack = ItemStack::Empty();
+            *stack = ItemStack::None();
             return ret;
         }
     }
-    return ItemStack::Empty();
+    return ItemStack::None();
 }
 
-/*
 ItemQuantity Inventory::addItemStack(ItemStack stack) {
     ItemQuantity itemsLeft = stack.quantity;
+    const ItemQuantity stackSize = getStackSize(stack.item, *manager);
     // find first unused slot or first slot of same type and add it to that slot
     for (Uint32 i = 0; i < size && itemsLeft > 0; i++) {
         auto& inventoryStack = get(i);
         if (stack.quantity == ItemQuantityInfinity) {
-            if (!inventoryStack.id) {
+            if (!inventoryStack.item.type) {
                 inventoryStack = stack;
                 return ItemQuantityInfinity;
             }
@@ -48,18 +45,19 @@ ItemQuantity Inventory::addItemStack(ItemStack stack) {
             // add as many items as can fit based on the item's stack size and how many are in the stack
             // if it weren't for the possibility of a stack of items having a quantity higher
             // than the stack's stacksize it would work to just copy the stack straight into the inventory slot
-            inventoryStack.id = stack.id;
-            ItemQuantity itemsToAdd = (ItemData[stack.id].stackSize < itemsLeft) ? 
-                                ItemData[stack.id].stackSize : itemsLeft;
+            inventoryStack.item.type = stack.item.type;
+            ItemQuantity stackSize = getPrototype(stack.item.type, *manager)->stackSize;
+            ItemQuantity itemsToAdd = (stackSize < itemsLeft) ? 
+                                stackSize : itemsLeft;
             inventoryStack.quantity = itemsToAdd;
             itemsLeft -= itemsToAdd;
         }
-        else if (inventoryStack.id == stack.id) {
+        else if (stackable(inventoryStack, stack, *manager)) {
             if (inventoryStack.quantity == ItemQuantityInfinity) {
                 return stack.quantity;
             }
 
-            int room = ItemData[inventoryStack.id].stackSize - inventoryStack.quantity;
+            int room = getStackSize(inventoryStack.item, *manager) - inventoryStack.quantity;
             // if the slot is entirely full this will be <= 0
             // get the minimum of how much items the slot can fit and how many items are in the stack that needs to be added
             if (room > 0) {
@@ -75,25 +73,44 @@ ItemQuantity Inventory::addItemStack(ItemStack stack) {
     return stack.quantity - itemsLeft;
 }
 
-ItemQuantity Inventory::removeItemStack(ItemStack stack) {
-    ItemQuantity itemsLeft = stack.quantity;
+ItemQuantity Inventory::removeItemType(ItemType type, ItemQuantity quantity) {
+    ItemQuantity itemsLeft = quantity;
     // go through slots of the same type as the stack and
     // remove as many items as possible from that slot
+    if (quantity < 1) {
+        if (quantity == ItemQuantityInfinity) {
+            // remove all items of the type
+            for (Uint32 i = 0; i < size; i++) {
+                auto& slot = get(i);
+                if (slot.item.type == type) {
+                    destroyItem(&slot.item, *manager);
+                }
+            }
+        }
+        return quantity;
+    }
+    // search through each inventory slot and 
     for (Uint32 i = 0; i < size; i++) {
-        auto& invStack = get(i);
-        if (invStack.id == stack.id) {
+        auto& slot = get(i);
+        if (slot.item.type == type) {
+            if (slot.quantity == ItemQuantityInfinity) return quantity;
             // get the minimum of the two quanities, to not remove more than the stack said to,
             // and not to remove more than are in the slot
-            Uint32 itemsToRemove = (itemsLeft < invStack.quantity) ? itemsLeft : invStack.quantity;
-            itemsLeft -= itemsToRemove;
-            if (itemsLeft == 0) {
-                break;
+            Uint32 itemsToRemove = MIN(itemsLeft, slot.quantity);
+
+            if (slot.quantity > itemsLeft) {
+                slot.quantity -= itemsLeft;
+                return quantity;
+            } else if (slot.quantity <= itemsLeft) {
+                itemsLeft -= slot.quantity;
+                freeItem(slot.item, *manager);
+                slot = Item::None();
+                if (itemsLeft == 0) return quantity;
             }
         }
     }
-    return stack.quantity - itemsLeft;
+    return quantity - itemsLeft;
 }
-*/
 
 ItemQuantity Inventory::itemCount(ItemType type) {
     ItemQuantity count = 0;
@@ -105,4 +122,27 @@ ItemQuantity Inventory::itemCount(ItemType type) {
         }
     }
     return count;
+}
+
+PrototypeManager* items::makePrototypes(ComponentInfoRef componentInfo) {
+    auto manager = new PrototypeManager(componentInfo, ItemTypes::Count);
+    namespace ids = ItemTypes;
+    using namespace Prototypes;
+    auto prototypeNone = Prototypes::None(manager);
+    //manager->add(prototypeNone);
+    //manager->add(Prototypes::Grenade(manager));
+
+    // check if we forgot any
+    for (ItemType type = ids::None+1; type < ItemTypes::Count; type++) {
+        if (manager->prototypes[type].id == ids::None) {
+            LogError("FAIL ON PROTOTYPE MAKING!");
+            assert(false);
+        }
+    }
+    return manager;
+}
+
+void items::destroyItem(Item* item, ItemManager& manager) {
+    freeItem(*item, manager);
+    *item = Item::None();
 }

@@ -15,22 +15,6 @@ using ComponentDestructor = std::function<void(void* components, int count)>;
 using ComponentMoveCopyConstructor = std::function<void(void* oldComponents, void* newComponents, int count)>;
 using ComponentMoveAssignmentConstructor = ComponentMoveCopyConstructor;
 
-void moveInventory(Inventory* oldInventories, Inventory* newInventories, int count) {
-    for (int i = 0; i < count; i++) {
-        auto& oi = oldInventories[i];
-        auto& ni = newInventories[i];
-        ni.items = oi.items;
-        ni.size = oi.size;
-    }
-}
-
-void destructInventory(items::InventoryAllocator& allocator, Inventory* inventories, int count) {
-    for (int i = 0; i < count; i++) {
-        auto& inv = inventories[i];
-        inv.destroy(allocator);
-    }
-}
-
 // 65000 - 16 unsigned. 32000 - 16 signed
 
 template<typename EntityID, EntityID MaxEntityID, EntityID NullEntityID>

@@ -39,6 +39,7 @@ using ItemECS = GECS::Class<MAX_ITEM_COMPONENTS, IDGetter>;
 constexpr ItemECS ItemEcs;
 using ComponentID = GECS::ComponentID;
 using ComponentSignature = ItemECS::Signature; // 64 components or flags is probably good
+
 // wrapper
 template<class ...Cs>
 constexpr ComponentSignature getComponentSignature() {
@@ -55,7 +56,6 @@ using GECS::ComponentInfoRef;
 using ItemType = Uint16; // 65k should be way more than enough
 using ItemQuantity = Sint32;
 constexpr ItemQuantity ItemQuantityInfinity = -1;
-constexpr ItemQuantity ItemQuantityNull = -2;
 
 namespace ItemTypes {
     #define ITEM_TYPE_LIST None, Grenade, SandGun, Tile
@@ -70,6 +70,10 @@ struct Item {
     Item() : signature(0), componentsLoc(NullComponentsAddress), type(ItemTypes::None) {};
 
     Item(ItemType type, ComponentSignature signature, ComponentsAddress components = NullComponentsAddress) : signature(signature), componentsLoc(components), type(type) {}
+
+    static Item None() {
+        return {ItemTypes::None, ComponentSignature{0}, NullComponentsAddress};
+    }
 
     template<class ...Cs>
     bool has() const {
@@ -96,8 +100,8 @@ struct ItemStack {
 
     ItemStack(Item item, ItemQuantity quantity) : item(item), quantity(quantity) {}
 
-    static ItemStack Empty() {
-        return ItemStack();
+    static ItemStack None() {
+        return {Item::None(), 0};
     }
 
     /*
@@ -106,10 +110,10 @@ struct ItemStack {
     * This will be equal to the reduction parameter when the item stack quantity is >= reduction,
     * Otherwise is equal to the quantity of the item stack since you cannot remove more items than are there.
     */
-    int reduceQuantity(Uint32 reduction);
+    ItemQuantity reduceQuantity(ItemQuantity reduction);
 
     bool infinite() const {
-        return quantity == ItemQuantityInfinity;
+        return quantity == ItemQuantityInfinity && item.type != ItemTypes::None;
     }
 
     bool empty() const {

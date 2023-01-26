@@ -9,7 +9,6 @@
 #include "PlayerControls.hpp"
 #include "rendering/rendering.hpp"
 #include "GameSave/main.hpp"
-#include "loadData.hpp"
 
 #include "ECS/ECS.hpp"
 #include "ECS/systems/systems.hpp"
@@ -62,6 +61,7 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
     PlayerControls& playerControls = *ctx.playerControls;
     Vec2& mouseWorldPos = playerControls.mouseWorldPos;
     DebugClass& debug = *ctx.debug;
+    ItemManager& itemManager = state.itemManager;
 
     controls->addKeyBinding(new FunctionKeyBinding('y',
     [&ecs, &camera, &state, &playerControls](){
@@ -83,11 +83,11 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
         new FunctionKeyBinding('q', [&player](){
             player.releaseHeldItem();
         }),
-        new FunctionKeyBinding('c', [&ecs, &playerControls](){
+        new FunctionKeyBinding('c', [&itemManager, &ecs, &playerControls](){
             int width = 2;
             int height = 1;
             Vec2 position = vecFloor(playerControls.mouseWorldPos) + Vec2(width/2.0f, height/2.0f);
-            auto chest = Entities::Chest(&ecs, position, 3, width, height);
+            auto chest = Entities::Chest(&ecs, position, 3, width, height, itemManager);
             (void)chest;
         }),
         new FunctionKeyBinding('l', [](){
@@ -453,9 +453,8 @@ void Game::init(int screenWidth, int screenHeight) {
     this->gui = new Gui();
 
     this->state = new GameState();
-    loadTileData(this->state->itemManager);
-    loadItemData();
     this->state->init();
+    loadTileData(this->state->itemManager);
     for (int e = 0; e < 2000; e++) {
         Vec2 pos = {(float)randomInt(-200, 200), (float)randomInt(-200, 200)};
         auto tree = Entities::Tree(&state->ecs, pos, {1, 1});

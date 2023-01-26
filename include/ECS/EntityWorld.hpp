@@ -51,8 +51,10 @@ public:
             ECS::ComponentPool* pool = self.em.getPool(i);
             if (pool) {
                 pool->name = componentNames[i];
+
             }
         }
+        return self;
     }
 
     /* Destroy the entity world.
@@ -227,10 +229,9 @@ public:
      * @return 0 on success, any other value otherwise. A relevant error message should be logged.
      */
     template<class T>
-    int Add(Entity entity, const T& startValue) {
+    bool Add(Entity entity, const T& startValue) {
         //LogInfo("Adding %s to entity: %s", em.getComponentName<T>(), entity.DebugStr());
-        int ret = em.Add<T>(entity);
-        if (!ret) {
+        if (em.Add<T>(entity)) {
             *em.Get<T>(entity) = startValue;
             auto& onAddT = callbacksOnAdd[ECS::getID<T>()];
             if (onAddT) {
@@ -240,8 +241,9 @@ public:
                     onAddT(this, entity);
                 }
             }
+            return true;
         }
-        return ret;
+        return false;
     }
 
     /* Add the component corresponding to the id to the given entity
@@ -249,10 +251,10 @@ public:
      * otherwise it will be added to the back of the deferred events queue to be executed when finished deferring.
      * @return 0 on success, any other value otherwise. A relevant error message should be logged.
      */
-    int Add(Entity entity, ECS::ComponentID id) {
+    bool Add(Entity entity, ECS::ComponentID id) {
         //LogInfo("Adding %s to entity: %s", em.getComponentName<T>(), entity.DebugStr());
-        int ret = em.Add(id, entity);
-        if (!ret) {
+        bool ret = em.Add(id, entity);
+        if (ret) {
             auto& onAddT = callbacksOnAdd[id];
             if (onAddT) {
                 if (deferringEvents) {
@@ -280,10 +282,8 @@ public:
     template<class... Components>
     int Add(Entity entity) {
         constexpr auto ids = ECS::getComponentIDs<Components...>();
-        int ret = em.Add<Components...>(entity);
+        bool ret = em.Add<Components...>(entity);
         if (ret) {
-            LogInfo("Entity type: %s", em.Get<EC::EntityTypeEC>(entity)->name);
-        } else {
             for (size_t i = 0; i < ids.size(); i++) {
                 auto& onAddT = callbacksOnAdd[ids[i]];
                 if (onAddT) {

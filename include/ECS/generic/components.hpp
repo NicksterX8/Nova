@@ -51,9 +51,9 @@ constexpr ComponentID NullComponentID = INT16_MIN;
 using ComponentPtr = void*;
 
 struct ComponentInfo {
-    size_t size;
-    size_t alignment;
-    std::string name;
+    size_t size = 0;
+    size_t alignment = 0;
+    const char* name = "null";
 };
 
 class ComponentInfoRef {
@@ -78,9 +78,19 @@ public:
     }
 
     const char* name(ComponentID component) const {
-        return components[component].name.c_str();
+        return components[component].name;
     }
 };
+
+template<class Component>
+static constexpr ComponentInfo getComponentInfo() {
+    return {sizeof(Component), alignof(Component), Component::NAME};
+}
+
+template<class... Components>
+static constexpr std::array<ComponentInfo, sizeof...(Components)> getComponentInfoList() {
+    return {getComponentInfo<Components>() ...};
+}
 
 struct DefaultIDGetter {
     template<class C>
@@ -247,9 +257,6 @@ struct EntityManager {
 */
 
 struct ArchetypalComponentManager {
-
-    ArchetypalComponentManager() {}
- 
     struct Archetype {
         using ComponentOffsetSet = My::DenseSparseSet<ComponentID, uint16_t, maxComponentID>;
         ComponentOffsetSet componentOffsets;
@@ -259,7 +266,7 @@ struct ArchetypalComponentManager {
         uint16_t* sizes;
 
         static Archetype Null() {
-            return {ComponentOffsetSet::New(), 0, 0, 0, nullptr};
+            return {ComponentOffsetSet::Empty(), 0, 0, 0, nullptr};
         }
 
         uint16_t getOffset(ComponentID component) const {
@@ -348,9 +355,12 @@ struct ArchetypalComponentManager {
     My::HashMap<Signature, ArchetypeID, typename Signature::Hash> archetypes;
     ComponentInfoRef componentInfo;
 
+    ArchetypalComponentManager() {}
+
     ArchetypalComponentManager(ComponentInfoRef componentInfo) : componentInfo(componentInfo) {
         auto nullPool = ArchetypePool(Archetype::Null());
         pools = My::Vec<ArchetypePool>(&nullPool, 1);
+        archetypes = decltype(archetypes)::Empty();
     }
 private:
     void* getElement(ElementAddress element) const {

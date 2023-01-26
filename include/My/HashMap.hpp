@@ -68,18 +68,18 @@ public:
     int   size;
     int   bucketCount;
 
-    static inline Bucket* getBuckets(void* mem, int bucketCount) {
+    static Bucket* getBuckets(void* mem, int bucketCount) {
         return (Bucket*)mem;
     }
-    static inline K* getKeys(void* mem, int bucketCount) {
+    static K* getKeys(void* mem, int bucketCount) {
         return (K*)((char*)mem + bucketCount * sizeof(Bucket));
     }
-    static inline V* getValues(void* mem, int bucketCount) {
+    static V* getValues(void* mem, int bucketCount) {
         return (V*)((char*)mem + bucketCount * (sizeof(Bucket) + sizeof(K)));
     }
-    inline Bucket* buckets() const { return getBuckets(memory, bucketCount); }
-    inline K*      keys()    const { return getKeys(memory, bucketCount); }
-    inline V*      values()  const { return getValues(memory, bucketCount); }
+    Bucket* buckets() const { return getBuckets(memory, bucketCount); }
+    K*      keys()    const { return getKeys(memory, bucketCount); }
+    V*      values()  const { return getValues(memory, bucketCount); }
 
     HashMap() = default;
 
@@ -89,16 +89,24 @@ public:
         My::memsetT(buckets(), 0, startBuckets);
     }
 
-    static inline Self WithBuckets(int buckets) {
+    static Self Empty() {
+        Self self;
+        self.memory = nullptr;
+        self.size = 0;
+        self.bucketCount = 0;
+        return self;
+    }
+
+    static Self WithBuckets(int buckets) {
         return HashMap(buckets);
     }
 
-    static inline Hash hashKey(KeyParamT key) {
+    static Hash hashKey(KeyParamT key) {
         static constexpr H hashKeyType;
         return hashKeyType(key); 
     }
 
-    static inline Hash cHashKeyFunc(const void* key) {
+    static Hash cHashKeyFunc(const void* key) {
         static constexpr H hashKeyType;
         return hashKeyType(*((K*)key));
     }

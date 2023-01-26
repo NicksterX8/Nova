@@ -236,7 +236,7 @@ public:
      * When the new capacity couldn't be allocated, -1 will be returned
      */
     void reallocate(int newCapacity) {
-        data = (T*)allocator.Realloc(data, newCapacity * sizeof(T));
+        data = (T*)allocator.Realloc(data, newCapacity);
         size = (size < newCapacity) ? size : newCapacity;
         capacity = newCapacity;
     }

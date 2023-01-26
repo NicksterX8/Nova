@@ -56,7 +56,7 @@ namespace Entities {
     Explosive Airstrike(EntityWorld* ecs, Vec2 position, Vec2 size, Vec2 target);
     Explosive ThrownGrenade(EntityWorld* ecs, Vec2 position, Vec2 target);
 
-    Entity Chest(EntityWorld* ecs, Vec2 position, int inventorySize, int width, int height);
+    Entity Chest(EntityWorld* ecs, Vec2 position, int inventorySize, int width, int height, ItemManager& allocator);
 
     Entity Particle(EntityWorld* ecs, Vec2 position, Vec2 size, EC::Render render, EC::Motion motion);
 
@@ -68,14 +68,14 @@ namespace Entities {
         EC::Rotation, EC::Size, EC::Inventory,\
         EC::Render, EC::Position, EC::Immortal
     struct Player : public EntityT<ENTITY_PLAYER_COMPONENTS> {
-        Player(EntityWorld* ecs, Vec2 position, items::InventoryAllocator& inventoryAllocator) : EntityT<ENTITY_PLAYER_COMPONENTS>(ecs, "player") {
+        Player(EntityWorld* ecs, Vec2 position, ItemManager& inventoryAllocator) : EntityT<ENTITY_PLAYER_COMPONENTS>(ecs, "player") {
             MARK_START_ENTITY_CREATION(ecs);
 
             Add<EC::Position>(ecs, position);
             Add<EC::Health>(ecs, {1000});
             Add<EC::Rotation>(ecs, {0.0f});
             Add<EC::Size>(ecs, {0.8f, 0.8f});
-            Inventory inventory = Inventory(inventoryAllocator, PLAYER_INVENTORY_SIZE);
+            Inventory inventory = Inventory(&inventoryAllocator, PLAYER_INVENTORY_SIZE);
             Add<EC::Inventory>(ecs, {inventory});
             Add<EC::Render>(ecs, {TextureIDs::Player, RenderLayer::Player});
             Add<EC::Immortal>(ecs, {});

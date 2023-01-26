@@ -167,7 +167,7 @@ Texture packTextures(const int numTextures, const Texture* textures, glm::ivec2*
                         int left  = nodes.size;
                         int right = nodes.size+1;
                         nodes.require(2);
-                        nodesEmpty.resize(nodesEmpty.size() + 2, false);
+                        nodesEmpty.resize(nodesEmpty.size() + 2, true);
 
                         // Determine how much space we'll have left if we split each way
                         int remainX = realSize.x - size.x;

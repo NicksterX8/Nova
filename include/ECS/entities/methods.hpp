@@ -7,7 +7,7 @@
 
 namespace Entities {
 
-Entity clone(EntityWorld* ecs, Entity entity) {
+inline Entity clone(EntityWorld* ecs, Entity entity) {
     auto signature = ecs->EntitySignature(entity);
     const char* type = ecs->Get<EC::EntityTypeEC>(entity)->name;
     Entity newEntity = ecs->New(type);
