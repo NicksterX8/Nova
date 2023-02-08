@@ -67,8 +67,8 @@ SDLContext initSDL() {
     }
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GLContext glContext = SDL_GL_CreateContext(context.win);
-    if (!glContext) {
+    context.gl = SDL_GL_CreateContext(context.win);
+    if (!context.gl) {
         LogError("Failed creating OpenGL context! %s", SDL_GetError());
         exit(EXIT_FAILURE);
     }

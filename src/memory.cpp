@@ -18,11 +18,15 @@ void* _malloc(size_t size) {
 }
 
 void _free(void* mem) {
-    free(mem);
+    //free(mem);
 }
 
 void* _realloc(void* ptr, size_t size) {
-    return realloc(ptr, size);
+    //return realloc(ptr, size);
+    auto res = malloc(size);
+    if (ptr)
+        memcpy(res, ptr, size);
+    return res;
 }
 
 MemoryBlock failedToAlloc(bool required, AllocCallback callback) {

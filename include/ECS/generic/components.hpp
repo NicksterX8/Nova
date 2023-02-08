@@ -8,6 +8,7 @@
 #include "My/Vec.hpp"
 #include "utils/common-macros.hpp"
 #include <string>
+#include "global.hpp"
 
 template <size_t I, typename Tuple>
 constexpr size_t element_offset() {
@@ -161,10 +162,16 @@ struct IDGetter {
 };
 */
 
+#define GECS_ARCHETYPE_ELEMENT_ARCHETYPE_BITS 10
+#define GECS_ARCHETYPE_ELEMENT_INDEX_BITS 22
+using ArchetypeElementIndexType = uint32_t;
+#define GECS_MAX_ARCHETYPE_POOL_SIZE ((size_t)1 << (size_t)MIN(sizeof(ArchetypeElementIndexType) * CHAR_BIT, GECS_ARCHETYPE_ELEMENT_INDEX_BITS))
+
 struct ArchetypeElementAddress {
-    uint32_t archetype:10;
-    uint32_t index:22;
+    uint32_t archetype:GECS_ARCHETYPE_ELEMENT_ARCHETYPE_BITS;
+    uint32_t index:GECS_ARCHETYPE_ELEMENT_INDEX_BITS;
 };
+static_assert(sizeof(ArchetypeElementAddress) == 4, "Oversized element address struct. Check bits used.");
 
 constexpr static ArchetypeElementAddress NullElementAddress = { .archetype = 0, .index = 0 };
 
@@ -208,54 +215,6 @@ constexpr static Signature getSignature() {
     return result;
 }
 
-/*
-using EntityID = Uint32;
-
-struct Entity {
-    Uint32 id;
-    Uint16 version;
-    Uint16 type;
-
-    Signature signature;
-};
-
-template<class Base>
-struct EntityManager {
-    // Base Interface:
-    // void*    get(EntityID, ComponentID)
-    // void* getProto()
-    // void     add(EntityID, ComponentID)
-    // void  remove(EntityID, ComponentID)
-
-    Base& base() {
-        return *static_cast<Base*>(this);
-    }
-    const Base& base() const {
-        return *static_cast<const Base*>(this);
-    }
-
-    void* get(Entity entity, ComponentID component) {
-        base().get(entity.id, component);
-    }
-
-    template<class C>
-    C* get(Entity entity) {
-        if (!isPrototype<C>()) {
-            constexpr auto id = getID<C>();
-            return static_cast<C*>(get(entity.id, id));
-        } else {
-            constexpr auto id = getPrototypeID<C>();
-            return static_cast<C*>(get(entity.id, id));
-        }
-    }
-
-    template<class ...Cs>
-    bool has(Entity entity) const {
-        return entity.signature & getSignature<Cs...>();
-    }
-};
-*/
-
 struct ArchetypalComponentManager {
     struct Archetype {
         using ComponentOffsetSet = My::DenseSparseSet<ComponentID, uint16_t, maxComponentID>;
@@ -282,14 +241,13 @@ struct ArchetypalComponentManager {
 
         Archetype archetype;
         constexpr auto count = sizeof...(Components);
-        constexpr Class cls{};
-        archetype.signature = cls.getSignature<Components...>();
+        archetype.signature = getSignature<Components...>();
         archetype.numComponents = count;
         archetype.totalSize = sizeof(Tuple);
         archetype.sizes = Alloc<uint16_t>(count);
         archetype.componentOffsets = My::DenseSparseSet<ComponentID, uint16_t, maxComponentID>::Empty();
         constexpr auto sizes   = {sizeof(Components) ...};
-        constexpr auto ids     = {cls.getID<Components>() ...};
+        constexpr auto ids     = {getID<Components>() ...};
         constexpr auto offsets = {element_offset<Components, Tuple>() ...};
         for (int i = 0; i < count; i++) {
             archetype.sizes[i] = sizes[i];
@@ -318,30 +276,43 @@ struct ArchetypalComponentManager {
     }
 
     struct ArchetypePool {
-        void* data = nullptr;
-        int elementCount = 0;
-        int elementCapacity = 0;
+        My::GenericDenseSparseSet<ArchetypeElementIndexType, GECS_MAX_ARCHETYPE_POOL_SIZE> entities;
+        My::Vec<ArchetypeElementIndexType> freeIndices;
         Archetype archetype;
 
         ArchetypePool(const Archetype& archetype) : archetype(archetype) {
-            
+            entities = decltype(entities)::New(archetype.totalSize);
         }
 
         // index must be in bounds
-        void* get(uint32_t index) const {
-            assert(index < elementCount);
-            return (char*)data + index * (uint32_t)archetype.totalSize;
+        void* get(ArchetypeElementIndexType index) const {
+            //assert(index < elementCount);
+            //return (char*)data + index * (uint32_t)archetype.totalSize;
+            return entities.lookup(index);
+        }
+
+        ArchetypeElementIndexType getNew() {
+            auto index = freeIndices.back();
+            freeIndices.pop();
+
+            entities.insert(index);
+            return index;
+        }
+
+        void remove(ArchetypeElementIndexType index) {
+            entities.remove(index);
+            freeIndices.push(index);
         }
 
         void destroy() {
-            Free(data);
+            entities.destroy();
         }
     };
 
     using ArchetypeID = int32_t;
     static constexpr ArchetypeID NullArchetypeID = -1;
 
-    static constexpr uint32_t MaxNumArchetypes = 1 << 10; // 10 bits
+    static constexpr uint32_t MaxNumArchetypes = 1 << 10; // 10 bits address space
 
     using ElementAddress = ArchetypeElementAddress;
     static constexpr auto NullAddress = NullElementAddress;
@@ -369,7 +340,7 @@ private:
         return archetype.get(element.index);
     }
 public:
-    Signature getSignature(ElementAddress element) const {
+    Signature getElementSignature(ElementAddress element) const {
         const auto& archetype = pools[element.archetype].archetype;
         return archetype.signature;
     }
@@ -385,20 +356,33 @@ public:
         return nullptr;
     }
 
-    bool addComponent(ElementAddress element, ComponentID component) {
-        assert(element.archetype < MaxNumArchetypes && "Invalid element archetype!");
-        auto& pool = pools[element.archetype];
+    bool addComponent(ElementAddress* element, ComponentID component) {
+        assert(element->archetype < MaxNumArchetypes && "Invalid element archetype!");
+        auto& pool = pools[element->archetype];
+
         Signature oldSignature = pool.archetype.signature;
         Signature newSignature = oldSignature; newSignature.set(component);
-        auto archetypeID = getArchetypeID(newSignature);
-        if (archetypeID == NullArchetypeID) {
-            archetypeID = initArchetype(newSignature);
+
+        auto oldArchetypeID = getArchetypeID(oldSignature);
+        auto newArchetypeID = getArchetypeID(newSignature);
+        if (newArchetypeID == NullArchetypeID) {
+            newArchetypeID = initArchetype(newSignature);
         }
+
+        auto newArchetype = getArchetypePool(newArchetypeID);
+        element->index = newArchetype.getNew();
+        element->archetype = newArchetypeID;
+        if (oldArchetypeID != NullArchetypeID) {
+            auto oldArchetype = getArchetypePool(oldArchetypeID);
+        }
+        
+
         oldSignature.forEachSet([&](auto componentID){
             
         });
+
         // TODO:
-        
+        UNFINISHED_CRASH();
     }
 
 private:
@@ -409,6 +393,10 @@ private:
             return *archetypeID;
         }
         return NullArchetypeID;
+    }
+
+    ArchetypePool& getArchetypePool(ArchetypeID id) const {
+        return pools[id];
     }
 public:
 

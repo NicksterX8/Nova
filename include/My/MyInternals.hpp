@@ -1,9 +1,10 @@
 #ifndef MY_INTERNALS_INCLUDED
 #define MY_INTERNALS_INCLUDED
 
-#include "../constants.hpp"
-#include "../utils/Log.hpp"
-#include "../memory.hpp"
+#include "constants.hpp"
+#include "utils/Log.hpp"
+#include "memory.hpp"
+#include "global.hpp"
 
 #define MY_NAMESPACE_NAME My
 

@@ -20,7 +20,7 @@ inline Entity clone(EntityWorld* ecs, Entity entity) {
     });
 
     // TODO:
-    
+    UNFINISHED_CRASH();
 }
 
 /* Throw the entity, adding motion and angle motion components.

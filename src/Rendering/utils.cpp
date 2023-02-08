@@ -19,11 +19,11 @@ ModelData makeModel(
 size_t vertexDataSize, const void* vertexData, GLenum vertexUsage,
 size_t elementDataSize, const void* elementData, GLenum elementUsage,
 const VertexAttribute* attributes, unsigned int numAttributes) {
-    unsigned int vbo,ebo,vao;
+    GLuint vbo,ebo,vao;
     glGenBuffers(1, &vbo);
     glGenBuffers(1, &ebo);
     glGenVertexArrays(1, &vao);
-
+    GL::logErrors();
     glBindVertexArray(vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);

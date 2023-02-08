@@ -31,7 +31,22 @@ inline int logErrors() {
     }
 
     for (i = 0; i < numErrors; i++) {
-        LogError("OpenGL error: %d", errors[i]);
+        const char* message = "";
+        switch (errors[i]) {
+        case GL_INVALID_VALUE:
+            message = "Invalid value";
+            break;
+        case GL_INVALID_ENUM:
+            message = "Invalid enum";
+            break;
+        case GL_INVALID_OPERATION:
+            message = "Invalid operation";
+            break;
+        case GL_INVALID_INDEX:
+            message = "Invalid index";
+            break;
+        }
+        LogError("OpenGL error: %d, %s", errors[i], message);
     }
 
     return numErrors;

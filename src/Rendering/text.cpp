@@ -67,7 +67,7 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
 
     FT_Error error;
 
-    Texture* characterTextures = Alloc<Texture>((size_t)numChars); defer {  };
+    Texture* characterTextures = Alloc<Texture>((size_t)numChars);
     
     // c must be unsigned so it cant overflow
     for (unsigned char c = firstChar; c <= lastChar; c++) { 
@@ -95,11 +95,11 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
     }
 
     this->spaceCharAdvance = characters.advances[' ' - firstChar];
-
+    GL::logErrors();
     // don't pack the first texture (space character, empty texture)
     auto packedTexture = packTextures((int)numChars, characterTextures, characters.positions);
     //Texture packedTexture = {nullptr, {0, 0}};
-
+    GL::logErrors();
     this->atlasSize = packedTexture.size;
     this->atlasTexture = loadFontAtlasTexture(packedTexture);
     if (!this->atlasTexture) {

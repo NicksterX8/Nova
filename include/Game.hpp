@@ -28,7 +28,7 @@ struct Globals {
 };
 
 struct Game {
-    SDLContext& sdlCtx;
+    SDLContext sdlCtx;
     const Uint8 *keyboard;
     GameState* state;
     Camera camera;
@@ -41,7 +41,7 @@ struct Game {
     MetadataTracker metadata;
     RenderContext* renderContext;
 
-    Game(SDLContext& sdlContext):
+    Game(SDLContext sdlContext):
     sdlCtx(sdlContext), metadata(TARGET_FPS, true) {
         debug = new DebugClass();
         Debug = debug;

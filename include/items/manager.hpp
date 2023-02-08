@@ -104,7 +104,9 @@ inline void destroyItemStack(ItemStack* stack, ItemManager& manager) {
 
 template<class C>
 bool addComponent(Item& item, ItemManager& manager, const C& startValue) {
-    manager.components.addComponent(item.componentsLoc, C::ID);
+    // TODO:
+    return false;
+    manager.components.addComponent(&item.componentsLoc, C::ID);
     C* component = (C*)manager.components.getComponent(item.componentsLoc, C::ID);
     if (component) {
         *component = startValue;

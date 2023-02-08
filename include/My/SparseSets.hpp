@@ -79,7 +79,7 @@ public:
     GenericDenseSparseSet(SizeT valueSize)
     : valueSize(valueSize), size(0), capacity(0), values(nullptr), keys(nullptr) {
         assert(valueSize >= 0 && "Size can't be negative!");
-        set = Alloc<Index>(MaxKeyValue);
+        set = Alloc<Index>(MaxKeyValue+1);
         emptySet();
     }
 
@@ -88,7 +88,7 @@ public:
         assert(valueSize >= 0 && "Size can't be negative!");
         assert(capacity >= 0  && "Capacity can't be negative!");
         values = Alloc<char>(startCapacity * valueSize);
-        set    = Alloc<Index>(MaxKeyValue);
+        set    = Alloc<Index>(MaxKeyValue+1);
         keys   = Alloc<Key>(startCapacity);
         emptySet();
     }
@@ -168,6 +168,19 @@ public:
             set[keyBegin + i] = startIndex + i;
         }
         size += keyCount;
+    }
+
+    void* require(Key key) {
+        assertValidKey(key);
+        if (UNLIKELY(size >= capacity)) {
+            reallocate(MAX(size+1, capacity*2));
+        }
+
+        const auto index = (Index)size;
+        keys[index] = key;
+        set[key] = index;
+        size++;
+        return getValue(index);
     }
 
     void remove(Key key) {
@@ -255,7 +268,7 @@ public:
     : size(0), capacity(startCapacity) {
         assert(capacity >= 0  && "Capacity can't be negative!");
         values = Alloc<Value>(startCapacity);
-        set    = Alloc<Index>(MaxKeyValue);
+        set    = Alloc<Index>(MaxKeyValue+1);
         keys   = Alloc<Key>(startCapacity);
         emptySet();
     }

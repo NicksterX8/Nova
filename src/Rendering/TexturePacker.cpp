@@ -1,7 +1,7 @@
 #include "rendering/TexturePacker.hpp"
 #include "memory.hpp"
 
-Texture packTextures(const int numTextures, const Texture* textures, VirtualOutput<glm::ivec2> textureOrigins, glm::ivec2 startSize) {
+Texture packTextures(const int numTextures, const Texture* textures, glm::ivec2* textureOrigins, glm::ivec2 startSize) {
     static constexpr int NullNode = -1;
 
     struct Node {
@@ -103,7 +103,7 @@ Texture packTextures(const int numTextures, const Texture* textures, VirtualOutp
     } atlas;
 
     atlas.nodesEmpty.reserve(2 * numTextures);
-    atlas.nodes = My::Vec<Node>::WithCapacity(2 * numTextures);
+    atlas.nodes = My::Vec<Node>::WithCapacity(500);
     atlas.atlas.size = startSize;
     atlas.atlas.buffer = (unsigned char*)malloc(startSize.x * startSize.y * sizeof(unsigned char));
 
@@ -136,4 +136,7 @@ Texture packTextures(const int numTextures, const Texture* textures, VirtualOutp
         if (textureOrigins)
             textureOrigins[i] = node->origin;
     }
+
+    atlas.nodes.destroy();
+    return atlas.atlas;
 }

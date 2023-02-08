@@ -11,6 +11,7 @@
 #include "utils/vectors.hpp"
 #include "utils/Log.hpp"
 #include "utils/common-macros.hpp"
+#include "utils/ints.hpp"
 
 #include "Entity.hpp"
 #include "Component.hpp"
@@ -18,8 +19,122 @@
 #include "My/Vec.hpp"
 #include "memory.hpp"
 
+namespace GECS {
+    struct ComponentManagers {
+        using EntityID = Uint32;
+        using EntityIndex = Uint32;
 
-typedef uint32_t Uint32;
+        My::GenericDenseSparseSet<EntityID, UINT16_MAX> entities;
+        My::Vec<EntityID> freeIDs;
+
+        struct EntityInfo {
+            EntityID id;
+            void* value;
+        };
+
+        EntityInfo getNew() {
+            auto id = freeIDs.back();
+            freeIDs.pop();
+            
+            void* value = entities.require(id);
+            return {id, value};
+        } 
+
+        void destroyEntity(EntityID id) {
+            entities.remove(id);
+            freeIDs.push(id);
+        }
+    };
+
+    struct TightMap {
+        using EntityIndex = Sint32;
+        using EntityID    = Sint32;
+        using Address     = Sint32;
+
+        char** entities;
+        My::Vec<EntityIndex> indices; // size = indicesEnd - indicesBegin
+        Address indicesBegin,indicesEnd;
+        My::Vec<Address> sortedAddresses;
+        My::Vec<Address> freeAddresses;
+
+        unsigned int addressSpace() const {
+            return highestAddress() - lowestAddress() + 2; // jj
+        }
+
+        Address highestAddress() const {
+            return sortedAddresses.back();
+        }
+
+        Address lowestAddress() const {
+            return sortedAddresses.front();
+        }
+
+        int wastedSpaceFront() const {
+            return lowestAddress() - indicesBegin;
+        }
+
+        int wastedSpaceBack() const {
+            return highestAddress() - indicesEnd;
+        }
+
+        bool shouldTighten() const {
+            return (wastedSpaceFront() + wastedSpaceBack() > indices.size / 2 + 1);
+        }
+
+        EntityIndex addressToIndex(Address address) {
+            assert(lowestAddress() <= address && address >= highestAddress()); // out of bounds address
+            // may want to add a special case for "NullAddress"
+            auto index = address - indicesBegin;
+            return indices[index];
+        }
+
+        Address getNew() {
+            if (freeAddresses.empty()) {
+                widen();
+            }
+            auto address = freeAddresses.back();
+            freeAddresses.pop();
+
+
+        }
+
+        void removeAddress(Address address) {
+            freeAddresses.push(address);
+
+            auto index = addressToIndex(address); 
+            sortedAddresses.remove(index); // expensive
+            
+            if (shouldTighten()) {
+                //tighten();
+            }
+
+            
+        }
+
+        void widen() {
+            int missingAddresses = addressSpace() - sortedAddresses.size;
+            for (int i = 0; i < sortedAddresses.size - 1 && missingAddresses > 4; i++) {
+                if (sortedAddresses[i] != sortedAddresses[i+1] + 1) {
+                    // addresses arent sequential
+                    
+                }
+            }
+            int frontWidening = lowestAddress();
+            
+            
+            auto newAddresses = My::Vec<Address>::WithCapacity(sortedAddresses.size + 5);
+            
+            
+
+            int oldCapacity = indicesEnd - indicesBegin;
+            //int newCapacity = oldCapacity + (frontWidening + backWidening);
+           // auto newIndices = My::Vec<EntityIndex>::WithCapacity(newCapacity);
+           // memcpy(&newIndices[frontWidening], &indices[0], oldCapacity);
+        }
+    };
+
+
+}
 
 namespace ECS {
 
@@ -38,7 +153,7 @@ struct EntityManager {
     EntityData *entityDataList; // The list of data corresponding to an entity ID, indexed by the ID
     My::Vec<EntityID> freeEntities; // A stack of free entity ids
 
-    Sint32 entityCount = 0; // The number of alive (or existent) entities
+    Sint32 entityCount = 0; // The number of entities being managed
 
     // TODO: allocate pools in an array, find a solution to the optional pool problem.
     ComponentPool* pools = NULL; // a list of component pool pointers

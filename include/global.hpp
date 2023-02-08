@@ -31,4 +31,6 @@ inline void logCrash(CrashReason reason, const char* fmt, ...) {
 
 #define LogCrash(reason, ...) logCrash(reason, __VA_ARGS__)
 
+#define UNFINISHED_CRASH() assert(0 && "Unfinished code, should not be run!")
+
 #endif

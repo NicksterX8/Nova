@@ -228,22 +228,15 @@ public:
     }
 };
 
-// based on this article "https://straypixels.net/texture-packing-for-fonts/" by Edward Lu, with some minor modifications
-// TODO: Move away from using std::unique_ptr. Use a better method of allocation. Add a destroy method instead of using destructor
-
-/*
-struct TextureBuffer {
-    unsigned char* buffer;
-    glm::ivec2 bufferSize;
-    TextureNode* rootNode;
-};
-*/
+// based on this article "https://straypixels.net/texture-packing-for-fonts/" by Edward Lu, modified to be C style
 
 inline void copyTexture(unsigned char* dst, glm::ivec2 dstSize, const unsigned char* src, glm::ivec2 srcSize, glm::ivec2 srcOrigin = {0, 0}) {
+    assert(srcSize.x - srcOrigin.x <= dstSize.x && srcSize.y - srcOrigin.y <= dstSize.y
+    && "Destination texture not small enough to fit texture!");
     assert(srcOrigin.x < srcSize.x && srcOrigin.y < srcSize.y && "Can't make a copy texture bigger than the source texture");
     for (int row = 0; row < dstSize.y; row++) {
         int srcRow = row + srcOrigin.y;
-        memcpy(&dst[row * dstSize.x], &src[srcRow * srcSize.x + srcOrigin.x], dstSize.x);
+        memcpy(&dst[row * dstSize.x], &src[srcRow * srcSize.x + srcOrigin.x], srcSize.x);
     }
 }
 
@@ -253,13 +246,12 @@ struct Texture {
 };
 
 inline Texture resizeTexture(Texture texture, glm::ivec2 newSize) {
-    unsigned char* newBuffer = (unsigned char*)malloc(newSize.y * newSize.x * sizeof(unsigned char));
-    if (!newBuffer) return texture;
+    unsigned char* newBuffer = (unsigned char*)safe_malloc(newSize.y * newSize.x * sizeof(unsigned char));
     copyTexture(newBuffer, newSize, texture.buffer, texture.size);
     free(texture.buffer);
     return Texture{newBuffer, newSize};
 }
 
-Texture packTextures(const int numTextures, const Texture* textures, VirtualOutput<glm::ivec2> textureOrigins = nullptr, glm::ivec2 startSize = {128, 128});
+Texture packTextures(const int numTextures, const Texture* textures, glm::ivec2* characterOriginsOut, glm::ivec2 startSize = {128, 128});
 
 #endif

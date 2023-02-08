@@ -128,7 +128,7 @@ void logEntityComponentInfo() {
         componentNames[i] = &componentsList[i * 256];
     }
     */
-    auto nameBuffer = GET_MACRO_STRING_LIST(COMPONENTS);
+    auto nameBuffer = GET_MACRO_STRING_LIST(ECS_COMPONENTS);
     int i = 0;
     FOR_MY_STRING_BUFFER(componentName, nameBuffer, {
         componentNames[i] = componentName;

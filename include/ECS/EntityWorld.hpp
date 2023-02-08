@@ -5,6 +5,7 @@
 #include "SECS.hpp"
 #include "components/components.hpp"
 #include <vector>
+#include "global.hpp"
 
 template<class... Components>
 struct ComponentManager;
@@ -269,7 +270,7 @@ public:
 
     int AddSignature(Entity entity, ECS::ComponentFlags signature) {
         // TODO: idk
-        
+        UNFINISHED_CRASH();
     }
 
     /* Add the template argument components to the entity.
