@@ -64,7 +64,7 @@ inline IVec2 toChunkPosition(IVec2 position) {
 
 void generateChunk(ChunkData* chunk);
 
-#define CHUNK_BUCKET_SIZE 512
+#define CHUNK_BUCKET_SIZE 64
 #define CHUNKDATA_BUCKET_SIZE 512
 
 struct ChunkMap {
@@ -99,10 +99,10 @@ struct ChunkMap {
 
     InternalChunkMap map;
     ChunkBucketArray chunkList;
-    ChunkDataBucketArray chunkdataList;
+    //ChunkDataBucketArray chunkdataList;
 
-    mutable Chunk* cachedChunk;
-    mutable ChunkCoord cachedChunkCoord;
+    //mutable Chunk* cachedChunk;
+    //mutable ChunkCoord cachedChunkCoord;
 
     /* Methods */
 
@@ -123,11 +123,22 @@ struct ChunkMap {
     * The chunk will not be generated, so this shouldn't be used most in most cases.
     */
     ChunkData* getOrMakeNew(IVec2 position);
+
+    void iterateChunkdata(std::function<bool(ChunkData*)> callback) const {
+        // TODO: move this to My::HashMap
+        for (int i = 0; i < map.bucketCount; i++) {
+            if (map.buckets()[i].state == My::Map::Bucket_Filled) {
+                if (callback(&map.values()[i])) break;
+            }
+        }
+    }
 };
 
 Tile* getTileAtPosition(const ChunkMap& chunkmap, Vec2 position);
 
-Tile* getTileAtPosition(const ChunkMap& chunkmap, IVec2 position);
+inline Tile* getTileAtPosition(const ChunkMap& chunkmap, IVec2 position) {
+    return getTileAtPosition(chunkmap, Vec2{(float)position.x, (float)position.y});
+}
 
 int getTiles(const ChunkMap& chunkmap, const IVec2* inTiles, Tile* outTiles, int count);
 

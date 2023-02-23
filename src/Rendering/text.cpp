@@ -39,10 +39,12 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
         if (lastChar > 127) lastChar = 127;
         if (firstChar > 127) firstChar = 127;
     }
-    this->firstChar = firstChar;
-    this->lastChar = lastChar;
 
     this->face = newFontFace(fontfile, height);
+    if (!this->face) {
+        this->firstChar = 0;
+        this->lastChar = 0;
+    }
 
     char numChars = lastChar - firstChar + 1;
     if (numChars <= 0) {
@@ -63,52 +65,58 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
 
-    FT_GlyphSlot slot = face->glyph;
+    if (this->face) {
+        FT_GlyphSlot slot = face->glyph;
 
-    FT_Error error;
+        FT_Error error;
+        
+        Texture* characterTextures = Alloc<Texture>(nChars);
+        
+        for (size_t i = 0; i < nChars; i++) {
+            char c = firstChar + (char)i;
+            // load character glyph 
+            if ((error = FT_Load_Char(face, c, FT_LOAD_RENDER))) {
+                LogError("Failed to load glyph charcter \'%c\'. Error: %s", c, FT_Error_String(error));
+                continue;
+            }
 
-    Texture* characterTextures = Alloc<Texture>((size_t)numChars);
-    
-    // c must be unsigned so it cant overflow
-    for (unsigned char c = firstChar; c <= lastChar; c++) { 
-        int i = (int)(c - (unsigned char)firstChar);
-        // load character glyph 
-        if ((error = FT_Load_Char(face, c, FT_LOAD_RENDER))) {
-            LogError("Failed to load glyph charcter \'%c\'. Error: %s", c, FT_Error_String(error));
-            continue;
-        }
-
-        // TODO: move this out of loop for better performance
-        if (useSDFs) {
-            if (c != ' ') {
-                if ((error = FT_Render_Glyph(slot, FT_RENDER_MODE_SDF))) {
-                    LogError("Failed to load sdf glyph charcter \'%c\'. Error: %s", c, FT_Error_String(error));
-                    continue;
+            // TODO: move this out of loop for better performance
+            if (useSDFs) {
+                if (c != ' ') {
+                    if ((error = FT_Render_Glyph(slot, FT_RENDER_MODE_SDF))) {
+                        LogError("Failed to load sdf glyph charcter \'%c\'. Error: %s", c, FT_Error_String(error));
+                        continue;
+                    }
                 }
             }
+
+            characters.advances[i] = slot->advance.x;
+            characters.bearings[i] = glm::ivec2{slot->bitmap_left, slot->bitmap_top};
+            characters.sizes[i]    = glm::ivec2{slot->bitmap.width, slot->bitmap.rows};
+            characterTextures[i]   = {.buffer = slot->bitmap.buffer, .size = characters.sizes[i]};
         }
+        
+        this->spaceCharAdvance = characters.advances[' ' - firstChar];
 
-        characters.advances[i] = slot->advance.x;
-        characters.bearings[i] = glm::ivec2{slot->bitmap_left, slot->bitmap_top};
-        characters.sizes[i]    = glm::ivec2{slot->bitmap.width, slot->bitmap.rows};
-        characterTextures[i]   = {.buffer = slot->bitmap.buffer, .size = characters.sizes[i]};
+        GL::logErrors();
+        this->atlasTexture = 0;
+        this->atlasSize = {0, 0};
+        auto packedTexture = packTextures(numChars, characterTextures, characters.positions);
+        this->atlasSize = packedTexture.size;
+        this->atlasTexture = loadFontAtlasTexture(packedTexture);
+        this->atlasSize = packedTexture.size;
+        Free(characterTextures);
     }
-
-    this->spaceCharAdvance = characters.advances[' ' - firstChar];
     GL::logErrors();
     // don't pack the first texture (space character, empty texture)
-    auto packedTexture = packTextures((int)numChars, characterTextures, characters.positions);
+    
     //Texture packedTexture = {nullptr, {0, 0}};
-    GL::logErrors();
-    this->atlasSize = packedTexture.size;
-    this->atlasTexture = loadFontAtlasTexture(packedTexture);
+    
     if (!this->atlasTexture) {
         LogError("Font atlas texture failed to generate!");
     }
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4); // re enable default byte-alignment restriction
-
-    Free(characterTextures);
 }
 
  void Font::unload() {

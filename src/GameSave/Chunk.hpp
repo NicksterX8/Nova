@@ -1,6 +1,7 @@
 #ifndef GAMESAVE_CHUNKS_INCLUDED
 #define GAMESAVE_CHUNKS_INCLUDED
 
+#include "Chunk.hpp"
 #include "Chunks.hpp"
 #include "utils/Log.hpp"
 #include <stdio.h>
@@ -21,20 +22,21 @@ int writeChunksToFile(const char* filename, const ChunkMap* chunkmap) {
 
     int code = 0;
 
-    for (const ChunkData& chunkdata : chunkmap->chunkdataList) {
+    chunkmap->iterateChunkdata([&](const ChunkData* chunkdata){
         int nItemsWritten = 0;
 
         // write chunk position to file
-        nItemsWritten += fwrite(&chunkdata.position, sizeof(IVec2), 1, file);
+        nItemsWritten += fwrite(&chunkdata->position, sizeof(IVec2), 1, file);
 
         // write actual chunk to file
-        nItemsWritten += fwrite(chunkdata.chunk, sizeof(Chunk), 1, file);
+        nItemsWritten += fwrite(chunkdata->chunk, sizeof(Chunk), 1, file);
 
         if (nItemsWritten != 2) {
             LogCritical("Failed to write chunk data to file! Number of items written: %d", nItemsWritten);
             code |= -1;
         }
-    }
+        return false;
+    });
 
     fclose(file);
 

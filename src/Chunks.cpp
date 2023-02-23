@@ -36,19 +36,21 @@ void generateChunk(ChunkData* chunkdata) {
 void ChunkMap::init() {
     map = InternalChunkMap::WithBuckets(32);
     chunkList = ChunkBucketArray::WithBuckets(1);
-    chunkdataList = ChunkDataBucketArray::WithBuckets(1);
+    //chunkdataList = ChunkDataBucketArray::WithBuckets(1);
     
     // pre-cache atleast one chunk so there's no special cases when a chunk has not yet been cached
+    /*
     cachedChunkCoord = IVec2{0, 0};
     auto chunkdata = newChunkAt(cachedChunkCoord);
     if (!chunkdata) {
         LogCrash(CrashReason::MemoryFail, "Failed to reserve new chunk in chunkmap");
     }
     cachedChunk = chunkdata->chunk;
+    */
 }
 
 void ChunkMap::destroy() {
-    chunkdataList.destroy();
+    //chunkdataList.destroy();
     chunkList.destroy();
     map.destroy();
 }
@@ -84,15 +86,7 @@ ChunkData* ChunkMap::newChunkAt(IVec2 position) {
 
     Chunk* chunk = chunkList.reserveBack();
     if (chunk) { // check for possible memory errors
-        ChunkData* chunkdata = chunkdataList.reserveBack();
-        if (chunkdata) {
-            *chunkdata = ChunkData(chunk, position);
-            map.insert(position, *chunkdata);
-            return chunkdata;
-        } else {
-            // undo the reserve back
-            chunkList.pop();
-        }
+        return map.insert(position, ChunkData(chunk, position));
     }
     
     LogWarn("Failed to reserve a new chunk for chunk position (%d, %d).", position.x, position.y);
@@ -109,17 +103,21 @@ ChunkData* ChunkMap::getOrMakeNew(IVec2 position) {
 
 Tile* getTileAtPosition(const ChunkMap& chunkmap, Vec2 position) {
     IVec2 chunkPosition = toChunkPosition(position);
+    /*
     if (chunkPosition != chunkmap.cachedChunkCoord) {
         ChunkData* chunkdata = chunkmap.get(position);
         if (!chunkdata) return nullptr;
         chunkmap.cachedChunk = chunkdata->chunk;
         chunkmap.cachedChunkCoord = chunkPosition;
     }
+    */
+    ChunkData* chunkdata = chunkmap.get(chunkPosition);
+    if (!chunkdata) return nullptr;
     int tileX = (int)floor(position.x - (chunkPosition.x * CHUNKSIZE));
     int tileY = (int)floor(position.y - (chunkPosition.y * CHUNKSIZE));
-    return &(*chunkmap.cachedChunk)[tileY][tileX]; // when chunkdata is not null, chunkdata->chunk should never be null
+    return &(*chunkdata->chunk)[tileY][tileX]; // when chunkdata is not null, chunkdata->chunk should never be null
 }
-
+/*
 Tile* getTileAtPosition(const ChunkMap& chunkmap, IVec2 position) {
     IVec2 chunkPosition = toChunkPosition(position);
     if (chunkPosition != chunkmap.cachedChunkCoord) {
@@ -133,27 +131,22 @@ Tile* getTileAtPosition(const ChunkMap& chunkmap, IVec2 position) {
     int tileY = position.y - chunkPosition.y * CHUNKSIZE;
     return &(*chunkmap.cachedChunk)[tileY][tileX];
 }
-
+*/
 int getTiles(const ChunkMap& chunkmap, const IVec2* inTiles, Tile* outTiles, int count) {
     int numMissedTiles = 0;
     for (int i = 0; i < count; i++) {
         TileCoord tileCoord = inTiles[i];
         ChunkCoord chunkCoord = toChunkPosition(tileCoord);
-        if (chunkCoord != chunkmap.cachedChunkCoord) {
-            auto chunkdata = chunkmap.get(chunkCoord);
-            if (chunkdata) {
-                chunkmap.cachedChunk = chunkdata->chunk;
-                chunkmap.cachedChunkCoord = chunkCoord;
-            } else {
-                // set null tile cause chunk didn't exist
-                outTiles[i] = Tile(TileTypes::Empty);
-                numMissedTiles++;
-                continue;
-            }
+        auto chunkdata = chunkmap.get(chunkCoord);
+        if (chunkdata) {
+            outTiles[i] = (*chunkdata->chunk)[tileCoord.y - chunkCoord.y * CHUNKSIZE][chunkCoord.x - chunkCoord.x * CHUNKSIZE];
+        } else {
+            // set null tile cause chunk didn't exist
+            outTiles[i] = Tile(TileTypes::Empty);
+            numMissedTiles++;
+            continue;
         }
-        outTiles[i] = (*chunkmap.cachedChunk)[tileCoord.y - chunkCoord.y * CHUNKSIZE][chunkCoord.x - chunkCoord.x * CHUNKSIZE];
     }
-
     return count - numMissedTiles;
 }
 

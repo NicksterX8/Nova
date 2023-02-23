@@ -84,6 +84,7 @@ public:
 
     void pushNewBucket() {
         buckets.push(allocator.template Alloc<T>(BucketSize));
+        topBucketSlotsUsed = 0;
     }
 
     T& back() const {
@@ -118,8 +119,10 @@ public:
         // room for another element in top bucket?
         if (topBucketSlotsUsed + size > BucketSize || buckets.size == 0) {
             pushNewBucket();
+            LogInfo("New bucket pushed!");
         }
-        auto reserved =  &buckets.back()[topBucketSlotsUsed];
+        auto topBucket = buckets.back();
+        auto reserved = &topBucket[topBucketSlotsUsed];
         topBucketSlotsUsed += size;
         return reserved;
     }

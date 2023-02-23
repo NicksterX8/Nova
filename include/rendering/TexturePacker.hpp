@@ -228,29 +228,41 @@ public:
     }
 };
 
-// based on this article "https://straypixels.net/texture-packing-for-fonts/" by Edward Lu, modified to be C style
-
-inline void copyTexture(unsigned char* dst, glm::ivec2 dstSize, const unsigned char* src, glm::ivec2 srcSize, glm::ivec2 srcOrigin = {0, 0}) {
-    assert(srcSize.x - srcOrigin.x <= dstSize.x && srcSize.y - srcOrigin.y <= dstSize.y
-    && "Destination texture not small enough to fit texture!");
-    assert(srcOrigin.x < srcSize.x && srcOrigin.y < srcSize.y && "Can't make a copy texture bigger than the source texture");
-    for (int row = 0; row < dstSize.y; row++) {
-        int srcRow = row + srcOrigin.y;
-        memcpy(&dst[row * dstSize.x], &src[srcRow * srcSize.x + srcOrigin.x], srcSize.x);
-    }
-}
-
 struct Texture {
     unsigned char* buffer;
     glm::ivec2 size;
 };
 
-inline Texture resizeTexture(Texture texture, glm::ivec2 newSize) {
-    unsigned char* newBuffer = (unsigned char*)safe_malloc(newSize.y * newSize.x * sizeof(unsigned char));
-    copyTexture(newBuffer, newSize, texture.buffer, texture.size);
-    free(texture.buffer);
-    return Texture{newBuffer, newSize};
+inline Texture createUninitTexture(glm::ivec2 size) {
+    Texture texture;
+    texture.size = size;
+    texture.buffer = Alloc<unsigned char>(size.x * size.y);
+    return texture;
 }
+
+inline void freeTexture(Texture texture) {
+    Free(texture.buffer);
+}
+
+inline void copyTexture(Texture dst, Texture src, glm::ivec2 size, glm::ivec2 dstOrigin = {0, 0}, glm::ivec2 srcOrigin = {0, 0}) {
+    assert(src.size.x - srcOrigin.x <= dst.size.x && src.size.y - srcOrigin.y <= dst.size.y);
+    assert(size.x <= src.size.x - srcOrigin.x && size.y <= src.size.y - srcOrigin.y
+    && "Destination texture not small enough to fit texture!");
+    assert(srcOrigin.x < src.size.x && srcOrigin.y < src.size.y && "Can't make a copy texture bigger than the source texture");
+    for (int row = 0; row < size.y; row++) {
+        int srcRow = row + srcOrigin.y;
+        memcpy(&dst.buffer[row * dst.size.x], &src.buffer[srcRow * src.size.x + srcOrigin.x], size.x);
+    }
+}
+
+inline Texture resizeTexture(Texture texture, glm::ivec2 newSize) {
+    Texture newTexture = createUninitTexture(newSize);
+    copyTexture(newTexture, texture, texture.size);
+    freeTexture(texture);
+    return newTexture;
+}
+
+// based on this article "https://straypixels.net/texture-packing-for-fonts/" by Edward Lu, modified to be C style
 
 Texture packTextures(const int numTextures, const Texture* textures, glm::ivec2* characterOriginsOut, glm::ivec2 startSize = {128, 128});
 

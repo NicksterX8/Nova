@@ -15,7 +15,7 @@ namespace Map {
 
 using Hash = size_t;
 
-enum BState {
+enum BucketState {
     Bucket_Empty=0, // This needs to be 0 so that memsetting 0 on buckets will make them empty
     Bucket_Filled=1,
     Bucket_Removed=2,
@@ -51,8 +51,8 @@ struct StdHashT {
     }
 };
 
-extern int collisionCount;
-extern int lookupCount;
+//extern int collisionCount;
+//extern int lookupCount;
 //, typename KeyParamT = K, typename ValueParamT = V
 template<typename K, typename V, typename H=StdHashT<K>>
 struct HashMap {
@@ -112,9 +112,12 @@ public:
     }
 
     V* lookup(KeyParamT key) const {
-        lookupCount++;
+        //lookupCount++;
         // have to do this before doing hash % size because x % 0 is undefined behavior
-        if (size < 1) return nullptr;
+        
+        if (size < 1) {
+            return nullptr;
+        }
 
         Hash hash = hashKey(key) & BITMASK_BOTTOM_62;
         int bucketStart = (int)(hash % (unsigned)bucketCount);
@@ -174,7 +177,7 @@ public:
         return nullptr;
     }
 
-    void insert(KeyParamT key, ValueParamT value) {
+    V* insert(KeyParamT key, ValueParamT value) {
         // Resize larger if the load factor goes over 2/3 or if bucket count is 0
         if (!(size * 3 < bucketCount * 2)) {
             int minNewSize = bucketCount * 2 > 1 ? bucketCount * 2 : 1;
@@ -196,7 +199,7 @@ public:
                 values()[i] = value;
 
                 ++size;
-                return;
+                return &values()[i];
             }
         }
         for (int i = 0; i < bucketStart; ++i) {
@@ -209,11 +212,12 @@ public:
                 values()[i] = value;
 
                 ++size;
-                return;
+                return &values()[i];
             }
         }
 
-        assert(false && "unable to find bucket target");        
+        assert(false && "unable to find bucket target");
+        return nullptr;       
     }
 
     bool update(KeyParamT key, ValueParamT value) {
@@ -282,6 +286,7 @@ public:
     }
 
     bool rehash(int newBucketCount) {
+        LogInfo("Rehashing hashmap!");
         // Can't rehash down to smaller than current size or initial size
         newBucketCount = std::max(newBucketCount, size);
 
@@ -382,7 +387,7 @@ public:
     }
 
     bool contains(KeyParamT key) {
-        lookupCount++;
+        //lookupCount++;
         // have to do this before doing hash % size because x % 0 is undefined behavior
         if (size < 1) return false;
 

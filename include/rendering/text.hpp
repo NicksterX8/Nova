@@ -123,7 +123,7 @@ inline GLuint loadFontAtlasTexture(Texture atlas) {
 FT_Face newFontFace(const char* filepath, FT_UInt height);
 
 struct Font {
-    FT_Face face;
+    FT_Face face = nullptr;
     glm::ivec2 atlasSize;
     float tabWidth; // times space char advance
     float lineHeight; // times the font face height
@@ -490,7 +490,10 @@ struct TextRenderer {
     }
 
     FRect render(const char* text, int textLength, glm::vec2 pos, const TextFormattingSettings& formatSettings, RenderingSettings renderSettings) {
-        if (currentColor != renderSettings.color || true) {
+        if (!this->font || !this->font->face) {
+            return {0, 0, 0, 0};
+        }
+        if (currentColor != renderSettings.color) {
             // can only buffer one color text at a time. may be changed to have color in vertex data.
             if (bufferSize > 0) {
                 flush();

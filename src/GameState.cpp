@@ -17,7 +17,7 @@
 void GameState::init() {
     /* Init Chunkmap */
     chunkmap.init();
-    int chunkRadius = 3;
+    int chunkRadius = 5;
     for (int chunkX = -chunkRadius; chunkX < chunkRadius; chunkX++) {
         for (int chunkY = -chunkRadius; chunkY < chunkRadius; chunkY++) {
             ChunkData* chunkdata = chunkmap.newChunkAt({chunkX, chunkY});

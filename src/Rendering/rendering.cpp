@@ -303,9 +303,9 @@ void render(RenderContext& ren, float scale, Gui* gui, GameState* state, Camera&
         for (int y = minChunkPos.y; y <= maxChunkPos.y; y++) {
             ChunkData* chunkdata = state->chunkmap.get({x, y});
             if (!chunkdata) {
+                LogError("Chunk wasn't generated while rendering at (%d,%d)!", x, y);
                 ChunkData* newChunk = state->chunkmap.newChunkAt({x, y});
                 if (newChunk) {
-                    LogError("Chunk wasn't generated while rendering at (%d,%d)!", x, y);
                     generateChunk(newChunk);
                     chunkdata = newChunk;
                 } else {

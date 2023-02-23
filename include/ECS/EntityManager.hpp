@@ -95,7 +95,7 @@ namespace GECS {
             auto address = freeAddresses.back();
             freeAddresses.pop();
 
-
+            UNFINISHED_CRASH();
         }
 
         void removeAddress(Address address) {

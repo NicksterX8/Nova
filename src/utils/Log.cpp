@@ -100,14 +100,15 @@ void logInternal2(LogCategory category, LogPriority priority, const char* prefix
     va_end(ap);
 }
 
-void logInternal3(LogCategory category, LogPriority priority, const char* prefix1, const char* prefix2, const char* prefix3, const char* fmt, ...) {
+void logInternal3(LogCategory category, LogPriority priority, const char* file, const char* function, int line, const char* fmt, ...) {
     va_list ap;
     char message[MAX_LOG_MESSAGE_LENGTH];
 
     va_start(ap, fmt);
     vsnprintf(message, MAX_LOG_MESSAGE_LENGTH, fmt, ap);
-    SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s%s%s%s", prefix1, prefix2, prefix3, message);
+    // Format: FILE:LINE:FUNCTION - MESSAGE
+    // The FILE:LINE format is useful because in VSCode you can command click on it to bring you to the file.
+    SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s:%d:%s - %s", file, line, function, message);
     va_end(ap);
 }
 
-// FILE:FUNCTION

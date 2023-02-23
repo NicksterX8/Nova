@@ -329,9 +329,9 @@ int  tick(GameState* state) {
         }
     }
 
-    LogInfo("collision count: %d. lookups: %d", My::Map::collisionCount, My::Map::lookupCount);
-    My::Map::collisionCount = 0;
-    My::Map::lookupCount = 0;
+    //LogInfo("collision count: %d. lookups: %d", My::Map::collisionCount, My::Map::lookupCount);
+    //My::Map::collisionCount = 0;
+    //My::Map::lookupCount = 0;
 
     llvm::SmallVector<int> smallVec;
     smallVec.push_back(5);

@@ -194,7 +194,7 @@ struct Inventory : EntityComponent<Inventory> {
     ::Inventory inventory;
 
     Inventory(::Inventory inventory) : inventory(inventory) {}
-
+    /*
     static int Serialize(const Inventory* components, Uint32 count, SerializerOutput output) {
         for (Uint32 i = 0; i < count; i++) {
             const ::Inventory& inventory = components[i].inventory;
@@ -207,7 +207,7 @@ struct Inventory : EntityComponent<Inventory> {
 
     static int Deserialize(Inventory* components, Uint32 count, const char* serialized) {
         
-        /*
+        
         const void* component = serialized;
         for (Uint32 i = 0; i < count; i++) {
             Uint32 size = *static_cast<const Uint32*>(component);
@@ -221,8 +221,9 @@ struct Inventory : EntityComponent<Inventory> {
             // PROBABLY LEAKING MEMORY ON LOAD BECAUSE OF INVENTORY
         }
         return 0;
-        */
+        
     }
+    */
 };
 
 struct Dying : EntityComponent<Dying>, Serializable<Dying> {

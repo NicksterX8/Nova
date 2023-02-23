@@ -11,8 +11,6 @@ a.out
 *.out
 *.tmp
 
-CMakeLists.txt
-
 compile.sh
 
 build

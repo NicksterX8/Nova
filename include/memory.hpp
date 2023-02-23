@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <functional>
 
-static_assert(_GLIBXX_DEBUG_PEDANTIC);
-
 namespace Mem {
 
 /* Wrappers */

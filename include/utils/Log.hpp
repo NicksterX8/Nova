@@ -105,7 +105,7 @@ extern Logger gLogger;
 void logAt(const char* file, int line, LogCategory category, LogPriority priority, const char* fmt, ...);
 void logInternal(LogCategory category, LogPriority priority, const char* prefix, const char* fmt, ...);
 void logInternal2(LogCategory category, LogPriority priority, const char* prefix, const char* prefix2, const char* fmt, ...);
-void logInternal3(LogCategory category, LogPriority priority, const char* prefix, const char* prefix2, const char* prefix3, const char* fmt, ...);
+void logInternal3(LogCategory category, LogPriority priority, const char* file, const char* function, int line, const char* fmt, ...);
 
 #define Log(priority_enum_name, ...) SDL_LogMessage((int)Log.category, (SDL_LogPriority)LogPriority::priority_enum_name, __VA_ARGS__);
 
@@ -115,8 +115,8 @@ void logInternal3(LogCategory category, LogPriority priority, const char* prefix
 //#define Log(...) LogBase(Log.category, LogPriority::Info, __VA_ARGS__)
 
 #define LogCritical(...) logInternal(gLogger.category, LogPriority::Critical, "", __VA_ARGS__)
-#define LogError(...) logInternal3(gLogger.category, LogPriority::Error, __FILE__ ":", __FUNCTION__, ":" TOSTRING(__LINE__) " - ", __VA_ARGS__)
-#define LogWarn(...) logInternal3(gLogger.category, LogPriority::Warn, __FILE__ ":", __FUNCTION__, ":" TOSTRING(__LINE__) " - ", __VA_ARGS__)
+#define LogError(...) logInternal3(gLogger.category, LogPriority::Error, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define LogWarn(...) logInternal3(gLogger.category, LogPriority::Warn, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define LogInfo(...) logInternal(gLogger.category, LogPriority::Info, "", __VA_ARGS__)
 #define LogDebug(...) logInternal(gLogger.category, LogPriority::Debug, "", __VA_ARGS__)
 

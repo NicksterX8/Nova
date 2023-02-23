@@ -104,8 +104,7 @@ Texture packTextures(const int numTextures, const Texture* textures, glm::ivec2*
 
     atlas.nodesEmpty.reserve(2 * numTextures);
     atlas.nodes = My::Vec<Node>::WithCapacity(500);
-    atlas.atlas.size = startSize;
-    atlas.atlas.buffer = (unsigned char*)malloc(startSize.x * startSize.y * sizeof(unsigned char));
+    atlas.atlas = createUninitTexture(startSize);
 
     atlas.nodes.push(Node({0, 0}, {INT_MAX, INT_MAX}));
     atlas.nodesEmpty.push_back(true);
@@ -131,7 +130,7 @@ Texture packTextures(const int numTextures, const Texture* textures, glm::ivec2*
         assert(texture.size.y == node->size.y);
 
         // Copy the texture to the texture atlas' buffer
-        copyTexture(&atlas.atlas.buffer[node->origin.y * atlas.atlas.size.x + node->origin.x], atlas.atlas.size, texture.buffer, texture.size);
+        copyTexture(atlas.atlas, texture, texture.size, node->origin);
 
         if (textureOrigins)
             textureOrigins[i] = node->origin;

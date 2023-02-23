@@ -3,8 +3,8 @@
 namespace My {
 namespace Map {
 
-int collisionCount = 0;
-int lookupCount = 0;
+//int collisionCount = 0;
+//int lookupCount = 0;
 
 namespace Generic {
 /*
