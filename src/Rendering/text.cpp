@@ -102,6 +102,7 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
         this->atlasTexture = 0;
         this->atlasSize = {0, 0};
         auto packedTexture = packTextures(numChars, characterTextures, characters.positions);
+        //Texture packedTexture = {nullptr, {0,0}};
         this->atlasSize = packedTexture.size;
         this->atlasTexture = loadFontAtlasTexture(packedTexture);
         this->atlasSize = packedTexture.size;

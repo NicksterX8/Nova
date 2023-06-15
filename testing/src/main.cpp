@@ -34,4 +34,7 @@ int main() {
     }
     T_EQ(chunkmap.size(), 200);
     T_EQ(array.size(), 200);
+    printf("Test successful!\n");
+
+    auto m2 = My::HashMap<char, long long, 
 }

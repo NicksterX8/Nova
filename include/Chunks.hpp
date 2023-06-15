@@ -79,7 +79,7 @@ struct ChunkMap {
             return ((size_t)point.y << hashTypeHalfBits) | ((size_t)point.x);
             */
             //return std::hash<size_t>()(*(size_t*)&point);
-            if (Metadata && Metadata->seconds() < 12.0) {
+            if (/*Metadata && Metadata->seconds() < 12.0*/ false) {
                 constexpr std::hash<int> hasher;
                 //return hasher(point.y) ^ hasher(point.x);
                 My::Map::Hash hash;
@@ -88,14 +88,14 @@ struct ChunkMap {
             } else if (Metadata && Metadata->seconds() > 12.0 && Metadata->seconds() < 22.0) {
                 return ((size_t)point.y << hashTypeHalfBits) | ((size_t)point.x);
             } else {
-                return ((size_t)point.y << hashTypeHalfBits) | ((size_t)point.x);
-            }
+                return ((size_t)point.y << hashTypeHalfBits) | ((size_t)point.x); 
+            } 
         }
     };
     using InternalChunkMap = My::HashMap<IVec2, ChunkData, KeyHash>;
     using ChunkBucketArray = My::BucketArray<Chunk, CHUNK_BUCKET_SIZE>;
     // TODO: try to use a hybrid map so we dont need this bucket array
-    using ChunkDataBucketArray = My::BucketArray< ChunkData, CHUNKDATA_BUCKET_SIZE, Mem::AlignmentAllocator<sizeof(ChunkData)> >;
+    using ChunkDataBucketArray = My::BucketArray< ChunkData, CHUNKDATA_BUCKET_SIZE>;
 
     InternalChunkMap map;
     ChunkBucketArray chunkList;

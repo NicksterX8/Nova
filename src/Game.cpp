@@ -519,5 +519,4 @@ void Game::start() {
         code = update();
     } while (code == 0);
 #endif
-    this->quit();
 }

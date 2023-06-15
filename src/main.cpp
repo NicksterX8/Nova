@@ -210,8 +210,8 @@ int main(int argc, char** argv) {
     Game* game = new Game(sdlCtx);
     Mem::init(
         [&]() { // need memory
-            auto state = game->state;
-            state->ecs.minmizeMemoryUsage();
+            //auto state = game->state;
+            //state->ecs.minmizeMemoryUsage();
         },
         [&]() { // failed to get enough memory, crash.
             logCrash(CrashReason::MemoryFail, "Out of memory!");

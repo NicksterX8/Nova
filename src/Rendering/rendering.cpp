@@ -324,7 +324,7 @@ void render(RenderContext& ren, float scale, Gui* gui, GameState* state, Camera&
     (void)numRenderedTiles;
 
     static RenderSystem renderSystem = RenderSystem();
-    renderSystem.Update(state->ecs, state->chunkmap, ren, camera);
+    //renderSystem.Update(state->ecs, state->chunkmap, ren, camera);
 
     My::Vec<Draw::ColoredPoint> points(0);
     points.push({{0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.5f}, 15.0f});
