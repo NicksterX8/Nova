@@ -323,7 +323,7 @@ public:
                             ecs,
                             target,
                             {size, size},
-                            EC::Render(Textures.Tiles.sand, RenderLayer::Particles),
+                            EC::Render(Textures.Tiles.sand, RenderLayers::Particles),
                             EC::Motion(particleTarget, speed)
                         );
 

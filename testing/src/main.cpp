@@ -1,5 +1,6 @@
 #include "My/HashMap.hpp"
 #include "My/BucketArray.hpp"
+#include "rendering/TexturePacker.hpp"
 #include "Chunks.hpp"
 #include <vector>
 
@@ -8,6 +9,10 @@
 
 
 int main() {
+    auto texture = packTextures(0, nullptr, nullptr);
+    IVec2 zero = {0, 0};
+    assert(texture.buffer == nullptr && texture.size == zero);
+
     auto map = My::HashMap<int, int>::Empty();
     for (int i = 0; i < 200; i++) {
         auto key = i;
@@ -36,5 +41,4 @@ int main() {
     T_EQ(array.size(), 200);
     printf("Test successful!\n");
 
-    auto m2 = My::HashMap<char, long long, 
 }

@@ -1,7 +1,8 @@
 #include "rendering/TexturePacker.hpp"
 #include "memory.hpp"
+#include "rendering/textures.hpp"
 
-Texture packTextures(const int numTextures, const Texture* textures, glm::ivec2* textureOrigins, glm::ivec2 startSize) {
+Texture packTextures(const int numTextures, const Texture* textures, int pixelSize, glm::ivec2* textureOrigins, glm::ivec2 startSize) {
     static constexpr int NullNode = -1;
 
     struct Node {
@@ -16,7 +17,7 @@ Texture packTextures(const int numTextures, const Texture* textures, glm::ivec2*
         }
     };
 
-    struct {
+    struct Atlas {
         Texture atlas;
         My::Vec<Node> nodes;
         llvm::BitVector nodesEmpty;
@@ -100,11 +101,15 @@ Texture packTextures(const int numTextures, const Texture* textures, glm::ivec2*
                 }
             }
         }
-    } atlas;
+    };
 
+    if (!textures || !numTextures) return {nullptr, {0,0}};
+
+    Atlas atlas;
     atlas.nodesEmpty.reserve(2 * numTextures);
     atlas.nodes = My::Vec<Node>::WithCapacity(500);
-    atlas.atlas = createUninitTexture(startSize);
+    atlas.atlas = createUninitTexture(startSize, pixelSize);
+    fillTextureBlack(atlas.atlas);
 
     atlas.nodes.push(Node({0, 0}, {INT_MAX, INT_MAX}));
     atlas.nodesEmpty.push_back(true);
@@ -112,9 +117,10 @@ Texture packTextures(const int numTextures, const Texture* textures, glm::ivec2*
 
     for (int i = 0; i < numTextures; i++) {
         const auto texture = textures[i];
-        if (texture.size.x <= 0 || texture.size.y <= 0) {
+        if (!texture.buffer || texture.size.x <= 0 || texture.size.y <= 0) {
             // bad texture, skip it
-            textureOrigins[i] = {0, 0};
+            if (textureOrigins)
+                textureOrigins[i] = {0, 0};
             continue;
         }
 
@@ -130,7 +136,7 @@ Texture packTextures(const int numTextures, const Texture* textures, glm::ivec2*
         assert(texture.size.y == node->size.y);
 
         // Copy the texture to the texture atlas' buffer
-        copyTexture(atlas.atlas, texture, texture.size, node->origin);
+        copyTexture(atlas.atlas, texture, node->origin);
 
         if (textureOrigins)
             textureOrigins[i] = node->origin;

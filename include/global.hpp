@@ -4,6 +4,13 @@
 #include "constants.hpp"
 #include "utils/Log.hpp"
 
+struct Globals {
+    unsigned int textTexture = 0;
+};
+
+extern Globals g;
+
+
 enum class CrashReason {
     MemoryFail
 };

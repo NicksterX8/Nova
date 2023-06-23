@@ -4,6 +4,10 @@
 #include <string.h>
 #include "../constants.hpp"
 
+namespace GUI {
+    struct Console;
+}
+
 struct DebugSettings {
     bool drawChunkBorders;
     bool drawChunkCoordinates;
@@ -17,6 +21,8 @@ struct DebugSettings {
 struct DebugClass {
 public:
     DebugSettings settings;
+
+    GUI::Console* console;
 
     DebugClass();
 

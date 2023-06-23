@@ -17,6 +17,7 @@
 
 #include <glm/vec2.hpp>
 
+
 struct TilemapVertex {
     glm::vec2 pos;
     glm::vec3 texCoord;

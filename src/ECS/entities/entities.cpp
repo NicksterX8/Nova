@@ -31,7 +31,7 @@ namespace Entities {
         Entity chest = ecs->New("chest");
         ecs->Add<EC::Position>(chest, position);
         ecs->Add<EC::Size>(chest, {(float)width - 0.2f, (float)height - 0.2f});
-        ecs->Add<EC::Render>(chest, EC::Render(TextureIDs::Chest, RenderLayer::Buildings));
+        ecs->Add<EC::Render>(chest, EC::Render(TextureIDs::Chest, RenderLayers::Buildings));
         Inventory inventory = Inventory(&allocator, inventorySize);
         ecs->Add<EC::Inventory>(chest, {inventory});
         ecs->Add<EC::Growth>(chest, {0});
@@ -53,7 +53,7 @@ namespace Entities {
         Entity inserter = ecs->New("inserter");
         ecs->Add<EC::Position>(inserter, position);
         ecs->Add<EC::Size>(inserter, {1.0f, 1.0f});
-        ecs->Add<EC::Render>(inserter, EC::Render(TextureIDs::Inserter, RenderLayer::Buildings));
+        ecs->Add<EC::Render>(inserter, EC::Render(TextureIDs::Inserter, RenderLayers::Buildings));
         ecs->Add<EC::Rotation>(inserter, {0.0f});
         ecs->Add<EC::Rotatable>(inserter, {0.0f, 90.0f});
         
@@ -68,7 +68,7 @@ namespace Entities {
         ecs->Add<EC::Nametag>(enemy, EC::Nametag("Enemy", ""));
         ecs->Add<EC::Rotation>(enemy, {0.0f});
         ecs->Add<EC::Size>(enemy, {0.8f, 0.8f});
-        ecs->Add<EC::Render>(enemy, EC::Render(TextureIDs::Player, RenderLayer::Player));
+        ecs->Add<EC::Render>(enemy, EC::Render(TextureIDs::Player, RenderLayers::Player));
         ecs->Add<EC::Rotatable>(enemy, EC::Rotatable(0.0f, 45.0f));
         ecs->Add<EC::Follow>(enemy, EC::Follow(following, 0.05));
         return enemy;

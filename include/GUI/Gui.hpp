@@ -134,14 +134,106 @@ public:
 };
 */
 
+struct Command {
+    char name[32];
+    int nameLength;
+    using FunctionType = std::function<void(const char* arguments)>;
+    FunctionType function;
+
+    static Command make(const char* name, const FunctionType& function) {
+        Command command;
+        int nameLength = (int)strlen(name);
+        if (nameLength < 32) {
+            memcpy(command.name, name, nameLength+1);
+        } else {
+            LogError("Command name passed was longer than allowed! name: %s. max length: %d", name, 32);
+            command.name[0] = '\0';
+            nameLength = 0;
+        }
+        command.nameLength = nameLength;
+        command.function = function;
+        return command;
+    }
+};
+
+struct CommandInput {
+    std::string name;
+    std::string arguments;
+};
+
 struct Console {
     My::StringBuffer text = My::StringBuffer::FromStr("\0");
+    std::string activeMessage;
     My::Vec<glm::vec4> textColors = My::Vec<glm::vec4>::Empty();
 
-    void pushNewLine() {
-
+    bool messageIsActive() const {
+        return !activeMessage.empty();
     }
-};  
+
+    void pushActiveMessage() {
+        newMessage(activeMessage.c_str(), oldTextColor);
+        activeMessage.clear();
+    }
+
+    void newMessage(const char* message, glm::vec4 color) {
+        text.push(message);
+        textColors.push(color);
+    }
+
+    constexpr static glm::vec4 activeTextColor = {0, 0, 0, 1};
+    constexpr static glm::vec4 oldTextColor = {0.3f, 0.3f, 0.3f, 1.0f};
+
+    
+
+    CommandInput enterText(SDL_Keycode keycode, ArrayRef<Command> possibleCommands) {
+        switch (keycode) {
+        case SDLK_RETURN2:
+        case SDLK_RETURN: {
+            if (activeMessage[0] == '/') {
+                const char* enteredCommand = activeMessage.c_str() + 1;
+                int enteredCommandLength = 0;
+                {
+                    int i = 0;
+                    while (enteredCommand[i] != '\0' && enteredCommand[i] != ' ') {
+                        i++;
+                    }
+                    enteredCommandLength = i;
+                }
+
+                const char* arguments = enteredCommand + enteredCommandLength + 1;
+                // if there's no characters after the entered command then...
+                if (arguments > &text.buffer.back()) {
+                    arguments = nullptr; // no arguments were provided
+                }
+
+                auto input = CommandInput{std::string(enteredCommand, enteredCommandLength), std::string(arguments)};
+                activeMessage.clear();
+                return input;
+            }
+
+            if (!activeMessage.empty()) {
+                pushActiveMessage();
+            }
+            break;
+        }
+        case SDLK_DELETE:
+        case SDLK_BACKSPACE:
+            // !!! change this now
+            if (text.buffer.size >= 2) {
+                if (text.buffer[text.buffer.size-2] != '\0')
+                    text.popLastChar();
+            }
+            break;
+        case SDLK_TAB:
+            text.appendToLast('\t');
+            break;
+        } // end keycode switch
+
+        // no command input
+        return {};
+    }
+};
+
 
 struct Gui {
     My::Vec<SDL_FRect> area = My::Vec<SDL_FRect>(0);

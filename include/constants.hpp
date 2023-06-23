@@ -34,7 +34,7 @@ const float PLAYER_ROTATION_SPEED = 0.5f;
 
 const float PLAYER_DIAMETER = 0.8f;
 
-namespace RenderLayer {
+namespace RenderLayers {
     enum Layers {
         Lowest,
         Water,
@@ -46,6 +46,8 @@ namespace RenderLayer {
         Highest
     };
 }
+
+using RenderLayer = RenderLayers::Layers;
 
 #define DEBUG 1
 #define BOUNDS_CHECKS 1

@@ -1,5 +1,8 @@
 #include "memory.hpp"
 #include <stdio.h>
+#include <execinfo.h>
+#include <signal.h>
+#include <unistd.h>
 
 namespace Mem {
 
@@ -91,13 +94,26 @@ MemoryBlock min_realloc(void* ptr, size_t min, size_t preferred, bool nonnull) {
     });
 }
 */
+
+void handler(int sig) {
+  void *array[10];
+  size_t size;
+
+  // get void*'s for all entries on the stack
+  size = backtrace(array, 10);
+
+  // print out all the frames to stderr
+  fprintf(stderr, "Error: signal %d:\n", sig);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
+
+
 void* safe_malloc(size_t size) {
-    /*
     void* ptr = _malloc(size);
-    if (ptr || !size) return ptr;
-    return failedToAlloc(true, [=](){ return MemoryBlock{safe_malloc(size), size}; }).ptr;
-    */
-    return malloc(size);
+    if (ptr) return ptr;
+    else if (size == 0) return nullptr;
+    else return failedToAlloc(true, [=](){ return MemoryBlock{safe_malloc(size), size}; }).ptr;
 }
 
 void* safe_realloc(void* oldMem, size_t size) {

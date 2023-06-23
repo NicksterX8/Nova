@@ -85,7 +85,7 @@ GLuint compileShader(GLenum shaderType, const char* sourcePath) {
     return shader;
 }
 
-GLuint compileShaderProgram(const char* vertexPath, const char* fragmentPath) {
+GLuint makeShaderProgram(const char* vertexPath, const char* fragmentPath) {
     GLuint vertex = compileShader(GL_VERTEX_SHADER, vertexPath);
     if (!vertex) {
         LogError("Shader program compilation failed while compiling vertex shader.");
@@ -116,7 +116,7 @@ GLuint compileShaderProgram(const char* vertexPath, const char* fragmentPath) {
 }
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath) {
-    id = compileShaderProgram(vertexPath, fragmentPath);
+    id = makeShaderProgram(vertexPath, fragmentPath);
 }
 
 GLint Shader::getUniformLocation(const char* name) const {

@@ -4,13 +4,42 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <string>
+#include <glm/vec2.hpp>
+#include "memory.hpp"
 
 #define MY_TEXTURE_ARRAY_WIDTH 128
 #define MY_TEXTURE_ARRAY_HEIGHT 128
 
+struct Texture {
+    unsigned char* buffer;
+    glm::ivec2 size;
+    int pixelSize;
+};
+
+constexpr Texture NullTexture = {nullptr, {0,0}, 0};
+
+inline Texture createUninitTexture(glm::ivec2 size, int pixelSize) {
+    Texture texture;
+    texture.size = size;
+    texture.buffer = Alloc<unsigned char>(size.x * size.y * pixelSize);
+    texture.pixelSize = pixelSize;
+    return texture;
+}
+
+inline void freeTexture(Texture texture) {
+    Free(texture.buffer);
+}
+
+Texture loadTexture(const char* filepath, bool flip = true);
+
 void flipSurface(SDL_Surface* surface);
 
+constexpr SDL_PixelFormatEnum interopTexturePixelFormat = SDL_PIXELFORMAT_RGBA32;
+constexpr int interopTexturePixelFormatBytes = 4;
+constexpr int RGBA32PixelSize = 4;
+
 unsigned int loadGLTexture(const char* filepath);
+unsigned int loadGLTexture(Texture rawTexture);
 
 typedef Uint32 TextureID;
 

@@ -20,19 +20,24 @@ namespace Draw {
     };
 
     struct ColorQuadRenderBuffer {
+        using Vertex = ColorVertex;
+        using Vertex2D = ColorVertex2D;
+
+        /* member variables */
         GLuint vao;
         GLuint vbo;
         GLuint ebo;
 
-        using Vertex = ColorVertex;
-        using Vertex2D = ColorVertex2D;
-
         Vertex* vertexBuffer;
+        GLuint storedQuads = 0;
+        Shader shader = {};
 
-        inline Vertex* getBufferTop() {
-            return &vertexBuffer[storedQuads * 4];
-        }
+        /* Consts */
+        static const GLuint maxQuadsPerBatch = 10000;
+        static const GLuint maxVerticesPerBatch = maxQuadsPerBatch*4;
+        static const GLuint eboIndexCount = maxQuadsPerBatch*6;
 
+        /* types */
         struct UniformQuad {
             glm::vec3 positions[4];
             glm::vec4 color;
@@ -43,13 +48,12 @@ namespace Draw {
             glm::vec4 color;
         };
 
-        const GLuint maxQuadsPerBatch = 10000;
-        const GLuint maxVerticesPerBatch = maxQuadsPerBatch*4;
-        const GLuint eboIndexCount = maxQuadsPerBatch*6;
+        /* Constructors */
+        ColorQuadRenderBuffer() {}
 
-        GLuint storedQuads;
+        ColorQuadRenderBuffer(Shader shader) {
+            this->shader = shader;
 
-        ColorQuadRenderBuffer() {
             storedQuads = 0;
 
             glGenVertexArrays(1, &vao);
@@ -87,7 +91,15 @@ namespace Draw {
             glEnableVertexAttribArray(1);
         }
 
+        /* methods */
+        inline Vertex* getBufferTop() {
+            return &vertexBuffer[storedQuads * 4];
+        }
+
         inline GLuint needBufferSpace(GLuint count) {
+            if (count > maxQuadsPerBatch) {
+                LogWarn("Needed %u quads rendered, more than buffer capacity", count);
+            }
             if (storedQuads + count > maxQuadsPerBatch) {
                 flush();
                 return (count < maxQuadsPerBatch) ? count : maxQuadsPerBatch;
@@ -147,7 +159,7 @@ namespace Draw {
         }
 
         GLuint bufferUniform(GLuint quadCount, const UniformQuad2D* quads, float z) {
-            quadCount = needBufferSpace(quadCount);
+            quadCount = needBufferSpace(quadCount); // renders none if 
 
             Vertex* top = getBufferTop();
             for (GLuint i = 0; i < quadCount*4; i++) {
@@ -174,14 +186,19 @@ namespace Draw {
         void flush() {
             if (storedQuads == 0) return;
 
+            shader.use();
+
             glBindVertexArray(vao);
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            GL::logErrors();
             glUnmapBuffer(GL_ARRAY_BUFFER);
-
+            GL::logErrors();
             glDrawElements(GL_TRIANGLES, 6 * storedQuads, GL_UNSIGNED_INT, 0);
+            GL::logErrors();
 
             storedQuads = 0;
             vertexBuffer = (Vertex*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+            GL::logErrors();
         }
 
         void destroy() {
@@ -281,5 +298,7 @@ namespace Draw {
     }
     
 }
+
+using QuadRenderer = Draw::ColorQuadRenderBuffer;
 
 #endif

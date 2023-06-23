@@ -25,6 +25,54 @@ void flipSurface(SDL_Surface* surface) {
     SDL_UnlockSurface(surface);
 }
 
+Texture loadTexture(const char* filepath, bool flip) {
+    SDL_Surface *surface = IMG_Load(filepath);
+    if (surface) { 
+        if (flip) {
+            flipSurface(surface); // May not be necessary
+        }
+
+        if (surface->format->format != SDL_PIXELFORMAT_RGBA32) {
+            SDL_Surface* newSurface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
+            if (newSurface) {
+                SDL_FreeSurface(surface);
+                surface = newSurface;
+            } else {
+                printf("Couldn't convert surface format while loading \"%s\"!", filepath);
+                return NullTexture;
+            }
+        }
+
+        SDL_LockSurface(surface);
+        Texture texture = createUninitTexture({surface->w, surface->h}, RGBA32PixelSize);
+        memcpy(texture.buffer, surface->pixels, surface->w * surface->h * RGBA32PixelSize);
+        SDL_UnlockSurface(surface);
+        SDL_FreeSurface(surface);
+        return texture;
+    }
+
+    LogError("Failed to load texture at \"%s\". SDL error message: %s\n", filepath, SDL_GetError());
+    return NullTexture;
+}
+
+unsigned int loadGLTexture(Texture rawTexture) {
+    unsigned int texture;
+    glGenTextures(1, &texture);  
+    glBindTexture(GL_TEXTURE_2D, texture);
+    // set the texture wrapping/filtering options (on the currently bound texture object)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);	
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    const float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, rawTexture.size.x, rawTexture.size.x, 0, GL_RGBA, GL_UNSIGNED_BYTE, rawTexture.buffer);
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+    return texture;
+}
+
 unsigned int loadGLTexture(const char* filepath) {
     unsigned int texture;
     glGenTextures(1, &texture);  
@@ -32,7 +80,7 @@ unsigned int loadGLTexture(const char* filepath) {
     // set the texture wrapping/filtering options (on the currently bound texture object)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);	
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    const float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);  
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

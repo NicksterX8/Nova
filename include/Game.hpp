@@ -23,10 +23,6 @@ void rotateEntity(const ComponentManager<EC::Rotation, EC::Rotatable>& ecs, Enti
 
 void setDefaultKeyBindings(Game& ctx, PlayerControls* controls);
 
-struct Globals {
-
-};
-
 struct Game {
     SDLContext sdlCtx;
     const Uint8 *keyboard;

@@ -123,41 +123,28 @@ inline GLuint loadFontAtlasTexture(Texture atlas) {
 FT_Face newFontFace(const char* filepath, FT_UInt height);
 
 struct Font {
-    FT_Face face = nullptr;
-    glm::ivec2 atlasSize;
-    float tabWidth; // times space char advance
-    float lineHeight; // times the font face height
-    GLuint atlasTexture;
-    unsigned short spaceCharAdvance; // advance in pixels
-
-    /*
-    struct Character {
-        glm::ivec2 texPos;
-        glm::ivec2 size;
-        glm::ivec2 bearing;
-        unsigned int advance;
-    } *characters;
-    */
-
     struct AtlasCharacterData {
-        glm::ivec2* positions;
-        glm::ivec2* sizes;
-        glm::ivec2* bearings;
-        unsigned short* advances;
+        glm::ivec2* positions = nullptr;
+        glm::ivec2* sizes = nullptr;
+        glm::ivec2* bearings = nullptr;
+        unsigned short* advances = nullptr;
     };
 
-    AtlasCharacterData characters;
 
-    char firstChar;
-    char lastChar;
+    FT_Face face = nullptr;
+    glm::ivec2 atlasSize = {0, 0};
+    float tabWidth = 0.0f; // times space char advance
+    float lineHeight = 0.0f; // times the font face height
+    GLuint atlasTexture = 0;
+    unsigned short spaceCharAdvance = 0; // advance in pixels
+    AtlasCharacterData characters = {};
+
+    char firstChar = -1;
+    char lastChar = -1;
 
     Font() = default;
 
-    Font(float tabWidth, float lineHeight) : tabWidth(tabWidth), lineHeight(lineHeight) {
-
-    }
-
-    void load(const char* fontfile, FT_UInt height, bool useSDFs, char firstChar=32, char lastChar=127);
+    Font(float tabWidth, float lineHeight, const char* fontfile, FT_UInt height, bool useSDFs, char firstChar=32, char lastChar=127);
 
     void unload();
 
@@ -190,20 +177,21 @@ struct TextRenderer {
     const static GLint bufferPositionStart = 0;
     const static GLint bufferTexCoordStart = bufferCapacity * 4 * 2 * sizeof(GLfloat);
 
-    glm::vec4 defaultColor;
-    glm::vec4 currentColor;
-    glm::vec2 *charOffsetBuffer;
-    char *charBuffer;
-    GLvoid *vertexBuffer;
-    Font* font;
-    Shader shader;
-    GLuint vao,vbo,ebo;
-    GLint bufferSize;
-    int charBufferSize;
+    glm::vec4 defaultColor = {0, 0, 0, 255};
+    glm::vec4 currentColor = {0, 0, 0, 255};
+    glm::vec2 *charOffsetBuffer = nullptr;
+    char *charBuffer = nullptr;
+    GLvoid *vertexBuffer = nullptr;
+    Font* font = nullptr;
+    Shader shader = 0;
+    GLuint vao=0,vbo=0,ebo=0;
+    GLint bufferSize = 0;
+    int charBufferSize = 0;
     FormattingSettings defaultFormatting;
     RenderingSettings defaultRendering;
+    float z = 0.0f;
 
-    std::array<glm::vec2, 4>* characterTexCoords;
+    std::array<glm::vec2, 4>* characterTexCoords = nullptr;
 
     struct CharacterRenderData {
         char c;
@@ -215,7 +203,7 @@ struct TextRenderer {
         const float textureHeight = font->atlasSize.y;
 
         for (unsigned char c = (unsigned char)font->firstChar; c <= font->lastChar; c++) {
-            glm::vec2* coords = characterTexCoords[c].data();
+            glm::vec2* coords = characterTexCoords[c - font->firstChar].data();
             const auto pos = font->position(c);
             const auto size = font->size(c);
 
@@ -231,13 +219,14 @@ struct TextRenderer {
         }
     }
 
-    static TextRenderer init(Font* font, Shader shader) {
+    static TextRenderer init(Font* font, Shader shader, float z) {
         TextRenderer self;
         self.bufferSize = 0;
         self.font = font;
         self.defaultColor = {0,0,0,0};
         self.currentColor = {NAN, NAN, NAN, NAN};
         self.shader = shader;
+        self.z = z;
 
         glGenVertexArrays(1, &self.vao);
         glGenBuffers(1, &self.vbo);
@@ -473,18 +462,20 @@ struct TextRenderer {
         r->h = MAX(r->y + r->h, b->y + b->h) - r->y;
     }
 
-    FRect renderStringBufferAsLinesReverse(const My::StringBuffer& strings, glm::vec2 pos, My::Vec<glm::vec4> colors, glm::vec2 scale, FormattingSettings formatSettings) {
+    FRect renderStringBufferAsLinesReverse(const My::StringBuffer& strings, int maxLines, glm::vec2 pos, My::Vec<glm::vec4> colors, glm::vec2 scale, FormattingSettings formatSettings) {
         FRect maxRect = {pos.x,pos.y,0,0};
         glm::vec2 offset = {0, 0};
         int i = 0;
-        strings.forEachStrReverse([&](char* str){
+        strings.forEachStrReverse([&](char* str) -> bool{
+            if (i >= maxLines) return true;
             FRect rect = render(str, pos + offset, formatSettings, TextRenderingSettings{colors[colors.size - 1 - i], scale});
             this->flush();
             unionRectInPlace(&maxRect, &rect);
             offset.y += rect.h;
             // do line break
-            offset.y += font->lineHeight * (font->face->height >> 6);
+            offset.y += font->lineHeight * (font->face->height >> 6) * scale.y;
             i++;
+            return false;
         });
         return maxRect;
     }
@@ -498,8 +489,6 @@ struct TextRenderer {
             if (bufferSize > 0) {
                 flush();
             }
-            shader.use();
-            shader.setVec3("textColor", glm::vec3(renderSettings.color));
             currentColor = renderSettings.color;
         }
 
@@ -541,6 +530,8 @@ struct TextRenderer {
         glUnmapBuffer(GL_ARRAY_BUFFER);
         // render quads
         shader.use();
+        shader.setVec3("textColor", glm::vec3(currentColor));
+        
         glBindTexture(GL_TEXTURE_2D, font->atlasTexture);
         glDrawElements(GL_TRIANGLES, 6 * bufferSize, GL_UNSIGNED_SHORT, NULL);
         vertexBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);

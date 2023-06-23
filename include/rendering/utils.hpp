@@ -35,6 +35,7 @@ struct ModelData {
 };
 
 unsigned int enableVertexAttribs(const VertexAttribute* attributes, unsigned int count);
+unsigned int enableVertexAttribsSOA(const VertexAttribute* attributes, unsigned int count, unsigned int vertexCount);
 
 ModelData makeModel(
 size_t vertexDataSize, const void* vertexData, GLenum vertexUsage,
@@ -43,6 +44,10 @@ const VertexAttribute* attributes, unsigned int numAttributes);
 
 ModelData makeModel(
 size_t vertexDataSize, const void* vertexData, GLenum vertexUsage,
+const VertexAttribute* attributes, unsigned int numAttributes);
+
+ModelData makeModelSOA(
+size_t vertexCount, const void * const * vertexData, GLenum vertexUsage,
 const VertexAttribute* attributes, unsigned int numAttributes);
 
 template<typename IntType>

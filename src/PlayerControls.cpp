@@ -16,7 +16,7 @@ OptionalEntity<EC::Position, EC::Size, EC::Render>
 findPlayerFocusedEntity(const ComponentManager<EC::Position, const EC::Size, const EC::Render>& ecs, const ChunkMap& chunkmap, Vec2 playerMousePos) {
     Vec2 target = playerMousePos;
     OptionalEntity<EC::Position, EC::Size, EC::Render> focusedEntity;
-    int focusedEntityLayer = RenderLayer::Lowest;
+    int focusedEntityLayer = RenderLayers::Lowest;
     Uint32 focusedEntityRenderIndex = 0;
     forEachEntityNearPoint(ecs, &chunkmap, target,
     [&](EntityT<EC::Position> entity){

@@ -15,7 +15,7 @@ char* readFileContents(FILE* file, size_t* outBytesRead=NULL);
 char* readFileContents(const char* filename, size_t* outBytesRead=NULL);
 
 GLuint compileShader(GLenum shaderType, const char* sourcePath);
-GLuint compileShaderProgram(const char* vertexPath, const char* fragmentPath);
+GLuint makeShaderProgram(const char* vertexPath, const char* fragmentPath);
 
 
 // An OpenGL Shader program wrapper/abstraction
@@ -37,6 +37,11 @@ struct Shader {
     // activate the shader
     // ------------------------------------------------------------------------
     void use() const { 
+        if (id == 0) {
+            LogError("Invalid shader");
+            return;
+        }
+
         // not sure if this check is actually worth doing.
         // It may depend on the implementation whether it takes a long time to check if a shader program is already being used or not
         // so it could save time to check ourselves.
@@ -86,5 +91,9 @@ struct Shader {
         return value;
     }
 };
+
+inline Shader loadShader(const char* name) {
+    return Shader(makeShaderProgram(FileSystem.shaders.get(str_add(name, ".vs")), FileSystem.shaders.get(str_add(name, ".fs"))));
+}
 
 #endif

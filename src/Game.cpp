@@ -360,9 +360,6 @@ int Game::update() {
 
     bool quit = false;
 
-    int drawableWidth,drawableHeight;
-    SDL_GL_GetDrawableSize(sdlCtx.win, &drawableWidth, &drawableHeight);
-
     updateTilePixels(worldScale);
 
     // get user input state for this update
@@ -380,10 +377,11 @@ int Game::update() {
                 break;
             case SDL_WINDOWEVENT:
                 if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                    int drawableWidth,drawableHeight;
                     SDL_GL_GetDrawableSize(sdlCtx.win, &drawableWidth, &drawableHeight);
                     glViewport(0, 0, drawableWidth, drawableHeight);
-                    camera.pixelWidth = drawableWidth;
-                    camera.pixelHeight = drawableHeight;
+                    camera.pixelWidth = (float)drawableWidth;
+                    camera.pixelHeight = (float)drawableHeight;
                 }
                 break;
             case SDL_MOUSEWHEEL:
@@ -449,6 +447,7 @@ int Game::update() {
 }
 
 void Game::init(int screenWidth, int screenHeight) {
+    LogInfo("Starting game init");
 
     this->gui = new Gui();
 
@@ -479,6 +478,7 @@ void Game::init(int screenWidth, int screenHeight) {
     glViewport(0, 0, displayWidth, displayHeight);
     this->camera = Camera(TilePixels, glm::vec3(0.0f), displayWidth, displayHeight);
 
+    LogInfo("starting render init");  
     renderInit(*renderContext);
 }
 
@@ -493,6 +493,7 @@ void Game::quit() {
 }
 
 void Game::destroy() {
+    LogInfo("destroying game");
     delete this->debug;
     delete this->playerControls;
     delete this->renderContext;

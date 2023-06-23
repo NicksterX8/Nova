@@ -6,6 +6,7 @@
 #include "My/Vec.hpp"
 #include "llvm/ArrayRef.h"
 #include "llvm/BitVector.h"
+#include "rendering/textures.hpp"
 
 #include <iostream>
 
@@ -228,22 +229,11 @@ public:
     }
 };
 
-struct Texture {
-    unsigned char* buffer;
-    glm::ivec2 size;
-};
-
-inline Texture createUninitTexture(glm::ivec2 size) {
-    Texture texture;
-    texture.size = size;
-    texture.buffer = Alloc<unsigned char>(size.x * size.y);
-    return texture;
+inline void fillTextureBlack(Texture tex) {
+    memset(tex.buffer, 0, tex.size.x * tex.size.y);
 }
 
-inline void freeTexture(Texture texture) {
-    Free(texture.buffer);
-}
-
+/*
 inline void copyTexture(Texture dst, Texture src, glm::ivec2 size, glm::ivec2 dstOrigin = {0, 0}, glm::ivec2 srcOrigin = {0, 0}) {
     assert(src.size.x - srcOrigin.x <= dst.size.x && src.size.y - srcOrigin.y <= dst.size.y);
     assert(size.x <= src.size.x - srcOrigin.x && size.y <= src.size.y - srcOrigin.y
@@ -251,19 +241,46 @@ inline void copyTexture(Texture dst, Texture src, glm::ivec2 size, glm::ivec2 ds
     assert(srcOrigin.x < src.size.x && srcOrigin.y < src.size.y && "Can't make a copy texture bigger than the source texture");
     for (int row = 0; row < size.y; row++) {
         int srcRow = row + srcOrigin.y;
-        memcpy(&dst.buffer[row * dst.size.x], &src.buffer[srcRow * src.size.x + srcOrigin.x], size.x);
+        int dstRow = row + dstOrigin.y;
+        memcpy(&dst.buffer[dstRow * dst.size.x + dstOrigin.x], &src.buffer[srcRow * src.size.x + srcOrigin.x], size.x);
+    }
+}
+*/
+
+inline unsigned char* accessTexture(Texture tx, glm::ivec2 pixel) {
+    assert(pixel.x >= 0 && pixel.y >= 0);
+    assert(pixel.x < tx.size.x && pixel.y < tx.size.y);
+    return &tx.buffer[pixel.y * tx.size.x + pixel.x];
+}
+
+inline void emplaceRow(Texture tex, int row, const unsigned char* src, int start, int size) {
+    memcpy(&tex.buffer[row * tex.size.x + start], src, size);
+}
+
+inline void copyTexture(Texture dst, Texture src, glm::ivec2 dstOffset = {0, 0}) {
+    assert(src.pixelSize == dst.pixelSize); // need same format to copy
+    for (int row = 0; row < src.size.y; row++) {
+        //emplaceRow(dst, row + dstOffset.y, &src.buffer[row * src.size.x], dstOffset.x, src.size.x);
+        int dstByteWidth = dst.size.x * dst.pixelSize;
+        int dstRow = row + dstOffset.y;
+        int srcByteWidth = src.size.x * src.pixelSize;
+        int dstByteColOffset = dstOffset.x * dst.pixelSize;
+        int dstByteRowOffset = dstRow * dstByteWidth;
+        int srcByteRowOffset = row * srcByteWidth;
+        memcpy(&dst.buffer[dstByteRowOffset + dstByteColOffset], &src.buffer[srcByteRowOffset], srcByteWidth);
     }
 }
 
 inline Texture resizeTexture(Texture texture, glm::ivec2 newSize) {
-    Texture newTexture = createUninitTexture(newSize);
-    copyTexture(newTexture, texture, texture.size);
-    freeTexture(texture);
+    Texture newTexture = createUninitTexture(newSize, texture.pixelSize);
+    fillTextureBlack(newTexture);
+    copyTexture(newTexture, texture);
+    freeTexture(texture);  
     return newTexture;
 }
 
 // based on this article "https://straypixels.net/texture-packing-for-fonts/" by Edward Lu, modified to be C style
 
-Texture packTextures(const int numTextures, const Texture* textures, glm::ivec2* characterOriginsOut, glm::ivec2 startSize = {128, 128});
+Texture packTextures(const int numTextures, const Texture* textures, int pixelSize, glm::ivec2* characterOriginsOut, glm::ivec2 startSize = {128, 128});
 
 #endif

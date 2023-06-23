@@ -62,9 +62,12 @@ void operator delete(void* ptr, const char* file, int line) noexcept;
 
 namespace Mem {
 
+void handler(int sig);
+
 inline void init(std::function<void()> _needMemoryCallback, std::function<void()> _memoryFailCallback) {
    needMemoryCallback = _needMemoryCallback;
    memoryFailCallback = _memoryFailCallback;
+   signal(SIGSTOP, handler);
 }
 
 inline void quit() {

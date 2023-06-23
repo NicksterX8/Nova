@@ -303,38 +303,82 @@ public:
         }
     }
 
+    std::vector<GUI::Command> commands;
+
+    void makeCommands(GameState* state, GUI::Gui* gui) {
+        commands.push_back(GUI::Command::make("kill", [state, gui](const char* input){
+            int numDestroyed = 0;
+            state->ecs.ForEach< EntityQuery< ECS::RequireComponents<EC::EntityTypeEC> > >(
+            [&](Entity entity){
+                auto type = state->ecs.Get<const EC::EntityTypeEC>(entity);
+                if (My::streq(input, "ALL") || My::streq(input, type->name)) {
+                    if (state->ecs.EntityExists(entity)) {
+                        state->ecs.Destroy(entity);
+                        numDestroyed += 1;
+                    } else {
+                        LogWarn("Entity didn't exist while killing entities");
+                    }
+                }
+            });
+            char message[512];
+            snprintf(message, 512, "Killed %d entities", numDestroyed);
+            
+            gui->console.newMessage(message, {1, 0, 0, 1});
+            LogInfo("KILL! input: %s", input);
+        }));
+    }
+
+    void doCommand(GUI::Command* command, const char* arguments) {
+        command->function(arguments);
+    }
+
     void handleKeydown(const SDL_KeyboardEvent& event, GameState* state, Gui* gui) {
         const SDL_Keycode keycode = event.keysym.sym;
-        switch (keycode) {
-            case 'e': {
-                auto tileEntity = findTileEntityAtPosition(state, mouseWorldPos);
-                if (tileEntity != NullEntity) {
-                    if (tileEntity.Has<EC::Inventory>(&state->ecs)) {
-                        // then open inventory
-                        Inventory& inventory = state->ecs.Get<EC::Inventory>(tileEntity)->inventory;
-                        // for now since I dont want to make GUI so just give the items in the inventory to the player
-                        for (Uint32 i = 0; i < inventory.size; i++) {
-                            if (state->player.inventory()) {
-                                Uint32 numItemsAdded = state->player.inventory()->addItemStack(inventory[i]);
-                                inventory[i].reduceQuantity(numItemsAdded);
+
+        if (enteringText) {
+            auto commandInput = gui->console.enterText(keycode, commands);
+            if (!commandInput.name.empty()) {
+                // command entered                    
+                for (auto& command : commands) {
+                    if (My::streq(command.name, commandInput.name.c_str(), command.nameLength, commandInput.name.size())) {
+                        doCommand(&command, commandInput.arguments.c_str());
+                    }
+                }
+            }
+        } else {
+            switch (keycode) {
+                case 'e': {
+                    auto tileEntity = findTileEntityAtPosition(state, mouseWorldPos);
+                    if (tileEntity != NullEntity) {
+                        if (tileEntity.Has<EC::Inventory>(&state->ecs)) {
+                            // then open inventory
+                            Inventory& inventory = state->ecs.Get<EC::Inventory>(tileEntity)->inventory;
+                            // for now since I dont want to make GUI so just give the items in the inventory to the player
+                            for (Uint32 i = 0; i < inventory.size; i++) {
+                                if (state->player.inventory()) {
+                                    Uint32 numItemsAdded = state->player.inventory()->addItemStack(inventory[i]);
+                                    inventory[i].reduceQuantity(numItemsAdded);
+                                }
                             }
                         }
                     }
-                }
-            break;}
-            case 'o': {
-                auto belt = Entities::TransportBelt(&state->ecs, Vec2(floor(mouseWorldPos.x), floor(mouseWorldPos.y)));
-                // TODO: entity collision stuff
-            break;}
-            case 'z': {
-                ItemStack* heldItemStack = state->player.heldItemStack;
-                if (heldItemStack && !heldItemStack->empty()) {
-                    ItemStack dropStack = ItemStack(heldItemStack->item, 1);
-                    heldItemStack->reduceQuantity(1);
-                    Entities::ItemStack(&state->ecs, mouseWorldPos, dropStack, state->itemManager);
-                }
-            break;} 
-            /*
+                break;}
+                case 'o': {
+                    auto belt = Entities::TransportBelt(&state->ecs, Vec2(floor(mouseWorldPos.x), floor(mouseWorldPos.y)));
+                    // TODO: entity collision stuff
+                break;}
+                case 'z': {
+                    ItemStack* heldItemStack = state->player.heldItemStack;
+                    if (heldItemStack && !heldItemStack->empty()) {
+                        ItemStack dropStack = ItemStack(heldItemStack->item, 1);
+                        heldItemStack->reduceQuantity(1);
+                        Entities::ItemStack(&state->ecs, mouseWorldPos, dropStack, state->itemManager);
+                    }
+                break;} 
+            }
+        }
+
+        switch (keycode) {
             case 'h': {
                 static bool wireframeModeEnabled = false;
                 if (!wireframeModeEnabled)
@@ -343,108 +387,11 @@ public:
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                 wireframeModeEnabled ^= 1;
             break;}
-            */
-            case SDLK_SPACE: {
-
-            break;}
             case '[':
                 enteringText = !enteringText;
-                return; // dont do the rest of the junk below
-            break;
+                break;
             default:
                 break;
-        }
-
-        if (enteringText) {
-            auto enteredText = &gui->console.text;
-            switch (keycode) {
-            case SDLK_RETURN2:
-            case SDLK_RETURN: {
-                const char* last = enteredText->lastStr();
-                enteredText->endLastStr();
-                gui->console.textColors.pushFront({1, 1, 0, 1});
-                
-                if (last[0] == '/') {
-                    const char* enteredCommand = &last[1];
-                    int enteredCommandLength = 0;
-                    {
-                        int i = 0;
-                        while (enteredCommand[i] != '\0' && enteredCommand[i] != ' ') {
-                            i++;
-                        }
-                        enteredCommandLength = i;
-                    }
-    
-                    // command entered
-                    struct Command {
-                        char name[32];
-                        int nameLength;
-                        using FunctionType = std::function<void(const char* input)>;
-                        FunctionType function;
-
-                        static Command make(const char* name, const FunctionType& function) {
-                            Command command;
-                            int nameLength = (int)strlen(name);
-                            if (nameLength < 32) {
-                                memcpy(command.name, name, nameLength+1);
-                            } else {
-                                LogError("Command name passed was longer than allowed! name: %s. max length: %d", name, 32);
-                                command.name[0] = '\0';
-                                nameLength = 0;
-                            }
-                            command.nameLength = nameLength;
-                            command.function = function;
-                            return command;
-                        }
-                    };
-                    static std::vector<Command> commands;
-                    commands.push_back(Command::make("kill", [&](const char* input){
-                        int numDestroyed = 0;
-                        state->ecs.ForEach< EntityQuery< ECS::RequireComponents<EC::EntityTypeEC> > >(
-                        [&](Entity entity){
-                            auto type = state->ecs.Get<const EC::EntityTypeEC>(entity);
-                            if (My::streq(input, "ALL") || My::streq(input, type->name)) {
-                                if (state->ecs.EntityExists(entity)) {
-                                    state->ecs.Destroy(entity);
-                                    numDestroyed += 1;
-                                } else {
-                                    LogWarn("Entity didn't exist while killing entities");
-                                }
-                            }
-                        });
-
-                        char message[512];
-                        snprintf(message, 512, "Killed %d entities", numDestroyed);
-
-                        gui->console.textColors.pushFront({0, 1, 1, 1});
-                        enteredText->push(message);
-                        enteredText->endLastStr();
-                        LogInfo("KILL! input: %s", input);
-                    }));
-                    for (auto& command : commands) {
-                        if (My::streq(command.name, enteredCommand, command.nameLength, enteredCommandLength)) {
-                            const char* input = enteredCommand + enteredCommandLength + 1;
-                            if (input > &enteredText->buffer.back()) {
-                                input = nullptr;
-                            }
-                            command.function(input);
-                            break;
-                        }
-                    }
-                }
-                break;
-            }
-            case SDLK_DELETE:
-            case SDLK_BACKSPACE:
-                if (enteredText->buffer.size >= 2) {
-                    if (enteredText->buffer[enteredText->buffer.size-2] != '\0')
-                        enteredText->popLastChar();
-                }
-                break;
-            case SDLK_TAB:
-                enteredText->appendToLast('\t');
-                break;
-            } // end keycode switch
         }
 
         for (int i = 1; i < (int)state->player.numHotbarSlots; i++) {
@@ -469,7 +416,7 @@ public:
             char* text = event.text.text;
             
             if (enteringText) {
-                gui->console.text.appendToLast(text); 
+                gui->console.activeMessage += text;
             }
             break;
         }
@@ -487,6 +434,8 @@ public:
     }
 
     void doPlayerMovementTick(GameState* state) {
+        if (enteringText) return; // dont move player while typing... duh
+
         int sidewaysInput = keyboardState[SDL_SCANCODE_D] - keyboardState[SDL_SCANCODE_A];
         int updownInput = keyboardState[SDL_SCANCODE_W] - keyboardState[SDL_SCANCODE_S];
         int rotationInput = keyboardState[SDL_SCANCODE_E] - keyboardState[SDL_SCANCODE_Q];
@@ -540,9 +489,11 @@ public:
             
         }
 
+        /*
         for (int i = 0; i < keyBindings.size; i++) {
             keyBindings[i]->updateKeyState(keyboardState[SDL_GetScancodeFromKey(keyBindings[i]->key)]);
         }
+        */
 
         for (auto keyBinding : keyBindings) {
             keyBinding->updateKeyState(keyboardState[SDL_GetScancodeFromKey(keyBinding->key)]);

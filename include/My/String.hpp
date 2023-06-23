@@ -196,6 +196,10 @@ struct StringBuffer {
         return last;
     }
 
+    bool terminates() const {
+        return buffer.back() == '\0';
+    }
+
     inline void appendToLast(char c) {
         if (buffer.size == 0) {
             buffer.push(c);
@@ -285,7 +289,7 @@ struct StringBuffer {
         char* str = lastStr();
         if (!str) return;
         for (;;) {
-            callback(str);
+            if (callback(str)) return;
             if (str >= buffer.data + 2) {
                 str -= 2;
                 while (str >= buffer.data && *str != '\0') {str--;}; str++;

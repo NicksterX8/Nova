@@ -67,7 +67,6 @@ static void report_size_overflow(size_t MinSize, size_t MaxSize) {
                        ") is larger than maximum value for size type (" +
                        std::to_string(MaxSize) + ")";
   */
-  return;
 }
 
 /// Report that this vector is already at maximum capacity. Throws

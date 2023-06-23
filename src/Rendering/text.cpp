@@ -1,4 +1,5 @@
 #include "rendering/text.hpp"
+#include "rendering/textures.hpp"
 
 FT_Library freetype;
 
@@ -32,21 +33,28 @@ struct ListT {
 };
 
 
+Font::Font(float _tabWidth, float _lineHeight, const char* fontfile, FT_UInt height, bool useSDFs, char _firstChar, char _lastChar) {
+    tabWidth = _tabWidth;
+    lineHeight = _lineHeight;
 
-void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstChar, char lastChar) {
-    if (lastChar > 127 || firstChar > 127) {
+    if (_lastChar > 127 || _firstChar > 127) {
         LogError("Can't load font characters higher than 127!");
-        if (lastChar > 127) lastChar = 127;
-        if (firstChar > 127) firstChar = 127;
+        if (_lastChar > 127) _lastChar = 127;
+        if (_firstChar > 127) _firstChar = 127;
     }
+    
+    firstChar = _firstChar;
+    lastChar = _lastChar;
+    
 
     this->face = newFontFace(fontfile, height);
     if (!this->face) {
         this->firstChar = 0;
-        this->lastChar = 0;
+        this->lastChar = -1;
     }
 
-    char numChars = lastChar - firstChar + 1;
+    char numChars = lastChar - firstChar;
+    
     if (numChars <= 0) {
         this->characters.advances = nullptr;
         this->characters.bearings = nullptr;
@@ -93,19 +101,24 @@ void Font::load(const char* fontfile, FT_UInt height, bool useSDFs, char firstCh
             characters.advances[i] = slot->advance.x;
             characters.bearings[i] = glm::ivec2{slot->bitmap_left, slot->bitmap_top};
             characters.sizes[i]    = glm::ivec2{slot->bitmap.width, slot->bitmap.rows};
-            characterTextures[i]   = {.buffer = slot->bitmap.buffer, .size = characters.sizes[i]};
+            characterTextures[i] = createUninitTexture(characters.sizes[i], 1);
+            memcpy(characterTextures[i].buffer, slot->bitmap.buffer, slot->bitmap.rows * slot->bitmap.width);
+            //characterTextures[i]   = {.buffer = slot->bitmap.buffer, .size = characters.sizes[i], .pixelSize = 1}; // Character glyphs use 1 byte pixels, black and white
         }
-        
+           
         this->spaceCharAdvance = characters.advances[' ' - firstChar];
 
         GL::logErrors();
         this->atlasTexture = 0;
         this->atlasSize = {0, 0};
-        auto packedTexture = packTextures(numChars, characterTextures, characters.positions);
-        //Texture packedTexture = {nullptr, {0,0}};
+        auto packedTexture = packTextures(
+            numChars, characterTextures,
+            1, // 1 byte pixels
+            characters.positions
+        );
+
         this->atlasSize = packedTexture.size;
         this->atlasTexture = loadFontAtlasTexture(packedTexture);
-        this->atlasSize = packedTexture.size;
         Free(characterTextures);
     }
     GL::logErrors();
