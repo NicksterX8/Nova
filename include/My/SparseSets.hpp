@@ -185,6 +185,7 @@ public:
 
     void remove(Key key) {
         assertValidKey(key);
+        assert(contains(key) && "Tried to remove nonexistent key!");
 
         const auto indexOfRemoved = set[key];
         const auto topIndex = (Index)size-1;

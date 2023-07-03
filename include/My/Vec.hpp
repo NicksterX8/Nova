@@ -117,7 +117,7 @@ public:
         capacity = _size;
     }
 
-    static Self Filled(ValueParamT value, int size) {
+    static Self Filled(int size, ValueParamT value) {
         assert(size >= 0 && "cannot have negative size");
         Self self;
         self.data = allocator.template Alloc<T>(size);
@@ -375,7 +375,8 @@ struct SmallVectorPair {
     }
 };
 */
-
+/*
+thing dont work! prolly not worth doing myself ever. better options!
 template<typename... Ts>
 struct VecTuple {
     using Size_T = int;
@@ -441,11 +442,10 @@ struct VecTuple {
         size += count;
     }
 };
-
+*/
 }
 
 using Vector::Vec;
-using Vector::VecTuple;
 using Vector::Generic::GenericVec;
 
 MY_CLASS_END

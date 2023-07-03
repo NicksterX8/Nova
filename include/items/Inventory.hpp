@@ -35,8 +35,8 @@ struct Inventory {
     using SizeT = int;
     ItemStack* items = NULL;
     ItemQuantity size = 0;
-    Uint16 startIndex = 0; // The index of the first non-empty item slot, or 0 if the inventory is empty
-    Uint16 endIndex = 0; // the index one past the index of the last non-empty item slot
+    //Uint16 startIndex = 0; // The index of the first non-empty item slot, or 0 if the inventory is empty
+    //Uint16 endIndex = 0; // the index one past the index of the last non-empty item slot
     ItemManager* manager = NULL;
     constexpr static int InfiniteSize = -1;
 
@@ -78,12 +78,14 @@ struct Inventory {
     }
 
     inline const ItemStack& get(Sint32 itemIndex) const {
-        assert(itemIndex >= this->startIndex && itemIndex < this->endIndex && "inventory item index out of bounds! The start and end indices may be incorrect.");
+        //assert(itemIndex >= this->startIndex && itemIndex < this->endIndex && "inventory item index out of bounds! The start and end indices may be incorrect.");
+        assert(itemIndex < size && itemIndex >= 0);
         return items[itemIndex];
     }
 
     bool empty() const {
-        return endIndex == 0;
+        //return endIndex == 0;
+        return false;
     }
 
     bool isInfinite() const {

@@ -14,3 +14,7 @@
 √ Make a SYSTEM system, instead of just using lambdas for everything
 √ make a limited time life component for the sand gun sand
 √ figure out a way to have more than 32 components
+
+CURRENTLY
+
+make log stay open for a few seconds after typing a message

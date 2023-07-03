@@ -27,7 +27,6 @@ extern "C" {
 typedef struct SDLContext {
     SDL_Window *win;
     SDL_GLContext gl;
-    float scale;
 } SDLContext;
 
 namespace SDL {
@@ -42,7 +41,7 @@ extern float pixelScale;
 * If the scale for some reason is not 1:1 for the width and height values, returns the scale for the width.
 * @return the scale of the window coordinates to the renderer 
 */
-inline Vec2 getPixelScale(SDL_Window *win) {
+inline float getPixelScale(SDL_Window *win) {
     int windowWidth,windowHeight;
     SDL_GetWindowSize(win, &windowWidth, &windowHeight);
     int rendererWidth,rendererHeight; // ow and oh for output width and height
@@ -50,10 +49,7 @@ inline Vec2 getPixelScale(SDL_Window *win) {
     
     // on MacOS when high DPI is enabled, both of these should equal to 2,
     // Most cases this should just be one.
-    return {
-        (float)rendererWidth / windowWidth,
-        (float)rendererHeight / windowHeight
-    };
+    return (float)rendererWidth / (float)windowWidth;
 }
 
 inline SDL_Point getMousePixelPosition() {

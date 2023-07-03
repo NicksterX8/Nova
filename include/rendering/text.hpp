@@ -65,13 +65,16 @@ public:
 };
 
 struct TextRenderingSettings {
-    glm::vec4 color = {0,0,0,1};
+    SDL_Color color = {0,0,0,255};
     glm::vec2 scale = glm::vec2(1.0f);
+    bool orderMatters = false;
 
     TextRenderingSettings() = default;
 
-    TextRenderingSettings(glm::vec4 color, glm::vec2 scale = glm::vec2{1.0f})
+    TextRenderingSettings(SDL_Color color, glm::vec2 scale = glm::vec2{1.0f})
     : color(color), scale(scale) {}
+
+    TextRenderingSettings(glm::vec2 scale) : scale(scale) {}
 };
 
 struct Character {
@@ -133,20 +136,33 @@ struct Font {
 
     FT_Face face = nullptr;
     glm::ivec2 atlasSize = {0, 0};
-    float tabWidth = 0.0f; // times space char advance
-    float lineHeight = 0.0f; // times the font face height
+    float tabWidthScale = 0.0f; // times space char advance
+    float lineHeightScale = 0.0f; // times the font face height
     GLuint atlasTexture = 0;
-    unsigned short spaceCharAdvance = 0; // advance in pixels
     AtlasCharacterData characters = {};
 
     char firstChar = -1;
     char lastChar = -1;
 
+    bool usingSDFs = false;
+
+    FT_UInt baseHeight;
+    float scale;
+
     Font() = default;
 
-    Font(float tabWidth, float lineHeight, const char* fontfile, FT_UInt height, bool useSDFs, char firstChar=32, char lastChar=127);
+    Font(float tabWidth, float lineHeight, const char* fontfile, FT_UInt baseHeight, float scale, bool useSDFs, char firstChar, char lastChar, GLuint textureUnit);
 
     void unload();
+
+    // true height
+    float height() {
+        return face->height >> 6;
+    }
+
+    float tabPixels() const {
+        return advance(' ') * tabWidthScale;
+    }
 
     glm::ivec2 position(char c) const {
         assert(c >= firstChar && c <= lastChar && "character not available in font!");
@@ -163,98 +179,108 @@ struct Font {
         return characters.bearings[c - firstChar];
     }
 
+    // right shift 6 to get advance in true size
     unsigned int advance(char c) const {
         assert(c >= firstChar && c <= lastChar && "character not available in font!");
         return characters.advances[c - firstChar];
     }
+
+    void load(FT_UInt height, GLuint textureUnit, bool useSDFs = false);
+};
+
+struct CharacterLayoutData {
+    glm::vec2 size = {0, 0};
+    glm::vec2 origin = {0, 0};
+    llvm::SmallVector<char> characters;
+    llvm::SmallVector<glm::vec2> characterOffsets;
+};
+
+struct TextRenderBatch {
+    TextRenderingSettings settings;
+    CharacterLayoutData layout;
 };
 
 struct TextRenderer {
     using FormattingSettings = TextFormattingSettings;
     using RenderingSettings = TextRenderingSettings;
 
-    const static GLint bufferCapacity = 500;
-    const static GLint bufferPositionStart = 0;
-    const static GLint bufferTexCoordStart = bufferCapacity * 4 * 2 * sizeof(GLfloat);
-
     glm::vec4 defaultColor = {0, 0, 0, 255};
-    glm::vec4 currentColor = {0, 0, 0, 255};
-    glm::vec2 *charOffsetBuffer = nullptr;
-    char *charBuffer = nullptr;
-    GLvoid *vertexBuffer = nullptr;
+
+    llvm::SmallVector<TextRenderBatch, 0> buffer;
+
     Font* font = nullptr;
     Shader shader = 0;
-    GLuint vao=0,vbo=0,ebo=0;
-    GLint bufferSize = 0;
-    int charBufferSize = 0;
+    GlModel model;
+
     FormattingSettings defaultFormatting;
     RenderingSettings defaultRendering;
     float z = 0.0f;
 
     std::array<glm::vec2, 4>* characterTexCoords = nullptr;
 
-    struct CharacterRenderData {
-        char c;
-        glm::ivec2 offset;
-    };
+    constexpr static int maxBatchSize = 5000;
 
-    void calculateCharacterTexCoords() {
-        const float textureWidth = font->atlasSize.x;
-        const float textureHeight = font->atlasSize.y;
+    // Returns a pointer to the set of 4 vectors that make up the character's texture quad on the font atlas
+    std::array<glm::vec2, 4>* getTexCoords(char c) {
+        return &characterTexCoords[c - font->firstChar];
+    }
 
-        for (unsigned char c = (unsigned char)font->firstChar; c <= font->lastChar; c++) {
-            glm::vec2* coords = characterTexCoords[c - font->firstChar].data();
-            const auto pos = font->position(c);
-            const auto size = font->size(c);
+    void calculateCharacterTexCoords(std::array<glm::vec2, 4>* texCoords) {
+        glm::vec2 textureSize = font->atlasSize;
+        const glm::ivec2* characterPositions = font->characters.positions;
+        const glm::ivec2* characterSizes = font->characters.sizes;
 
-            auto tx = (GLfloat)(pos.x + 0.0f) / textureWidth;
-            auto ty = (GLfloat)(pos.y + 0.0f) / textureHeight;
-            auto tx2 = (GLfloat)(pos.x + size.x + 0.0f) / textureWidth;
-            auto ty2 = (GLfloat)(pos.y + size.y + 0.0f) / textureHeight;
+        auto numChars = font->lastChar - font->firstChar;
+        for (int i = 0; i < numChars; i++) {
+            glm::vec2* coords = texCoords[i].data();
+            const glm::ivec2 pos  = characterPositions[i];
+            const glm::ivec2 size = characterSizes[i];
 
-            coords[0] = {tx,  ty2};
-            coords[1] = {tx,  ty};
-            coords[2] = {tx2, ty};
+            auto tx  = (GLfloat)(pos.x) / textureSize.x;
+            auto ty  = (GLfloat)(pos.y) / textureSize.y;
+            auto tx2 = (GLfloat)(pos.x + size.x) / textureSize.x;
+            auto ty2 = (GLfloat)(pos.y + size.y) / textureSize.y;
+
+            coords[0] = {tx , ty2};
+            coords[1] = {tx , ty };
+            coords[2] = {tx2, ty };
             coords[3] = {tx2, ty2};
         }
     }
 
     static TextRenderer init(Font* font, Shader shader, float z) {
         TextRenderer self;
-        self.bufferSize = 0;
         self.font = font;
         self.defaultColor = {0,0,0,0};
-        self.currentColor = {NAN, NAN, NAN, NAN};
         self.shader = shader;
         self.z = z;
 
-        glGenVertexArrays(1, &self.vao);
-        glGenBuffers(1, &self.vbo);
-        glGenBuffers(1, &self.ebo);
-        glBindVertexArray(self.vao);
-        glBindBuffer(GL_ARRAY_BUFFER, self.vbo);
-        glBufferData(GL_ARRAY_BUFFER, bufferCapacity * 4 * (2 * sizeof(GLfloat) + 2 * sizeof(GLfloat)), NULL, GL_STREAM_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferCapacity * 6 * sizeof(GLushort), NULL, GL_STREAM_DRAW);
+        self.model = GlGenModel();
+        self.model.bindAll();
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, maxBatchSize * 6 * sizeof(GLushort), NULL, GL_STATIC_DRAW);
         GLushort* indices = (GLushort*)glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
-        generateQuadVertexIndices(bufferCapacity, indices);
+        generateQuadVertexIndices(maxBatchSize, indices);
         glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+
+        // position
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), 0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+        // tex coord
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (void*)(bufferTexCoordStart));
-        self.vertexBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+
+
+
+
+        // unbind buffers just in case
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
 
         // allocate buffers
-        self.charBuffer = (char*)malloc(bufferCapacity * sizeof(char));
-        self.charOffsetBuffer = (glm::vec2*)malloc(bufferCapacity * sizeof(glm::vec2));
-        self.charBufferSize = 0;
         self.defaultFormatting = FormattingSettings::Default();
-        self.characterTexCoords = Alloc<std::array<glm::vec2, 4>>(font->lastChar - font->firstChar + 1);
 
-        self.calculateCharacterTexCoords();
+        self.characterTexCoords = Alloc<std::array<glm::vec2, 4>>(font->lastChar - font->firstChar + 1); // last char is inclusive so add 1
+        self.calculateCharacterTexCoords(self.characterTexCoords);
 
         return self;
     }
@@ -265,14 +291,14 @@ struct TextRenderer {
         for (int i = 0; i < textLength; i++) {
             char c = text[i];
             if (c == '\n') {
-                cy -= font->lineHeight * (font->face->height >> 6);
+                cy -= font->lineHeightScale * (font->face->height >> 6);
                 mx = cx > mx ? cx : mx;
                 cx = 0.0f;
                 continue;
             }
             else if (c == '\t') {
                 // tab
-                cx += font->tabWidth * (font->spaceCharAdvance >> 6);
+                cx += font->tabPixels();
                 continue;
             }
             else if (c < font->firstChar || c > font->lastChar) {
@@ -288,11 +314,9 @@ struct TextRenderer {
         return glm::vec2(mx, -my);
     }
 
-    struct CharacterLayoutData {
-        glm::vec2 size;
-        glm::vec2 origin;
-        int characterCount;
-    };
+    float lineHeight(float scale) {
+       return scale * font->height();
+    }
 
     void alignLine(const char* line, int lineLength, glm::vec2* lineOffsets, HoriAlignment align) {
         if (align != HoriAlignment::Left) {
@@ -311,24 +335,36 @@ struct TextRenderer {
         }
     }
 
-    CharacterLayoutData formatText(const char* text, int textLength, char* characters, glm::vec2 *offsets, FormattingSettings settings) {
+    // TODO: fix bug with maxWidth scaling thing
+
+    // This is where the magic happens
+    CharacterLayoutData format(const char* text, int textLength, FormattingSettings settings) {
+        // current x, current y
         float cx = 0.0f,cy = 0.0f;
+        // max X, max Y
         float mx = 0.0f,my = 0.0f;
-        int charCount = 0;
         int lineLength = 0;
+
+        CharacterLayoutData layout = {};
+
         for (int i = 0; i < textLength; i++) {
             char c = text[i];
-            bool whitespaceChar = false; // character that makes whitespace like space, tab, newline
-            if (c == ' ') {
+            float charPixelsAdvance = 0.0f;
+            bool whitespaceChar = false;
+            if (c == '\n') {
                 whitespaceChar = true;
-                if (cx + (float)(font->spaceCharAdvance >> 6) >= settings.maxWidth) {
-                    goto newline;
-                }
-                cx += font->spaceCharAdvance >> 6;
-                goto cx_changed;
+                goto newline;
+            } else if (c == '\t') {
+                charPixelsAdvance = font->tabPixels();
+                whitespaceChar = true;
+                goto ready;
+            } else if (c < font->firstChar || c > font->lastChar) {
+                // turn unsupported characters into hashtags
+                c = '#';
             }
-            else if (c == '\n') {
-                whitespaceChar = true;
+            charPixelsAdvance = (float)(font->advance(c) >> 6);
+        ready:
+            if (cx + charPixelsAdvance + font->size(c).x >= settings.maxWidth) {
             newline:
                 if (settings.align.horizontal != HoriAlignment::Left) {
                     // shift whole line over to correct alignment location (center or right)
@@ -338,45 +374,25 @@ struct TextRenderer {
                     } else if (settings.align.horizontal == HoriAlignment::Center) {
                         lineMovement = cx/2.0f;
                     }
+                    // shift the lineLength most recent characters back by lineMovement
                     for (int j = 0; j < lineLength; j++) {
-                        offsets[charCount - j - 1].x -= lineMovement;
+                        // should be impossible for layout.characters.size to be less than lineLength
+                        layout.characterOffsets[layout.characters.size() - j - 1].x -= lineMovement;
                     }
                     // reset line
                     lineLength = 0;
                 }
 
-                cy -= font->lineHeight * (font->face->height >> 6);
+                cy -= font->lineHeightScale * (font->face->height >> 6);
                 mx = MAX(MAX(mx, cx), settings.maxWidth);
                 cx = 0.0f;
-                continue;
-            }
-            else if (c == '\t') {
-                whitespaceChar = true;
-                cx += font->tabWidth * (font->spaceCharAdvance >> 6);
-                goto cx_changed;
-            }
-            else if (c < font->firstChar || c > font->lastChar) {
-                // skip unsupported characters
-                continue;
             }
 
-            (void)whitespaceChar;
-
-            offsets[charCount] = glm::vec2(cx, cy);
-            characters[charCount] = c;
-            charCount++;
-            lineLength++;
-
-            // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-            cx += (font->advance(c) >> 6); // bitshift by 6 to get value in pixels (2^6 = 64)
-        cx_changed:
-            if (cx >= settings.maxWidth) {
-                // TODO: this doesn't work
-                /*
-                if (settings.wrapOnSpace) {
-
-                }*/
-                goto newline;
+            if (!whitespaceChar) {
+                layout.characters.push_back(c);
+                layout.characterOffsets.push_back(glm::vec2(cx, cy));
+                lineLength++;
+                cx += charPixelsAdvance;
             }
         }
 
@@ -389,7 +405,7 @@ struct TextRenderer {
                 lineMovement = cx/2.0f;
             }
             for (int j = 0; j < lineLength; j++) {
-                offsets[charCount - j - 1].x -= lineMovement;
+                layout.characterOffsets[layout.characters.size() - j - 1].x -= lineMovement;
             }
             // reset line
             lineLength = 0;
@@ -400,52 +416,76 @@ struct TextRenderer {
         mx = cx > mx ? cx : mx;
         my = cy < my ? cy : my;
 
+        float line = lineHeight(1.0f); // scaled later, so no need to scale here
+        float ascender = (float)(font->face->ascender >> 6);
+        float descender = (float)(font->face->descender >> 6);
         switch (settings.align.vertical) {
+        case VertAlignment::Top:
+            origin.y += line + ascender;
+            break;
         case VertAlignment::Middle:
             origin.y += my/2.0f;
+            origin.y += line/2.0f;
             break;
         case VertAlignment::Bottom:
             origin.y += my;
+            origin.y += descender;
             break;
         default:
             break;
         }
-        return CharacterLayoutData{
-            .size = {mx, -my + (font->face->height >> 6)},
-            .origin = origin,
-            .characterCount = charCount
-        };
+
+        layout.size = {mx, -my + (font->face->height >> 6)};
+        layout.origin = origin;
+        return layout;
     }
 
-    void buffer(int numChars, const char* chars, const glm::vec2* offsets, glm::vec2 pos, RenderingSettings settings) {
-        assert(bufferSize + numChars <= bufferCapacity);
-        for (int i = 0; i < numChars; i++) {
-            char c = chars[i];
-            glm::vec2 offset = offsets[i];
+private:
+    void renderBatch(const TextRenderBatch* batch, GLfloat* verticesOut) {
+        //assert(buffer.size + numChars <= bufferCapacity);
+        const auto& layout = batch->layout;
+        const auto settings = batch->settings;
+        const auto count = layout.characters.size();
+        for (size_t i = 0; i < count; i++) {
+            char c = layout.characters[i];
+            glm::vec2 offset = layout.characterOffsets[i];
             auto bearing = font->bearing(c);
             auto size = font->size(c);
 
-            GLfloat x  = pos.x + (offset.x + bearing.x) * settings.scale.x;
-            GLfloat y  = pos.y + (offset.y - (size.y - bearing.y)) * settings.scale.y;
-            GLfloat x2 = x + size.x * settings.scale.x;
-            GLfloat y2 = y + size.y * settings.scale.y;
 
-            auto coords = characterTexCoords[c - font->firstChar];
+            GLfloat x  = layout.origin.x + (offset.x + bearing.x);
+            GLfloat y  = layout.origin.y + (offset.y - (size.y - bearing.y));
+            GLfloat x2 = x + size.x;
+            GLfloat y2 = y + size.y;
+
+            glm::vec2* coords = getTexCoords(c)->data();
             // update VBO for each character
             // rendering glyph texture over quad
+            const GLfloat vertices[4 * 4] = {
+                x,  y,  coords[0].x, coords[0].y,
+                x,  y2, coords[1].x, coords[1].y,
+                x2, y2, coords[2].x, coords[2].y,
+                x2, y,  coords[3].x, coords[3].y
+            };
+            
+        
+            // add to vertex buffer
+            /*
             const GLfloat positions[4][2] = {
                 {x,  y},
                 {x,  y2},
                 {x2, y2},
                 {x2, y}
-            };  
-        
-            // add to vertex buffer
+            }; 
             memcpy((char*)vertexBuffer + bufferPositionStart + (i + bufferSize) * sizeof(positions), positions, sizeof(positions));
             const float* texCoords = (float*)characterTexCoords[c - font->firstChar].data();
             memcpy((char*)vertexBuffer + bufferTexCoordStart + (i + bufferSize) * 4 * sizeof(glm::vec2), texCoords, 4 * sizeof(glm::vec2));
+            */
+            //buffer.push(vertices, 16);
+            memcpy(verticesOut + i * 16, vertices, sizeof(vertices));
         }
     }
+public:
 
     inline FRect render(const char* text, glm::vec2 pos) {
         return render(text, pos, defaultFormatting, defaultRendering);
@@ -455,28 +495,22 @@ struct TextRenderer {
         return render(text, strlen(text), pos, formatSettings, renderSettings);
     }
 
-    inline void unionRectInPlace(FRect* r, FRect* b) {
-        r->x = MIN(r->x, b->x);
-        r->y = MIN(r->y, b->y);
-        r->w = MAX(r->x + r->w, b->x + b->w) - r->x;
-        r->h = MAX(r->y + r->h, b->y + b->h) - r->y;
-    }
-
-    FRect renderStringBufferAsLinesReverse(const My::StringBuffer& strings, int maxLines, glm::vec2 pos, My::Vec<glm::vec4> colors, glm::vec2 scale, FormattingSettings formatSettings) {
+    FRect renderStringBufferAsLinesReverse(const My::StringBuffer& strings, int maxLines, glm::vec2 pos, My::Vec<SDL_Color> colors, glm::vec2 scale, FormattingSettings formatSettings) {
         FRect maxRect = {pos.x,pos.y,0,0};
         glm::vec2 offset = {0, 0};
         int i = 0;
         strings.forEachStrReverse([&](char* str) -> bool{
             if (i >= maxLines) return true;
             FRect rect = render(str, pos + offset, formatSettings, TextRenderingSettings{colors[colors.size - 1 - i], scale});
-            this->flush();
-            unionRectInPlace(&maxRect, &rect);
+            //unionRectInPlace(&maxRect, &rect);
+            SDL_UnionFRect(&maxRect, &rect, &maxRect);
             offset.y += rect.h;
             // do line break
-            offset.y += font->lineHeight * (font->face->height >> 6) * scale.y;
+            offset.y += font->lineHeightScale * (font->face->height >> 6) * scale.y;
             i++;
             return false;
         });
+
         return maxRect;
     }
 
@@ -484,38 +518,50 @@ struct TextRenderer {
         if (!this->font || !this->font->face) {
             return {0, 0, 0, 0};
         }
-        if (currentColor != renderSettings.color) {
-            // can only buffer one color text at a time. may be changed to have color in vertex data.
-            if (bufferSize > 0) {
-                flush();
-            }
-            currentColor = renderSettings.color;
-        }
 
         Vec2 bigMin = {pos.x, pos.y};
         Vec2 maxSize = {0, 0};
         int textParsed = 0;
         while (textParsed < textLength) {
-            if (bufferSize >= bufferCapacity) {
-                flush();
+            int batchSize = MIN(maxBatchSize, textLength);
+
+            auto layout = format(&text[textParsed], batchSize, formatSettings);
+            int charsToBuffer = layout.characters.size(); // not all characters need to actually be buffered (space, tab, etc)
+            layout.origin = pos/renderSettings.scale - layout.origin;
+            maxSize.x = MAX(maxSize.x, layout.size.x);
+            maxSize.y = MAX(maxSize.y, layout.size.y);
+
+            // For merging batches to help performance, try later 
+            /*
+            if (!buffer.empty()) {
+                auto& lastBatch = buffer.back();
+                auto lastBatchSettings = lastBatch.settings;
+                if (!lastBatchSettings.orderMatters && lastBatchSettings.color == renderSettings.color && lastBatchSettings.scale == renderSettings.scale) {
+                    // share batch
+                    lastBatch.layout.characters.append(layout.characters);
+                    lastBatch.layout.characterOffsets.append(layout.characterOffsets);
+                    lastBatch.layout.size 
+                }
+                
             }
+            */
 
-            int bufferSpace = bufferCapacity - bufferSize;
-            int batchSize = MIN(bufferSpace, textLength);
+            TextRenderBatch batch = {
+                .layout = layout,
+                .settings = renderSettings
+            };
+            buffer.push_back(batch);
 
-            auto layoutData = formatText(&text[textParsed], batchSize, charBuffer, charOffsetBuffer, formatSettings);
-            int charsToBuffer = layoutData.characterCount; // not all characters need to actually be buffered (space, tab, etc)
-            Vec2 origin = pos - layoutData.origin;
-            Vec2 size = layoutData.size;
-            //bigMin.x = MIN(bigMin.x, origin.x);
-            //bigMin.y = MIN(bigMin.y, origin.y);
-            maxSize.x = MAX(maxSize.x, size.x);
-            maxSize.y = MAX(maxSize.y, size.y);
-
-            buffer(charsToBuffer, charBuffer, charOffsetBuffer, origin, renderSettings);
+            /*
+            buffer(charsToBuffer, layout.characters.data(), layout.characterOffsets.data(), origin, renderSettings);
+            buffer(layout, renderSettings)
+            */
             textParsed += batchSize;
-            bufferSize += charsToBuffer;
         }
+
+        // size will be smaller after scaling. format() does not account for it so we do here.
+        maxSize *= renderSettings.scale;
+
         return SDL_FRect{
             bigMin.x,
             bigMin.y,
@@ -524,28 +570,43 @@ struct TextRenderer {
         };
     }
 
-    void flush() {
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glUnmapBuffer(GL_ARRAY_BUFFER);
-        // render quads
-        shader.use();
-        shader.setVec3("textColor", glm::vec3(currentColor));
-        
+    // texture will be bound on the active texture
+    void flush(glm::mat4 transform, GLuint textureUnit) {
+        glBindVertexArray(model.vao);
+        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
+
+        glActiveTexture(GL_TEXTURE0 + textureUnit);
         glBindTexture(GL_TEXTURE_2D, font->atlasTexture);
-        glDrawElements(GL_TRIANGLES, 6 * bufferSize, GL_UNSIGNED_SHORT, NULL);
-        vertexBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-        bufferSize = 0;
+        shader.use();
+
+        unsigned int maxCharacters = 0;
+        for (auto& batch : buffer) {
+            int batchCharacters = batch.layout.characters.size();
+            assert(batchCharacters < maxBatchSize && "Character batch too large!");
+            maxCharacters = MAX(batchCharacters, maxCharacters);
+        }
+
+        const GLuint maxVertices = maxCharacters * 4;
+        const GLuint maxFloats = maxVertices * 4;
+
+        glBufferData(GL_ARRAY_BUFFER, maxFloats * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+
+        for (int i = 0; i < buffer.size(); i++) {
+            const auto* batch = &buffer[i];
+            shader.setVec3("textColor", colorConvert(batch->settings.color));
+            shader.setMat4("transform", glm::scale(transform, glm::vec3(batch->settings.scale, 1.0f)));
+            auto* vertexBuffer = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+            renderBatch(batch, vertexBuffer);
+            glUnmapBuffer(GL_ARRAY_BUFFER);
+            glDrawElements(GL_TRIANGLES, 6 * batch->layout.characters.size(), GL_UNSIGNED_SHORT, NULL);
+        }
+        buffer.clear();
     }
 
     void destroy() {
-        glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, this->model.vbo);
         glUnmapBuffer(GL_ARRAY_BUFFER);
-        glDeleteVertexArrays(1, &this->vao);
-        glDeleteBuffers(1, &this->vbo);
-        glDeleteBuffers(1, &this->ebo);
-        free(this->charBuffer);
-        free(this->charOffsetBuffer);
+        this->model.destroy();
         Free(characterTexCoords);
     }
 };

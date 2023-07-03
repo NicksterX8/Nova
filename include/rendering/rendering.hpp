@@ -8,7 +8,7 @@
 #include "textures.hpp"
 #include "GUI/Gui.hpp"
 
-#include "Drawing.hpp"
+#include "drawing.hpp"
 #include "Shader.hpp"
 #include "../Camera.hpp"
 #include "utils.hpp"
@@ -23,15 +23,9 @@ struct TilemapVertex {
     glm::vec3 texCoord;
 };
 
-namespace Render {
-    constexpr int numChunkVerts = CHUNKSIZE * CHUNKSIZE * 4;
-    constexpr int numChunkFloats = numChunkVerts * sizeof(TilemapVertex) / sizeof(float);
-    constexpr int numChunkIndices = 6 * CHUNKSIZE * CHUNKSIZE;
-}
 
 void renderInit(RenderContext& ren);
 void renderQuit(RenderContext& ren);
-void render(RenderContext& ren, float scale, Gui* gui, GameState* state, Camera& camera, Vec2 playerTargetPos);
-
+void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* state, Camera& camera, Vec2 playerTargetPos, Mode mode);
 
 #endif

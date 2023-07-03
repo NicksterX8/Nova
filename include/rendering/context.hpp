@@ -5,9 +5,11 @@
 #include "Shader.hpp"
 #include "text.hpp"
 #include "My/Vec.hpp"
+#include "renderers.hpp"
+#include "rendering/gui.hpp"
 
 namespace TextureUnits {
-    enum E {
+    enum E : GLuint {
         MyTextureArray=0,
         Text=1,
         Single
@@ -74,31 +76,29 @@ struct ShaderManager {
     }
 };
 
+using ChunkVertexMap = My::HashMap<IVec2, int32_t, IVec2Hash>;
+
+struct ChunkBuffer {
+    ChunkVertexMap map = ChunkVertexMap::Empty();
+    size_t chunksStored = 0;
+    static constexpr size_t bufferChunkCapacity = (8 * 1024 * 1024) / (CHUNKSIZE * CHUNKSIZE * 4 * 5 * sizeof(GLfloat));
+};
+
 struct RenderContext {
     SDL_Window* window = NULL;
     SDL_GLContext glCtx = NULL;
-    GLuint textureArray = 0;
-
-    /*
-    Shader entityShader;
-    Shader tilemapShader;
-    Shader pointShader;
-    Shader colorShader;
-    Shader textShader;
-    Shader sdfShader;
-    Shader textureShader;
-    */
-
+    TextureManager textures{0};
+    TextureArray textureArray;
     ShaderManager shaders;
-
-
 
     Font font;
     Font debugFont;
     TextRenderer textRenderer;
     QuadRenderer quadRenderer;
+    GuiRenderer guiRenderer;
 
-    ModelData chunkModel;
+    GlModel chunkModel;
+    ChunkBuffer chunkBuffer;
 
     RenderContext(SDL_Window* window, SDL_GLContext glContext)
     : window(window), glCtx(glContext) {}

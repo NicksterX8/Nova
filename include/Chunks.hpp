@@ -68,31 +68,7 @@ void generateChunk(ChunkData* chunk);
 #define CHUNKDATA_BUCKET_SIZE 512
 
 struct ChunkMap {
-    struct KeyHash {
-        My::Map::Hash operator()(const IVec2& point) const {
-            //return std::hash<int>()(((point.x - 32768) << 16) + (point.y - 32768));
-            
-            constexpr size_t hashTypeHalfBits = sizeof(My::Map::Hash) * CHAR_BIT / 2;
-            static_assert(sizeof(point) == sizeof(My::Map::Hash), "point fits into hash");
-            /*
-            // y coordinate is most significant 32 bits, x least significant 32 bits
-            return ((size_t)point.y << hashTypeHalfBits) | ((size_t)point.x);
-            */
-            //return std::hash<size_t>()(*(size_t*)&point);
-            if (/*Metadata && Metadata->seconds() < 12.0*/ false) {
-                constexpr std::hash<int> hasher;
-                //return hasher(point.y) ^ hasher(point.x);
-                My::Map::Hash hash;
-                hash = (hasher(point.y - (1 << 31)) << 32) | hasher(point.x - (1 << 31));
-                return hash;
-            } else if (Metadata && Metadata->seconds() > 12.0 && Metadata->seconds() < 22.0) {
-                return ((size_t)point.y << hashTypeHalfBits) | ((size_t)point.x);
-            } else {
-                return ((size_t)point.y << hashTypeHalfBits) | ((size_t)point.x); 
-            } 
-        }
-    };
-    using InternalChunkMap = My::HashMap<IVec2, ChunkData, KeyHash>;
+    using InternalChunkMap = My::HashMap<IVec2, ChunkData, IVec2Hash>;
     using ChunkBucketArray = My::BucketArray<Chunk, CHUNK_BUCKET_SIZE>;
     // TODO: try to use a hybrid map so we dont need this bucket array
     using ChunkDataBucketArray = My::BucketArray< ChunkData, CHUNKDATA_BUCKET_SIZE>;
@@ -115,6 +91,11 @@ struct ChunkMap {
     * Returns NULL if the chunk couldn't be found.
     */
     ChunkData* get(IVec2 chunkPosition) const;
+
+    // Returns true if a chunk exists in the map at the position
+    bool existsAt(IVec2 chunkPosition) const {
+        return map.contains(chunkPosition);
+    }
 
     ChunkData* newChunkAt(IVec2 position);
 

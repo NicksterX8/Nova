@@ -174,36 +174,6 @@ void initPaths() {
 
 void tests() {
 
-    auto texture = packTextures(0, nullptr, RGBA32PixelSize, nullptr);
-    IVec2 zero = {0, 0};
-    assert(texture.buffer == nullptr && texture.size == zero);
-    free(texture.buffer);
-
-    auto grassTx = loadTexture(FileSystem.assets.get("tiles/grass.png"));
-    auto blankTx = createUninitTexture(grassTx.size + IVec2{100, 100}, RGBA32PixelSize);
-    fillTextureBlack(blankTx);
-    //copyTexture(blankTx, grassTx, {100, 100});
-    auto sandTx = loadTexture(FileSystem.assets.get("tiles/sand.png"));
-    auto waterTx = loadTexture(FileSystem.assets.get("tiles/space-floor.png"));
-    copyTexture(grassTx, sandTx, {0, 0});
-
-    Texture textures[3] = {grassTx, sandTx, waterTx};
-    auto packedTx = packTextures(3, textures, 4, nullptr);
-    auto gltexture = loadGLTexture(packedTx);
-    g.textTexture = gltexture;
-
-    freeTexture(grassTx);
-    freeTexture(sandTx);
-    freeTexture(waterTx);
-
-    Item item = Item();
-    item.type = ItemTypes::Grenade;
-    ItemStack stack(item);
-    stack.quantity = 5;
-    assert(stack.reduceQuantity(3) == 3);
-    assert(stack.quantity == 2 && stack.item.type == ItemTypes::Grenade);
-    assert(stack.reduceQuantity(items::ItemQuantityInfinity) == 2);
-    assert(stack.quantity == 0 && stack.item.type == ItemTypes::None);
 }
 
 int main(int argc, char** argv) { 

@@ -3,12 +3,51 @@
 
 #include "constants.hpp"
 #include "utils/Log.hpp"
+#include "My/String.hpp"
 
 struct Globals {
     unsigned int textTexture = 0;
 };
 
 extern Globals g;
+
+enum Mode : int {
+    NullMode,
+    Unstarted,
+    Paused,
+    Playing,
+    Quit,
+    Testing,
+    NumModes
+};
+static constexpr Mode FirstMode = Unstarted;
+
+inline const char* modeName(Mode mode) {
+    switch (mode) {
+    case Unstarted:
+        return "unstarted";
+    case Paused:
+        return "paused";
+    case Playing:
+        return "playing";
+    case Quit:
+        return "quit";
+    case Testing:
+        return "testing";
+    default:
+        break;
+    }
+    return "null";
+}
+
+inline Mode modeID(const char* mode) {
+    for (int i = NullMode; i < NumModes; i++) {
+        if (My::streq(modeName((Mode)i), mode)) {
+            return (Mode)i;
+        }
+    }
+    return NullMode;
+}
 
 
 enum class CrashReason {

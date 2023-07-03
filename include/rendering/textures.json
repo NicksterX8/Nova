@@ -1,0 +1,15 @@
+{
+    "tiles": {
+        "grass": {
+            "filename": "grass.png"
+        },
+        "sand": {
+            "filename": "sand.png"
+        }
+    },
+    "other": {
+        "gun": {
+            "filename": "gun.png"
+        }
+    }
+}

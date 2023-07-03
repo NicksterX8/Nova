@@ -75,7 +75,8 @@ void EntityManager::Destroy(Entity entity) {
     EntityData* entityData = &entityDataList[entity.id];
 
     if (!EntityExists(entity)) {
-        LogError("ECS::Remove %s : Attempted to remove a non-existent entity! Returning -1. Entity: %s", entity.DebugStr());
+        LogError("Attempted to remove a non-existent entity! Entity: %s", entity.DebugStr());
+        return;
     }
 
     for (Uint32 id = 0; id < nComponents; id++) {

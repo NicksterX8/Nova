@@ -12,6 +12,10 @@
 #include "ECS/entities/methods.hpp"
 #include "utils/Log.hpp"
 #include "My/String.hpp"
+#include "Camera.hpp"
+#include "commands.hpp"
+
+struct Game;
 
 inline Vec2 getMouseWorldPosition(const Camera& camera) {
     SDL_Point pixelPosition = SDL::getMousePixelPosition();
@@ -130,7 +134,6 @@ public:
             delete keyBinding;
         }
         keyBindings.destroy();
-        //enteredText->destroy();
     }
     
     /* 
@@ -161,14 +164,12 @@ public:
         if (mouseState.buttons & SDL_BUTTON_LMASK) {
             // only do it if the isnt in the gui either currently or previously
             if (!gui->pointInArea({mouseState.x, mouseState.y}) || !gui->pointInArea({prevMouseState.x, prevMouseState.y})) {
-                int lineSize;
-                IVec2* line = worldLine(prevWorldPos, newWorldPos, &lineSize); defer {Free(line);};
-                //Tile* tiles = Alloc<Tile>(lineSize); defer {Free(tiles);};
-                ScopedAlloc(Tile, tiles, lineSize);
-                getTiles(state->chunkmap, line, tiles, lineSize);
+                auto line = raytraceDDA(prevWorldPos, newWorldPos);
+                ScopedAlloc(Tile, tiles, line.size());
+                getTiles(state->chunkmap, line.data(), tiles, line.size());
                 auto heldItemStack = state->player.heldItemStack;
                 if (heldItemStack && state->player.canPlaceItemStack(*heldItemStack)) {
-                    for (int i = 0; i < lineSize; i++) {
+                    for (int i = 0; i < line.size(); i++) {
                         Tile* tile = getTileAtPosition(state->chunkmap, line[i]);
                         if (tile) {
                             state->player.tryPlaceItemStack(*heldItemStack, tile, state->itemManager);
@@ -218,8 +219,6 @@ public:
         if (event.button == SDL_BUTTON_LEFT) {
 
             // make sure mouse is within display viewport
-            //if ((relativeMousePos.x >= 0 && relativeMousePos.x <= camera.displayViewport.w) &&
-            //    (relativeMousePos.y >= 0 && relativeMousePos.y <= camera.displayViewport.h)) {
             if (clickInDisplay) {
                 // first check for GUI clicks
                 if (clickOnGui) {
@@ -228,8 +227,7 @@ public:
                     // find clicked hotbar slot (if it was a click on a hotbar slot)
                     for (int slot = 0; slot < state->player.numHotbarSlots; slot++) {
                         // TODO: gui slot collision does nothing right now
-                        //SDL_FRect slotRect = gui->hotbar.slots[slot];
-                        SDL_FRect slotRect = {0, 0, 0, 0};
+                        SDL_FRect slotRect = gui->hotbar.slots[slot];
                         if (mousePos.x > slotRect.x && mousePos.x < slotRect.x + slotRect.w &&
                             mousePos.y > slotRect.y && mousePos.y < slotRect.y + slotRect.h) {
                             // click was on slot
@@ -303,48 +301,36 @@ public:
         }
     }
 
-    std::vector<GUI::Command> commands;
-
-    void makeCommands(GameState* state, GUI::Gui* gui) {
-        commands.push_back(GUI::Command::make("kill", [state, gui](const char* input){
-            int numDestroyed = 0;
-            state->ecs.ForEach< EntityQuery< ECS::RequireComponents<EC::EntityTypeEC> > >(
-            [&](Entity entity){
-                auto type = state->ecs.Get<const EC::EntityTypeEC>(entity);
-                if (My::streq(input, "ALL") || My::streq(input, type->name)) {
-                    if (state->ecs.EntityExists(entity)) {
-                        state->ecs.Destroy(entity);
-                        numDestroyed += 1;
-                    } else {
-                        LogWarn("Entity didn't exist while killing entities");
-                    }
+    void handleCommandInput(CommandInput commandInput, Gui* gui) {
+        if (!commandInput.name.empty()) {
+            // command entered
+            std::string message;
+            bool foundCommand = false;
+            for (auto& command : gCommands) {
+                if (My::streq(command.name, commandInput.name.c_str(), command.nameLength, commandInput.name.size())) {
+                    auto result = executeCommand(&command, commandInput.arguments.c_str());
+                    message = result.message;
+                    foundCommand = true;
                 }
-            });
-            char message[512];
-            snprintf(message, 512, "Killed %d entities", numDestroyed);
-            
-            gui->console.newMessage(message, {1, 0, 0, 1});
-            LogInfo("KILL! input: %s", input);
-        }));
+            }
+            if (!foundCommand) {
+                char messageBuf[256];
+                snprintf(messageBuf, 256, "Invalid command \"%s\"", commandInput.name.c_str());
+                message = std::string(messageBuf);
+            }
+
+            gui->console.newMessage(message.c_str(), GUI::Console::MessageType::CommandResult);
+        }
     }
 
-    void doCommand(GUI::Command* command, const char* arguments) {
-        command->function(arguments);
-    }
 
     void handleKeydown(const SDL_KeyboardEvent& event, GameState* state, Gui* gui) {
         const SDL_Keycode keycode = event.keysym.sym;
+        const SDL_Scancode scancode = event.keysym.scancode;
 
         if (enteringText) {
-            auto commandInput = gui->console.enterText(keycode, commands);
-            if (!commandInput.name.empty()) {
-                // command entered                    
-                for (auto& command : commands) {
-                    if (My::streq(command.name, commandInput.name.c_str(), command.nameLength, commandInput.name.size())) {
-                        doCommand(&command, commandInput.arguments.c_str());
-                    }
-                }
-            }
+            auto commandInput = gui->console.enterText(keycode, gCommands);
+            handleCommandInput(commandInput, gui);
         } else {
             switch (keycode) {
                 case 'e': {
@@ -387,8 +373,9 @@ public:
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                 wireframeModeEnabled ^= 1;
             break;}
-            case '[':
+            case SDLK_RETURN:
                 enteringText = !enteringText;
+                gui->consoleOpen = enteringText;
                 break;
             default:
                 break;
@@ -455,7 +442,7 @@ public:
             if (sidewaysInput || updownInput) {
                 glm::vec2 moveVector = glm::normalize(glm::vec2(sidewaysInput, updownInput));
                 float angle = glm::radians(state->player.entity.Get<EC::Rotation>(&state->ecs)->degrees);
-                /* no */ angle = 0.0f;
+                /* no */ //angle = 0.0f;
                 glm::vec2 movement = glm::vec2(
                     moveVector.x * cos(angle) - moveVector.y * sin(angle),
                     moveVector.x * sin(angle) + moveVector.y * cos(angle)
@@ -466,6 +453,7 @@ public:
 
             auto playerRotation = state->player.entity.Get<EC::Rotation>(&state->ecs);
             playerRotation->degrees += rotationInput * PLAYER_ROTATION_SPEED;
+            camera.setAngle(playerRotation->degrees);
         }
     }
 

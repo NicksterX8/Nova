@@ -4,7 +4,7 @@
 #include "constants.hpp"
 #include "utils/Log.hpp"
 #include "memory.hpp"
-#include "global.hpp"
+//#include "global.hpp"
 
 #define MY_NAMESPACE_NAME My
 

@@ -84,9 +84,9 @@ SDLContext initSDL() {
             SDL_FreeSurface(iconImage);
         }
     }
-    
-    context.scale = SDL::getPixelScale(context.win).x;
-    SDL::pixelScale = context.scale;
+
+
+    SDL::pixelScale = SDL::getPixelScale(context.win);
 
     SDL_Log("SDL Window Context initialized.");
 

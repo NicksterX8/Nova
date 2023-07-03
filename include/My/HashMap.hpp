@@ -6,6 +6,7 @@
 #include "Vec.hpp"
 #include "std.hpp"
 #include "../utils/vectors.hpp"
+#include "utils/Metadata.hpp"
 
 #define BITMASK_BOTTOM_62 0x3fffffffffffffffULL
 
@@ -386,8 +387,7 @@ public:
         return false;
     }
 
-    bool contains(KeyParamT key) {
-        //lookupCount++;
+    bool contains(KeyParamT key) const {
         // have to do this before doing hash % size because x % 0 is undefined behavior
         if (size < 1) return false;
 
@@ -426,6 +426,11 @@ public:
         return false;
     }
 
+    void clear() {
+        memset(memory, 0, bucketCount * (sizeof(Bucket) + sizeof(K) + sizeof(V)));
+        size = 0;
+    }
+
     void destroy() {
         MY_free(memory);
         size = 0;
@@ -440,5 +445,14 @@ static_assert(sizeof(HashMap<int,int>) == sizeof(Generic::HashMap), "generic has
 using Map::HashMap;
 
 MY_CLASS_END
+
+struct IVec2Hash {
+    My::Map::Hash operator()(const IVec2& point) const {
+        constexpr size_t hashTypeHalfBits = sizeof(My::Map::Hash) * 8 / 2;
+        static_assert(sizeof(point) == sizeof(My::Map::Hash), "point fits into hash");
+        // y coordinate is most significant 32 bits, x least significant 32 bits
+        return ((size_t)point.y << hashTypeHalfBits) | ((size_t)point.x); 
+    }
+};
 
 #endif

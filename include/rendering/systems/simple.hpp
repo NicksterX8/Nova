@@ -22,7 +22,7 @@ struct RenderSystem {
 
     float scale = 1.0f;
 
-    ModelData model;
+    GlModel model;
 
     const static GLint entitiesPerBatch = 1000;
     const static GLint verticesPerEntity = 4;
@@ -36,50 +36,29 @@ struct RenderSystem {
     const static size_t bufferSize = verticesPerBatch * vertexSize;
 
     RenderSystem() {
-        GLuint vbo,ebo,vao;
-        glGenBuffers(1, &vbo);
-        glGenBuffers(1, &ebo);
-        glGenVertexArrays(1, &vao);
+        model = GlGenModel();
+        model.bindAll();
 
-        glBindVertexArray(vao);
-
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferData(GL_ARRAY_BUFFER, bufferSize, NULL, GL_STREAM_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesPerBatch * sizeof(GLuint), NULL, GL_STATIC_DRAW);
- 
-        /*
-        // position
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
-        glEnableVertexAttribArray(0);
-        // texture coord
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (void*)((size_t)positionEntityVertexSize * entitiesPerBatch));
-        glEnableVertexAttribArray(1);
-        // rotation
-        glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 1 * sizeof(GLfloat), (void*)(((size_t)positionEntityVertexSize + texCoordEntityVertexSize) * entitiesPerBatch));
-        glEnableVertexAttribArray(2);
-        */
 
         // for mental model only, not actually used in c++ code at this time
         struct EntityVertex {
             GLvec3 pos;
             GLvec3 texCoord;
-            float rotation;
+            GLvec3 rotation;
         };
 
-        constexpr VertexAttribute attributes[] = {
+        constexpr GlVertexAttribute attributes[] = {
             {3, GL_FLOAT, sizeof(GLfloat)}, // pos
             {3, GL_FLOAT, sizeof(GLfloat)}, // texCoord
-            {1, GL_FLOAT, sizeof(GLfloat)}  // rotation
+            {3, GL_FLOAT, sizeof(GLfloat)}  // rotation
         };
         enableVertexAttribsSOA(&attributes[0], 3, verticesPerBatch);
- 
-        glBindVertexArray(0);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         void* elementBuffer = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
         if (!elementBuffer) {
-            LogError("bad things happened!!!");
+            LogError("Failed to map ebo!");
             return;
         }
         GLuint* indices = static_cast<GLuint*>(elementBuffer);
@@ -94,12 +73,6 @@ struct RenderSystem {
             indices[ind+4] = first+2;
             indices[ind+5] = first+3;
         }
-
-        glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-
-        model.VAO = vao;
-        model.VBO = vbo;
-        model.EBO = ebo;
     }
 
     using QueriedEntity = EntityT<EC::Render, EC::Size, EC::Position>;
@@ -144,16 +117,21 @@ struct RenderSystem {
         auto shader = ren.shaders.use(Shaders::Entity);
         shader.setMat4("transform", camTransform);
 
-        glBindVertexArray(model.VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, model.VBO);
+        glBindVertexArray(model.vao);
+        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
         VertexDataArrays buffer = mapVertexBuffer();
+        if (!buffer.positions) {
+            // can't render :(
+            return;
+        }
 
-        Vec2 cameraSize = {camera.viewWidth(), camera.viewHeight()};
+        auto textureArraySize = glm::vec2(ren.textureArray.size);
+        auto* textureData = ren.textures.data.data;
 
         int entityCounter = 0, entitiesRenderered = 0;
         forEachEntityInBounds(ecs, &chunkmap, 
-            Vec2(camera.position.x, camera.position.y),
-            cameraSize*2.0f, 
+            camera.position,
+            camera.maxCorner() - camera.minCorner(), 
         [&](EntityT<EC::Position> entity){
             if (Query::Check(ecs.EntitySignature(entity))) {
                 auto position =  ecs.Get<const EC::Position>(entity)->vec2();
@@ -165,8 +143,9 @@ struct RenderSystem {
                     rotation = ecs.Get<const EC::Rotation>(entity)->degrees;
                 }
 
-                float texMaxX = (float)TextureData[renderEC->texture].width  / MY_TEXTURE_ARRAY_WIDTH;
-                float texMaxY = (float)TextureData[renderEC->texture].height / MY_TEXTURE_ARRAY_HEIGHT;
+                glm::ivec2 textureSize = textureData[renderEC->texture].size;
+                glm::vec2 texMin = {0.5f, 0.5f};
+                glm::vec2 texMax = glm::vec2(textureSize) - glm::vec2{0.5f, 0.5f};
                 float w = size.width  / 2.0f;
                 float h = size.height / 2.0f;
                 float tex = static_cast<float>(renderEC->texture);
@@ -179,27 +158,26 @@ struct RenderSystem {
                     p.x+w,   p.y-h,   p.z,
                 };
                 const GLfloat vertexTexCoords[12] = {
-                    0.0f,     0.0f,     tex,
-                    0.0f,     texMaxY,  tex,
-                    texMaxX,  texMaxY,  tex,
-                    texMaxX,  0.0f,     tex
+                    texMin.x,  texMin.y,  tex,
+                    texMin.x,  texMax.y,  tex,
+                    texMax.x,  texMax.y,  tex,
+                    texMax.x,  texMin.y,  tex
                 };
-                const GLfloat vertexRotations[4] = {
-                    rotation,
-                    rotation,
-                    rotation,
-                    rotation
+                const GLfloat vertexRotations[12] = {
+                    rotation, p.x, p.y,
+                    rotation, p.x, p.y,
+                    rotation, p.x, p.y,
+                    rotation, p.x, p.y
                 };
 
                 memcpy(&buffer.positions[entityCounter * 12], vertexPositions, 12 * sizeof(GLfloat));
                 memcpy(&buffer.texCoords[entityCounter * 12], vertexTexCoords, 12 * sizeof(GLfloat));
-                memcpy(&buffer.rotations[entityCounter *  4], vertexRotations,  4 * sizeof(GLfloat));
+                memcpy(&buffer.rotations[entityCounter * 12], vertexRotations, 12 * sizeof(GLfloat));
                 
                 entityCounter++;
                 entitiesRenderered++;
 
                 if (entityCounter == entitiesPerBatch) {
-                    // 6 indices per entity
                     unmapVertexBuffer(&buffer); // put vertex data into effect
                     glDrawElements(GL_TRIANGLES, entityCounter*indicesPerEntity, GL_UNSIGNED_INT, 0); // draw a batch of entities
                     entityCounter = 0;
@@ -209,9 +187,13 @@ struct RenderSystem {
             }
         });
 
+        // put vertex data into effect, if the buffer exists
+        if (buffer.positions) {
+            unmapVertexBuffer(&buffer);
+        }
+
         // number of entities wasn't exactly divisible by entitiesPerBatch, so we have some left to do
         if (entityCounter > 0) {
-            unmapVertexBuffer(&buffer); // put vertex data into effect
             glDrawElements(GL_TRIANGLES, entityCounter*indicesPerEntity, GL_UNSIGNED_INT, 0); // draw a batch of entities
         }
 

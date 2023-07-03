@@ -259,6 +259,9 @@ inline void emplaceRow(Texture tex, int row, const unsigned char* src, int start
 
 inline void copyTexture(Texture dst, Texture src, glm::ivec2 dstOffset = {0, 0}) {
     assert(src.pixelSize == dst.pixelSize); // need same format to copy
+    // cut off the extra parts of the src texture
+    src.size.x = MIN(dst.size.x, src.size.x);
+    src.size.y = MIN(dst.size.y, src.size.y);
     for (int row = 0; row < src.size.y; row++) {
         //emplaceRow(dst, row + dstOffset.y, &src.buffer[row * src.size.x], dstOffset.x, src.size.x);
         int dstByteWidth = dst.size.x * dst.pixelSize;

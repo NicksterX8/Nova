@@ -9,6 +9,7 @@
 #include "PlayerControls.hpp"
 #include "rendering/rendering.hpp"
 #include "GameSave/main.hpp"
+#include "commands.hpp"
 
 #include "ECS/ECS.hpp"
 #include "ECS/systems/systems.hpp"
@@ -18,7 +19,7 @@
 #include "llvm/SmallVector.h"
 #include "llvm/ArrayRef.h"
 
-static void updateTilePixels(float scale) {
+void updateTilePixels(float scale) {
     if (scale == 0) {
         scale = 1;
     } else if (scale < 0) {
@@ -356,7 +357,10 @@ void logComponentPoolSizes(const EntityWorld& ecs) {
 }
 
 int Game::update() {
-    metadata.tick();
+    double deltaTime = metadata.tick();
+    if (deltaTime > 200.0) {
+        LogWarn("Slow frame! dt: %f", deltaTime);
+    }
 
     bool quit = false;
 
@@ -382,6 +386,11 @@ int Game::update() {
                     glViewport(0, 0, drawableWidth, drawableHeight);
                     camera.pixelWidth = (float)drawableWidth;
                     camera.pixelHeight = (float)drawableHeight;
+                }
+                if (event.window.event == SDL_WINDOWEVENT_DISPLAY_CHANGED) {
+                    SDL::pixelScale = SDL::getPixelScale(sdlCtx.win);
+                    updateTilePixels(1.0f);
+                    renderContext->font.load(renderContext->font.baseHeight * SDL::pixelScale, TextureUnit::Text);
                 }
                 break;
             case SDL_MOUSEWHEEL:
@@ -433,9 +442,13 @@ int Game::update() {
     camera.zoom = 1.0f;
 
     float scale = SDL::pixelScale;
+    RenderOptions options = {
+        {camera.pixelWidth, camera.pixelHeight},
+        scale
+    };
 
-    render(*renderContext, scale, gui, state, camera, playerTargetPos);    
-
+    render(*renderContext, options, gui, state, camera, playerTargetPos, mode);    
+    
     lastUpdateMouseState = mouse;
     lastUpdatePlayerTargetPos = playerTargetPos;
 
@@ -454,14 +467,14 @@ void Game::init(int screenWidth, int screenHeight) {
     this->state = new GameState();
     this->state->init();
     loadTileData(this->state->itemManager);
-    for (int e = 0; e < 2000; e++) {
-        Vec2 pos = {(float)randomInt(-200, 200), (float)randomInt(-200, 200)};
-        auto tree = Entities::Tree(&state->ecs, pos, {1, 1});
+    for (int e = 0; e < 200; e++) {
+        Vec2 pos = {(float)randomInt(-400, 400), (float)randomInt(-400, 400)};
+        // do placing collision checks
+        auto tree = Entities::Tree(&state->ecs, pos, {4, 4});
         (void)tree;
     }
 
     this->renderContext = new RenderContext(sdlCtx.win, sdlCtx.gl);
-    setTextureMetadata();
     this->worldScale = 1.0f;
     this->playerControls = new PlayerControls(this->camera);
     SDL_Point mousePos = SDL::getMousePixelPosition();
@@ -480,10 +493,13 @@ void Game::init(int screenWidth, int screenHeight) {
 
     LogInfo("starting render init");  
     renderInit(*renderContext);
+
+    setCommands(this);
 }
 
 void Game::quit() {
     LogInfo("Quitting!");
+    mode = Quit;
 
     renderQuit(*renderContext);
 
@@ -505,6 +521,7 @@ void Game::start() {
     Metadata = &metadata;
 
     LogInfo("Starting!");
+    mode = Playing;
 
     if (metadata.vsyncEnabled) {
         metadata.setTargetFps(60);

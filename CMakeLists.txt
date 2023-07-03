@@ -29,6 +29,7 @@ set(SRC_FILES
     ${SD}/Tiles.cpp
     ${SD}/Game.cpp
     ${SD}/PlayerControls.cpp
+    ${SD}/commands.cpp
     ${SD}/GameState.cpp
     ${SD}/rendering/textures.cpp
     ${SD}/rendering/text.cpp

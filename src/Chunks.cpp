@@ -14,20 +14,21 @@ void generateChunk(ChunkData* chunkdata) {
     for (int row = 0; row < CHUNKSIZE; row++) {
         for (int col = 0; col < CHUNKSIZE; col++) {
             TileType tileType = TileTypes::Grass;
+            
             switch(rand() % 4) {
             case 0:
-                tileType = TileTypes::Sand;
+                tileType = TileTypes::SpaceFloor;
                 break;
             case 1:
                 tileType = TileTypes::Grass;
                 break;
             case 2:
-                tileType = TileTypes::Wall;
+                tileType = TileTypes::Sand;
                 break;
             default:
-                tileType = TileTypes::Empty;
                 break;
             }
+            
             chunk[row][col] = Tile(tileType);
         }
     }

@@ -1,4 +1,5 @@
 #include "PlayerControls.hpp"
+#include "Game.hpp"
 
 MouseState getMouseState() {
     int mouseX,mouseY;

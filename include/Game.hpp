@@ -17,6 +17,8 @@
 
 struct Game;
 
+void updateTilePixels(float scale);
+
 void placeInserter(ChunkMap& chunkmap, EntityWorld* ecs, Vec2 mouseWorldPos);
 
 void rotateEntity(const ComponentManager<EC::Rotation, EC::Rotatable>& ecs, EntityT<EC::Rotation, EC::Rotatable> entity, bool counterClockwise);
@@ -36,6 +38,7 @@ struct Game {
     DebugClass* debug;
     MetadataTracker metadata;
     RenderContext* renderContext;
+    Mode mode;
 
     Game(SDLContext sdlContext):
     sdlCtx(sdlContext), metadata(TARGET_FPS, true) {
@@ -47,6 +50,7 @@ struct Game {
         gui = NULL;
         playerControls = NULL;
         renderContext = NULL;
+        mode = Unstarted;
     }
 
     void init(int screenWidth, int screenHeight);
@@ -71,6 +75,11 @@ struct Game {
         
     }
 #endif
+
+    void setMode(Mode mode) {
+        this->mode = mode;
+    }
+
 };
 
 // update wrapper function to unwrap the void pointer main loop parameter into its properties

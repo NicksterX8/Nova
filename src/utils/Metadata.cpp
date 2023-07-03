@@ -22,9 +22,14 @@ double MetadataTracker::end() {
 double MetadataTracker::tick() {
     perfCountLastTick = perfCountCurrentTick;
     perfCountCurrentTick = GetPerformanceCounter();
-    deltaTime = (double)((perfCountCurrentTick - perfCountLastTick) * 
-        1000/(double)GetPerformanceFrequency());
-    _fps = 1000.0f / deltaTime;
+    if (_ticks == 0) {
+        deltaTime = 0.0;
+        _fps = 0.0;
+    } else {
+        deltaTime = (double)((perfCountCurrentTick - perfCountLastTick) * 
+            1000/(double)GetPerformanceFrequency());
+        _fps = 1000.0 / deltaTime;
+    }
     _ticks++;
     return deltaTime;
 }

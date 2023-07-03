@@ -1,6 +1,7 @@
 #include "rendering/textures.hpp"
 #include "sdl_gl.hpp"
 #include "utils/Log.hpp"
+#include "rendering/context.hpp"
 
 void flipSurface(SDL_Surface* surface) {
     SDL_LockSurface(surface);
@@ -112,7 +113,7 @@ unsigned int loadGLTexture(const char* filepath) {
     return texture;
 }
 
-unsigned int createTextureArray(int width, int height, int depth, SDL_Surface** images) {
+unsigned int loadTextureArray(int width, int height, int depth, SDL_Surface** images) {
     unsigned int texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
@@ -133,6 +134,7 @@ unsigned int createTextureArray(int width, int height, int depth, SDL_Surface** 
     // load images one by one, each on a different layer (depth)
     for (unsigned int i = 0; i < depth; i++) {
         SDL_Surface* surface = images[i];
+        if (!surface) continue;
         if (surface->w > width || surface->h > height) {
             LogError("createTextureArray : Image passed is too large to fit in texture array! image dimensions: %d,%d; texture array dimensions: %d,%d\n", surface->w, surface->h, width, height);
             continue;
@@ -148,35 +150,36 @@ unsigned int createTextureArray(int width, int height, int depth, SDL_Surface** 
         );
         SDL_UnlockSurface(surface);
     }
-   // glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+
     return texture;
 }
 
-int setTextureMetadata() {
-    TextureData[TextureIDs::Null].width = 0;
-    TextureData[TextureIDs::Null].height = 0;
+int setTextureMetadata(TextureManager* textureManager) {
+    if (!textureManager) return -1;
 
-    using namespace TextureIDs;
-    TextureMetaDataStruct* tx = TextureMetaData;
+    #define TEX(id, filename) textureManager->push(TextureIDs::id, TOSTRING(id), filename)
     
-    tx[Null] = {NULL};
-    tx[Player] = {"player.png"};
-    tx[Inserter] = {"inserter.png"};
-    tx[Chest] = {"chest.png"};
-    tx[Grenade] = {"grenade.png"};
-    tx[Tree] = {"tree.png"};
+    TEX(Null, NULL);
+    TEX(Player, "player.png");
+    TEX(Inserter, "inserter.png");
+    TEX(Chest, "chest.png");
+    TEX(Grenade, "grenade.png");
+    TEX(Tree, "tree.png");
 
-    tx[Tiles::Grass] = {"tiles/GrassTile.png"};
-    tx[Tiles::Sand] = {"tiles/sand.png"};
-    tx[Tiles::Water] = {"tiles/error.png"};
-    tx[Tiles::SpaceFloor] = {"tiles/space-floor.png"};
-    tx[Tiles::Wall] = {"tiles/wall.png"};
+    #define TILE(id, filename) TEX(Tiles::id, "tiles/" filename)
+
+    TILE(Grass, "grass.png");
+    TILE(Sand, "sand.png");
+    TILE(Water, "water.png");
+    TILE(SpaceFloor, "space-floor.png");
+    TILE(Wall, "wall.png");
 
     // check every texture was set
     int code = 0;
     // start at 1 to skip null texture
-    for (unsigned int i = 1; i < NumTextures; i++) {
-        if (tx[i].filename == NULL) {
+    for (unsigned int i = 1; i < TextureIDs::NumTextures; i++) {
+        auto& metadata = textureManager->metadata[i];
+        if (metadata.filename == NULL || metadata.identifier == NULL) {
             LogWarn("Texture %d was not set!", i);
             code = -1;
         }
@@ -184,61 +187,90 @@ int setTextureMetadata() {
     return code;
 }
 
-TextureMetaDataStruct TextureMetaData[TextureIDs::NumTextures+TextureIDs::First];
-TextureDataStruct TextureData[TextureIDs::NumTextures+TextureIDs::First];
+SDL_Surface** loadTextures(TextureManager* textures, const char* assetsPath) {
+    SDL_Surface** images = Alloc<SDL_Surface*>(TextureIDs::NumTextures);
+    TextureMetaData* metadata = textures->metadata.data;
 
-unsigned int makeTextureArray(const char* assetsPath) {
-    constexpr auto depth = TextureIDs::NumTextures;
-    int fail = 0;
+    char path[512];
+    strncpy(path, assetsPath, 512);
+    int basePathLen = strlen(assetsPath);
 
-    SDL_Surface* images[TextureIDs::NumTextures];
-    for (unsigned int i = 0; i < depth; i++) {
+    for (int i = 0; i < TextureIDs::NumTextures; i++) {
         TextureID textureID = i + TextureIDs::First;
-        char path[512];
-        strcpy(path, assetsPath);
-        if (!TextureMetaData[textureID].filename) {
+        const char* filename = metadata[textureID].filename;
+        if (!filename) {
             LogError("Texture metadata %d is NULL!", i);
             images[i] = NULL;
             continue;
         }
-        strcat(path, TextureMetaData[textureID].filename);
+        memcpy(path + basePathLen, filename, strlen(filename) + 1);
         images[i] = IMG_Load(path);
         if (!images[i]) {
-            LogError("Failed to load image for texture array (path: %s)", path);
-            TextureData[textureID].width = 0;
-            TextureData[textureID].height = 0;
-            fail = 1;
+            LogError("Failed to load texture \"%s\" with path: \"%s\"", metadata[textureID].identifier, path);
+            textures->data[textureID] = TextureData{{0, 0}};
             continue;
         }
-        TextureData[textureID].width = images[i]->w;
-        TextureData[textureID].height = images[i]->h;
+        textures->data[textureID] = TextureData{{images[i]->w, images[i]->h}};
         flipSurface(images[i]);
     }
 
-    for (unsigned int i = 0; i < depth; i++) {
+    for (unsigned int i = 0; i < TextureIDs::NumTextures; i++) {
         if (images[i]) {
-            if (images[i]->format->format != SDL_PIXELFORMAT_RGBA32) {
-                SDL_Surface* newSurface = SDL_ConvertSurfaceFormat(images[i], SDL_PIXELFORMAT_RGBA32, 0);
+            if (images[i]->format->format != StandardPixelFormat) {
+                SDL_Surface* newSurface = SDL_ConvertSurfaceFormat(images[i], StandardPixelFormat, 0);
                 if (newSurface) {
                     SDL_FreeSurface(images[i]);
                     images[i] = newSurface;
                 } else {
-                    printf("Error: Failed to convert surface to proper format!\n");
+                    LogError("Failed to convert surface to proper format!\n");
                 }
             }
         }
     }
 
-    GLuint textureArray = 0;
-    if (!fail) {
-        textureArray = createTextureArray(MY_TEXTURE_ARRAY_WIDTH, MY_TEXTURE_ARRAY_HEIGHT, depth, images);
-    }
+    return images;
+}
+
+TextureArray makeTextureArray(glm::ivec2 size, TextureManager* textures, const char* assetsPath) {
+    TextureArray texArray;
+    texArray.depth = TextureIDs::NumTextures;
+    texArray.size = size;
+
+    SDL_Surface** images = loadTextures(textures, assetsPath);
+
+    texArray.texture = loadTextureArray(texArray.size.x, texArray.size.y, texArray.depth, images);
+
     // images can be freed after being loaded into texture array
-    for (unsigned int i = 0; i < depth; i++) {
-        SDL_FreeSurface(images[i]);
+    for (int i = 0; i < texArray.depth; i++) {
+        if (images[i]) {
+            SDL_FreeSurface(images[i]);
+        }
     }
-    if (!textureArray) {
+    if (!texArray.texture) {
         LogCritical("Failed to make texture array!");
     }
-    return textureArray;
+    return texArray;
+}
+
+int updateTextureArray(TextureArray* textureArray, int depth, SDL_Surface* surface) {
+    if (!textureArray || !surface) return -1;
+    if (depth < 0 || depth >= textureArray->depth) {
+        LogError("Tried to set out of range texture depth. Depth: %d, texture array depth: %d", depth, textureArray->depth);
+        return -1;
+    }
+
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureArray);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, textureArray->texture);
+
+    SDL_LockSurface(surface);
+    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target is texture array
+        0,
+        0, 0, depth, // all images start at bottom left of texture array
+        surface->w, surface->h, 1, // image is only 1 thick in depth
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        surface->pixels
+    );
+    SDL_UnlockSurface(surface);
+    return 0;
 }

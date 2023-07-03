@@ -17,7 +17,7 @@
 void GameState::init() {
     /* Init Chunkmap */
     chunkmap.init();
-    int chunkRadius = 5;
+    int chunkRadius = 10;
     for (int chunkX = -chunkRadius; chunkX < chunkRadius; chunkX++) {
         for (int chunkY = -chunkRadius; chunkY < chunkRadius; chunkY++) {
             ChunkData* chunkdata = chunkmap.newChunkAt({chunkX, chunkY});
@@ -105,21 +105,82 @@ void GameState::destroy() {
     ecs.destroy();
 }
 
+llvm::SmallVector<IVec2> raytraceDDA(const Vec2 start, const Vec2 end) {
+    const IVec2 start_i = vecFloori(start);
+    const IVec2 end_i = vecFloori(end);
+    const int lineLength = (abs(end_i.x - start_i.x) + abs(end_i.y - start_i.y)) + 1;
+    llvm::SmallVector<IVec2> line(lineLength, {}); // make small vector of size lineLength left uninitialized
+    const Vec2 delta = end - start;
+    const Vec2 dir = glm::normalize(delta);
+    const Vec2 unitStep = {sqrt(1 + (dir.y / dir.x) * (dir.y / dir.x)), sqrt(1 + (dir.x / dir.y) * (dir.x / dir.y))};
+
+    IVec2 mapCheck = start_i;
+    Vec2 rayLength;
+    IVec2 step;
+    if (dir.x < 0) {
+        step.x = -1;
+        rayLength.x = (start.x - mapCheck.x) * unitStep.x;
+    } else {
+        step.x = 1;
+        rayLength.x = ((mapCheck.x + 1) - start.x) * unitStep.x;
+    }
+    if (dir.y < 0) {
+        step.y = -1;
+        rayLength.y = (start.y - mapCheck.y) * unitStep.y;
+    } else {
+        step.y = 1;
+        rayLength.y = ((mapCheck.y + 1) - start.y) * unitStep.y;
+    }
+
+    // have to check for horizontal and vertical lines because of divison by zero things
+
+    // horizontal line
+    if (start.y == end.y) {
+        for (int i = 0; i < lineLength; i++) {
+            line[i] = mapCheck;
+            mapCheck.x += step.x;
+        }
+    }
+    // vertical line
+    else if (start_i.x == end_i.x) {
+        for (int i = 0; i < lineLength; i++) {
+            line[i] = mapCheck;
+            mapCheck.y += step.y;
+        }
+    }
+    // any other line
+    else {
+        for (int i = 0; i < lineLength; i++) {
+            line[i] = mapCheck;
+            if (rayLength.x < rayLength.y) {
+                mapCheck.x += step.x;
+                rayLength.x += unitStep.x;
+            } else {
+                mapCheck.y += step.y;
+                rayLength.y += unitStep.y;
+            }
+        }
+    }
+    
+    return line;
+}
+
 /*
-* Get a line of tile coordinates from start to end, using DDA.
+* Get a line of chunk coordinates from start to end, using DDA.
 * Returns a line of size lineSize that must be freed using free()
 * @param lineSize a pointer to an int to be filled in the with size of the line.
-*/
-IVec2* worldLine(Vec2 start, Vec2 end, int* lineSize) {
-    IVec2 startTile = {(int)floor(start.x), (int)floor(start.y)};
-    IVec2 endTile = {(int)floor(end.x), (int)floor(end.y)};
-    int lineTileLength = (abs(endTile.x - startTile.x) + abs(endTile.y - startTile.y)) + 1;
+
+IVec2* worldChunkLine(Vec2 startChunkCoord, Vec2 endChunkCoord, int* lineSize) {
+    IVec2 startChunk = vecFloori(startChunkCoord);
+    IVec2 endChunk = vecFloori(endChunkCoord);
+    IVec2 delta = endChunk - startChunk;
+    int lineTileLength = (abs(delta.x) + abs(delta.y)) + 1;
     IVec2* line = Alloc<IVec2>(lineTileLength);
     if (lineSize) *lineSize = lineTileLength;
 
-    Vec2 dir = glm::normalize((Vec2)(end - start));
+    Vec2 dir = glm::normalize((Vec2)(endChunk - startChunk));
 
-    IVec2 mapCheck = startTile;
+    IVec2 mapCheck = startChunk;
     Vec2 unitStep = {sqrt(1 + (dir.y / dir.x) * (dir.y / dir.x)), sqrt(1 + (dir.x / dir.y) * (dir.x / dir.y))};
     Vec2 rayLength;
     IVec2 step;
@@ -170,6 +231,7 @@ IVec2* worldLine(Vec2 start, Vec2 end, int* lineSize) {
     
     return line;
 }
+*/
 
 void worldLineAlgorithm(Vec2 start, Vec2 end, const std::function<int(IVec2)>& callback) {
     Vec2 delta = end - start;
@@ -385,7 +447,24 @@ void forEachEntityInBounds(const ComponentManager<const EC::Position, const EC::
 
         for (int i = 0; i < chunkdata->closeEntities.size; i++) {
             auto closeEntity = chunkdata->closeEntities[i].cast<EC::Position>();
-            auto entityPos = ecs.Get<const EC::Position>(closeEntity)->vec2();
+            assert(ecs.EntityExists(closeEntity));
+            /*
+            if (!ecs.EntityHas<EC::Position>(closeEntity)) {
+                LogError("ERROROR!\n");
+            }
+            if (closeEntity.id == 2001 && closeEntity.version == 1) {
+                LogInfo("That one!\n");
+                auto ptr = ecs.Get<const EC::Position>(closeEntity);
+                if (!ptr) {
+                    LogError("UH OH!");
+                }
+            }
+            */
+            Vec2 entityPos = {0, 0};
+            auto* entityPosPtr = ecs.Get<const EC::Position>(closeEntity);
+            if (entityPosPtr) {
+                entityPos = entityPosPtr->vec2();
+            }
             if (ecs.EntityHas<EC::Size>(closeEntity)) {
                 auto entitySize = ecs.Get<const EC::Size>(closeEntity)->vec2();
                 Vec2 eMin = entityPos - entitySize / 2.0f;

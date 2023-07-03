@@ -1,18 +1,33 @@
 #ifndef GUI_INCLUDED
 #define GUI_INCLUDED
 
-#include <vector>
+#include "My/Vec.hpp"
 #include "sdl_gl.hpp"
 #include "items/items.hpp"
 #include "constants.hpp"
-#include "rendering/Drawing.hpp"
 #include "Player.hpp"
+#include "commands.hpp"
 
-namespace Draw {
-    void itemStack(SDL_Renderer* renderer, float scale, ItemStack item, SDL_Rect* destination);
-}
+struct GuiRenderer;
 
 namespace GUI {
+
+class Hotbar {
+public:
+    SDL_FRect rect; // the rectangle outline of the hotbar, updated every time draw() is called
+    My::Vec<SDL_FRect> slots; // the rectangle outlines of the hotbar slots, updated every time draw() is called
+
+    Hotbar() {
+        rect = {0, 0, 0, 0};
+        slots = My::Vec<SDL_FRect>::Empty();
+    }
+
+    SDL_FRect draw(GuiRenderer& renderer, SDL_Rect viewport, const Player* player, const ItemManager& itemManager);
+
+    void destroy() {
+        slots.destroy();
+    }
+};
 
 /*
 
@@ -134,136 +149,154 @@ public:
 };
 */
 
-struct Command {
-    char name[32];
-    int nameLength;
-    using FunctionType = std::function<void(const char* arguments)>;
-    FunctionType function;
-
-    static Command make(const char* name, const FunctionType& function) {
-        Command command;
-        int nameLength = (int)strlen(name);
-        if (nameLength < 32) {
-            memcpy(command.name, name, nameLength+1);
-        } else {
-            LogError("Command name passed was longer than allowed! name: %s. max length: %d", name, 32);
-            command.name[0] = '\0';
-            nameLength = 0;
-        }
-        command.nameLength = nameLength;
-        command.function = function;
-        return command;
-    }
-};
-
-struct CommandInput {
-    std::string name;
-    std::string arguments;
-};
-
 struct Console {
-    My::StringBuffer text = My::StringBuffer::FromStr("\0");
+    enum class MessageType {
+        Default,
+        Command,
+        CommandResult
+    };
+
+    My::StringBuffer log = My::StringBuffer::FromStr("\0");
+    My::Vec<MessageType> logMessageTypes = My::Vec<MessageType>::Empty();
+    My::Vec<SDL_Color> logTextColors = My::Vec<SDL_Color>::Empty();
+
     std::string activeMessage;
-    My::Vec<glm::vec4> textColors = My::Vec<glm::vec4>::Empty();
+    int logHistoryIndex = -1; // going through the log, to retype and old message, this index is for seeing what message its on. -1 means not using the log history currently
+    
+
+    constexpr static SDL_Color activeTextColor = {255, 255, 255, 255};
+    constexpr static SDL_Color defaultTextColor = {200, 200, 200, 255};
+    constexpr static SDL_Color commandTextColor = {200, 200, 100, 255};
+    constexpr static SDL_Color commandResultTextColor = {100, 100, 50, 255};
 
     bool messageIsActive() const {
         return !activeMessage.empty();
     }
 
-    void pushActiveMessage() {
-        newMessage(activeMessage.c_str(), oldTextColor);
+    void pushActiveMessage(MessageType type) {
+        newMessage(activeMessage.c_str(), type);
         activeMessage.clear();
     }
 
-    void newMessage(const char* message, glm::vec4 color) {
-        text.push(message);
-        textColors.push(color);
+    void newMessage(const char* message, MessageType type) {
+        log.push(message);
+        logMessageTypes.push(type);
+
+        SDL_Color color = defaultTextColor;
+        switch (type) {
+        case MessageType::Command:
+            color = commandTextColor;
+            break;
+        case MessageType::CommandResult:
+            color = commandResultTextColor;
+            break;
+        default:
+            break;
+        }
+
+        logTextColors.push(color);
     }
 
-    constexpr static glm::vec4 activeTextColor = {0, 0, 0, 1};
-    constexpr static glm::vec4 oldTextColor = {0.3f, 0.3f, 0.3f, 1.0f};
+    // will clamp indices below or above the limit to an empty message or oldest message, respectively
+    // TODO: fix name
+    void moveLoggedMessage(int offset) {
+        if (offset == 0) return;
+        int dir = (offset > 0) ? 1 : -1;
+        int historyIndex = logHistoryIndex + offset;
 
-    
+        if (historyIndex < 0) {
+            activeMessage = "";
+            logHistoryIndex = -1;
+            return;
+        }
+
+        int i = -1;
+        const char* msg = nullptr;
+        log.forEachStrReverse([&](const char* str){
+            int wouldBeIndex = i+1;
+            if (wouldBeIndex > historyIndex) {
+                return true; // means: break
+            }
+            // skip over message results - they don't count
+            int wouldBeReverseIndex = logMessageTypes.size - wouldBeIndex - 1;
+            if (logMessageTypes[wouldBeReverseIndex] == MessageType::CommandResult && wouldBeIndex + (dir == -1) >= historyIndex) {
+                historyIndex += dir;
+            } else {
+                msg = str;
+            }
+            i = wouldBeIndex;
+            return false; // means: dont break
+        });
+
+        if (!msg) LogError("Failed to select logged message!");
+        activeMessage = msg ? std::string(msg) : "";
+        logHistoryIndex = i; // we set the new index to i, not historyIndex because we might not actually end up on that one,
+        // if the index is too great (see method desc)
+    }
 
     CommandInput enterText(SDL_Keycode keycode, ArrayRef<Command> possibleCommands) {
+        CommandInput command = {};
         switch (keycode) {
         case SDLK_RETURN2:
         case SDLK_RETURN: {
-            if (activeMessage[0] == '/') {
-                const char* enteredCommand = activeMessage.c_str() + 1;
-                int enteredCommandLength = 0;
-                {
-                    int i = 0;
-                    while (enteredCommand[i] != '\0' && enteredCommand[i] != ' ') {
-                        i++;
-                    }
-                    enteredCommandLength = i;
-                }
+            logHistoryIndex = -1;
 
-                const char* arguments = enteredCommand + enteredCommandLength + 1;
-                // if there's no characters after the entered command then...
-                if (arguments > &text.buffer.back()) {
-                    arguments = nullptr; // no arguments were provided
-                }
-
-                auto input = CommandInput{std::string(enteredCommand, enteredCommandLength), std::string(arguments)};
-                activeMessage.clear();
-                return input;
-            }
-
-            if (!activeMessage.empty()) {
-                pushActiveMessage();
+            command = processMessage(activeMessage, possibleCommands);
+            if (command) {
+                pushActiveMessage(MessageType::Command);
+            } else {
+                // not command
+                pushActiveMessage(MessageType::Default);
             }
             break;
         }
         case SDLK_DELETE:
         case SDLK_BACKSPACE:
-            // !!! change this now
-            if (text.buffer.size >= 2) {
-                if (text.buffer[text.buffer.size-2] != '\0')
-                    text.popLastChar();
+            if (!activeMessage.empty()) {
+                activeMessage.pop_back();
             }
             break;
         case SDLK_TAB:
-            text.appendToLast('\t');
+            activeMessage.push_back('\t');
+            break;
+        case SDLK_UP:
+            moveLoggedMessage(1);
+            break;
+        case SDLK_DOWN:
+            moveLoggedMessage(-1);
             break;
         } // end keycode switch
 
-        // no command input
-        return {};
+        return command;
+    }
+
+    void destroy() {
+        log.destroy();
+        logMessageTypes.destroy();
+        logTextColors.destroy();
     }
 };
 
 
 struct Gui {
     My::Vec<SDL_FRect> area = My::Vec<SDL_FRect>(0);
+    Hotbar hotbar;
     ItemStack* heldItemStack = nullptr;
     Console console = {};
+    bool consoleOpen = false;
 
-    Gui() {
-        console.textColors.push({0, 0, 0, 1});
-    }
+    Gui() {}
 
-    void draw(SDL_Renderer* ren, float scale, SDL_Rect viewport, const Player* player) {
+    void draw(GuiRenderer& renderer, float scale, SDL_Rect viewport, const Player* player, const ItemManager& itemManager) {
         area.size = 0;
-        //SDL_FRect hotbarArea = hotbar.draw(ren, scale, viewport, player);
+        SDL_FRect hotbarArea = hotbar.draw(renderer, viewport, player, itemManager);
         heldItemStack = player->heldItemStack;
         if (heldItemStack && !heldItemStack->empty())
-            drawHeldItemStack(ren, scale, viewport);
-        //area.push_back(hotbarArea);
+            drawHeldItemStack(renderer, viewport);
+        area.push(hotbarArea);
     }
 
-    void drawHeldItemStack(SDL_Renderer* ren, float scale, SDL_Rect viewport) {
-        SDL_Point mousePosition = SDL::getMousePixelPosition();
-        int size = 60 * scale;
-        SDL_Rect destination = {
-            mousePosition.x - size/2,
-            mousePosition.y - size/2,
-            size,
-            size
-        };
-        Draw::itemStack(ren, scale, *heldItemStack, &destination);
-    }
+    void drawHeldItemStack(GuiRenderer& renderer, SDL_Rect viewport);
 
     bool pointInArea(SDL_Point point) const {
         for (int i = 0; i < area.size; i++) {
@@ -273,6 +306,12 @@ struct Gui {
             }
         }
         return false;
+    }
+
+    void destroy() {
+        area.destroy();
+        hotbar.destroy();
+        console.destroy();
     }
 };
 
