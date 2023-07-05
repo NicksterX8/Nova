@@ -33,7 +33,7 @@ set(SRC_FILES
     ${SD}/GameState.cpp
     ${SD}/rendering/textures.cpp
     ${SD}/rendering/text.cpp
-    ${SD}/rendering/Drawing.cpp
+    ${SD}/rendering/drawing.cpp
     ${SD}/rendering/utils.cpp
     ${SD}/rendering/Shader.cpp
     ${SD}/rendering/rendering.cpp
