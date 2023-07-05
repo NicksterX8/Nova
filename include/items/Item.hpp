@@ -7,7 +7,7 @@
 #include "My/Vec.hpp"
 #include "ECS/generic/components.hpp"
 
-typedef Uint32 TextureID;
+typedef Uint16 TextureID;
 
 typedef Uint32 ItemType;
 typedef Sint32 ItemQuantity;

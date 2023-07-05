@@ -17,7 +17,7 @@
 void GameState::init() {
     /* Init Chunkmap */
     chunkmap.init();
-    int chunkRadius = 10;
+    int chunkRadius = 4;
     for (int chunkX = -chunkRadius; chunkX < chunkRadius; chunkX++) {
         for (int chunkY = -chunkRadius; chunkY < chunkRadius; chunkY++) {
             ChunkData* chunkdata = chunkmap.newChunkAt({chunkX, chunkY});
@@ -91,7 +91,10 @@ void GameState::init() {
     player = Player(&ecs, Vec2(0, 0), itemManager);
 
     ItemStack startInventory[] = {
-        items::Items::sandGun(itemManager)
+        items::Items::sandGun(itemManager),
+        ItemStack(items::Items::tile(itemManager, TileTypes::Grass), 64),
+        ItemStack(items::Items::tile(itemManager, TileTypes::Sand), 24),
+        ItemStack(items::Items::tile(itemManager, TileTypes::Grass), 2)
     };
 
     Inventory* playerInventory = player.inventory();

@@ -45,6 +45,15 @@ inline int logErrors() {
         case GL_INVALID_INDEX:
             message = "Invalid index";
             break;
+        case GL_OUT_OF_MEMORY:
+            message = "Out of memory";
+            break;
+        case GL_STACK_OVERFLOW:
+            message = "stack overflow";
+            break;
+        case GL_STACK_UNDERFLOW:
+            message = "stack underflow";
+            break;
         }
         LogError("OpenGL error: %d, %s", errors[i], message);
     }

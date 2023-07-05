@@ -275,7 +275,7 @@ inline void copyTexture(Texture dst, Texture src, glm::ivec2 dstOffset = {0, 0})
 }
 
 inline Texture resizeTexture(Texture texture, glm::ivec2 newSize) {
-    Texture newTexture = createUninitTexture(newSize, texture.pixelSize);
+    Texture newTexture = newUninitTexture(newSize, texture.pixelSize);
     fillTextureBlack(newTexture);
     copyTexture(newTexture, texture);
     freeTexture(texture);  
@@ -284,6 +284,9 @@ inline Texture resizeTexture(Texture texture, glm::ivec2 newSize) {
 
 // based on this article "https://straypixels.net/texture-packing-for-fonts/" by Edward Lu, modified to be C style
 
-Texture packTextures(const int numTextures, const Texture* textures, int pixelSize, glm::ivec2* characterOriginsOut, glm::ivec2 startSize = {128, 128});
+/* Texture
+ * If the texture is unable to be packed for any reason ,the origin out will be {-1, -1}
+*/
+Texture packTextures(const int numTextures, const Texture* textures, int pixelSize, glm::ivec2* textureOriginsOut, int startSize = 128);
 
 #endif

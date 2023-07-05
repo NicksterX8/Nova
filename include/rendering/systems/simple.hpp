@@ -25,14 +25,11 @@ struct RenderSystem {
     GlModel model;
 
     const static GLint entitiesPerBatch = 1000;
-    const static GLint verticesPerEntity = 4;
-    const static GLint indicesPerEntity = 6;
+    const static GLint verticesPerEntity = 1;
+    //const static GLint indicesPerEntity = 0;
     const static GLint verticesPerBatch = entitiesPerBatch*verticesPerEntity;
-    const static GLint indicesPerBatch = entitiesPerBatch*indicesPerEntity;
-    const static GLint positionEntityVertexSize = verticesPerEntity * 3 * (GLint)sizeof(GLfloat);
-    const static GLint texCoordEntityVertexSize = verticesPerEntity * 3 * (GLint)sizeof(GLfloat);
-    const static GLint rotationEntityVertexSize = verticesPerEntity * 1 * (GLint)sizeof(GLfloat);
-    const static GLint vertexSize = positionEntityVertexSize + texCoordEntityVertexSize + rotationEntityVertexSize;
+    //const static GLint indicesPerBatch = entitiesPerBatch*indicesPerEntity;
+    const static GLint vertexSize = 3 * sizeof(GLfloat) + 2 * sizeof(GLushort) + 1 * sizeof(GLfloat) + 4 * sizeof(GLushort) + 1 * sizeof(GLubyte);
     const static size_t bufferSize = verticesPerBatch * vertexSize;
 
     RenderSystem() {
@@ -40,22 +37,21 @@ struct RenderSystem {
         model.bindAll();
 
         glBufferData(GL_ARRAY_BUFFER, bufferSize, NULL, GL_STREAM_DRAW);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesPerBatch * sizeof(GLuint), NULL, GL_STATIC_DRAW);
+        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesPerBatch * sizeof(GLuint), NULL, GL_STATIC_DRAW);
 
         // for mental model only, not actually used in c++ code at this time
-        struct EntityVertex {
-            GLvec3 pos;
-            GLvec3 texCoord;
-            GLvec3 rotation;
-        };
+
 
         constexpr GlVertexAttribute attributes[] = {
             {3, GL_FLOAT, sizeof(GLfloat)}, // pos
-            {3, GL_FLOAT, sizeof(GLfloat)}, // texCoord
-            {3, GL_FLOAT, sizeof(GLfloat)}  // rotation
+            {2, GL_FLOAT, sizeof(GLfloat)}, // size
+            {1, GL_FLOAT, sizeof(GLfloat)}, // rotation
+            {4, GL_UNSIGNED_SHORT, sizeof(GLushort)}, // texCoords (min.x, min.y, max.x, max.y)
+            {1, GL_UNSIGNED_BYTE, sizeof(GLubyte)}, // texture
         };
-        enableVertexAttribsSOA(&attributes[0], 3, verticesPerBatch);
+        enableVertexAttribsSOA(&attributes[0], sizeof(attributes) / sizeof(GlVertexAttribute), verticesPerBatch);
 
+        /*
         void* elementBuffer = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
         if (!elementBuffer) {
             LogError("Failed to map ebo!");
@@ -73,6 +69,7 @@ struct RenderSystem {
             indices[ind+4] = first+2;
             indices[ind+5] = first+3;
         }
+        */
     }
 
     using QueriedEntity = EntityT<EC::Render, EC::Size, EC::Position>;
@@ -83,22 +80,26 @@ struct RenderSystem {
     }
 
     struct VertexDataArrays {
-        GLfloat* positions;
-        GLfloat* texCoords;
-        GLfloat* rotations;
+        GLfloat* positions = nullptr;
+        GLfloat* sizes = nullptr;
+        GLfloat* rotations = nullptr;
+        GLushort* texCoords = nullptr;
+        GLubyte* textures = nullptr;
     };
 
     VertexDataArrays mapVertexBuffer() {
-        GLfloat* vertexBuffer = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+        GLvoid* vertexBuffer = (GLvoid*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
         if (!vertexBuffer) {
             LogError("Oh no a bunch more bad stuff happened!");
             
-            return {NULL,NULL,NULL};
+            return {};
         }
         VertexDataArrays buffer;
-        buffer.positions = vertexBuffer;
-        buffer.texCoords = &vertexBuffer[3 * verticesPerBatch];
-        buffer.rotations = &vertexBuffer[6 * verticesPerBatch];
+        buffer.positions = (GLfloat*)vertexBuffer;
+        buffer.sizes     = (GLfloat*)&buffer.positions[3 * verticesPerBatch];
+        buffer.rotations = (GLfloat*)&buffer.sizes[2 * verticesPerBatch];
+        buffer.texCoords = (GLushort*)&buffer.rotations[1 * verticesPerBatch];
+        buffer.textures  = (GLubyte*)&buffer.texCoords[4 * verticesPerBatch];
         return buffer;
     }
 
@@ -106,9 +107,7 @@ struct RenderSystem {
         assert(buffer);
         assert(buffer->positions);
         glUnmapBuffer(GL_ARRAY_BUFFER);
-        buffer->positions = nullptr;
-        buffer->rotations = nullptr;
-        buffer->texCoords = nullptr;
+        *buffer = {};
     }
 
     void Update(const ComponentManager<EC::Render, const EC::Size, const EC::Position, const EC::Health, const EC::Rotation>& ecs, const ChunkMap& chunkmap, RenderContext& ren, Camera& camera) {
@@ -143,43 +142,40 @@ struct RenderSystem {
                     rotation = ecs.Get<const EC::Rotation>(entity)->degrees;
                 }
 
-                glm::ivec2 textureSize = textureData[renderEC->texture].size;
-                glm::vec2 texMin = {0.5f, 0.5f};
-                glm::vec2 texMax = glm::vec2(textureSize) - glm::vec2{0.5f, 0.5f};
+                TextureID texture = renderEC->texture;
+                glm::ivec2 textureSize = textureData[texture].size;
+                
+                glm::vec<2, GLushort> texMax = textureSize;
                 float w = size.width  / 2.0f;
                 float h = size.height / 2.0f;
-                float tex = static_cast<float>(renderEC->texture);
                 glm::vec3 p = glm::vec3(position.x, position.y, getLayerHeight(renderEC->layer));
                 
-                const GLfloat vertexPositions[12] = {
-                    p.x-w,   p.y-h,   p.z,
-                    p.x-w,   p.y+h,   p.z,
-                    p.x+w,   p.y+h,   p.z,
-                    p.x+w,   p.y-h,   p.z,
+                const GLfloat vertexPositions[3] = {
+                    p.x,   p.y,   p.z,
                 };
-                const GLfloat vertexTexCoords[12] = {
-                    texMin.x,  texMin.y,  tex,
-                    texMin.x,  texMax.y,  tex,
-                    texMax.x,  texMax.y,  tex,
-                    texMax.x,  texMin.y,  tex
+                const GLushort vertexTexCoords[4] = {
+                    0, 0,
+                    texMax.x,  texMax.y, 
                 };
-                const GLfloat vertexRotations[12] = {
-                    rotation, p.x, p.y,
-                    rotation, p.x, p.y,
-                    rotation, p.x, p.y,
-                    rotation, p.x, p.y
+                const GLfloat vertexSize[2] = {
+                    w, h
                 };
+                const GLfloat vertexRotation = rotation;
+                const GLubyte vertexTexture = renderEC->texture;
 
-                memcpy(&buffer.positions[entityCounter * 12], vertexPositions, 12 * sizeof(GLfloat));
-                memcpy(&buffer.texCoords[entityCounter * 12], vertexTexCoords, 12 * sizeof(GLfloat));
-                memcpy(&buffer.rotations[entityCounter * 12], vertexRotations, 12 * sizeof(GLfloat));
+                memcpy(&buffer.positions[entityCounter * 3], vertexPositions, 3 * sizeof(GLfloat));
+                memcpy(&buffer.texCoords[entityCounter * 4], vertexTexCoords, 4 * sizeof(GLfloat));
+                memcpy(&buffer.sizes[entityCounter * 2], vertexSize, sizeof(vertexSize));
+                buffer.textures[entityCounter] = vertexTexture;
+                buffer.rotations[entityCounter] = vertexRotation;
                 
                 entityCounter++;
                 entitiesRenderered++;
 
                 if (entityCounter == entitiesPerBatch) {
                     unmapVertexBuffer(&buffer); // put vertex data into effect
-                    glDrawElements(GL_TRIANGLES, entityCounter*indicesPerEntity, GL_UNSIGNED_INT, 0); // draw a batch of entities
+                    //glDrawElements(GL_TRIANGLES, entityCounter*indicesPerEntity, GL_UNSIGNED_INT, 0); // draw a batch of entities
+                    glDrawArrays(GL_POINTS, 0, entityCounter);
                     entityCounter = 0;
                     // have to remap vertex buffer after unmapping
                     buffer = mapVertexBuffer();
@@ -194,7 +190,8 @@ struct RenderSystem {
 
         // number of entities wasn't exactly divisible by entitiesPerBatch, so we have some left to do
         if (entityCounter > 0) {
-            glDrawElements(GL_TRIANGLES, entityCounter*indicesPerEntity, GL_UNSIGNED_INT, 0); // draw a batch of entities
+            //glDrawElements(GL_TRIANGLES, entityCounter*indicesPerEntity, GL_UNSIGNED_INT, 0); // draw a batch of entities
+            glDrawArrays(GL_POINTS, 0, entityCounter);
         }
 
         if (Debug->settings.drawEntityIDs) {

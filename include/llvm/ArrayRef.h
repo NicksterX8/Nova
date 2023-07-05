@@ -648,6 +648,8 @@ namespace llvm {
 
 // added by NickW for convenience
 using llvm::ArrayRef;
-#define ARRAY_REF(ptr, size) ArrayRef<decltype(*ptr)>(ptr, size)
+using llvm::MutableArrayRef;
+#define ARRAY_REF(ptr, size) ArrayRef<std::remove_reference_t<decltype(*ptr)>::type>(ptr, size)
+#define MUT_ARRAY_REF(ptr, size) MutableArrayRef<std::remove_reference_t<decltype(*ptr)>::type>(ptr, size)
 
 #endif // LLVM_ADT_ARRAYREF_H

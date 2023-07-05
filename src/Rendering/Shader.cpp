@@ -115,8 +115,50 @@ GLuint makeShaderProgram(const char* vertexPath, const char* fragmentPath) {
     return id;
 }
 
+GLuint makeShaderProgram(const char* vertexPath, const char* fragmentPath, const char* geometryPath) {
+    GLuint vertex = compileShader(GL_VERTEX_SHADER, vertexPath);
+    if (!vertex) {
+        LogError("Shader program compilation failed while compiling vertex shader.");
+        return 0;
+    }
+
+    GLuint fragment = compileShader(GL_FRAGMENT_SHADER, fragmentPath);
+    if (!fragment) {
+        LogError("Shader program compilation failed while compiling fragment shader.");
+        return 0;
+    }
+
+    GLuint geometry = compileShader(GL_GEOMETRY_SHADER, geometryPath);
+    if (!geometry) {
+        LogError("Shader program compilation failed while compiling geometry shader.");
+        return 0;
+    }
+
+    GLuint id = glCreateProgram();
+    glAttachShader(id, vertex);
+    glAttachShader(id, fragment);
+    glAttachShader(id, geometry);
+    glLinkProgram(id);
+    GLint success;
+    char infoLog[1024];
+    glGetProgramiv(id, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(id, 1024, NULL, infoLog);
+        LogError("Failed to link shader program! Program info log: %s\n -------------------------------------------------", infoLog);
+    }
+    // delete the shaders as they're linked into our program now and are no longer needed
+    glDeleteShader(vertex);
+    glDeleteShader(fragment);
+    glDeleteShader(geometry);
+    return id;
+}
+
 Shader::Shader(const char* vertexPath, const char* fragmentPath) {
     id = makeShaderProgram(vertexPath, fragmentPath);
+}
+
+Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath) {
+    id = makeShaderProgram(vertexPath, fragmentPath, geometryPath);
 }
 
 GLint Shader::getUniformLocation(const char* name) const {

@@ -131,6 +131,26 @@ public:
         return {min.x, min.y, size.x, size.y};
     }
 
+    bool rectIsVisible(glm::vec2 p, glm::vec2 q) const {
+        const glm::vec2 corners[4] = {
+            worldToPixel({p.x, p.y}),
+            worldToPixel({q.x, p.y}),
+            worldToPixel({q.x, q.y}),
+            worldToPixel({p.x, q.y})
+        };
+        // bruteforce test all 4 corners to find the lowest and highest coords.
+        glm::vec2 min = corners[0];
+        glm::vec2 max = corners[0];
+        for (int i = 1; i < 4; i++) {
+            glm::vec2 corner = corners[i];
+            min.x = MIN(min.x, corner.x);
+            min.y = MIN(min.y, corner.y);
+            max.x = MAX(max.x, corner.x);
+            max.y = MAX(max.y, corner.y);
+        }
+        return (min.x < pixelWidth && min.y < pixelHeight && max.x > 0 && max.y > 0);
+    }
+
     glm::mat4 getTransformMatrix() const {
         glm::mat4 trans = glm::mat4(1.0f);
         trans = glm::scale(trans, glm::vec3(worldScale() / pixelWidth, worldScale() / pixelHeight, -1)); // invert z axis so positive z is towards the camera and negative away

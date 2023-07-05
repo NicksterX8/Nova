@@ -17,15 +17,12 @@
 
 #include <glm/vec2.hpp>
 
+RenderBuffer makeRenderBuffer(glm::ivec2 size);
+void resizeRenderBuffer(RenderBuffer renderBuffer, glm::ivec2 newSize);
+void destroyRenderBuffer(RenderBuffer renderBuffer);
 
-struct TilemapVertex {
-    glm::vec2 pos;
-    glm::vec3 texCoord;
-};
-
-
-void renderInit(RenderContext& ren);
+void renderInit(RenderContext& ren, int screenWidth, int screenHeight);
 void renderQuit(RenderContext& ren);
-void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* state, Camera& camera, Vec2 playerTargetPos, Mode mode);
+void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* state, Camera& camera, Vec2 playerTargetPos, Mode mode, bool renderWorld);
 
 #endif

@@ -7,10 +7,6 @@
 #include "items/items.hpp"
 #include "ECS/SEntity.hpp"
 
-extern float TilePixels;
-extern float TileWidth;
-extern float TileHeight;
-
 namespace TileTypes {
     enum E: Uint16 {
         Empty = 0,

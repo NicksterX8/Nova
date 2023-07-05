@@ -51,7 +51,8 @@ inline Mode modeID(const char* mode) {
 
 
 enum class CrashReason {
-    MemoryFail
+    MemoryFail,
+    GameInitialization
 };
 
 inline void crash(CrashReason reason, const char* message) {
@@ -60,6 +61,8 @@ inline void crash(CrashReason reason, const char* message) {
     case CrashReason::MemoryFail:
         LogCritical("Memory Error");
         break;
+    case CrashReason::GameInitialization:
+        LogCritical("Failed to initialize game!");
     }
     exit(EXIT_FAILURE);
 }

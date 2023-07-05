@@ -388,19 +388,19 @@ public:
         }
     }
 
-    void handleEvent(SDL_Event& event, GameState* state, Gui* gui) {
-        switch (event.type) {
+    void handleEvent(const SDL_Event* event, GameState* state, Gui* gui) {
+        switch (event->type) {
         case SDL_KEYDOWN:
-            handleKeydown(event.key, state, gui);
+            handleKeydown(event->key, state, gui);
             break;
         case SDL_MOUSEBUTTONDOWN:
-            handleClick(event.button, state, gui);
+            handleClick(event->button, state, gui);
             break;
         case SDL_MOUSEMOTION:
-            handleMouseMotion(event.motion, state);
+            handleMouseMotion(event->motion, state);
             break;
         case SDL_TEXTINPUT: {
-            char* text = event.text.text;
+            const char* text = event->text.text;
             
             if (enteringText) {
                 gui->console.activeMessage += text;
@@ -427,22 +427,11 @@ public:
         int updownInput = keyboardState[SDL_SCANCODE_W] - keyboardState[SDL_SCANCODE_S];
         int rotationInput = keyboardState[SDL_SCANCODE_E] - keyboardState[SDL_SCANCODE_Q];
 
-        /*
-        float speed = PLAYER_SPEED;
-        if (sidewaysInput && updownInput) {
-            speed *= M_SQRT2 / 2.0;
-        }
-
-        float movementX = sidewaysInput * speed;
-        float movementY = updownInput * speed;
-        */
-
         if (state->player.entity.Has<EC::Rotation, EC::Position>(&state->ecs)) {
-
+            auto playerRotation = state->player.entity.Get<EC::Rotation>(&state->ecs);
             if (sidewaysInput || updownInput) {
                 glm::vec2 moveVector = glm::normalize(glm::vec2(sidewaysInput, updownInput));
-                float angle = glm::radians(state->player.entity.Get<EC::Rotation>(&state->ecs)->degrees);
-                /* no */ //angle = 0.0f;
+                float angle = glm::radians(playerRotation->degrees);
                 glm::vec2 movement = glm::vec2(
                     moveVector.x * cos(angle) - moveVector.y * sin(angle),
                     moveVector.x * sin(angle) + moveVector.y * cos(angle)
@@ -451,7 +440,7 @@ public:
                 movePlayer(state, {movement.x, movement.y});
             }
 
-            auto playerRotation = state->player.entity.Get<EC::Rotation>(&state->ecs);
+            
             playerRotation->degrees += rotationInput * PLAYER_ROTATION_SPEED;
             camera.setAngle(playerRotation->degrees);
         }
@@ -474,15 +463,8 @@ public:
                 Entity chest = Entities::Chest(&state->ecs, {floor(aimingPosition.x), floor(aimingPosition.y)}, 32, 1, 1, state->itemManager);
                 placeEntityOnTile(&state->ecs, selectedTile, chest);
             }
-            
         }
-
-        /*
-        for (int i = 0; i < keyBindings.size; i++) {
-            keyBindings[i]->updateKeyState(keyboardState[SDL_GetScancodeFromKey(keyBindings[i]->key)]);
-        }
-        */
-
+        
         for (auto keyBinding : keyBindings) {
             keyBinding->updateKeyState(keyboardState[SDL_GetScancodeFromKey(keyBinding->key)]);
         }

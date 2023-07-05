@@ -19,17 +19,6 @@
 #include "llvm/SmallVector.h"
 #include "llvm/ArrayRef.h"
 
-void updateTilePixels(float scale) {
-    if (scale == 0) {
-        scale = 1;
-    } else if (scale < 0) {
-        scale = -scale;
-    }
-    TilePixels = DEFAULT_TILE_PIXEL_SIZE * SDL::pixelScale * scale;
-    TileWidth = DEFAULT_TILE_PIXEL_SIZE * SDL::pixelScale * scale;
-    TileHeight = TileWidth * TILE_PIXEL_VERTICAL_SCALE;
-}
-
 void placeInserter(ChunkMap& chunkmap, EntityWorld* ecs, Vec2 mouseWorldPos) {
     Tile* tile = getTileAtPosition(chunkmap, mouseWorldPos);
     // TODO: entity collision stuff
@@ -91,11 +80,11 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
             auto chest = Entities::Chest(&ecs, position, 3, width, height, itemManager);
             (void)chest;
         }),
-        new FunctionKeyBinding('l', [](){
+        new FunctionKeyBinding('l', [&ecs](){
             // do airstrikes row by row
             for (int y = -100; y < 100; y += 5) {
                 for (int x = -100; x < 100; x += 5) {
-                    //Entities::Airstrike(&ecs, Vec2(x, y * 2), {3.0f, 3.0f}, Vec2(x, y));
+                    Entities::Airstrike(&ecs, Vec2(x, y * 2), {3.0f, 3.0f}, Vec2(x, y));
                 }
             }
         }),
@@ -289,13 +278,15 @@ static void updateSystems(GameState* state) {
     });
 }
 
-int  tick(GameState* state) {
+int tick(GameState* state, PlayerControls* playerControls) {
     state->player.grenadeThrowCooldown--;
     updateSystems(state);
-    if (Metadata->ticks() % 1 == 0 && false) {
+    if (Metadata->ticks() % 1 == 0) {
+        int i = 0;
+        /*
         for (auto& chunk: state->chunkmap.chunkList) {
-            for (int x = 0; x < CHUNKSIZE; x++) {
-                for (int y = 0; y < CHUNKSIZE; y++) {
+            for (int y = 0; y < CHUNKSIZE; y++) {
+                for (int x = 0; x < CHUNKSIZE; x++) {
                     //chunk[y][x].type = TileTypes::Grass;
                     TileType& type = chunk[y][x].type;
                     if (type == TileTypes::Grass) {
@@ -311,6 +302,8 @@ int  tick(GameState* state) {
                 }
             }
         }
+        */
+        /*
         for (int x = -200; x < 200; x++) {
             for (int y = -200; y < 200; y++) {
                 #define GETT(x, y) getTileAtPosition(state->chunkmap, IVec2{x, y})
@@ -328,19 +321,10 @@ int  tick(GameState* state) {
                 }
             }
         }
+        */
     }
 
-    //LogInfo("collision count: %d. lookups: %d", My::Map::collisionCount, My::Map::lookupCount);
-    //My::Map::collisionCount = 0;
-    //My::Map::lookupCount = 0;
-
-    llvm::SmallVector<int> smallVec;
-    smallVec.push_back(5);
-    smallVec.pop_back();
-    smallVec.reserve(200);
-
-    ArrayRef<int> ref{1,2,3,4};
-
+    playerControls->doPlayerMovementTick(state);
 
     return 0;
 }
@@ -356,15 +340,79 @@ void logComponentPoolSizes(const EntityWorld& ecs) {
     }
 }
 
-int Game::update() {
-    double deltaTime = metadata.tick();
-    if (deltaTime > 200.0) {
-        LogWarn("Slow frame! dt: %f", deltaTime);
+void displaySizeChanged(SDL_Window* window, const RenderContext& renderContext, Camera* camera) {
+    int drawableWidth,drawableHeight;
+    SDL_GL_GetDrawableSize(window, &drawableWidth, &drawableHeight);
+    glViewport(0, 0, drawableWidth, drawableHeight);
+    camera->pixelWidth = (float)drawableWidth;
+    camera->pixelHeight = (float)drawableHeight;
+
+    resizeRenderBuffer(renderContext.framebuffer, {drawableWidth, drawableHeight});
+}
+
+int Game::handleEvent(const SDL_Event* event) {
+    int code = 0;
+    switch(event->type) {
+        case SDL_QUIT:
+            code = 1; 
+            break;
+        case SDL_WINDOWEVENT:
+            if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
+                displaySizeChanged(sdlCtx.win, *renderContext, &camera);
+            }
+            if (event->window.event == SDL_WINDOWEVENT_DISPLAY_CHANGED) {
+                SDL::pixelScale = SDL::getPixelScale(sdlCtx.win);
+                camera.baseScale = SDL::pixelScale;
+                renderContext->font.load(renderContext->font.baseHeight * SDL::pixelScale, TextureUnit::Text);
+            }
+            break;
+        case SDL_MOUSEWHEEL: {
+            float wheelMovement = event->wheel.preciseY;
+            if (wheelMovement != 0.0f) {
+                const float min = 1.0f / 8.0f;
+                const float max = 16.0f;
+                const float logMin = log2(min);
+                const float logMax = log2(max);
+
+                const float wheelMax = 32.0f;
+
+                static float wheelPos = 16.0f;
+                wheelPos += wheelMovement;
+
+                if (wheelPos < 1.0f) {
+                    wheelPos = 1.0f;
+                } else if (wheelPos > wheelMax) {
+                    wheelPos = wheelMax;
+                }
+
+                float logZoom = ((logMax - logMin) / (wheelMax)) * wheelPos + logMin;
+                float zoom = pow(2, logZoom);
+                
+                camera.zoom = zoom;
+            }
+            break;
+            }    
+        case SDL_KEYDOWN:
+            switch (event->key.keysym.sym) {
+            case ']':
+                logComponentPoolSizes(state->ecs);
+                break;
+            }
+        default:
+            break;
     }
 
-    bool quit = false;
+    playerControls->handleEvent(event, state, gui);
+    return code;
+}
 
-    updateTilePixels(worldScale);
+int Game::update() {
+    
+    constexpr double targetFPS = 60.0;
+    constexpr double fixedFrametime = 1000.0 / targetFPS;
+    constexpr int maxUpdates = 3;
+
+    bool quit = false;
 
     // get user input state for this update
     SDL_PumpEvents();
@@ -375,53 +423,8 @@ int Game::update() {
 
     SDL_Event event;
     while (SDL_PollEvent(&event) != 0) {
-        switch(event.type) {
-            case SDL_QUIT:
-                quit = true;
-                break;
-            case SDL_WINDOWEVENT:
-                if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
-                    int drawableWidth,drawableHeight;
-                    SDL_GL_GetDrawableSize(sdlCtx.win, &drawableWidth, &drawableHeight);
-                    glViewport(0, 0, drawableWidth, drawableHeight);
-                    camera.pixelWidth = (float)drawableWidth;
-                    camera.pixelHeight = (float)drawableHeight;
-                }
-                if (event.window.event == SDL_WINDOWEVENT_DISPLAY_CHANGED) {
-                    SDL::pixelScale = SDL::getPixelScale(sdlCtx.win);
-                    updateTilePixels(1.0f);
-                    renderContext->font.load(renderContext->font.baseHeight * SDL::pixelScale, TextureUnit::Text);
-                }
-                break;
-            case SDL_MOUSEWHEEL:
-                worldScale += event.wheel.preciseY / 50.0f;
-                if (worldScale < 0.1f) {
-                    worldScale = 0.1f;
-                } else if (worldScale > 8) {
-                    worldScale = 8;
-                }
-                updateTilePixels(worldScale);
-                break;
-            case SDL_KEYDOWN:
-                switch (event.key.keysym.sym) {
-                
-                case '7':
-                    // broken
-                    //GameSave::save(state);
-                    break;
-                case '9':
-                    // borked
-                    //GameSave::load(state);
-                    break;
-                case ']':
-                    logComponentPoolSizes(state->ecs);
-                    break;
-                }
-            default:
-                break;
-        }
-
-        playerControls->handleEvent(event, state, gui);
+        int code = handleEvent(&event);
+        if (code == 1) quit = true;
     }
 
     playerControls->update(state, gui);
@@ -429,17 +432,32 @@ int Game::update() {
         playerControls->playerMouseTargetMoved(mouse, lastUpdateMouseState, state, gui);
     }
 
-    // these two functions should be combined
-    playerControls->doPlayerMovementTick(state);
-    tick(state);
+
+
+    double deltaTime = metadata.tick();
+    if (deltaTime > 200.0) {
+        LogWarn("Slow frame! dt: %f", deltaTime);
+    }
+
+    static double remainingTime = 0.0;
+    remainingTime += deltaTime;
+    
+    int updates = 0;
+    while (remainingTime > fixedFrametime) {
+        remainingTime -= fixedFrametime;
+
+        if (updates++ < maxUpdates) {
+            tick(state, playerControls);
+        }
+    }
+
+    //LogInfo("updates done: %d", updates);
 
     // update to new state from tick
     playerTargetPos = camera.pixelToWorld(mouse.x, mouse.y);
     Vec2 focus = state->player.getPosition();
     camera.position.x = focus.x;
     camera.position.y = focus.y;
-    camera.baseScale = TilePixels;
-    camera.zoom = 1.0f;
 
     float scale = SDL::pixelScale;
     RenderOptions options = {
@@ -447,8 +465,8 @@ int Game::update() {
         scale
     };
 
-    render(*renderContext, options, gui, state, camera, playerTargetPos, mode);    
-    
+    render(*renderContext, options, gui, state, camera, playerTargetPos, mode, updates > 0); 
+
     lastUpdateMouseState = mouse;
     lastUpdatePlayerTargetPos = playerTargetPos;
 
@@ -459,7 +477,7 @@ int Game::update() {
     return 0; 
 }
 
-void Game::init(int screenWidth, int screenHeight) {
+int Game::init(int screenWidth, int screenHeight) {
     LogInfo("Starting game init");
 
     this->gui = new Gui();
@@ -475,7 +493,6 @@ void Game::init(int screenWidth, int screenHeight) {
     }
 
     this->renderContext = new RenderContext(sdlCtx.win, sdlCtx.gl);
-    this->worldScale = 1.0f;
     this->playerControls = new PlayerControls(this->camera);
     SDL_Point mousePos = SDL::getMousePixelPosition();
     this->lastUpdateMouseState = {
@@ -486,15 +503,15 @@ void Game::init(int screenWidth, int screenHeight) {
 
     setDefaultKeyBindings(*this, playerControls);
 
-    int displayWidth,displayHeight;
-    SDL_GL_GetDrawableSize(sdlCtx.win, &displayWidth, &displayHeight);
-    glViewport(0, 0, displayWidth, displayHeight);
-    this->camera = Camera(TilePixels, glm::vec3(0.0f), displayWidth, displayHeight);
+    glViewport(0, 0, screenWidth, screenHeight);
+    this->camera = Camera(BASE_UNIT_SCALE, glm::vec3(0.0f), screenWidth, screenHeight);
 
     LogInfo("starting render init");  
-    renderInit(*renderContext);
+    renderInit(*renderContext, screenWidth, screenHeight);
 
     setCommands(this);
+
+    return 0;
 }
 
 void Game::quit() {
@@ -515,7 +532,7 @@ void Game::destroy() {
     delete this->renderContext;
 }
 
-void Game::start() {
+int Game::start() {
     // GameSave::load()
 
     Metadata = &metadata;
@@ -530,11 +547,12 @@ void Game::start() {
     }
     metadata.start();
 #ifdef EMSCRIPTEN
-    emscripten_set_main_loop_arg(emscriptenUpdateWrapper, this, 0, 1);
+    emscripten_set_main_loop_arg(Game::emscriptenUpdateWrapper, this, 0, 1);
 #else
     int code;
     do {
         code = update();
     } while (code == 0);
 #endif
+    return 0;
 }

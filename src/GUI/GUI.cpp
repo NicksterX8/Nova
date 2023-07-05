@@ -23,7 +23,8 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, SDL_Rect viewport, const Play
     slots.clear();
 
     unsigned int numSlots = player->numHotbarSlots;
-    if (!player->inventory() || numSlots == 0) {
+    auto* inventory = player->inventory();
+    if (!inventory || numSlots == 0) {
         rect = {0, 0, 0, 0};
         return rect;
     }
@@ -65,7 +66,7 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, SDL_Rect viewport, const Play
         border.h - borderSize * 2
     };
 
-    renderer.colorRect({border, {60, 60, 60, 255}});
+    renderer.colorRect({border, {60, 60, 60, alpha}});
     renderer.colorRect({inside, {100, 100, 100, alpha}});
 
     {
@@ -81,7 +82,7 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, SDL_Rect viewport, const Play
         for (unsigned int i = 0; i < player->numHotbarSlots; i++) {
             slots.push(hotbarSlot);
 
-            ItemStack item = player->inventory()->get(i);
+            ItemStack item = inventory->get(i);
 
             // draw slot in hotbarSlot
             renderer.colorRect({hotbarSlot, {60, 60, 60, alpha}});
@@ -98,7 +99,7 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, SDL_Rect viewport, const Play
             if (item.item.type) {
                 const ItemPrototype* prototype = items::getPrototype(item.item.type, itemManager);
                 // icon
-                renderer._sprite(prototype->inventoryIcon, innerSlot);
+                //renderer.textureArraySprite(prototype->inventoryIcon, innerSlot);
                 // quantity count
                 // dont draw item count over items that can only ever have one count,
                 // its pointless
@@ -121,7 +122,7 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, SDL_Rect viewport, const Play
             slotSize,
             slotSize
         };
-        //SDL_SetRenderDrawColor(ren, 0, 255, 255, 155);
+        renderer.colorRect({selectedHotbarSlot, {0, 0, 0, 255}});
     }
 
     return rect;

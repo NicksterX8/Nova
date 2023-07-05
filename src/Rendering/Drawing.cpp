@@ -55,7 +55,7 @@ int Draw::chunkBorders(float scale, Camera& camera) {
     return nLinesDrawn;
 }*/
 
-int Draw::chunkBorders(ColorQuadRenderBuffer& renderer, const Camera& camera, SDL_Color color, float pixelLineWidth, float z) {
+int Draw::chunkBorders(QuadRenderer& renderer, const Camera& camera, SDL_Color color, float pixelLineWidth, float z) {
     glm::vec2 cameraMin = camera.minCorner();
     glm::vec2 cameraMax = camera.maxCorner();
     glm::ivec2 minChunkPos = toChunkPosition(cameraMin);
@@ -142,11 +142,11 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
     guiRenderer.quad->z = -0.9f;
     guiRenderer.text->z = 0.9f;
 
-    auto colorShader = ren.quadRenderer.shader;
-    colorShader.use();
-    colorShader.setMat4("transform", screenTransform);
+    auto quadShader = ren.shaders.get(Shaders::Quad);
+    quadShader.use();
+    quadShader.setMat4("transform", screenTransform);
 
-    auto textShader = ren.textRenderer.shader;
+    auto textShader = ren.shaders.get(Shaders::Text);
     textShader.use();
     textShader.setMat4("transform", screenTransform);
 
@@ -157,6 +157,7 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
     gui->draw(guiRenderer, 1.0f, {0, 0, (int)guiRenderer.options.size.x, (int)guiRenderer.options.size.y}, &state->player, state->itemManager);
     
 
+    // move to test func when not lazy
     /*
     textRenderer.render("This should be centered\n right in the middle,\n on the dot!", guiRenderer.options.size / 2.0f,
         TextFormattingSettings(TextAlignment::MiddleCenter), TextRenderingSettings(glm::vec2{guiRenderer.options.scale}));
@@ -170,5 +171,5 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
         TextFormattingSettings(TextAlignment::TopLeft), TextRenderingSettings(glm::vec2{guiRenderer.options.scale}));
         */
 
-    guiRenderer.flush(screenTransform, TextureUnit::Text);
+    guiRenderer.flush(quadShader, textShader, screenTransform, TextureUnit::Text);
 }

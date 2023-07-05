@@ -311,22 +311,25 @@ public:
         size++;
     }
 
-    void insertList(ArrayRef<Key> keys) {
-        for (auto key : keys) {
+    // returns the beginning of the range of values for the keys
+    Value* insertList(ArrayRef<Key> newKeys) {
+        for (auto key : newKeys) {
             assertValidKey(key);
         }
 
-        if (UNLIKELY(size + keys.size() > capacity)) {
-            reallocate(MAX(size+keys.size(), capacity*2));
+        if (UNLIKELY(size + newKeys.size() > capacity)) {
+            reallocate(MAX(size+newKeys.size(), capacity*2));
         }
 
         const auto startIndex = (Index)size;
-        memcpy(keys + startIndex, keys, keys.size() * sizeof(Key));
-        for (SizeT i = 0; i < keys.size(); i++) {
-            assert(set[keys[i]] == NullIndex && "Attempted to insert key already present in sparse set");
-            set[keys[i]] = startIndex + i;
+        Value* newValues = &values[startIndex];
+        memcpy(&keys[startIndex], newKeys.data(), newKeys.size() * sizeof(Key));
+        for (SizeT i = 0; i < newKeys.size(); i++) {
+            assert(set[newKeys[i]] == NullIndex && "Attempted to insert key already present in sparse set");
+            set[newKeys[i]] = startIndex + i;
         }
-        size += keys.size();
+        size += newKeys.size();
+        return newValues;
     }
 
     void insertRange(Key keyBegin, Key keyEnd) {

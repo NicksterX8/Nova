@@ -70,14 +70,17 @@ const GlVertexAttribute* attributes, unsigned int numAttributes) {
         sizePerVertex += attributes[i].count * attributes[i].typeSize;
     }
     size_t totalSize = sizePerVertex * vertexCount;
-    char* combinedVertexData = (char*)malloc(totalSize);
-    size_t sum = 0;
-    for (int i = 0; i < numAttributes; i++) {
-        size_t attributeSize = attributes[i].count * attributes[i].typeSize * vertexCount;
-        memcpy(combinedVertexData + sum, vertexData[i], attributeSize);
-        sum += attributeSize;
+    char* combinedVertexData = nullptr;
+    if (vertexData) {
+        combinedVertexData = (char*)malloc(totalSize);
+        size_t sum = 0;
+        for (int i = 0; i < numAttributes; i++) {
+            size_t attributeSize = attributes[i].count * attributes[i].typeSize * vertexCount;
+            memcpy(combinedVertexData + sum, vertexData[i], attributeSize);
+            sum += attributeSize;
+        }
+        assert(totalSize == sum);
     }
-    assert(totalSize == sum);
 
     GlModel model;
     glGenVertexArrays(1, &model.vao);

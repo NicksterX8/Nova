@@ -3,16 +3,6 @@
 #include "rendering/textures.hpp"
 #include "utils/FileSystem.hpp"
 
-static const char* getNextArg(const char* str) {
-    if (!str) return nullptr;
-    int l = 0;
-    for (;;) {
-        if (str[l] == '\0') return nullptr;
-        else if (str[l] == ' ') return &str[l + 1];
-        l++;
-    }
-}
-
 namespace Commands {
     using Result = Command::Result;
 
@@ -98,13 +88,12 @@ namespace Commands {
         for (TextureID id = TextureIDs::First; id <= TextureIDs::Last; id++) {
             TextureMetaData metadata = textures->metadata[id];
             if (My::streq(metadata.identifier, textureName)) {
-                int depth = getTextureArrayDepth(id);
                 SDL_Surface* surface = IMG_Load(FileSystem.assets.get(newTextureFilename));
                 if (!surface) {
                     snprintf(message, 512, "Couldn't load texture with path %s!", (char*)FileSystem.assets.get(newTextureFilename));
                     return {std::string(message)};
                 }
-                int code = updateTextureArray(textureArray, depth, surface);
+                int code = updateTextureArray(textureArray, textures, id, surface);
                 if (code) {
                     return {"Failed while setting texture!"};
                 }

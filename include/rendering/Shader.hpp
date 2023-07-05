@@ -16,6 +16,7 @@ char* readFileContents(const char* filename, size_t* outBytesRead=NULL);
 
 GLuint compileShader(GLenum shaderType, const char* sourcePath);
 GLuint makeShaderProgram(const char* vertexPath, const char* fragmentPath);
+GLuint makeShaderProgram(const char* vertexPath, const char* fragmentPath, const char* geometryPath);
 
 
 // An OpenGL Shader program wrapper/abstraction
@@ -27,6 +28,8 @@ struct Shader {
     // constructor generates and compiles the shader program 
     // ------------------------------------------------------------------------
     Shader(const char* vertexPath, const char* fragmentPath);
+
+    Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath);
 
     Shader(GLuint program) : id(program) {}
 
@@ -93,6 +96,14 @@ struct Shader {
 };
 
 inline Shader loadShader(const char* name) {
+    // check if geometry shader file is there 
+    auto geometryShader = FileSystem.shaders.get(str_add(name, ".gs"));
+    auto file = SDL_RWFromFile(geometryShader, "r");
+    if (file) {
+        // if so, include it in the shader program
+        SDL_RWclose(file);
+        return Shader(makeShaderProgram(FileSystem.shaders.get(str_add(name, ".vs")), FileSystem.shaders.get(str_add(name, ".fs")), geometryShader));
+    }
     return Shader(makeShaderProgram(FileSystem.shaders.get(str_add(name, ".vs")), FileSystem.shaders.get(str_add(name, ".fs"))));
 }
 

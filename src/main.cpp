@@ -212,8 +212,15 @@ int main(int argc, char** argv) {
         }
     );
 
-    game->init(screenWidth, screenHeight);
-    game->start(); // start indefinitely long game loop
+    int code = 0;
+    code = game->init(screenWidth, screenHeight);
+    if (code) {
+        LogCrash(CrashReason::GameInitialization, "Couldn't init game. code: %d", code);
+    }
+    code = game->start(); // start indefinitely long game loop
+    if (code) {
+        LogCrash(CrashReason::GameInitialization, "Couldn't start game. code: %d", code);
+    }
     // runs after the game loop has ended
     game->quit();
     game->destroy();

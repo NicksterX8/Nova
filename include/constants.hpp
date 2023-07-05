@@ -23,8 +23,7 @@
 #define CHUNKSIZE 64
 static_assert(CHUNKSIZE > 0, "Chunks can't be empty");
 
-#define DEFAULT_TILE_PIXEL_SIZE 32.0f
-#define TILE_PIXEL_VERTICAL_SCALE 1
+#define BASE_UNIT_SCALE 32.0f
 
 const float PLAYER_SPEED = 0.3f;
 const float PLAYER_ROTATION_SPEED = 1.0f;

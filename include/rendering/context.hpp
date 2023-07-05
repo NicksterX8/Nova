@@ -12,7 +12,9 @@ namespace TextureUnits {
     enum E : GLuint {
         MyTextureArray=0,
         Text=1,
-        Single
+        Random,
+        Screen,
+        Available
     };
 }
 
@@ -23,10 +25,11 @@ namespace Shaders {
         Entity = 0,
         Tilemap,
         Point,
-        Color,
+        Quad,
         Text,
         SDF,
         Texture,
+        Screen,
         Count
     };
 }
@@ -84,11 +87,18 @@ struct ChunkBuffer {
     static constexpr size_t bufferChunkCapacity = (8 * 1024 * 1024) / (CHUNKSIZE * CHUNKSIZE * 4 * 5 * sizeof(GLfloat));
 };
 
+struct RenderBuffer {
+    GLuint fbo;
+    GLuint rbo;
+    GLuint colorTexture;
+};
+
 struct RenderContext {
     SDL_Window* window = NULL;
     SDL_GLContext glCtx = NULL;
-    TextureManager textures{0};
+
     TextureArray textureArray;
+    TextureManager textures{0};
     ShaderManager shaders;
 
     Font font;
@@ -99,6 +109,8 @@ struct RenderContext {
 
     GlModel chunkModel;
     ChunkBuffer chunkBuffer;
+
+    RenderBuffer framebuffer;
 
     RenderContext(SDL_Window* window, SDL_GLContext glContext)
     : window(window), glCtx(glContext) {}

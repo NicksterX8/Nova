@@ -133,7 +133,6 @@ struct Font {
         unsigned short* advances = nullptr;
     };
 
-
     FT_Face face = nullptr;
     glm::ivec2 atlasSize = {0, 0};
     float tabWidthScale = 0.0f; // times space char advance
@@ -156,7 +155,7 @@ struct Font {
     void unload();
 
     // true height
-    float height() {
+    float height() const {
         return face->height >> 6;
     }
 
@@ -209,7 +208,6 @@ struct TextRenderer {
     llvm::SmallVector<TextRenderBatch, 0> buffer;
 
     Font* font = nullptr;
-    Shader shader = 0;
     GlModel model;
 
     FormattingSettings defaultFormatting;
@@ -248,11 +246,10 @@ struct TextRenderer {
         }
     }
 
-    static TextRenderer init(Font* font, Shader shader, float z) {
+    static TextRenderer init(Font* font, float z) {
         TextRenderer self;
         self.font = font;
         self.defaultColor = {0,0,0,0};
-        self.shader = shader;
         self.z = z;
 
         self.model = GlGenModel();
@@ -268,8 +265,6 @@ struct TextRenderer {
         // tex coord
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
-
-
 
 
         // unbind buffers just in case
@@ -442,10 +437,10 @@ struct TextRenderer {
 
 private:
     void renderBatch(const TextRenderBatch* batch, GLfloat* verticesOut) {
-        //assert(buffer.size + numChars <= bufferCapacity);
         const auto& layout = batch->layout;
         const auto settings = batch->settings;
         const auto count = layout.characters.size();
+        assert(count < maxBatchSize && "Batch too large!");
         for (size_t i = 0; i < count; i++) {
             char c = layout.characters[i];
             glm::vec2 offset = layout.characterOffsets[i];
@@ -481,7 +476,6 @@ private:
             const float* texCoords = (float*)characterTexCoords[c - font->firstChar].data();
             memcpy((char*)vertexBuffer + bufferTexCoordStart + (i + bufferSize) * 4 * sizeof(glm::vec2), texCoords, 4 * sizeof(glm::vec2));
             */
-            //buffer.push(vertices, 16);
             memcpy(verticesOut + i * 16, vertices, sizeof(vertices));
         }
     }
@@ -531,31 +525,12 @@ public:
             maxSize.x = MAX(maxSize.x, layout.size.x);
             maxSize.y = MAX(maxSize.y, layout.size.y);
 
-            // For merging batches to help performance, try later 
-            /*
-            if (!buffer.empty()) {
-                auto& lastBatch = buffer.back();
-                auto lastBatchSettings = lastBatch.settings;
-                if (!lastBatchSettings.orderMatters && lastBatchSettings.color == renderSettings.color && lastBatchSettings.scale == renderSettings.scale) {
-                    // share batch
-                    lastBatch.layout.characters.append(layout.characters);
-                    lastBatch.layout.characterOffsets.append(layout.characterOffsets);
-                    lastBatch.layout.size 
-                }
-                
-            }
-            */
-
             TextRenderBatch batch = {
                 .layout = layout,
                 .settings = renderSettings
             };
             buffer.push_back(batch);
 
-            /*
-            buffer(charsToBuffer, layout.characters.data(), layout.characterOffsets.data(), origin, renderSettings);
-            buffer(layout, renderSettings)
-            */
             textParsed += batchSize;
         }
 
@@ -571,13 +546,13 @@ public:
     }
 
     // texture will be bound on the active texture
-    void flush(glm::mat4 transform, GLuint textureUnit) {
+    void flush(Shader textShader, glm::mat4 transform, GLuint textureUnit) {
         glBindVertexArray(model.vao);
         glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
 
         glActiveTexture(GL_TEXTURE0 + textureUnit);
         glBindTexture(GL_TEXTURE_2D, font->atlasTexture);
-        shader.use();
+        textShader.use();
 
         unsigned int maxCharacters = 0;
         for (auto& batch : buffer) {
@@ -591,10 +566,25 @@ public:
 
         glBufferData(GL_ARRAY_BUFFER, maxFloats * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 
+        // TODO: For merging batches to help performance
+            /*
+            if (!buffer.empty()) {
+                auto& lastBatch = buffer.back();
+                auto lastBatchSettings = lastBatch.settings;
+                if (!lastBatchSettings.orderMatters && lastBatchSettings.color == renderSettings.color && lastBatchSettings.scale == renderSettings.scale) {
+                    // share batch
+                    lastBatch.layout.characters.append(layout.characters);
+                    lastBatch.layout.characterOffsets.append(layout.characterOffsets);
+                    lastBatch.layout.size 
+                }
+                
+            }
+            */
+
         for (int i = 0; i < buffer.size(); i++) {
             const auto* batch = &buffer[i];
-            shader.setVec3("textColor", colorConvert(batch->settings.color));
-            shader.setMat4("transform", glm::scale(transform, glm::vec3(batch->settings.scale, 1.0f)));
+            textShader.setVec3("textColor", colorConvert(batch->settings.color));
+            textShader.setMat4("transform", glm::scale(transform, glm::vec3(batch->settings.scale, 1.0f)));
             auto* vertexBuffer = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
             renderBatch(batch, vertexBuffer);
             glUnmapBuffer(GL_ARRAY_BUFFER);

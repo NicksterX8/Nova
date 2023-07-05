@@ -8,6 +8,7 @@
 #include "std.hpp"
 #include "../constants.hpp"
 #include "Allocation.hpp"
+#include "llvm/ArrayRef.h"
 
 MY_CLASS_START
 
@@ -212,7 +213,7 @@ public:
         }
         return this->capacity;
     }
-
+ 
     // resize the vector
     void resize(int size) {
         assert(size >= 0 && "cannot have negative size");
@@ -283,6 +284,10 @@ public:
         return false;
         */
         return Generic::vec_push((Generic::Vec*)this, sizeof(T), elements, count);
+    }
+
+    bool push(ArrayRef<T> array) {
+        return Generic::vec_push((Generic::Vec*)this, sizeof(T), array.data(), array.size());
     }
 
     /* Reserve space for \p size elements at the back and increase the vector's size by that amount, leaving the elements in those spaces unitialized.

@@ -16,7 +16,7 @@ namespace Draw {
 
     /* Types */
 
-    int chunkBorders(ColorQuadRenderBuffer& renderer, const Camera& camera, SDL_Color color, float pixelLineWidth, float z);
+    int chunkBorders(QuadRenderer& renderer, const Camera& camera, SDL_Color color, float pixelLineWidth, float z);
     void drawFpsCounter(TextRenderer& renderer, float fps, RenderOptions options);
     void drawConsole(GuiRenderer& renderer, const GUI::Console* console);
     void drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& screenTransform, GUI::Gui* gui, const GameState* state);
@@ -63,32 +63,29 @@ namespace Draw {
         glDrawArrays(GL_POINTS, 0, count);
     }
 
-    inline void coloredQuads(ColorQuadRenderBuffer& renderer, GLuint count, const ColorVertex* quads) {
-       renderer.buffer(count, quads);
-    }
-
-    inline void thickLines(ColorQuadRenderBuffer& renderer, GLuint numLines, const glm::vec3* points, const SDL_Color* colors, const GLfloat* lineWidths) {
-        ColorVertex* quadPoints = renderer.bufferManual(numLines);
-        for (GLint i = 0; i < numLines; i++) {
-            GLint ind = i * 4;
+    inline void thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec3* points, SDL_Color color, const GLfloat* lineWidths) {
+        QuadRenderer::Quad* quads = renderer.renderManual(numLines);
+        for (GLuint i = 0; i < numLines; i++) {
+            GLuint ind = i * 4;
             glm::vec2 p1 = points[i*2];
             glm::vec2 p2 = points[i*2+1];
             glm::vec2 d = p2 - p1;
-            glm::vec2 offset = glm::vec2(-d.y, d.x) * lineWidths[i] / 2.0f;
+            glm::vec2 offset = glm::normalize(glm::vec2(-d.y, d.x)) * lineWidths[i] / 2.0f;
 
             for (int j = 0; j < 4; j++) {
-                quadPoints[ind+j].color = colors[i];
+                quads[ind][j].color = color;
+                quads[ind][j].texCoord = {0, 0};
             }
             
-            quadPoints[ind+0].position = {p1 + offset, points[ind+0].z};
-            quadPoints[ind+1].position = {p1 - offset, points[ind+0].z};
-            quadPoints[ind+2].position = {p2 - offset, points[ind+1].z};
-            quadPoints[ind+3].position = {p2 + offset, points[ind+1].z};
+            quads[ind][0].pos = {p1 + offset, points[i*2].z};
+            quads[ind][1].pos = {p1 - offset, points[i*2].z};
+            quads[ind][2].pos = {p2 - offset, points[i*2+1].z};
+            quads[ind][3].pos = {p2 + offset, points[i*2+1].z};
         }
     }
 
-    inline void thickLines(ColorQuadRenderBuffer& renderer, GLuint numLines, const glm::vec3* points, SDL_Color color, GLfloat lineWidth) {
-        ColorVertex* quadPoints = renderer.bufferManual(numLines);
+    inline void thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec3* points, SDL_Color color, GLfloat lineWidth) {
+        QuadRenderer::Quad* quads = renderer.renderManual(numLines);
         for (GLuint i = 0; i < numLines; i++) {
             GLuint ind = i * 4;
             glm::vec2 p1 = points[i*2];
@@ -97,18 +94,17 @@ namespace Draw {
             glm::vec2 offset = glm::normalize(glm::vec2(-d.y, d.x)) * lineWidth / 2.0f;
 
             for (int j = 0; j < 4; j++) {
-                quadPoints[ind+j].color = color;
+                quads[ind][j].color = color;
+                quads[ind][j].texCoord = {0, 0};
             }
             
-            quadPoints[ind+0].position = {p1 + offset, points[i*2].z};
-            quadPoints[ind+1].position = {p1 - offset, points[i*2].z};
-            quadPoints[ind+2].position = {p2 - offset, points[i*2+1].z};
-            quadPoints[ind+3].position = {p2 + offset, points[i*2+1].z};
+            quads[ind][0].pos = {p1 + offset, points[i*2].z};
+            quads[ind][1].pos = {p1 - offset, points[i*2].z};
+            quads[ind][2].pos = {p2 - offset, points[i*2+1].z};
+            quads[ind][3].pos = {p2 + offset, points[i*2+1].z};
         }
     }
     
 }
-
-using QuadRenderer = ColorQuadRenderBuffer;
 
 #endif

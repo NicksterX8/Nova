@@ -5,10 +5,6 @@
 #include "ECS/Entity.hpp"
 #include "items/manager.hpp"
 
-float TilePixels = DEFAULT_TILE_PIXEL_SIZE;
-float TileWidth = DEFAULT_TILE_PIXEL_SIZE;
-float TileHeight = TileWidth * M_SQRT2;
-
 TileTypeDataStruct TileTypeData[NUM_TILE_TYPES];
 
 template<typename... Flags>

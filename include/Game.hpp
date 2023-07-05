@@ -17,8 +17,6 @@
 
 struct Game;
 
-void updateTilePixels(float scale);
-
 void placeInserter(ChunkMap& chunkmap, EntityWorld* ecs, Vec2 mouseWorldPos);
 
 void rotateEntity(const ComponentManager<EC::Rotation, EC::Rotatable>& ecs, EntityT<EC::Rotation, EC::Rotatable> entity, bool counterClockwise);
@@ -32,7 +30,6 @@ struct Game {
     Camera camera;
     Gui* gui;
     PlayerControls* playerControls;
-    float worldScale;
     MouseState lastUpdateMouseState;
     Vec2 lastUpdatePlayerTargetPos;
     DebugClass* debug;
@@ -53,16 +50,21 @@ struct Game {
         mode = Unstarted;
     }
 
-    void init(int screenWidth, int screenHeight);
+    int init(int screenWidth, int screenHeight);
 
-    void start();
+    int start();
 
     void quit();
 
     void destroy();
 
     int update();
+
+    // @return 1 for quit game, 0 otherwise
+    int handleEvent(const SDL_Event*);
+
 #ifdef EMSCRIPTEN
+    // update wrapper function to unwrap the void pointer main loop parameter into its properties
     static int emscriptenUpdateWrapper(void* param) {
         Game* game = static_cast<Game*>(param);
         if (game) {
@@ -81,8 +83,5 @@ struct Game {
     }
 
 };
-
-// update wrapper function to unwrap the void pointer main loop parameter into its properties
-int updateWrapper(void *param);
 
 #endif

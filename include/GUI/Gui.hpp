@@ -174,6 +174,7 @@ struct Console {
     }
 
     void pushActiveMessage(MessageType type) {
+        if (activeMessage.empty()) return;
         newMessage(activeMessage.c_str(), type);
         activeMessage.clear();
     }

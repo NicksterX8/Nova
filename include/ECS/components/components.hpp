@@ -117,10 +117,10 @@ struct Size : EntityComponent<Size>, Serializable<Size> {
     float width;
     float height;
 
-    Size(float width, float height);
-    Size(Vec2 vec);
+    Size(float width, float height) : width(width), height(height) {}
+    Size(Vec2 vec) : width(vec.x), height(vec.y) {}
 
-    inline Vec2 vec2() const {
+    Vec2 vec2() const {
         return Vec2(width, height);
     };
 };
@@ -129,7 +129,7 @@ struct Render : EntityComponent<Render>, Serializable<Render> {
     TextureID texture;
     int layer;
 
-    Render(TextureID, int);
+    Render(TextureID texture, int layer) : texture(texture), layer(layer) {}
 };
 
 struct NewRender : EntityComponent<NewRender> {
@@ -180,14 +180,14 @@ struct Motion : EntityComponent<Motion>, Serializable<Motion> {
     Vec2 target;
     float speed;
 
-    Motion(Vec2 target, float speed);
+    Motion(Vec2 target, float speed) : target(target), speed(speed) {}
 };
 
 struct AngleMotion : EntityComponent<AngleMotion>, Serializable<AngleMotion> {
     float rotationTarget;
     float rotationSpeed;
 
-    AngleMotion(float rotationTarget, float rotationSpeed);
+    AngleMotion(float rotationTarget, float rotationSpeed) : rotationTarget(rotationTarget), rotationSpeed(rotationSpeed) {}
 };
 
 struct Inventory : EntityComponent<Inventory> {
@@ -257,7 +257,7 @@ struct Inserter : EntityComponent<Inserter>, Serializable<Inserter> {
 struct Rotation : EntityComponent<Rotation>, Serializable<Rotation> {
     float degrees;
 
-    Rotation(float degrees);
+    Rotation(float degrees) : degrees(degrees) {};
 };
 
 struct Rotatable : EntityComponent<Rotatable>, Serializable<Rotatable> {

@@ -2,7 +2,7 @@
 #include "memory.hpp"
 #include "rendering/textures.hpp"
 
-Texture packTextures(const int numTextures, const Texture* textures, int pixelSize, glm::ivec2* textureOrigins, glm::ivec2 startSize) {
+Texture packTextures(const int numTextures, const Texture* textures, int pixelSize, glm::ivec2* textureOrigins, int startSize) {
     static constexpr int NullNode = -1;
 
     struct Node {
@@ -108,7 +108,7 @@ Texture packTextures(const int numTextures, const Texture* textures, int pixelSi
     Atlas atlas;
     atlas.nodesEmpty.reserve(2 * numTextures);
     atlas.nodes = My::Vec<Node>::WithCapacity(500);
-    atlas.atlas = createUninitTexture(startSize, pixelSize);
+    atlas.atlas = newUninitTexture(glm::ivec2(startSize), pixelSize);
     fillTextureBlack(atlas.atlas);
 
     atlas.nodes.push(Node({0, 0}, {INT_MAX, INT_MAX}));
@@ -120,13 +120,15 @@ Texture packTextures(const int numTextures, const Texture* textures, int pixelSi
         if (!texture.buffer || texture.size.x <= 0 || texture.size.y <= 0) {
             // bad texture, skip it
             if (textureOrigins)
-                textureOrigins[i] = {0, 0};
+                textureOrigins[i] = {-1, -1};
             continue;
         }
 
         int nodeIndex = atlas.pack(root, texture.size);
         while (nodeIndex == NullNode) {
-            atlas.atlas = resizeTexture(atlas.atlas, glm::ivec2(MAX(atlas.atlas.size.x*2, texture.size.x*2), MAX(atlas.atlas.size.y*2, texture.size.y*2)));
+            // always keep atlas texture square
+            int newSize = MAX(MAX(atlas.atlas.size.x*2, texture.size.x*2), MAX(atlas.atlas.size.y*2, texture.size.y*2));
+            atlas.atlas = resizeTexture(atlas.atlas, glm::ivec2(newSize));
             nodeIndex = atlas.pack(root, texture.size);
         }
 

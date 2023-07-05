@@ -4,6 +4,7 @@
 #include <glm/vec3.hpp>
 #include "gl.hpp"
 #include "Shader.hpp"
+#include "llvm/ArrayRef.h"
 
 struct ColorVertex {
     glm::vec3 position;
@@ -12,27 +13,23 @@ struct ColorVertex {
 
 static_assert(sizeof(ColorVertex) == sizeof(GLfloat) * 3 + sizeof(SDL_Color), "not having struct padding is required");
 
-struct ColorVertex2D {
-    glm::vec2 position;
-    SDL_Color color;
-};
-
-struct ColorQuadRenderBuffer {
-    using Vertex = ColorVertex;
-    using Vertex2D = ColorVertex2D;
+struct QuadRenderer {
+    using TexCoord = glm::vec<2, GLushort>;
+    struct Vertex {
+        glm::vec3 pos;
+        SDL_Color color;
+        TexCoord texCoord;
+    };
+    static_assert(sizeof(Vertex) == sizeof(glm::vec3) + sizeof(SDL_Color) + 2 * sizeof(GLushort), "no struct padding");
+    using Quad = std::array<Vertex, 4>;
 
     /* member variables */
-    GLuint vao;
-    GLuint vbo;
-    GLuint ebo;
-
-    Vertex* vertexBuffer;
-    GLuint storedQuads = 0;
-    Shader shader = {};
+    GlModel model;
+    My::Vec<Quad> buffer;
     float z = 0.0f;
 
     /* Consts */
-    static const GLuint maxQuadsPerBatch = 10000;
+    static const GLuint maxQuadsPerBatch = 1000;
     static const GLuint maxVerticesPerBatch = maxQuadsPerBatch*4;
     static const GLuint eboIndexCount = maxQuadsPerBatch*6;
 
@@ -48,39 +45,30 @@ struct ColorQuadRenderBuffer {
     };
 
     /* Constructors */
-    ColorQuadRenderBuffer() {}
+    QuadRenderer() {}
 
-    ColorQuadRenderBuffer(Shader shader) {
-        this->shader = shader;
+    QuadRenderer(int nothing) {
+        this->buffer = My::Vec<Quad>::WithCapacity(500);
 
-        storedQuads = 0;
+        constexpr GlVertexAttribute attributes[] = {
+            {3, GL_FLOAT, sizeof(GLfloat)},
+            {4, GL_UNSIGNED_BYTE, sizeof(GLubyte)},
+            {2, GL_UNSIGNED_SHORT, sizeof(GLushort)}
+        };
 
-        glGenVertexArrays(1, &vao);
-        glGenBuffers(1, &vbo);
-        glGenBuffers(1, &ebo);
+        this->model = makeModel(maxQuadsPerBatch * sizeof(Quad), nullptr, GL_STREAM_DRAW,
+            maxQuadsPerBatch * 6 * sizeof(GLuint), nullptr, GL_STATIC_DRAW,
+            attributes, 3);
+        model.bindAll(); 
 
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, maxVerticesPerBatch * sizeof(Vertex), NULL, GL_STREAM_DRAW);
-        vertexBuffer = (Vertex*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, eboIndexCount * sizeof(GLuint), NULL, GL_STATIC_DRAW);
-        GLuint* indices = static_cast<GLuint*>(glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY));
+        GLuint* indices =(GLuint*)glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
 
-        for (GLuint i = 0; i < maxQuadsPerBatch; i++) {
-            GLuint first = i*4;
-            GLuint ind = i * 6;
-            indices[ind+0] = first+0;
-            indices[ind+1] = first+1;
-            indices[ind+2] = first+3;
-            indices[ind+3] = first+1;
-            indices[ind+4] = first+2;
-            indices[ind+5] = first+3; 
-        }
+        generateQuadVertexIndices(maxQuadsPerBatch, indices);
 
         glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 
-        const size_t stride = 3 * sizeof(GLfloat) + sizeof(SDL_Color);
+        const size_t stride = 3 * sizeof(GLfloat) + sizeof(SDL_Color) + 2 * sizeof(GLushort);
         static_assert(sizeof(SDL_Color) == 4 * sizeof(GLubyte), "sdl color bits match opengl");
 
         // position
@@ -90,40 +78,25 @@ struct ColorQuadRenderBuffer {
         // normalize sdl_color (u32) to vec4
         glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, stride, (void*)(3 * sizeof(GLfloat)));
         glEnableVertexAttribArray(1);
+        // texture coord
+        glVertexAttribPointer(2, 2, GL_UNSIGNED_SHORT, GL_FALSE, stride, (void*)(3 * sizeof(GLfloat) + 4 * sizeof(GLubyte)));
+        glEnableVertexAttribArray(2);
     }
 
     /* methods */
-    inline Vertex* getBufferTop() {
-        return &vertexBuffer[storedQuads * 4];
-    }
-
-    inline GLuint needBufferSpace(GLuint count) {
-        if (count > maxQuadsPerBatch) {
-            LogWarn("Needed %u quads rendered, more than buffer capacity", count);
-        }
-        if (storedQuads + count > maxQuadsPerBatch) {
-            flush();
-            return (count < maxQuadsPerBatch) ? count : maxQuadsPerBatch;
-        }
-        return count;
-    }
 
     // fastest
-    GLuint buffer(GLuint quadCount, const Vertex* quads) {
-        quadCount = needBufferSpace(quadCount);
-
-        memcpy(getBufferTop(), quads, quadCount * 4 * sizeof(Vertex));
-
-        storedQuads += quadCount;
-        return quadCount;
+    void render(ArrayRef<Quad> quads) {
+        buffer.push(quads);
     }
 
-    GLuint buffer(GLuint quadCount, const Vertex2D* quads) {
-        quadCount = needBufferSpace(quadCount);
+    /*
+    void render(GLuint quadCount, const Vertex2D* quads) {
+        buffer.reserve(buffer.size + quadCount);
 
         Vertex* top = getBufferTop();
         for (GLuint i = 0; i < quadCount*4; i++) {
-            top[i] = {glm::vec3(quads[i].position, z), quads[i].color};
+            buffer.push({glm::vec3(quads[i].position, z), quads[i].color});
         }
 
         storedQuads += quadCount;
@@ -131,7 +104,7 @@ struct ColorQuadRenderBuffer {
     }
 
     // slower to buffer
-    GLuint bufferSOA(GLuint quadCount, const glm::vec3* vertexPositions, const glm::vec4* vertexColors) {
+    void renderSOA(GLuint quadCount, const glm::vec3* vertexPositions, const glm::vec4* vertexColors) {
         quadCount = needBufferSpace(quadCount);
 
         Vertex* top = &vertexBuffer[storedQuads * 4];
@@ -171,44 +144,36 @@ struct ColorQuadRenderBuffer {
         storedQuads += quadCount;
         return quadCount;
     }
-
+    */
     
-    Vertex* bufferManual(GLuint quadCount) {
-        GLuint available = needBufferSpace(quadCount);
-        if (available < quadCount) {
-            return NULL;
-        }
-
-        Vertex* top = getBufferTop();
-        storedQuads += quadCount;
-        return top;
+    Quad* renderManual(GLuint quadCount) {
+        return buffer.require(quadCount);
     }
 
-    void flush() {
-        if (storedQuads == 0) return;
+    void flush(Shader shader, GLuint texture) {
+        if (buffer.size == 0) return;
 
         shader.use();
 
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        GL::logErrors();
-        glUnmapBuffer(GL_ARRAY_BUFFER);
-        GL::logErrors();
-        glDrawElements(GL_TRIANGLES, 6 * storedQuads, GL_UNSIGNED_INT, 0);
-        GL::logErrors();
-
-        storedQuads = 0;
-        vertexBuffer = (Vertex*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-        GL::logErrors();
+        glBindVertexArray(model.vao);
+        glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model.ebo);
+        // buffer all the data now
+        glBufferData(GL_ARRAY_BUFFER, buffer.size * sizeof(Quad), buffer.data, GL_STREAM_DRAW);
+        // batch size is limited by the index buffer size
+        int quadsFlushed = 0;
+        while (quadsFlushed < buffer.size) {
+            int batchSize = MIN(maxQuadsPerBatch, buffer.size);
+            glDrawElements(GL_TRIANGLES, 6 * batchSize, GL_UNSIGNED_INT, (void*)(6UL * quadsFlushed));
+            quadsFlushed += batchSize;
+        }
+        buffer.clear();
     }
 
     void destroy() {
-        glDeleteVertexArrays(1, &vao);
-        glDeleteBuffers(1, &vbo);
-        glDeleteBuffers(1, &ebo);
+        model.destroy();
+        buffer.destroy();
     }
 };
-
-using QuadRenderer = ColorQuadRenderBuffer;
 
 #endif

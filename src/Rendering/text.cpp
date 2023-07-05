@@ -115,7 +115,7 @@ void Font::load(FT_UInt height, GLuint textureUnit, bool useSDFs) {
             characters.advances[i] = slot->advance.x;
             characters.bearings[i] = glm::ivec2{slot->bitmap_left, slot->bitmap_top};
             characters.sizes[i]    = glm::ivec2{slot->bitmap.width, slot->bitmap.rows};
-            characterTextures[i] = createUninitTexture(characters.sizes[i], 1);
+            characterTextures[i] = newUninitTexture(characters.sizes[i], 1);
             memcpy(characterTextures[i].buffer, slot->bitmap.buffer, slot->bitmap.rows * slot->bitmap.width);
             // maybe switch thsi back
             //characterTextures[i]   = {.buffer = slot->bitmap.buffer, .size = characters.sizes[i], .pixelSize = 1}; // Character glyphs use 1 byte pixels, black and white
