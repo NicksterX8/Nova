@@ -362,14 +362,14 @@ int Game::handleEvent(const SDL_Event* event) {
             }
             if (event->window.event == SDL_WINDOWEVENT_DISPLAY_CHANGED) {
                 SDL::pixelScale = SDL::getPixelScale(sdlCtx.win);
-                camera.baseScale = SDL::pixelScale;
+                camera.baseScale = BASE_UNIT_SCALE * SDL::pixelScale;
                 renderContext->font.load(renderContext->font.baseHeight * SDL::pixelScale, TextureUnit::Text);
             }
             break;
         case SDL_MOUSEWHEEL: {
             float wheelMovement = event->wheel.preciseY;
             if (wheelMovement != 0.0f) {
-                const float min = 1.0f / 8.0f;
+                const float min = 1.0f / 16.0f;
                 const float max = 16.0f;
                 const float logMin = log2(min);
                 const float logMax = log2(max);

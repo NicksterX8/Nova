@@ -287,7 +287,6 @@ public:
     }
 
     bool rehash(int newBucketCount) {
-        LogInfo("Rehashing hashmap!");
         // Can't rehash down to smaller than current size or initial size
         newBucketCount = std::max(newBucketCount, size);
 

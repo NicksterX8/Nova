@@ -7,10 +7,9 @@ in VS_OUT {
     vec4 TexCoords;
     vec2 Size;
     float Rotation;
-    float Texture;
 } gs_in[];
 
-out vec3 TexCoord;
+out vec2 TexCoord;
 
 uniform mat4 transform;
 
@@ -42,17 +41,16 @@ void main() {
     c = cos(angle);
     s = sin(angle);
 
-    TexCoord.z = gs_in[0].Texture;
-    TexCoord.xy = vec2(TexCoords.x, TexCoords.y);
+    TexCoord = vec2(TexCoords.x, TexCoords.y);
     make_vertex(pos, vec2(-size.x, -size.y));
 
-    TexCoord.xy = vec2(TexCoords.x, TexCoords.w);
+    TexCoord = vec2(TexCoords.x, TexCoords.w);
     make_vertex(pos, vec2(-size.x,  size.y));
 
-    TexCoord.xy = vec2(TexCoords.z, TexCoords.y);
+    TexCoord = vec2(TexCoords.z, TexCoords.y);
     make_vertex(pos, vec2( size.x,  -size.y));
 
-    TexCoord.xy = vec2(TexCoords.z, TexCoords.w);
+    TexCoord = vec2(TexCoords.z, TexCoords.w);
     make_vertex(pos, vec2( size.x,  size.y));
 
     EndPrimitive();

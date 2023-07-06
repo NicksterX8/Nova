@@ -9,3 +9,5 @@ might've fixed it differently actually, by adding 0.5 to the coords
 Anyways, might do entity highlights and stuff, hotbar fix. k byee
 
 add texture rendering to quad renderer (change name?)
+
+first thing i want to do is the texture unit thing!

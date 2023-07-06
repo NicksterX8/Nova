@@ -214,7 +214,7 @@ static int loadShaders(RenderContext& ren) {
     auto& mgr = ren.shaders;
 
     auto entity = mgr.setup(Shaders::Entity, "entity");
-    entity.setInt("texArray", TextureUnit::MyTextureArray);
+    entity.setInt("texAtlas", TextureUnit::MyTextureAtlas);
 
     auto tilemap = mgr.setup(Shaders::Tilemap, "tilemap");
     tilemap.setInt("texArray", TextureUnit::MyTextureArray);
@@ -252,21 +252,25 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
     //TextureUnit texUnit;
     ren.textures = TextureManager(TextureIDs::NumTextureSlots);
     setTextureMetadata(&ren.textures);
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureArray);
     ren.textureArray = makeTextureArray({256, 256}, &ren.textures, TextureTypes::World, FileSystem.assets.get());
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureAtlas);
+    ren.textureAtlas = makeTextureAtlas(&ren.textures, TextureTypes::World, FileSystem.assets.get());
 
-    ren.shaders.use(Shaders::Entity).setVec2("texArraySize", ren.textureArray.size);
+    ren.shaders.use(Shaders::Entity).setVec2("texAtlasSize", ren.textureAtlas.size);
     ren.shaders.use(Shaders::Tilemap).setVec2("texArraySize", ren.textureArray.size);
     ren.shaders.use(Shaders::Quad).setInt("tex", TextureUnit::MyTextureArray);
     ren.shaders.use(Shaders::Quad).setVec2("texSize", {10, 10});
 
-    glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureArray);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, ren.textureArray.texture);
-
     /* Init text stuff */
     initFreetype();
-    ren.font = Font(6.0f, 2.0f, FileSystem.assets.get("fonts/FreeSans.ttf"), 128, SDL::pixelScale, false, 32, 127, TextureUnit::Text);
-    ren.debugFont = Font(7.0f, 2.0f, FileSystem.assets.get("fonts/Ubuntu-Regular.ttf"), 32, SDL::pixelScale, false, 32, 127, TextureUnit::Text);
-    ren.textRenderer = TextRenderer::init(&ren.debugFont, 0.0f);
+    Font::FormattingSettings fontFormatting = {
+        .lineHeightScale = 1.5f,
+        .tabSpaces = 4.0f
+    };
+    ren.font = Font(FileSystem.assets.get("fonts/FreeSans.ttf"), 128, false, 32, 127, SDL::pixelScale, fontFormatting, TextureUnit::Text);
+    ren.debugFont = Font(FileSystem.assets.get("fonts/Ubuntu-Regular.ttf"), 32, false, 32, 127, SDL::pixelScale, fontFormatting, TextureUnit::Text);
+    ren.textRenderer = TextRenderer::init(&ren.debugFont);
     ren.textRenderer.defaultFormatting = TextFormattingSettings::Default();
     GL::logErrors();
 
@@ -373,6 +377,8 @@ static GlModel makeScreenModel() {
 }
 
 static void renderTexture(Shader textureShader, GLuint texture) {
+    if (!texture) return;
+
     glActiveTexture(GL_TEXTURE0 + TextureUnit::Random);
     glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -492,6 +498,8 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
 
     //LogInfo("drawable width: %d; camera pixel width: %f", drawableWidth, camera.pixelWidth);
 
+    assert(camera.worldScale() > 0.0f);
+
     const glm::mat4 screenTransform = glm::ortho(0.0f, (float)camera.pixelWidth, 0.0f, (float)camera.pixelHeight);
     const IVec2 screenMin = {0, 0}; (void)screenMin;
     const IVec2 screenMax = {camera.pixelWidth, camera.pixelHeight};
@@ -505,7 +513,6 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     ren.shaders.use(Shaders::Tilemap).setMat4("transform", worldTransform);
     auto textureShader = ren.shaders.use(Shaders::Texture);
     textureShader.setMat4("transform", screenTransform);
-    textureShader.setInt("tex", TextureUnit::Text);
 
     /* Start Rendering */
     /* First pass */
@@ -568,7 +575,7 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
 
     Draw::drawGui(ren, camera, screenTransform, gui, state);
 
-    //renderTexture(ren.shaders.get(Shaders::Texture), g.textTexture);
+    renderTexture(ren.shaders.get(Shaders::Texture), g.debugTexture);
 
     if (mode == Testing) {
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);

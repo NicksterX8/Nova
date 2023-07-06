@@ -133,14 +133,59 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
     renderer.textBox({{0, borderedTextRect.y + borderedTextRect.h, logMaxWidth, maxHeight}, logBackground}, console->log, 3, console->logTextColors, 1.0f);
 }
 
+void renderFontComponents(glm::vec2 p, GuiRenderer& renderer) {
+    auto* font = renderer.text->font;
+    auto* face = font->face;
+
+    auto height = face->height >> 6;
+    auto ascender = face->ascender >> 6;;
+    auto descender = face->descender >> 6;
+    auto bbox = face->bbox;
+    bbox.xMin >>= 6;
+    bbox.xMax >>= 6;
+    bbox.yMin >>= 6;
+    bbox.yMax >>= 6;
+
+    glm::vec3 points[] = {
+        {p.x, p.y, 0},
+        {p.x, p.y + descender, 0},
+        {p.x, p.y + descender, 0},
+        {p.x, p.y + descender + height, 0},
+        {p.x, p.y + descender + height, 0},
+        {p.x, p.y + descender + height + ascender, 0}
+    };
+
+    SDL_Color colors[] = {
+        {255, 0, 0, 255},
+        {0, 255, 0, 255},
+        {0, 0, 255, 255}
+    };
+
+    float lineWidths[] = {
+        3.0f,
+        3.0f,
+        3.0f
+    };
+
+    FRect bounds = {
+        (float)bbox.xMin + p.x,
+        (float)bbox.yMin + p.y,
+        (float)bbox.xMax - bbox.xMin,
+        (float)bbox.yMax - bbox.yMin
+    };
+    //renderer.colorRect({addBorder(bounds, glm::vec2(0.0f)), {255, 0, 0, 100}});
+    
+    //Draw::thickLines(*renderer.quad, sizeof(points) / (2 * sizeof(glm::vec3)), points, colors, lineWidths);
+
+    renderer.rectOutline({bounds, {0, 255, 0, 100}}, 2.0f, 2.0f);
+    renderer.colorRect({addBorder(bounds, glm::vec2(0.0f)), {255, 0, 0, 100}});
+}
+
 void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& screenTransform, GUI::Gui* gui, const GameState* state) {
     auto& textRenderer = ren.textRenderer;
     textRenderer.font = &ren.debugFont;
-    textRenderer.z = 0.9f;
 
     GuiRenderer& guiRenderer = ren.guiRenderer;
-    guiRenderer.quad->z = -0.9f;
-    guiRenderer.text->z = 0.9f;
 
     auto quadShader = ren.shaders.get(Shaders::Quad);
     quadShader.use();
@@ -170,6 +215,11 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
     textRenderer.render("Top Left\nCorner!!", {0,guiRenderer.options.size.y},
         TextFormattingSettings(TextAlignment::TopLeft), TextRenderingSettings(glm::vec2{guiRenderer.options.scale}));
         */
+
+    renderFontComponents({100, 100}, guiRenderer);
+
+    //guiRenderer.text->font->load(20, TextureUnit::Text);
+    guiRenderer.text->render("| I ( - M 1! /", {0, 0}, {}, TextRenderingSettings(glm::vec2(2.0f)));
 
     guiRenderer.flush(quadShader, textShader, screenTransform, TextureUnit::Text);
 }

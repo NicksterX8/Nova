@@ -64,7 +64,7 @@ inline IVec2 toChunkPosition(IVec2 position) {
 
 void generateChunk(ChunkData* chunk);
 
-#define CHUNK_BUCKET_SIZE 64
+#define CHUNK_BUCKET_SIZE (64 * 4)
 #define CHUNKDATA_BUCKET_SIZE 512
 
 struct ChunkMap {

@@ -119,7 +119,6 @@ public:
         // room for another element in top bucket?
         if (topBucketSlotsUsed + size > BucketSize || buckets.size == 0) {
             pushNewBucket();
-            LogInfo("New bucket pushed!");
         }
         auto topBucket = buckets.back();
         auto reserved = &topBucket[topBucketSlotsUsed];

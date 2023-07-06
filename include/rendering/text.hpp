@@ -118,49 +118,56 @@ inline GLuint loadFontAtlasTexture(Texture atlas) {
     // set texture options
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     return textureID;
 }
 
 FT_Face newFontFace(const char* filepath, FT_UInt height);
 
 struct Font {
+    struct FormattingSettings {
+        float tabSpaces = 4.0f; // The width of a tab relative to the size of a space
+        float lineHeightScale = 1.0f; // Line height scalar (space between lines, 1.0 is one font height's distance)
+    };
+
     struct AtlasCharacterData {
-        glm::ivec2* positions = nullptr;
-        glm::ivec2* sizes = nullptr;
-        glm::ivec2* bearings = nullptr;
-        unsigned short* advances = nullptr;
+        glm::vec<2, uint16_t>* positions = nullptr;
+        glm::vec<2, uint16_t>* sizes = nullptr;
+        glm::vec<2,  int16_t>* bearings = nullptr;
+        uint16_t* advances = nullptr;
     };
 
     FT_Face face = nullptr;
-    glm::ivec2 atlasSize = {0, 0};
-    float tabWidthScale = 0.0f; // times space char advance
-    float lineHeightScale = 0.0f; // times the font face height
-    GLuint atlasTexture = 0;
     AtlasCharacterData characters = {};
+
+    GLuint atlasTexture = 0;
+    glm::ivec2 atlasSize = {0, 0};
+
+    FormattingSettings formatting;
+
+    FT_UInt baseHeight; // the height of the font face before any scaling. The true height is this * scale
+    float currentScale;
 
     char firstChar = -1;
     char lastChar = -1;
-
     bool usingSDFs = false;
-
-    FT_UInt baseHeight;
-    float scale;
 
     Font() = default;
 
-    Font(float tabWidth, float lineHeight, const char* fontfile, FT_UInt baseHeight, float scale, bool useSDFs, char firstChar, char lastChar, GLuint textureUnit);
+    Font(const char* fontfile, FT_UInt baseHeight, bool useSDFs, char _firstChar, char _lastChar, float scale, FormattingSettings formatting, TextureUnit textureUnit);
 
     void unload();
 
     // true height
     float height() const {
+        //assert(face->height >> 6 == (unsigned int)round(baseHeight * scale));
+        //return baseHeight * scale;
         return face->height >> 6;
     }
 
     float tabPixels() const {
-        return advance(' ') * tabWidthScale;
+        return (advance(' ') >> 6) * formatting.tabSpaces;
     }
 
     glm::ivec2 position(char c) const {
@@ -203,18 +210,13 @@ struct TextRenderer {
     using FormattingSettings = TextFormattingSettings;
     using RenderingSettings = TextRenderingSettings;
 
-    glm::vec4 defaultColor = {0, 0, 0, 255};
-
-    llvm::SmallVector<TextRenderBatch, 0> buffer;
-
     Font* font = nullptr;
-    GlModel model;
-
+    llvm::SmallVector<TextRenderBatch, 0> buffer;
+    std::array<glm::vec2, 4>* characterTexCoords = nullptr;
     FormattingSettings defaultFormatting;
     RenderingSettings defaultRendering;
-    float z = 0.0f;
-
-    std::array<glm::vec2, 4>* characterTexCoords = nullptr;
+    GlModel model;
+    glm::vec4 defaultColor = {0, 0, 0, 255};
 
     constexpr static int maxBatchSize = 5000;
 
@@ -225,8 +227,8 @@ struct TextRenderer {
 
     void calculateCharacterTexCoords(std::array<glm::vec2, 4>* texCoords) {
         glm::vec2 textureSize = font->atlasSize;
-        const glm::ivec2* characterPositions = font->characters.positions;
-        const glm::ivec2* characterSizes = font->characters.sizes;
+        const auto* characterPositions = font->characters.positions;
+        const auto* characterSizes     = font->characters.sizes;
 
         auto numChars = font->lastChar - font->firstChar;
         for (int i = 0; i < numChars; i++) {
@@ -234,10 +236,10 @@ struct TextRenderer {
             const glm::ivec2 pos  = characterPositions[i];
             const glm::ivec2 size = characterSizes[i];
 
-            auto tx  = (GLfloat)(pos.x) / textureSize.x;
-            auto ty  = (GLfloat)(pos.y) / textureSize.y;
-            auto tx2 = (GLfloat)(pos.x + size.x) / textureSize.x;
-            auto ty2 = (GLfloat)(pos.y + size.y) / textureSize.y;
+            auto tx  = (GLfloat)(pos.x + 0.01f) / textureSize.x;
+            auto ty  = (GLfloat)(pos.y + 0.01f) / textureSize.y;
+            auto tx2 = (GLfloat)(pos.x + size.x - 0.01f) / textureSize.x;
+            auto ty2 = (GLfloat)(pos.y + size.y - 0.01f) / textureSize.y;
 
             coords[0] = {tx , ty2};
             coords[1] = {tx , ty };
@@ -246,11 +248,10 @@ struct TextRenderer {
         }
     }
 
-    static TextRenderer init(Font* font, float z) {
+    static TextRenderer init(Font* font) {
         TextRenderer self;
         self.font = font;
         self.defaultColor = {0,0,0,0};
-        self.z = z;
 
         self.model = GlGenModel();
         self.model.bindAll();
@@ -266,7 +267,6 @@ struct TextRenderer {
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
 
-
         // unbind buffers just in case
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
@@ -278,35 +278,6 @@ struct TextRenderer {
         self.calculateCharacterTexCoords(self.characterTexCoords);
 
         return self;
-    }
-
-    glm::vec2 outputSize(const char* text, int textLength) {
-        float cx = 0.0f,cy = 0.0f;
-        float mx = 0.0f,my = 0.0f;
-        for (int i = 0; i < textLength; i++) {
-            char c = text[i];
-            if (c == '\n') {
-                cy -= font->lineHeightScale * (font->face->height >> 6);
-                mx = cx > mx ? cx : mx;
-                cx = 0.0f;
-                continue;
-            }
-            else if (c == '\t') {
-                // tab
-                cx += font->tabPixels();
-                continue;
-            }
-            else if (c < font->firstChar || c > font->lastChar) {
-                // skip unsupported characters
-                continue;
-            }
-
-            // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-            cx += (font->advance(c) >> 6); // bitshift by 6 to get value in pixels (2^6 = 64)
-        }
-        mx = cx > mx ? cx : mx;
-        my = cy < my ? cy : my;
-        return glm::vec2(mx, -my);
     }
 
     float lineHeight(float scale) {
@@ -345,6 +316,7 @@ struct TextRenderer {
         for (int i = 0; i < textLength; i++) {
             char c = text[i];
             float charPixelsAdvance = 0.0f;
+            int sizeX = 0;
             bool whitespaceChar = false;
             if (c == '\n') {
                 whitespaceChar = true;
@@ -359,7 +331,7 @@ struct TextRenderer {
             }
             charPixelsAdvance = (float)(font->advance(c) >> 6);
         ready:
-            if (cx + charPixelsAdvance + font->size(c).x >= settings.maxWidth) {
+            if (cx + charPixelsAdvance + sizeX >= settings.maxWidth) {
             newline:
                 if (settings.align.horizontal != HoriAlignment::Left) {
                     // shift whole line over to correct alignment location (center or right)
@@ -378,7 +350,7 @@ struct TextRenderer {
                     lineLength = 0;
                 }
 
-                cy -= font->lineHeightScale * (font->face->height >> 6);
+                cy -= font->formatting.lineHeightScale * font->height();
                 mx = MAX(MAX(mx, cx), settings.maxWidth);
                 cx = 0.0f;
             }
@@ -387,8 +359,9 @@ struct TextRenderer {
                 layout.characters.push_back(c);
                 layout.characterOffsets.push_back(glm::vec2(cx, cy));
                 lineLength++;
-                cx += charPixelsAdvance;
             }
+
+            cx += charPixelsAdvance;
         }
 
         if (settings.align.horizontal != HoriAlignment::Left) {
@@ -489,25 +462,6 @@ public:
         return render(text, strlen(text), pos, formatSettings, renderSettings);
     }
 
-    FRect renderStringBufferAsLinesReverse(const My::StringBuffer& strings, int maxLines, glm::vec2 pos, My::Vec<SDL_Color> colors, glm::vec2 scale, FormattingSettings formatSettings) {
-        FRect maxRect = {pos.x,pos.y,0,0};
-        glm::vec2 offset = {0, 0};
-        int i = 0;
-        strings.forEachStrReverse([&](char* str) -> bool{
-            if (i >= maxLines) return true;
-            FRect rect = render(str, pos + offset, formatSettings, TextRenderingSettings{colors[colors.size - 1 - i], scale});
-            //unionRectInPlace(&maxRect, &rect);
-            SDL_UnionFRect(&maxRect, &rect, &maxRect);
-            offset.y += rect.h;
-            // do line break
-            offset.y += font->lineHeightScale * (font->face->height >> 6) * scale.y;
-            i++;
-            return false;
-        });
-
-        return maxRect;
-    }
-
     FRect render(const char* text, int textLength, glm::vec2 pos, const TextFormattingSettings& formatSettings, RenderingSettings renderSettings) {
         if (!this->font || !this->font->face) {
             return {0, 0, 0, 0};
@@ -591,6 +545,25 @@ public:
             glDrawElements(GL_TRIANGLES, 6 * batch->layout.characters.size(), GL_UNSIGNED_SHORT, NULL);
         }
         buffer.clear();
+    }
+
+    FRect renderStringBufferAsLinesReverse(const My::StringBuffer& strings, int maxLines, glm::vec2 pos, My::Vec<SDL_Color> colors, glm::vec2 scale, FormattingSettings formatSettings) {
+        FRect maxRect = {pos.x,pos.y,0,0};
+        glm::vec2 offset = {0, 0};
+        int i = 0;
+        strings.forEachStrReverse([&](char* str) -> bool{
+            if (i >= maxLines) return true;
+            FRect rect = render(str, pos + offset, formatSettings, TextRenderingSettings{colors[colors.size - 1 - i], scale});
+            //unionRectInPlace(&maxRect, &rect);
+            SDL_UnionFRect(&maxRect, &rect, &maxRect);
+            offset.y += rect.h;
+            // do line break
+            offset.y += font->formatting.lineHeightScale * (font->face->height >> 6) * scale.y;
+            i++;
+            return false;
+        });
+
+        return maxRect;
     }
 
     void destroy() {

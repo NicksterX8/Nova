@@ -9,6 +9,20 @@
 #include "My/HashMap.hpp"
 #include "My/SparseSets.hpp"
 #include "gl.hpp"
+#include "My/String.hpp"
+
+namespace TextureUnits {
+    enum TextureUnit : GLuint {
+        MyTextureArray=0,
+        MyTextureAtlas,
+        Text,
+        Random,
+        Screen,
+        Available
+    };
+}
+
+using TextureUnit = TextureUnits::TextureUnit;
 
 struct Texture {
     unsigned char* buffer;
@@ -39,17 +53,29 @@ inline void freeTexture(Texture texture) {
     Free(texture.buffer);
 }
 
-Texture loadTexture(const char* filepath, bool flip = true);
+inline void fillTextureBlack(Texture tex) {
+    memset(tex.buffer, 0, tex.size.x * tex.size.y);
+}
 
+inline unsigned char* accessTexture(Texture tx, glm::ivec2 pixel) {
+    assert(pixel.x >= 0 && pixel.y >= 0);
+    assert(pixel.x < tx.size.x && pixel.y < tx.size.y);
+    return &tx.buffer[pixel.y * tx.size.x + pixel.x];
+}
+
+void copyTexture(Texture dst, Texture src, glm::ivec2 dstOffset = {0, 0});
+Texture resizeTexture(Texture texture, glm::ivec2 newSize);
+
+SDL_Surface* loadSurface(const char* filepath, bool flip = true);
 void flipSurface(SDL_Surface* surface);
+
+GLuint GlLoadTexture(const char* pixels, glm::ivec2 size, GLint minFilter, GLint magFilter);
+GLuint GlLoadSurface(SDL_Surface* surface, GLint minFilter, GLint magFilter);
 
 constexpr SDL_PixelFormatEnum StandardPixelFormat = SDL_PIXELFORMAT_RGBA32;
 constexpr int StandardPixelFormatBytes = 4;
 constexpr int RGBA32PixelSize = 4;
 static_assert(StandardPixelFormatBytes == sizeof(SDL_Color));
-
-unsigned int loadGLTexture(const char* filepath);
-unsigned int loadGLTexture(Texture rawTexture);
 
 typedef Uint16 TextureID;
 typedef Uint32 TextureType; // also usable as bit mask
@@ -77,8 +103,13 @@ struct TextureManager {
         metadata[id] = TextureMetaData{stringIdentifier, filename, type};
     }
 
-    TextureID getID(const char* identifier) {
-        // TODO
+    TextureID getID(const char* identifier) const {
+        for (TextureID id = 0; id < metadata.size; id++) {
+            if (My::streq(metadata[id].identifier, identifier)) {
+                return id;
+            }
+        }
+        // couldn't find texture
         return 0;
     }
 
@@ -157,7 +188,7 @@ struct TextureArray {
     }
 };
 
-GLuint loadTextureArray(glm::ivec2 size, ArrayRef<SDL_Surface*> images, ArrayRef<TextureID> ids, My::DenseSparseSet<TextureID, int, TextureIDs::NumTextures>& textureDepths);
+GLuint loadTextureArray(glm::ivec2 size, ArrayRef<SDL_Surface*> images);
 // @typesIncluded can be one or more types (as a bit mask) of textures that should be included in the texture array
 TextureArray makeTextureArray(glm::ivec2 size, TextureManager* textures, TextureType typesIncluded, const char* assetsPath);
 int updateTextureArray(TextureArray* textureArray, TextureManager* textures, TextureID id, SDL_Surface* surface);

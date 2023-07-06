@@ -3,6 +3,31 @@
 #include "utils/Log.hpp"
 #include "rendering/context.hpp"
 
+void copyTexture(Texture dst, Texture src, glm::ivec2 dstOffset) {
+    assert(src.pixelSize == dst.pixelSize); // need same format to copy
+    // cut off the extra parts of the src texture
+    src.size.x = MIN(dst.size.x, src.size.x);
+    src.size.y = MIN(dst.size.y, src.size.y);
+    for (int row = 0; row < src.size.y; row++) {
+        //emplaceRow(dst, row + dstOffset.y, &src.buffer[row * src.size.x], dstOffset.x, src.size.x);
+        int dstByteWidth = dst.size.x * dst.pixelSize;
+        int dstRow = row + dstOffset.y;
+        int srcByteWidth = src.size.x * src.pixelSize;
+        int dstByteColOffset = dstOffset.x * dst.pixelSize;
+        int dstByteRowOffset = dstRow * dstByteWidth;
+        int srcByteRowOffset = row * srcByteWidth;
+        memcpy(&dst.buffer[dstByteRowOffset + dstByteColOffset], &src.buffer[srcByteRowOffset], srcByteWidth);
+    }
+}
+
+Texture resizeTexture(Texture texture, glm::ivec2 newSize) {
+    Texture newTexture = newUninitTexture(newSize, texture.pixelSize);
+    fillTextureBlack(newTexture);
+    copyTexture(newTexture, texture);
+    freeTexture(texture);  
+    return newTexture;
+}
+
 void flipSurface(SDL_Surface* surface) {
     SDL_LockSurface(surface);
     
@@ -26,64 +51,7 @@ void flipSurface(SDL_Surface* surface) {
     SDL_UnlockSurface(surface);
 }
 
-unsigned int loadGLTexture(Texture rawTexture) {
-    unsigned int texture;
-    glGenTextures(1, &texture);  
-    glBindTexture(GL_TEXTURE_2D, texture);
-    // set the texture wrapping/filtering options (on the currently bound texture object)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    const float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);  
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, rawTexture.size.x, rawTexture.size.x, 0, GL_RGBA, GL_UNSIGNED_BYTE, rawTexture.buffer);
-
-    glGenerateMipmap(GL_TEXTURE_2D);
-    return texture;
-}
-
-unsigned int loadGLTexture(const char* filepath) {
-    unsigned int texture;
-    glGenTextures(1, &texture);  
-    glBindTexture(GL_TEXTURE_2D, texture);
-    // set the texture wrapping/filtering options (on the currently bound texture object)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    const float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);  
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load and generate the texture
-    SDL_Surface *surface = IMG_Load(filepath);
-    if (surface) { 
-        flipSurface(surface);
-
-        if (surface->format->format != SDL_PIXELFORMAT_RGBA32) {
-            SDL_Surface* newSurface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
-            if (newSurface) {
-                SDL_FreeSurface(surface);
-                surface = newSurface;
-            } else {
-                printf("Couldn't convert surface format while loading \"%s\"!", filepath);
-                return 0;
-            }
-        }
-        
-        SDL_LockSurface(surface);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface->pixels);
-        SDL_UnlockSurface(surface);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        SDL_FreeSurface(surface);
-    } else {
-        LogError("Failed to load texture at \"%s\". SDL error message: %s\n", filepath, SDL_GetError());
-        return 0;
-    }
-    return texture;
-}
-
-Texture loadTexture(const char* filepath, bool flip) {
+SDL_Surface* loadSurface(const char* filepath, bool flip) {
     SDL_Surface *surface = IMG_Load(filepath);
     if (surface) { 
         if (flip) {
@@ -96,21 +64,45 @@ Texture loadTexture(const char* filepath, bool flip) {
                 SDL_FreeSurface(surface);
                 surface = newSurface;
             } else {
-                printf("Couldn't convert surface format while loading \"%s\"!", filepath);
-                return NullTexture;
+                LogError("Couldn't convert surface format while loading \"%s\"!", filepath);
+                return nullptr;
             }
         }
 
-        SDL_LockSurface(surface);
-        Texture texture = newUninitTexture({surface->w, surface->h}, RGBA32PixelSize);
-        memcpy(texture.buffer, surface->pixels, surface->w * surface->h * RGBA32PixelSize);
-        SDL_UnlockSurface(surface);
-        SDL_FreeSurface(surface);
-        return texture;
+        return surface;
     }
 
-    LogError("Failed to load texture at \"%s\". SDL error message: %s\n", filepath, SDL_GetError());
-    return NullTexture;
+    LogError("Failed to load texture with path \"%s\". SDL error message: %s\n", filepath, SDL_GetError());
+    return nullptr;
+}
+
+GLuint GlLoadTexture(const char* pixels, glm::ivec2 size, GLint minFilter, GLint magFilter) {
+    GLuint texture;
+    glGenTextures(1, &texture);  
+    glBindTexture(GL_TEXTURE_2D, texture);
+    // set the texture wrapping/filtering options (on the currently bound texture object)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);	
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    const float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+        
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.x, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+    return texture;
+}
+
+GLuint GlLoadSurface(SDL_Surface* surface, GLint minFilter, GLint magFilter) {
+    if (!surface) return 0;
+    
+    SDL_LockSurface(surface);
+    const char* pixels = (char*)surface->pixels;
+    glm::ivec2 size = {surface->w, surface->h};
+    GLuint tex = GlLoadTexture(pixels, size, minFilter, magFilter);
+    SDL_UnlockSurface(surface);
+    return tex;
 }
 
 SDL_Surface* loadTexture(TextureID id, TextureManager* textures, const char* basePath) {
@@ -142,7 +134,7 @@ SDL_Surface* loadTexture(TextureID id, TextureManager* textures, const char* bas
     return image;
 }
 
-GLuint loadTextureArray(glm::ivec2 size, ArrayRef<SDL_Surface*> images, ArrayRef<TextureID> ids, My::DenseSparseSet<TextureID, int, TextureIDs::NumTextures>& textureDepths) {
+GLuint loadTextureArray(glm::ivec2 size, ArrayRef<SDL_Surface*> images) {
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
@@ -179,8 +171,6 @@ GLuint loadTextureArray(glm::ivec2 size, ArrayRef<SDL_Surface*> images, ArrayRef
             surface->pixels
         );
         SDL_UnlockSurface(surface);
-
-        textureDepths.insert(ids[i], (int)i);
     }
 
     return texture;
@@ -202,7 +192,7 @@ TextureArray makeTextureArray(glm::ivec2 size, TextureManager* textures, Texture
     }
 
     TextureArray texArray = TextureArray(size, images.size(), 0);
-    GLuint texture = loadTextureArray(size, images, ids, texArray.textureDepths);
+    GLuint texture = loadTextureArray(size, images);
     texArray.texture = texture;
     
     if (!texArray.texture) {
@@ -214,10 +204,9 @@ TextureArray makeTextureArray(glm::ivec2 size, TextureManager* textures, Texture
         SDL_FreeSurface(image);
     }
 
-    /*
     for (int i = 0; i < images.size(); i++) {
         texArray.textureDepths.insert(ids[i], i);
-    }*/
+    }
 
     return texArray;
 }
@@ -272,10 +261,10 @@ GlSizedTexture loadTextureAtlas(ArrayRef<SDL_Surface*> images, MutableArrayRef<g
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     glTexImage2D(GL_TEXTURE_2D,
         0,
@@ -313,11 +302,6 @@ TextureAtlas makeTextureAtlas(TextureManager* textures, TextureType typesInclude
         LogCritical("Failed to make texture array!");
     }
     TextureAtlas atlas = TextureAtlas(textureAndSize.size, textureAndSize.texture);
-    
-    // images can be freed after being loaded into texture array
-    for (auto image : images) {
-        SDL_FreeSurface(image);
-    }
 
     TextureAtlas::Space* textureSpaces = atlas.textureSpaces.insertList(ids);
     for (int i = 0; i < ids.size(); i++) {
@@ -327,6 +311,11 @@ TextureAtlas makeTextureAtlas(TextureManager* textures, TextureType typesInclude
             origin,
             origin + size
         };
+    }
+
+    // images can be freed after being loaded into texture array
+    for (auto image : images) {
+        SDL_FreeSurface(image);
     }
 
     return atlas;

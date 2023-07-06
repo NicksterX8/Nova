@@ -8,18 +8,6 @@
 #include "renderers.hpp"
 #include "rendering/gui.hpp"
 
-namespace TextureUnits {
-    enum E : GLuint {
-        MyTextureArray=0,
-        Text=1,
-        Random,
-        Screen,
-        Available
-    };
-}
-
-using TextureUnit = TextureUnits::E;
-
 namespace Shaders {
     enum Shader : int {
         Entity = 0,
@@ -97,6 +85,7 @@ struct RenderContext {
     SDL_Window* window = NULL;
     SDL_GLContext glCtx = NULL;
 
+    TextureAtlas textureAtlas;
     TextureArray textureArray;
     TextureManager textures{0};
     ShaderManager shaders;

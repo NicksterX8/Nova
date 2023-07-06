@@ -29,7 +29,7 @@ struct RenderSystem {
     //const static GLint indicesPerEntity = 0;
     const static GLint verticesPerBatch = entitiesPerBatch*verticesPerEntity;
     //const static GLint indicesPerBatch = entitiesPerBatch*indicesPerEntity;
-    const static GLint vertexSize = 3 * sizeof(GLfloat) + 2 * sizeof(GLushort) + 1 * sizeof(GLfloat) + 4 * sizeof(GLushort) + 1 * sizeof(GLubyte);
+    const static GLint vertexSize = 3 * sizeof(GLfloat) + 2 * sizeof(GLushort) + 1 * sizeof(GLfloat) + 4 * sizeof(GLushort);
     const static size_t bufferSize = verticesPerBatch * vertexSize;
 
     RenderSystem() {
@@ -37,39 +37,14 @@ struct RenderSystem {
         model.bindAll();
 
         glBufferData(GL_ARRAY_BUFFER, bufferSize, NULL, GL_STREAM_DRAW);
-        //glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesPerBatch * sizeof(GLuint), NULL, GL_STATIC_DRAW);
-
-        // for mental model only, not actually used in c++ code at this time
-
 
         constexpr GlVertexAttribute attributes[] = {
             {3, GL_FLOAT, sizeof(GLfloat)}, // pos
             {2, GL_FLOAT, sizeof(GLfloat)}, // size
             {1, GL_FLOAT, sizeof(GLfloat)}, // rotation
             {4, GL_UNSIGNED_SHORT, sizeof(GLushort)}, // texCoords (min.x, min.y, max.x, max.y)
-            {1, GL_UNSIGNED_BYTE, sizeof(GLubyte)}, // texture
         };
         enableVertexAttribsSOA(&attributes[0], sizeof(attributes) / sizeof(GlVertexAttribute), verticesPerBatch);
-
-        /*
-        void* elementBuffer = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
-        if (!elementBuffer) {
-            LogError("Failed to map ebo!");
-            return;
-        }
-        GLuint* indices = static_cast<GLuint*>(elementBuffer);
-
-        for (GLuint i = 0; i < entitiesPerBatch; i++) {
-            GLuint ind = i * 6;
-            GLuint first = i*4;
-            indices[ind+0] = first+0;
-            indices[ind+1] = first+1;
-            indices[ind+2] = first+3;
-            indices[ind+3] = first+1;
-            indices[ind+4] = first+2;
-            indices[ind+5] = first+3;
-        }
-        */
     }
 
     using QueriedEntity = EntityT<EC::Render, EC::Size, EC::Position>;
@@ -84,7 +59,6 @@ struct RenderSystem {
         GLfloat* sizes = nullptr;
         GLfloat* rotations = nullptr;
         GLushort* texCoords = nullptr;
-        GLubyte* textures = nullptr;
     };
 
     VertexDataArrays mapVertexBuffer() {
@@ -99,7 +73,6 @@ struct RenderSystem {
         buffer.sizes     = (GLfloat*)&buffer.positions[3 * verticesPerBatch];
         buffer.rotations = (GLfloat*)&buffer.sizes[2 * verticesPerBatch];
         buffer.texCoords = (GLushort*)&buffer.rotations[1 * verticesPerBatch];
-        buffer.textures  = (GLubyte*)&buffer.texCoords[4 * verticesPerBatch];
         return buffer;
     }
 
@@ -124,8 +97,8 @@ struct RenderSystem {
             return;
         }
 
-        auto textureArraySize = glm::vec2(ren.textureArray.size);
-        auto* textureData = ren.textures.data.data;
+        const auto* textureAtlas = &ren.textureAtlas;
+        const auto* textureData = ren.textures.data.data;
 
         int entityCounter = 0, entitiesRenderered = 0;
         forEachEntityInBounds(ecs, &chunkmap, 
@@ -143,30 +116,31 @@ struct RenderSystem {
                 }
 
                 TextureID texture = renderEC->texture;
-                glm::ivec2 textureSize = textureData[texture].size;
-                
-                glm::vec<2, GLushort> texMax = textureSize;
+                auto space = getTextureAtlasSpace(textureAtlas, texture);
+                glm::vec<2, GLushort> texMin = space.min;
+                glm::vec<2, GLushort> texMax = space.max;
+
                 float w = size.width  / 2.0f;
                 float h = size.height / 2.0f;
+
                 glm::vec3 p = glm::vec3(position.x, position.y, getLayerHeight(renderEC->layer));
                 
                 const GLfloat vertexPositions[3] = {
                     p.x,   p.y,   p.z,
                 };
                 const GLushort vertexTexCoords[4] = {
-                    0, 0,
+                    texMin.x,  texMin.y,
                     texMax.x,  texMax.y, 
                 };
                 const GLfloat vertexSize[2] = {
                     w, h
                 };
                 const GLfloat vertexRotation = rotation;
-                const GLubyte vertexTexture = renderEC->texture;
+                const GLubyte vertexTexture = texture;
 
                 memcpy(&buffer.positions[entityCounter * 3], vertexPositions, 3 * sizeof(GLfloat));
                 memcpy(&buffer.texCoords[entityCounter * 4], vertexTexCoords, 4 * sizeof(GLfloat));
                 memcpy(&buffer.sizes[entityCounter * 2], vertexSize, sizeof(vertexSize));
-                buffer.textures[entityCounter] = vertexTexture;
                 buffer.rotations[entityCounter] = vertexRotation;
                 
                 entityCounter++;

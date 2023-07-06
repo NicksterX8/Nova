@@ -55,17 +55,6 @@ struct GuiRenderer {
     };
 
     void colorRect(ColorRect rect) {
-        /*
-        QuadRenderer::UniformQuad2D quad2d;
-        quad2d.color = rect.color;
-        glm::vec2* positions = quad2d.positions;
-        positions[0] = {rect.rect.x,        rect.rect.y,      };
-        positions[1] = {rect.rect.x+rect.rect.w, rect.rect.y,      };
-        positions[2] = {rect.rect.x+rect.rect.w, rect.rect.y+rect.rect.h};
-        positions[3] = {rect.rect.x,        rect.rect.y+rect.rect.h};
-        quad->bufferUniform(1, &quad2d);
-        */
-
         auto _quad = QuadRenderer::Quad{{
             {glm::vec3{rect.rect.x, rect.rect.y, 0.0}, rect.color, glm::vec<2, GLushort>{0, 0}},
             {glm::vec3{rect.rect.x, rect.rect.y + rect.rect.h, 0.0}, rect.color, glm::vec<2, GLushort>{0, 0}},
@@ -74,6 +63,40 @@ struct GuiRenderer {
         }};
 
         quad->render(_quad);
+    }
+
+    void colorRect(glm::vec2 min, glm::vec2 max, SDL_Color color) {
+        auto _quad = QuadRenderer::Quad{{
+            {glm::vec3{min.x, min.y, 0.0}, color, glm::vec<2, GLushort>{0, 0}},
+            {glm::vec3{min.x, max.y, 0.0}, color, glm::vec<2, GLushort>{0, 0}},
+            {glm::vec3{max.x, max.y, 0.0}, color, glm::vec<2, GLushort>{0, 0}},
+            {glm::vec3{max.x, min.y, 0.0}, color, glm::vec<2, GLushort>{0, 0}}
+        }};
+
+        quad->render(_quad);
+    }
+
+    void texRect(glm::vec2 min, glm::vec2 max, QuadRenderer::TexCoord texCoord) {
+        constexpr SDL_Color color = {255, 255, 255, 255};
+        auto _quad = QuadRenderer::Quad{{
+            {glm::vec3{min.x, min.y, 0.0}, color, texCoord},
+            {glm::vec3{min.x, max.y, 0.0}, color, texCoord},
+            {glm::vec3{max.x, max.y, 0.0}, color, texCoord},
+            {glm::vec3{max.x, min.y, 0.0}, color, texCoord}
+        }};
+
+        quad->render(_quad);
+    }
+
+    void rectOutline(ColorRect rect, float strokeIn, float strokeOut) {
+        glm::vec2 min = {rect.rect.x, rect.rect.y};
+        glm::vec2 max = {rect.rect.x + rect.rect.w, rect.rect.y + rect.rect.h};
+        auto color = rect.color;
+
+        colorRect({min.x - strokeOut, min.y - strokeOut}, {max.x - strokeIn,  min.y + strokeIn},  color);
+        colorRect({max.x - strokeIn,  min.y - strokeOut}, {max.x + strokeOut, max.y - strokeIn},  color);
+        colorRect({max.x + strokeOut, max.y - strokeIn},  {min.x + strokeIn,  max.y + strokeOut}, color);
+        colorRect({min.x - strokeOut, max.y + strokeOut}, {min.x + strokeIn,  min.y + strokeIn},  color);
     }
 
     // rect.rect.w&h are max sizes, rect.color is background color

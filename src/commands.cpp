@@ -127,6 +127,20 @@ namespace Commands {
         
         return {std::string(message)};
     } 
+
+    Result showTexture(Args args, const TextureManager* textures) {
+        if (g.debugTexture) {
+            glDeleteTextures(1, &g.debugTexture);
+        }
+
+        const char* texture = args.get();
+
+        TextureID texID = textures->getID(texture);
+        auto& metadata = textures->metadata[texID];
+
+        g.debugTexture = GlLoadSurface(loadSurface(FileSystem.assets.get(metadata.filename)), GL_NEAREST, GL_NEAREST);
+        return {"Showing texture"};
+    }
 }
 
 std::vector<Command> gCommands;
@@ -143,6 +157,7 @@ void setCommands(Game* game) {
     REG_COMMAND(kill, state);
     REG_COMMAND(setMode, game);
     REG_COMMAND(setTexture, textures, textureArray);
+    REG_COMMAND(showTexture, textures);
 }
 
 CommandInput processMessage(std::string message, ArrayRef<Command> possibleCommands) {

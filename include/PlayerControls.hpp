@@ -381,7 +381,7 @@ public:
                 break;
         }
 
-        for (int i = 1; i < (int)state->player.numHotbarSlots; i++) {
+        for (int i = 1; i <= (int)state->player.numHotbarSlots; i++) {
             if (event.keysym.sym == i + '0') {
                 state->player.selectHotbarSlot(i - 1);
             }

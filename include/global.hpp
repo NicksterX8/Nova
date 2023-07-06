@@ -6,7 +6,7 @@
 #include "My/String.hpp"
 
 struct Globals {
-    unsigned int textTexture = 0;
+    unsigned int debugTexture = 0;
 };
 
 extern Globals g;

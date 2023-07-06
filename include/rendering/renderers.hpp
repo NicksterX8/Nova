@@ -26,7 +26,6 @@ struct QuadRenderer {
     /* member variables */
     GlModel model;
     My::Vec<Quad> buffer;
-    float z = 0.0f;
 
     /* Consts */
     static const GLuint maxQuadsPerBatch = 1000;
