@@ -38,13 +38,13 @@ struct RenderSystem {
 
         glBufferData(GL_ARRAY_BUFFER, bufferSize, NULL, GL_STREAM_DRAW);
 
-        constexpr GlVertexAttribute attributes[] = {
+        auto vertexFormat = GlMakeVertexFormat(0, {
             {3, GL_FLOAT, sizeof(GLfloat)}, // pos
             {2, GL_FLOAT, sizeof(GLfloat)}, // size
             {1, GL_FLOAT, sizeof(GLfloat)}, // rotation
             {4, GL_UNSIGNED_SHORT, sizeof(GLushort)}, // texCoords (min.x, min.y, max.x, max.y)
-        };
-        enableVertexAttribsSOA(&attributes[0], sizeof(attributes) / sizeof(GlVertexAttribute), verticesPerBatch);
+        });
+        enableVertexAttribsSOA(vertexFormat.attributes, verticesPerBatch);
     }
 
     using QueriedEntity = EntityT<EC::Render, EC::Size, EC::Position>;
@@ -91,6 +91,7 @@ struct RenderSystem {
 
         glBindVertexArray(model.vao);
         glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
+        
         VertexDataArrays buffer = mapVertexBuffer();
         if (!buffer.positions) {
             // can't render :(
@@ -106,6 +107,7 @@ struct RenderSystem {
             camera.maxCorner() - camera.minCorner(), 
         [&](EntityT<EC::Position> entity){
             if (Query::Check(ecs.EntitySignature(entity))) {
+                /* Get necessary entity data */
                 auto position =  ecs.Get<const EC::Position>(entity)->vec2();
                 auto renderEC =  ecs.Get<const EC::Render>(entity);
                 auto size     = *ecs.Get<const EC::Size>(entity);
@@ -116,6 +118,8 @@ struct RenderSystem {
                 }
 
                 TextureID texture = renderEC->texture;
+
+                /* Render entity sprite */
                 auto space = getTextureAtlasSpace(textureAtlas, texture);
                 glm::vec<2, GLushort> texMin = space.min;
                 glm::vec<2, GLushort> texMax = space.max;
@@ -154,6 +158,25 @@ struct RenderSystem {
                     // have to remap vertex buffer after unmapping
                     buffer = mapVertexBuffer();
                 }
+
+                /* Render misc entity details */
+                if (Debug->settings.drawEntityRects) {
+                    // TODO: Render entity rectangles
+                    FRect entityRect = {
+                        p.x - w,
+                        p.y - h,
+                        w*2,
+                        h*2
+                    };
+                    constexpr SDL_Color rectColor = {255, 0, 255, 180};
+                    ren.worldGuiRenderer.rectOutline(entityRect, rectColor, 0.05f, 0.05f);
+                }
+
+                if (Debug->settings.drawEntityIDs) {
+                    char message[256];
+                    snprintf(message, 256, "%d", entity.id);
+                    ren.worldGuiRenderer.text->render(message, {p.x, p.y});
+                }
             }
         });
 
@@ -174,10 +197,6 @@ struct RenderSystem {
                 // TODO: Render entity ids with TEXT_RENDERING
             });
             LogInfo("rendered %d ids", nRenderedIDs);
-        }
-
-        if (Debug->settings.drawEntityRects) {
-            // TODO: Render entity rectangles
         }
     }
 };

@@ -41,6 +41,7 @@ struct Game {
     sdlCtx(sdlContext), metadata(TARGET_FPS, true) {
         debug = new DebugClass();
         Debug = debug;
+        debug->debugging = DEBUG;
 
         keyboard = SDL_GetKeyboardState(NULL);
         state = NULL;

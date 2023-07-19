@@ -1,4 +1,5 @@
 #include "rendering/drawing.hpp"
+#include "utils/Debug.hpp"
 
 /*
 int Draw::drawChunkBorders(SDL_Renderer* renderer, float scale, const GameViewport* gameViewport) {
@@ -93,13 +94,33 @@ int Draw::chunkBorders(QuadRenderer& renderer, const Camera& camera, SDL_Color c
 
 void Draw::drawFpsCounter(TextRenderer& renderer, float fps, RenderOptions options) {
     static char fpsCounter[128];
-    if (Metadata->ticks() % 10 == 0) {
-        snprintf(fpsCounter, 128, "FPS: %.1f", (float)Metadata->fps());
+
+    static float fpsLastFrame = fps;
+
+    if (Metadata->currentFrame() % 5) {
+        float averagedFps = (fps + fpsLastFrame) / 2.0f;
+        snprintf(fpsCounter, 128, "FPS: %.1f", averagedFps);
     }
+
+    // if fps is negative or NaN somehow, it will be black
+    SDL_Color color = {0,0,0,255};
+    if (fps > 120.0f) {
+        color = {0, 255, 0, 255};
+    } else if (fps > 60.0f) {
+        color = {0, 200, 0, 255};
+     } else if (fps > 40.0f) {
+        color = {205, 150, 0, 255};
+     } else if (fps > 20.0f) {
+        color = {235, 60, 0, 255};
+     } else if (fps > 0.0f) {
+        color = {255, 0, 0, 255};
+     }
     
     renderer.render(fpsCounter, {0, options.size.y}, 
         TextFormattingSettings(TextAlignment::TopLeft), 
-        TextRenderingSettings({255,0,0,255}, glm::vec2(options.scale * 2.0f)));
+        TextRenderingSettings(color, glm::vec2(2.0f)));
+
+    fpsLastFrame = fps;
 }
 
 void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
@@ -109,33 +130,76 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
     float maxWidth = renderer.options.size.x;
     float maxHeight = renderer.options.size.y;
     // max width for log
-    float logMaxWidth = MIN(150 * renderer.options.scale, maxWidth);
+    float logMaxWidth = MIN(300 * renderer.options.scale, maxWidth);
 
-    glm::vec2 activeMsgBorder = glm::vec2{20.0f, 20.0f} * renderer.options.scale;
+    float logOffsetY = 0;
+    
+    if (console->promptOpen) {
+        // Render active message being written
+        glm::vec2 activeMsgBorder = renderer.pixels({20.0f, 10.0f});
+    
+        float activeMsgMinWidth = logMaxWidth;
+        float activeMsgMinHeight = renderer.text->lineHeight() * renderer.textScale() + activeMsgBorder.y*2; // always leave room for a line
 
-    // Render active message being written
-    //renderer.text->font->lineHeightScale = 2.0f;
-    TextFormattingSettings formatting(TextAlignment::BottomLeft, maxWidth); // active message max width is only the screen width
-    TextRenderingSettings rendering({255, 255, 255, 255}, glm::vec2(renderer.options.scale));
-    auto textRect = renderer.text->render(console->activeMessage.c_str(), activeMsgBorder, formatting, rendering);
+        constexpr SDL_Color activeMessageBackground = {30, 30, 30, 205};
+        glm::vec2 selectedCharPos = {activeMsgBorder.x, activeMsgBorder.y - renderer.text->getFont()->descender()};
+        int selectedCharIndex = console->selectedCharIndex;
+        FRect activeMessageRect = {0, 0, activeMsgMinWidth, activeMsgMinHeight};
+        if (!console->activeMessage.empty()) {
+            TextFormattingSettings formatting(TextAlignment::BottomLeft, maxWidth, maxHeight); // active message max width is only the screen width
+            formatting.wrapOnWhitespace = true;
+            TextRenderingSettings rendering(GUI::Console::activeTextColor, glm::vec2(renderer.textScale()));
+            llvm::SmallVector<glm::vec2> characterPositions(console->activeMessage.size());
+            auto textInfo = renderer.text->render(console->activeMessage.c_str(), activeMsgBorder, formatting, rendering, characterPositions.data());
+            FRect textRect = textInfo.rect;
+            if (selectedCharIndex >= 0 && selectedCharIndex < characterPositions.size()) {
+                selectedCharPos = characterPositions[selectedCharIndex];
+                if (selectedCharIndex > 0 && selectedCharPos.x - activeMsgBorder.x == 0) {
+                    selectedCharPos = characterPositions[selectedCharIndex-1];
+                    selectedCharPos.x += renderer.text->getFont()->advance(console->activeMessage.back());
+                }
+            } else if (characterPositions.size() > 0 && selectedCharIndex == characterPositions.size()) {
+                selectedCharPos = characterPositions.back();
+                selectedCharPos.x += renderer.text->getFont()->advance(console->activeMessage.back());
+            }
+            
+            activeMessageRect = addBorder(textRect, activeMsgBorder);
+        }
 
-    // render active message background
-    float activeMsgMinWidth = logMaxWidth;
-    float activeMsgMinHeight = renderer.text->lineHeight(rendering.scale.y); // always leave room for a line
-    textRect.w = MAX(textRect.w, activeMsgMinWidth);
-    textRect.h = MAX(textRect.h, activeMsgMinHeight);
-    auto borderedTextRect = addBorder(textRect, activeMsgBorder);
-    renderer.colorRect({borderedTextRect, {30, 30, 30, 205}});
+        // render active message background
+        // note that the max height of the text rect is calculated before padding, while the width is after padding
+        activeMessageRect.w = MAX(activeMessageRect.w, activeMsgMinWidth);
+        activeMessageRect.h = MAX(activeMessageRect.h, activeMsgMinHeight);
+        renderer.colorRect(activeMessageRect, activeMessageBackground);
+        
+        // render cursor
+        double secondsFlashInterval = 0.5;
+        if (fmod(Metadata->seconds(), 2 * secondsFlashInterval) > secondsFlashInterval) {
+            const auto cursorSize = renderer.pixels({2.0f, renderer.text->lineHeight()});
+            FRect cursor = {
+                selectedCharPos.x,
+                selectedCharPos.y + renderer.text->getFont()->descender(),
+                cursorSize.x,
+                cursorSize.y
+            };
+            renderer.colorRect(cursor, GUI::Console::activeTextColor, 0.9f);
+        }
+        
+        logOffsetY = activeMessageRect.y + activeMessageRect.h;
+    }
 
-    // Render console log
-    SDL_Color logBackground = {90, 90, 90, 150};
-
-    renderer.textBox({{0, borderedTextRect.y + borderedTextRect.h, logMaxWidth, maxHeight}, logBackground}, console->log, 3, console->logTextColors, 1.0f);
+    if (console->promptOpen || tickDelta(console->tLastMessageSent, tickDelay(-CONSOLE_LOG_NEW_MESSAGE_OPEN_DURATION)) == TickBefore) {
+        // Render console log
+        SDL_Color logBackground = {90, 90, 90, 150};
+        renderer.textBox(console->log, 10, console->logTextColors, {0, logOffsetY}, TextAlignment::BottomLeft, logBackground, renderer.pixels({20, 20}), {logMaxWidth, maxHeight});
+    }
 }
 
 void renderFontComponents(glm::vec2 p, GuiRenderer& renderer) {
-    auto* font = renderer.text->font;
+    auto* font = renderer.text->getFont();
+    if (!font) return;
     auto* face = font->face;
+    if (!face) return;
 
     auto height = face->height >> 6;
     auto ascender = face->ascender >> 6;;
@@ -177,13 +241,45 @@ void renderFontComponents(glm::vec2 p, GuiRenderer& renderer) {
     
     //Draw::thickLines(*renderer.quad, sizeof(points) / (2 * sizeof(glm::vec3)), points, colors, lineWidths);
 
-    renderer.rectOutline({bounds, {0, 255, 0, 100}}, 2.0f, 2.0f);
-    renderer.colorRect({addBorder(bounds, glm::vec2(0.0f)), {255, 0, 0, 100}});
+    renderer.rectOutline(bounds, {0, 255, 0, 100}, 2.0f, 2.0f);
+    renderer.colorRect(addBorder(bounds, glm::vec2(0.0f)), {255, 0, 0, 100});
+}
+
+static void testTextRendering(GuiRenderer& guiRenderer, TextRenderer& textRenderer) {
+    
+    auto rect3 = textRenderer.render("This should be centered\n right in the middle", guiRenderer.options.size / 2.0f,
+        TextFormattingSettings(TextAlignment::MiddleCenter), TextRenderingSettings(glm::vec2{guiRenderer.textScale()}));
+    
+    auto rect = textRenderer.render("Bottom Right\nCorner!!p", {guiRenderer.options.size.x,0},
+        TextFormattingSettings(TextAlignment::BottomRight), TextRenderingSettings(glm::vec2{guiRenderer.textScale() * 2}));
+    //textRenderer.font->scale(3.0f);
+   auto rect1 =  textRenderer.render("Top Right\nCorner!!\n mag font, min render scale", guiRenderer.options.size,
+        TextFormattingSettings(TextAlignment::TopRight), TextRenderingSettings(glm::vec2{guiRenderer.textScale() / 3}));
+    //textRenderer.font->scale(0.5f);
+    auto rect2 = textRenderer.render("Top Left\nCorner!!\nmin font, mag render scale", {0,guiRenderer.options.size.y},
+        TextFormattingSettings(TextAlignment::TopLeft), TextRenderingSettings(glm::vec2{guiRenderer.textScale() * 2}));
+    //textRenderer.font->scale(1.0f);
+
+    guiRenderer.rectOutline(rect.rect , {255, 0, 0, 255}, 1.0f, 2.0f);
+    guiRenderer.rectOutline(rect1.rect, {255, 0, 0, 255}, 1.0f, 2.0f);
+    guiRenderer.rectOutline(rect2.rect, {255, 0, 0, 255}, 1.0f, 2.0f);
+    guiRenderer.rectOutline(rect3.rect, {255, 0, 0, 255}, 1.0f, 2.0f);
+    
+
+    renderFontComponents({100, 100}, guiRenderer);
+
+    glm::vec3 points[4] = {
+        {0, guiRenderer.options.size.y/2, 0},
+        {guiRenderer.options.size.x, guiRenderer.options.size.y/2, 0},
+        {guiRenderer.options.size.x/2, 0, 0},
+        {guiRenderer.options.size.x/2, guiRenderer.options.size.y, 0},
+    };
+    Draw::thickLines(*guiRenderer.quad, 2, points, SDL_Color{0, 255, 0, 255}, 2.0f);
 }
 
 void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& screenTransform, GUI::Gui* gui, const GameState* state) {
-    auto& textRenderer = ren.textRenderer;
-    textRenderer.font = &ren.debugFont;
+    auto& textRenderer = ren.guiTextRenderer;
+    //textRenderer.setFont(&ren.debugFont);
 
     GuiRenderer& guiRenderer = ren.guiRenderer;
 
@@ -191,35 +287,20 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
     quadShader.use();
     quadShader.setMat4("transform", screenTransform);
 
-    auto textShader = ren.shaders.get(Shaders::Text);
+    auto textShader = ren.shaders.get(Shaders::SDF);
     textShader.use();
     textShader.setMat4("transform", screenTransform);
 
-    Draw::drawFpsCounter(textRenderer, (float)Metadata->fps(), guiRenderer.options);
-    if (gui->consoleOpen) {
-        Draw::drawConsole(guiRenderer, &gui->console);
-    }
     gui->draw(guiRenderer, 1.0f, {0, 0, (int)guiRenderer.options.size.x, (int)guiRenderer.options.size.y}, &state->player, state->itemManager);
-    
 
-    // move to test func when not lazy
-    /*
-    textRenderer.render("This should be centered\n right in the middle,\n on the dot!", guiRenderer.options.size / 2.0f,
-        TextFormattingSettings(TextAlignment::MiddleCenter), TextRenderingSettings(glm::vec2{guiRenderer.options.scale}));
-    textRenderer.render("Bottom Left\nCorner!!", {0,0},
-        TextFormattingSettings(TextAlignment::BottomLeft), TextRenderingSettings(glm::vec2{guiRenderer.options.scale}));
-    textRenderer.render("Bottom Right\nCorner!!", {guiRenderer.options.size.x,0},
-        TextFormattingSettings(TextAlignment::BottomRight), TextRenderingSettings(glm::vec2{guiRenderer.options.scale}));
-    textRenderer.render("Top Right\nCorner!!", guiRenderer.options.size,
-        TextFormattingSettings(TextAlignment::TopRight), TextRenderingSettings(glm::vec2{guiRenderer.options.scale}));
-    textRenderer.render("Top Left\nCorner!!", {0,guiRenderer.options.size.y},
-        TextFormattingSettings(TextAlignment::TopLeft), TextRenderingSettings(glm::vec2{guiRenderer.options.scale}));
-        */
+    //textRenderer.setFont(&ren.font);
+    Draw::drawFpsCounter(textRenderer, (float)Metadata->fps(), guiRenderer.options);
 
-    renderFontComponents({100, 100}, guiRenderer);
+    //textRenderer.setFont(&ren.debugFont);
+    Draw::drawConsole(guiRenderer, &gui->console);
+    //textRenderer.setFont(&ren.font);
 
-    //guiRenderer.text->font->load(20, TextureUnit::Text);
-    guiRenderer.text->render("| I ( - M 1! /", {0, 0}, {}, TextRenderingSettings(glm::vec2(2.0f)));
+    //testTextRendering(guiRenderer, textRenderer);
 
-    guiRenderer.flush(quadShader, textShader, screenTransform, TextureUnit::Text);
+    guiRenderer.flush(ren.shaders, screenTransform);
 }

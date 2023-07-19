@@ -1,4 +1,6 @@
 #include "utils/Log.hpp"
+#include "utils/Debug.hpp"
+#include "GUI/Gui.hpp"
 
 void Logger::logOutputFunction(LogCategory category, LogPriority priority, const char *message) const {
     const char* fg = "";
@@ -6,8 +8,7 @@ void Logger::logOutputFunction(LogCategory category, LogPriority priority, const
     char end = '\n';
     const char* effect = "";
     switch (priority) {
-    using namespace LogPriorities;
-    case Debug:
+    case LogPriority::Debug:
         fg = "94";
         break;
     case LogPriority::Info:
@@ -60,6 +61,11 @@ void Logger::logOutputFunction(LogCategory category, LogPriority priority, const
         strncpy(fileMessage, message, messageLength);
         fileMessage[messageLength] = '\n';
         fwrite(fileMessage, messageLength+1, 1, outputFile);
+    }
+
+    if (Debug && Debug->console) {
+        if (priority == LogPriority::Error)
+            Debug->console->newMessage(message, GUI::Console::MessageType::Error);
     }
 }
 

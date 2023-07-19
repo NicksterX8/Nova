@@ -108,21 +108,20 @@ namespace Draw {
     inline void thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec3* points, SDL_Color color, GLfloat lineWidth) {
         QuadRenderer::Quad* quads = renderer.renderManual(numLines);
         for (GLuint i = 0; i < numLines; i++) {
-            GLuint ind = i * 4;
             glm::vec2 p1 = points[i*2];
             glm::vec2 p2 = points[i*2+1];
             glm::vec2 d = p2 - p1;
             glm::vec2 offset = glm::normalize(glm::vec2(-d.y, d.x)) * lineWidth / 2.0f;
 
             for (int j = 0; j < 4; j++) {
-                quads[ind][j].color = color;
-                quads[ind][j].texCoord = {0, 0};
+                quads[i][j].color = color;
+                quads[i][j].texCoord = {0, 0};
             }
             
-            quads[ind][0].pos = {p1 + offset, points[i*2].z};
-            quads[ind][1].pos = {p1 - offset, points[i*2].z};
-            quads[ind][2].pos = {p2 - offset, points[i*2+1].z};
-            quads[ind][3].pos = {p2 + offset, points[i*2+1].z};
+            quads[i][0].pos = {p1 + offset, points[i*2].z};
+            quads[i][1].pos = {p1 - offset, points[i*2].z};
+            quads[i][2].pos = {p2 - offset, points[i*2+1].z};
+            quads[i][3].pos = {p2 + offset, points[i*2+1].z};
         }
     }
     

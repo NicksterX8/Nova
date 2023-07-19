@@ -10,4 +10,4 @@ Anyways, might do entity highlights and stuff, hotbar fix. k byee
 
 add texture rendering to quad renderer (change name?)
 
-first thing i want to do is the texture unit thing!
+fix issue with cursor rendering on the back of first character of new line instead of last character of old line

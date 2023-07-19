@@ -56,51 +56,75 @@ void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport*
 
 constexpr int numChunkVerts = CHUNKSIZE * CHUNKSIZE * 1;
 
-static void renderChunk(RenderContext& ren, ChunkData& chunkdata, GlModel& chunkModel, GLfloat* vertexPositions, GLushort* vertexTexCoords) {
-    const TextureData* textureData = ren.textures.data.data;
+static void renderChunk(RenderContext& ren, Chunk* chunk, ChunkCoord pos, glm::vec2* vertexPositions, GLushort* vertexTexCoords) {
+    assert(vertexPositions && vertexTexCoords);
+
+    if (!chunk) return;
     
-    Vec2 startPos = chunkdata.tilePosition();
+    const auto* atlas = &ren.textureAtlas;
+    
+    Vec2 startPos = pos * CHUNKSIZE;
 
-    const float tileWidth = 1.0f;
+    constexpr float tileWidth = 1.0f;
+    constexpr float tileHeight = 1.0f;
 
-    const float tileHeight = 1.0f;
-
+    /*
     for (int row = 0; row < CHUNKSIZE; row++) {
         for (int col = 0; col < CHUNKSIZE; col++) {
             int index = row * CHUNKSIZE + col;
-            TileType type = (*chunkdata.chunk)[row][col].type;
-            if (type == TileTypes::Empty) continue;
+            TileType type = (*chunk)[row][col].type;
             
             float x = startPos.x + col * tileWidth;
             float y = startPos.y + row * tileHeight;
 
             TextureID texture = TileTypeData[type].background;
-            int depth = getTextureArrayDepth(&ren.textureArray, texture);
-            if (depth < 0) {
-                // no texture?
-                continue;
-            }
-            glm::vec<2, GLushort> texMax = textureData[texture].size;
+            auto texSpace = getTextureAtlasSpace(atlas, texture);
 
             const GLfloat positions[] = {
                 x,  y
             };
             const GLushort texCoords[] = {
-                texMax.x, texMax.y, (GLushort)depth
+                texSpace.min.x, texSpace.min.y, texSpace.max.x, texSpace.max.y
             };
             
             // just in case padding or anything happens
-            static_assert(sizeof(texCoords) == 3 * sizeof(GLushort), "incorrect number of floats in vertex data");
-            static_assert(sizeof(positions) == 1 * sizeof(glm::vec2), "incorrect number of floats in vertex data");
+            static_assert(sizeof(texCoords) == 4 * sizeof(GLushort), "incorrect number of floats in vertex data");
+            static_assert(sizeof(positions) == 2 * sizeof(GLfloat), "incorrect number of floats in vertex data");
 
-            memcpy(&vertexPositions[index * 2], positions, sizeof(positions));
-            memcpy(&vertexTexCoords[index * 3], texCoords, sizeof(texCoords));
+            memcpy(&vertexPositions[index], positions, sizeof(positions));
+            memcpy(&vertexTexCoords[index * 4], texCoords, sizeof(texCoords));
+        }
+    }
+    */
+
+    for (int row = 0; row < CHUNKSIZE; row++) {
+        for (int col = 0; col < CHUNKSIZE; col++) {
+            int index = row * CHUNKSIZE + col;
+            float x = startPos.x + col * tileWidth;
+            float y = startPos.y + row * tileHeight;
+            vertexPositions[index] = {x, y};
+        }
+    }
+
+    for (int row = 0; row < CHUNKSIZE; row++) {
+        for (int col = 0; col < CHUNKSIZE; col++) {
+            int index = (row * CHUNKSIZE + col) * 4;
+            TileType type = (*chunk)[row][col].type;
+            TextureID texture = TileTypeData[type].background;
+            auto texSpace = getTextureAtlasSpace(atlas, texture);
+
+            vertexTexCoords[index + 0] = texSpace.min.x;
+            vertexTexCoords[index + 1] = texSpace.min.y;
+            vertexTexCoords[index + 2] = texSpace.max.x;
+            vertexTexCoords[index + 3] = texSpace.max.y;
         }
     }
 
 }
 
-void renderTilemap(RenderContext& ren, const Camera& camera, ChunkMap* chunkmap) {
+int renderTilemap(RenderContext& ren, const Camera& camera, ChunkMap* chunkmap) {
+    assert(isValidEntityPosition(camera.position));
+
     auto maxBoundingArea = camera.maxBoundingArea();
     Vec2 minChunkRelativePos = Vec2{(maxBoundingArea.x) / CHUNKSIZE, (maxBoundingArea.y) / CHUNKSIZE};
     Vec2 maxChunkRelativePos = Vec2{(maxBoundingArea.x + maxBoundingArea.w) / CHUNKSIZE, (maxBoundingArea.y + maxBoundingArea.h) / CHUNKSIZE};
@@ -109,60 +133,25 @@ void renderTilemap(RenderContext& ren, const Camera& camera, ChunkMap* chunkmap)
     const IVec2 maxChunkPos = {(int)floor(maxChunkRelativePos.x), (int)floor(maxChunkRelativePos.y)};
     const IVec2 viewportChunkSize = {maxChunkPos.x - minChunkPos.x, maxChunkPos.y - minChunkPos.y};
 
-    auto& chunkModel = ren.chunkModel;
-    glBindVertexArray(chunkModel.vao);
-    glBindBuffer(GL_ARRAY_BUFFER, chunkModel.vbo);
-    GL::logErrors();
+    struct ChunkPosPair {
+        Chunk* chunk;
+        IVec2 chunkCoord;
+    };
 
-    auto& chunkBuffer = ren.chunkBuffer;
+    llvm::SmallVector<ChunkPosPair> chunks;
 
     ren.shaders.use(Shaders::Tilemap);
-
-    //My::Vec<int32_t> indicesToRender = My::Vec<int32_t>::Empty();
-
-    // TRY USING SEPARATE VBO FOR NEW CHUNKS ??
-
-    // check for stored chunk vertex stuff
-    for (int y = minChunkPos.y; y <= maxChunkPos.y; y++) {
-        for (int x = minChunkPos.x; x <= maxChunkPos.x; x++) {
-            if (!chunkmap->existsAt({x, y})) {
-                ChunkData* newChunk = chunkmap->newChunkAt({x, y});
-                if (newChunk) {
-                    generateChunk(newChunk);
-                } else {
-                    LogError("Failed to create missing chunk at tile (%d,%d) for rendering", x*CHUNKSIZE, y*CHUNKSIZE);
-                    // perhaps this should render some missing texture thing, but atleast for now just render nothing
-                    continue;
-                }
-            }
-
-            /*
-            auto* bufferIndex = chunkBuffer.map.lookup({x, y});
-            if (bufferIndex) {
-                // dont need to re generate vertices
-                indicesToRender.push(*bufferIndex);
-            }
-            */
-        }
-    }
 
     int numRenderedChunks = 0;
     int drawCalls = 0;
 
-    /*
-    for (int i = 0; i < indicesToRender.size; i++) {
-        int32_t index = indicesToRender[i];
-        // offset to where the chunk's vertices are
-        size_t offset = (size_t)index * numChunkIndices;
-        glDrawElements(GL_TRIANGLES, numChunkIndices, GL_UNSIGNED_SHORT, (void*)offset);
-        numRenderedChunks++;
-    }
-    */
+    auto& chunkModel = ren.chunkModel;
+    glBindVertexArray(chunkModel.vao);
 
-    //chunkBuffer.map.destroy();
-    //chunkBuffer.map = ChunkVertexMap::Empty();
-
-    void* vertexBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+    glBindBuffer(GL_ARRAY_BUFFER, chunkModel.positionVbo);
+    glm::vec2* vertexPositions = (glm::vec2*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+    glBindBuffer(GL_ARRAY_BUFFER, chunkModel.texCoordVbo);
+    GLushort* vertexTexCoords = (GLushort*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
     
     for (int y = minChunkPos.y; y <= maxChunkPos.y; y++) {
         for (int x = minChunkPos.x; x <= maxChunkPos.x; x++) {
@@ -170,182 +159,75 @@ void renderTilemap(RenderContext& ren, const Camera& camera, ChunkMap* chunkmap)
                 continue;
             }
             ChunkData* chunkdata = chunkmap->get({x, y});
-
-            //auto* bufferIndex = chunkBuffer.map.lookup({x, y});
-            if (/* !bufferIndex */ true) {
-                if (chunkBuffer.chunksStored >= ChunkBuffer::bufferChunkCapacity) {
-                    // render a full batch of chunks
-                    glUnmapBuffer(GL_ARRAY_BUFFER);
-                    glDrawArrays(GL_POINTS, 0, chunkBuffer.chunksStored * numChunkVerts);
-                    vertexBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-                    chunkBuffer.chunksStored = 0;
-                    drawCalls++;
+            if (!chunkdata) {
+                ChunkData* newChunk = chunkmap->newChunkAt({x, y});
+                if (newChunk) {
+                    generateChunk(newChunk);
+                    chunkdata = newChunk;
+                } else {
+                    LogError("Failed to create missing chunk at tile (%d,%d) for rendering", x*CHUNKSIZE, y*CHUNKSIZE);
+                    // perhaps this should render some missing texture thing, but atleast for now just render nothing
+                    continue;
                 }
-
-                size_t index = chunkBuffer.chunksStored;
-
-                GLfloat* vertexPositionsStart = (GLfloat*)vertexBuffer;
-                GLushort* vertexTexCoordsStart = (GLushort*)&vertexPositionsStart[(numChunkVerts * 2) * ChunkBuffer::bufferChunkCapacity]; // 2 floats per vertex
-
-                GLfloat* vertexPositions = vertexPositionsStart + index * numChunkVerts * 2; 
-                GLushort* vertexTexCoords = vertexTexCoordsStart + index * numChunkVerts * 3;
-
-                renderChunk(ren, *chunkdata, chunkModel, vertexPositions, vertexTexCoords);
-
-                chunkBuffer.chunksStored++;
-
-                //chunkBuffer.map.update({x, y}, index);
             }
+
+            chunks.push_back({chunkdata->chunk, {x, y}});
         }
     }
 
+    std::sort(chunks.begin(), chunks.end(), [](ChunkPosPair a, ChunkPosPair b){
+        return a.chunk < b.chunk;
+    });
+
+    int chunksBuffered = 0;
+    for (auto chunkAndPos : chunks) {
+        if (chunksBuffered >= ChunkBuffer::bufferChunkCapacity) {
+            // render a full batch of chunks
+            glBindBuffer(GL_ARRAY_BUFFER, chunkModel.positionVbo);
+            glUnmapBuffer(GL_ARRAY_BUFFER);
+            glBindBuffer(GL_ARRAY_BUFFER, chunkModel.texCoordVbo);
+            glUnmapBuffer(GL_ARRAY_BUFFER);
+
+            glDrawArrays(GL_POINTS, 0, chunksBuffered * numChunkVerts);
+
+            glBindBuffer(GL_ARRAY_BUFFER, chunkModel.positionVbo);
+            vertexPositions = (glm::vec2*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+            glBindBuffer(GL_ARRAY_BUFFER, chunkModel.texCoordVbo);
+            vertexTexCoords = (GLushort*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+
+            chunksBuffered = 0;
+            drawCalls++;
+        }
+
+        size_t index = chunksBuffered;
+
+        auto* chunkVertexPositions = vertexPositions + index * numChunkVerts; 
+        auto* chunkVertexTexCoords = vertexTexCoords + index * numChunkVerts * 4;
+
+        renderChunk(ren, chunkAndPos.chunk, chunkAndPos.chunkCoord, chunkVertexPositions, chunkVertexTexCoords);
+
+        chunksBuffered++;
+    }
+
+    
+    glBindBuffer(GL_ARRAY_BUFFER, chunkModel.positionVbo);
     glUnmapBuffer(GL_ARRAY_BUFFER);
-    if (chunkBuffer.chunksStored > 0) {
-        glDrawArrays(GL_POINTS, 0, chunkBuffer.chunksStored * numChunkVerts);
-        chunkBuffer.chunksStored = 0;
+    glBindBuffer(GL_ARRAY_BUFFER, chunkModel.texCoordVbo);
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+    
+    if (chunksBuffered > 0) {
+        glDrawArrays(GL_POINTS, 0, chunksBuffered * numChunkVerts);
+        chunksBuffered = 0;
         drawCalls++;
     }
-
-    int numRenderedTiles = numRenderedChunks * CHUNKSIZE*CHUNKSIZE;
-    (void)numRenderedTiles;
-}
-
-static int loadShaders(RenderContext& ren) {
-    auto& mgr = ren.shaders;
-
-    auto entity = mgr.setup(Shaders::Entity, "entity");
-    entity.setInt("texAtlas", TextureUnit::MyTextureAtlas);
-
-    auto tilemap = mgr.setup(Shaders::Tilemap, "tilemap");
-    tilemap.setInt("texArray", TextureUnit::MyTextureArray);
-
-    auto text = mgr.setup(Shaders::Text, "text");
-    text.setInt("text", TextureUnit::Text);
-
-    auto sdf = mgr.setup(Shaders::SDF, "sdf");
-    sdf.setInt("text", TextureUnit::Text);
-
-    auto texture = mgr.setup(Shaders::Texture, "texture");
-    texture.setInt("tex", TextureUnit::Random);
-
-    auto color = mgr.setup(Shaders::Quad, "color");
     
-    auto point = mgr.setup(Shaders::Point, "point");
 
-    auto screen = mgr.setup(Shaders::Screen, "screen");
-    screen.setInt("tex", TextureUnit::Screen);
+    glBindVertexArray(0);
 
-    return 0;
+    return numRenderedChunks;
 }
 
-TextureUnit reserveTextureUnit() {
-
-}
-
-void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
-    /* Init Shaders */
-    ren.shaders = {};
-    loadShaders(ren);
-    GL::logErrors();
-
-    /* Init textures */
-    //TextureUnit texUnit;
-    ren.textures = TextureManager(TextureIDs::NumTextureSlots);
-    setTextureMetadata(&ren.textures);
-    glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureArray);
-    ren.textureArray = makeTextureArray({256, 256}, &ren.textures, TextureTypes::World, FileSystem.assets.get());
-    glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureAtlas);
-    ren.textureAtlas = makeTextureAtlas(&ren.textures, TextureTypes::World, FileSystem.assets.get());
-
-    ren.shaders.use(Shaders::Entity).setVec2("texAtlasSize", ren.textureAtlas.size);
-    ren.shaders.use(Shaders::Tilemap).setVec2("texArraySize", ren.textureArray.size);
-    ren.shaders.use(Shaders::Quad).setInt("tex", TextureUnit::MyTextureArray);
-    ren.shaders.use(Shaders::Quad).setVec2("texSize", {10, 10});
-
-    /* Init text stuff */
-    initFreetype();
-    Font::FormattingSettings fontFormatting = {
-        .lineHeightScale = 1.5f,
-        .tabSpaces = 4.0f
-    };
-    ren.font = Font(FileSystem.assets.get("fonts/FreeSans.ttf"), 128, false, 32, 127, SDL::pixelScale, fontFormatting, TextureUnit::Text);
-    ren.debugFont = Font(FileSystem.assets.get("fonts/Ubuntu-Regular.ttf"), 32, false, 32, 127, SDL::pixelScale, fontFormatting, TextureUnit::Text);
-    ren.textRenderer = TextRenderer::init(&ren.debugFont);
-    ren.textRenderer.defaultFormatting = TextFormattingSettings::Default();
-    GL::logErrors();
-
-    /* Init misc. renderers */
-    ren.quadRenderer = QuadRenderer(0);
-
-    RenderOptions options = {
-        .size = {screenWidth, screenHeight}, // won't render if not set later
-        .scale = 1.0f
-    };
-    TextureAtlas guiAtlas = makeTextureAtlas(&ren.textures, TextureTypes::Gui, FileSystem.assets.get());
-    ren.guiRenderer = GuiRenderer(&ren.quadRenderer, &ren.textRenderer, guiAtlas, options);
-    GL::logErrors();
-
-    /* Tilemap rendering setup */
-    constexpr GlVertexAttribute attributes[] = {
-        {2, GL_FLOAT, sizeof(GLfloat)}, // pos
-        {3, GL_UNSIGNED_SHORT, sizeof(GLushort)}, // tex coord
-    };
-    ren.chunkModel = makeModelSOA(
-        ChunkBuffer::bufferChunkCapacity * numChunkVerts, NULL, GL_DYNAMIC_DRAW,
-        attributes, sizeof(attributes) / sizeof(GlVertexAttribute)
-    );
-
-    GL::logErrors();
-
-    /* Set default opengl rendering options */
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
-    glEnable(GL_PROGRAM_POINT_SIZE);
-
-    ren.framebuffer = makeRenderBuffer({screenWidth, screenHeight});
-}
-
-void renderQuit(RenderContext& ren) {
-    /* Text rendering systems quit */
-    ren.font.unload();
-    ren.debugFont.unload();
-
-    ren.textRenderer.destroy();
-    ren.quadRenderer.destroy();
-    ren.guiRenderer.destroy();
-
-    quitFreetype();
-
-    /* Shaders quit */
-    ren.shaders.destroy();
-
-    /* Textures quit */
-    ren.textures.destroy();
-    ren.textureArray.destroy();
-
-    destroyRenderBuffer(ren.framebuffer);
-}
-
-static llvm::SmallVector<ColorVertex, 0> makeDemoQuads(SDL_Window* window) {
-    int drawableWidth,drawableHeight;
-    SDL_GL_GetDrawableSize(window, &drawableWidth, &drawableHeight);
-
-    auto quadPoints = llvm::SmallVector<ColorVertex, 0>();
-    quadPoints.reserve(500 * 4);
- 
-    for (int i = 0; i < 500; i++) {
-        Vec2 min = {randomInt(-100, 100), randomInt(-100, 100)};
-        Vec2 max = min + Vec2{randomInt(1, 3), randomInt(1, 3)};
-        
-        quadPoints.push_back({glm::vec3(min.x, min.y, 0.0f), randomColor()});
-        quadPoints.push_back({glm::vec3(min.x, max.y, 0.0f), randomColor()});
-        quadPoints.push_back({glm::vec3(max.x, max.y, 0.0f), randomColor()});
-        quadPoints.push_back({glm::vec3(max.x, min.y, 0.0f), randomColor()});
-    }
-
-    return quadPoints;
-}
-
-static GlModel makeScreenModel() {
+static GlModelSOA makeScreenModel() {
     constexpr int numVertices = 6;
     float z = 0.0f;
     const GLfloat vertexPositions[3 * numVertices] = {
@@ -365,15 +247,182 @@ static GlModel makeScreenModel() {
         0.0f,  0.0f
     };
 
-    constexpr GlVertexAttribute attributes[] = {
+    auto vertexFormat = GlMakeVertexFormat(0, {
         {3, GL_FLOAT, sizeof(GLfloat)}, // position
-        {2, GL_FLOAT, sizeof(GLfloat)} // tex coord
+        {2, GL_FLOAT, sizeof(GLfloat)}, // tex coord
+        {2, GL_FLOAT, sizeof(GLfloat)}, // velocity
+    });
+
+    const void* attributeVertices[] = {vertexPositions, vertexTexCoords, nullptr}; // order needs to be same as attribute order
+
+    auto model = makeModelSOA(numVertices, attributeVertices, GL_STREAM_DRAW, vertexFormat);
+    return model;
+}
+
+int setupShaders(RenderContext* ren) {
+    auto& mgr = ren->shaders;
+
+    auto entity = mgr.setup(Shaders::Entity, "entity");
+    entity.setInt("texAtlas", TextureUnit::MyTextureAtlas);
+    entity.setVec2("texAtlasSize", ren->textureAtlas.size);
+
+    auto tilemap = mgr.setup(Shaders::Tilemap, "tilemap");
+    tilemap.setInt("tex", TextureUnit::MyTextureAtlas);
+    tilemap.setVec2("texSize", ren->textureAtlas.size);
+
+    auto text = mgr.setup(Shaders::Text, "text");
+    text.setInt("text", TextureUnit::Font0);
+
+    auto sdf = mgr.setup(Shaders::SDF, "sdf");
+    sdf.setInt("text", TextureUnit::Font1);
+    sdf.setFloat("thickness", 0.5f);
+    sdf.setFloat("soft", 0.2f);
+
+    auto texture = mgr.setup(Shaders::Texture, "texture");
+    texture.setInt("tex", TextureUnit::Random);
+
+    auto quad = mgr.setup(Shaders::Quad, "color");
+    quad.setInt("tex", TextureUnit::GuiAtlas);
+    quad.setVec2("texSize", {10, 10});
+    
+    auto point = mgr.setup(Shaders::Point, "point");
+
+    auto screen = mgr.setup(Shaders::Screen, "screen");
+    screen.setInt("tex", TextureUnit::Screen);
+    screen.setInt("numSamples", 6);
+    screen.setVec2("velocity", {0, 0});
+
+    GL::logErrors();
+
+    return 0;
+}
+
+void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
+    /* Init textures */
+    ren.textures = TextureManager(TextureIDs::NumTextureSlots);
+    setTextureMetadata(&ren.textures);
+    ren.textureArray = makeTextureArray({256, 256}, &ren.textures, TextureTypes::World, FileSystem.assets.get(), TextureUnit::MyTextureArray);
+    ren.textureAtlas = makeTextureAtlas(&ren.textures, TextureTypes::World, FileSystem.assets.get(), GL_NEAREST, GL_NEAREST, TextureUnit::MyTextureAtlas);
+
+    /* Init Shaders */
+    ren.shaders = {};
+    setupShaders(&ren);
+    
+    /* Init text stuff */
+    initFreetype();
+    Font::FormattingSettings fontFormatting = {
+        .lineSpacing = 1.0f,
+        .tabSpaces = 5.0f
     };
 
-    const void* attributeVertices[] = {vertexPositions, vertexTexCoords}; // order needs to be same as attribute order
+    const char* fontPath = "fonts/Ubuntu-Regular.ttf";
 
-    auto model = makeModelSOA(numVertices, attributeVertices, GL_STREAM_DRAW, attributes, sizeof(attributes) / sizeof(GlVertexAttribute));
-    return model;
+    ren.font = Font(FileSystem.assets.get(fontPath), 48, true, 32, 127, SDL::pixelScale, fontFormatting, TextureUnit::Font0);
+    ren.debugFont = Font(
+        FileSystem.assets.get("fonts/Ubuntu-Regular.ttf"),
+        24, // size
+        false, // use sdfs?
+        32, // first char  (space)
+        127, // last char
+        SDL::pixelScale, // scale
+        fontFormatting, // formatting settings
+        TextureUnit::Font1
+    );
+    ren.guiTextRenderer = TextRenderer::init(&ren.font);
+    ren.guiTextRenderer.setFont(&ren.debugFont);
+
+    ren.worldTextRenderer = TextRenderer::init(&ren.font);
+    GL::logErrors();
+
+    /* Init misc. renderers */
+    ren.guiQuadRenderer = QuadRenderer(0);
+    ren.worldQuadRenderer = QuadRenderer(0);
+
+    TextureAtlas guiAtlas = makeTextureAtlas(&ren.textures, TextureTypes::Gui | TextureTypes::World, FileSystem.assets.get(), GL_LINEAR, GL_LINEAR, TextureUnit::GuiAtlas);
+    RenderOptions guiOptions = {
+        .size = {screenWidth, screenHeight}, // won't render if not set later
+        .scale = 1.0f
+    };
+    ren.guiRenderer = GuiRenderer(&ren.guiQuadRenderer, &ren.guiTextRenderer, guiAtlas, guiOptions);
+    RenderOptions worldGuiOptions = {
+        .size = {INFINITY, INFINITY},
+        .scale = BASE_UNIT_SCALE
+    };
+    ren.worldGuiRenderer = GuiRenderer(&ren.worldQuadRenderer, &ren.worldTextRenderer, guiAtlas, worldGuiOptions);
+    GL::logErrors();
+
+    /* Tilemap rendering setup */
+
+    auto& chunkModel = ren.chunkModel;
+    
+    chunkModel.vao = setupVAO();
+
+    auto vertCount = ChunkBuffer::bufferChunkCapacity * numChunkVerts;
+    const auto positionVboFormat = GlMakeVertexFormat(0, {
+        {2, GL_FLOAT, sizeof(GLfloat)},
+    });
+    chunkModel.positionVbo = setupVBO(positionVboFormat, vertCount, NULL, GL_STREAM_DRAW);
+
+    const auto texCoordVboFormat = GlMakeVertexFormat(1, {
+        {4, GL_UNSIGNED_SHORT, sizeof(GLushort)}
+    });
+    chunkModel.texCoordVbo = setupVBO(texCoordVboFormat, vertCount, NULL, GL_STREAM_DRAW);
+
+    GL::logErrors();
+
+    /* Set default opengl rendering options */
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+    glEnable(GL_PROGRAM_POINT_SIZE);
+
+    ren.screenModel = makeScreenModel();
+    ren.framebuffer = makeRenderBuffer({screenWidth, screenHeight});
+    //resizeRenderBuffer(ren.framebuffer, {screenWidth, screenHeight});
+
+    ren.renderSystem = new RenderSystem();
+}
+
+void renderQuit(RenderContext& ren) {
+    /* Text rendering systems quit */
+    ren.font.unload();
+    ren.debugFont.unload();
+
+    ren.guiTextRenderer.destroy();
+    ren.guiQuadRenderer.destroy();
+    ren.guiRenderer.destroy();
+    ren.worldQuadRenderer.destroy();
+    ren.worldTextRenderer.destroy();
+    ren.worldGuiRenderer.destroy();
+
+    quitFreetype();
+
+    /* Shaders quit */
+    ren.shaders.destroy();
+
+    /* Textures quit */
+    ren.textures.destroy();
+    ren.textureArray.destroy();
+
+    ren.chunkModel.destroy();
+    ren.screenModel.destroy();
+
+    destroyRenderBuffer(ren.framebuffer);
+}
+
+static llvm::SmallVector<ColorVertex, 0> makeDemoQuads() {
+    auto quadPoints = llvm::SmallVector<ColorVertex, 0>();
+    quadPoints.reserve(500 * 4);
+ 
+    for (int i = 0; i < 500; i++) {
+        Vec2 min = {randomInt(-100, 100), randomInt(-100, 100)};
+        Vec2 max = min + Vec2{randomInt(1, 3), randomInt(1, 3)};
+        
+        quadPoints.push_back({glm::vec3(min.x, min.y, 0.0f), randomColor()});
+        quadPoints.push_back({glm::vec3(min.x, max.y, 0.0f), randomColor()});
+        quadPoints.push_back({glm::vec3(max.x, max.y, 0.0f), randomColor()});
+        quadPoints.push_back({glm::vec3(max.x, min.y, 0.0f), randomColor()});
+    }
+
+    return quadPoints;
 }
 
 static void renderTexture(Shader textureShader, GLuint texture) {
@@ -413,16 +462,16 @@ static void renderTexture(Shader textureShader, GLuint texture) {
         rotation
     };
 
-    constexpr GlVertexAttribute attributes[] = {
+    auto vertexFormat = GlMakeVertexFormat(0, {
         {3, GL_FLOAT, sizeof(GLfloat)}, // position
         {2, GL_FLOAT, sizeof(GLfloat)}, // tex coord
         {1, GL_FLOAT, sizeof(GLfloat)} // rotation
-    };
+    });
 
     const void* attributeVertices[] = {vertexPositions, vertexTexCoords, vertexRotations}; // order needs to be same as attribute order
 
-    auto model = makeModelSOA(numVertices, attributeVertices, GL_STREAM_DRAW, attributes, 3);
-    glBindVertexArray(model.vao);
+    auto model = makeModelSOA(numVertices, attributeVertices, GL_STREAM_DRAW, vertexFormat);
+    glBindVertexArray(model.model.vao);
 
     textureShader.use();
 
@@ -434,8 +483,13 @@ static void renderTexture(Shader textureShader, GLuint texture) {
 static void renderWorld(RenderContext& ren, Camera& camera, GameState* state, Vec2 playerTargetPos) {
     renderTilemap(ren, camera, &state->chunkmap);
 
-    static RenderSystem renderSystem = RenderSystem();
-    renderSystem.Update(state->ecs, state->chunkmap, ren, camera);
+    ren.renderSystem->Update(state->ecs, state->chunkmap, ren, camera);
+
+    const static auto demoQuads = makeDemoQuads();
+    ren.worldQuadRenderer.render(demoQuads);
+
+    ren.worldGuiRenderer.colorRect({0.0f, 0.0f}, {1.0f, 1.0f}, {255, 0, 0, 255});
+    ren.worldGuiRenderer.flush(ren.shaders, camera.getTransformMatrix());
 }
 
 RenderBuffer makeRenderBuffer(glm::ivec2 size) {
@@ -449,10 +503,9 @@ RenderBuffer makeRenderBuffer(glm::ivec2 size) {
     glGenTextures(1, &texture);
     glActiveTexture(GL_TEXTURE0 + TextureUnit::Screen);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);  
 
@@ -460,18 +513,15 @@ RenderBuffer makeRenderBuffer(glm::ivec2 size) {
     GLuint rbo;
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, size.x, size.y);
-    GL::logErrors();
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, size.x, size.y);
 
     /* fin? */
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         LogError("frame buffer not complete!");
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glBindFramebuffer(GL_FRAMEBUFFER, 0);
     GL::logErrors();
 
     return RenderBuffer{fbo, rbo, texture};
@@ -479,11 +529,11 @@ RenderBuffer makeRenderBuffer(glm::ivec2 size) {
 
 void resizeRenderBuffer(RenderBuffer renderBuffer, glm::ivec2 newSize) {
     glActiveTexture(GL_TEXTURE0 + TextureUnit::Screen);
-    glBindTexture(GL_TEXTURE_2D, renderBuffer.colorTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, newSize.x, newSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
-    glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer.rbo);
+    //glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer.rbo);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, newSize.x, newSize.y);
+    glActiveTexture(GL_TEXTURE0);
 }
 
 void destroyRenderBuffer(RenderBuffer renderBuffer) {
@@ -492,11 +542,44 @@ void destroyRenderBuffer(RenderBuffer renderBuffer) {
     glDeleteFramebuffers(1, &renderBuffer.fbo);
 }
 
+void renderWorldRenderBuffer(RenderContext& ren, const Camera& camera) {
+    glBindVertexArray(ren.screenModel.model.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, ren.screenModel.model.vbo);
+    auto screenShader = ren.shaders.use(Shaders::Screen);
+
+    glm::vec2 corners[4] = {
+        camera.BottomLeftWorldPos(),
+        camera.BottomRightWorldPos(),
+        camera.TopRightWorldPos(),
+        camera.TopLeftWorldPos()
+    };
+
+    static glm::vec2 oldCorners[4] = {
+        corners[0], corners[1], corners[2], corners[3]
+    };
+    
+    glm::vec2 velocities[4];
+    for (int i = 0; i < 4; i++) {
+        glm::vec2 pixelVelocity = glm::vec2(camera.worldToPixel(corners[i]) - camera.worldToPixel(oldCorners[i]));
+        velocities[i] = glm::vec2(pixelVelocity.x / camera.pixelWidth, pixelVelocity.y / camera.pixelHeight);
+    }
+
+    memcpy(oldCorners, corners, sizeof(corners));
+
+    glm::vec2 vertexVelocities[6] = {
+        velocities[0], velocities[3], velocities[2],
+        velocities[2], velocities[1], velocities[0]
+    };
+
+    size_t offset = ren.screenModel.attributeOffsets[2];
+    glBufferSubData(GL_ARRAY_BUFFER, offset, sizeof(vertexVelocities), vertexVelocities);
+    
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
 void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* state, Camera& camera, Vec2 playerTargetPos, Mode mode, bool doRenderWorld) {
     GL::logErrors();    
     auto& shaders = ren.shaders;
-
-    //LogInfo("drawable width: %d; camera pixel width: %f", drawableWidth, camera.pixelWidth);
 
     assert(camera.worldScale() > 0.0f);
 
@@ -516,53 +599,48 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
 
     /* Start Rendering */
     /* First pass */
-    if (doRenderWorld) {
+    if (true) {
         glBindFramebuffer(GL_FRAMEBUFFER, ren.framebuffer.fbo);
 
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(0.5f, 0.5f, 0.8f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glEnable(GL_DEPTH_TEST);
-        
+
         renderWorld(ren, camera, state, playerTargetPos);
+
+        if (getTick() == 3) {
+            resizeRenderBuffer(ren.framebuffer, glm::ivec2(options.size.x + 1, options.size.y));
+        }
+
+        resizeRenderBuffer(ren.framebuffer, glm::ivec2(options.size.x, options.size.y + 1));
     }
 
     /* Second pass */
     glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
 
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // only need blending for points and stuff, not entities or tilemap
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
 
-    static GlModel screenModel = makeScreenModel();
-    glBindVertexArray(screenModel.vao);
-    shaders.use(Shaders::Screen);
-    glBindTexture(GL_TEXTURE_2D, ren.framebuffer.colorTexture);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    renderWorldRenderBuffer(ren, camera);
 
     GL::logErrors();
 
     auto quadShader = shaders.use(Shaders::Quad);
     quadShader.setMat4("transform", worldTransform);
 
-    Draw::chunkBorders(ren.quadRenderer, camera, SDL_Color{255, 0, 255, 125}, 8.0f, 0.5f);
+    Draw::chunkBorders(ren.guiQuadRenderer, camera, SDL_Color{255, 0, 255, 125}, 8.0f, 0.5f);
     
     ren.shaders.use(Shaders::Quad).setMat4("transform", screenTransform);
     
-    /*
-    ren.quadRenderer.render({{
-        {glm::vec3{0.6, 0.4, 0.8}, {255, 0, 0, 100}, {0, 0}},
-        {glm::vec3{0.8, 0.1, 0.8}, {255, 0, 255, 120}, {0, 0}},
-        {glm::vec3{0.8, 0.8, 0.8}, {255, 255, 0, 180}, {0, 0}},
-        {glm::vec3{0.2, 0.8, 0.8}, {0, 255, 0, 120}, {0, 0}}
-    }});
-    */
-    ren.quadRenderer.flush(quadShader, ren.guiRenderer.guiAtlas.texture);
+    ren.guiQuadRenderer.flush(quadShader, worldTransform, ren.guiRenderer.guiAtlas.unit);
     
     GL::logErrors();
 
@@ -574,8 +652,9 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     ren.guiRenderer.options = options;
 
     Draw::drawGui(ren, camera, screenTransform, gui, state);
+    GL::logErrors();
 
-    renderTexture(ren.shaders.get(Shaders::Texture), g.debugTexture);
+    //renderTexture(ren.shaders.get(Shaders::Texture), ren.font.atlasTexture);
 
     if (mode == Testing) {
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);

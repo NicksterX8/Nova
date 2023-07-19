@@ -1,86 +1,59 @@
 #include "rendering/utils.hpp"
 
-unsigned int enableVertexAttribs(const GlVertexAttribute* attributes, unsigned int count) {
+GLuint enableVertexAttribs(ArrayRef<GlVertexDetailedAttribute> attributes) {
     unsigned int stride = 0;
-    for (unsigned int i = 0; i < count; i++) {
+    for (unsigned int i = 0; i < attributes.size(); i++) {
+        assert(attributes[i].count > -1);
         stride += attributes[i].count * attributes[i].typeSize;
     }
 
     size_t offset = 0;
-    for (unsigned int i = 0; i < count; i++) {
-        glVertexAttribPointer(i, attributes[i].count, attributes[i].type, GL_FALSE, stride, (void*)offset);
-        glEnableVertexAttribArray(i);
-        offset += attributes[i].count * attributes[i].typeSize;
+    for (int i = 0; i < attributes.size(); i++) {
+        const auto& attribute = attributes[i];
+        glVertexAttribPointer(attribute.index, attribute.count, attribute.type, attribute.normalize, stride, (void*)offset);
+        glEnableVertexAttribArray(attribute.index);
+        offset += attribute.count * attribute.typeSize;
     }
     return stride;
 }
 
-unsigned int enableVertexAttribsSOA(const GlVertexAttribute* attributes, unsigned int count, unsigned int vertexCount) {
+GLuint enableVertexAttribsSOA(ArrayRef<GlVertexDetailedAttribute> attributes, unsigned int vertexCount) {
     size_t offset = 0;
-    for (unsigned int i = 0; i < count; i++) {
-        size_t attributeSize = attributes[i].count * attributes[i].typeSize;
+    for (int i = 0; i < attributes.size(); i++) {
+        const auto& attribute = attributes[i];
+        size_t attributeSize = attribute.size();
         auto attributeBufferSize = vertexCount * attributeSize;
-        glVertexAttribPointer(i, attributes[i].count, attributes[i].type, GL_FALSE, attributeSize /* stride */, (void*)offset);
-        glEnableVertexAttribArray(i);
+        glVertexAttribPointer(attribute.index, attribute.count, attribute.type, attribute.normalize, attributeSize /* stride */, (void*)offset);
+        glEnableVertexAttribArray(attribute.index);
         offset += attributeBufferSize;
     }
     return offset /* total size */;
 }
 
+
+
 GlModel makeModel(
-size_t vertexDataSize, const void* vertexData, GLenum vertexUsage,
-size_t elementDataSize, const void* elementData, GLenum elementUsage,
-const GlVertexAttribute* attributes, unsigned int numAttributes) {
-    GLuint vbo,ebo,vao;
-    glGenBuffers(1, &vbo);
-    glGenBuffers(1, &ebo);
-    glGenVertexArrays(1, &vao);
-    GL::logErrors();
-    glBindVertexArray(vao);
+GlBuffer vertexBuffer,
+GlBuffer indexBuffer,
+const GlVertexFormat& format) {
+    GlModel model = GlGenModel();
+    model.bindAll();
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertexDataSize, vertexData, vertexUsage);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, elementDataSize, elementData, elementUsage);
+    enableVertexAttribs(format.attributes);
 
-    enableVertexAttribs(attributes, numAttributes);
+    GlBufferData(GL_ARRAY_BUFFER, vertexBuffer);
+    GlBufferData(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
 
-    glBindVertexArray(0);
-
-    GlModel modelData;
-    modelData.vbo = vbo;
-    modelData.ebo = ebo;
-    modelData.vao = vao;
-    return modelData;
+    return model;
 }
 
-struct Buffer {
-    void* data;
-    size_t size;
-};
-
-GlModel makeModelSOA(
+GlModelSOA makeModelSOA(
 size_t vertexCount, const void * const * vertexData, GLenum vertexUsage,
-const GlVertexAttribute* attributes, unsigned int numAttributes) {
-    if (!vertexCount) return {0, 0, 0};
+const GlVertexFormat& format) {
+    if (!vertexCount) return {{0, 0, 0}};
 
-    // Combine all vertex data arrays into one to buffer into a gl array buffer
-    size_t sizePerVertex = 0;
-    for (int i = 0; i < numAttributes; i++) {
-        sizePerVertex += attributes[i].count * attributes[i].typeSize;
-    }
+    size_t sizePerVertex = format.totalSize();
     size_t totalSize = sizePerVertex * vertexCount;
-    char* combinedVertexData = nullptr;
-    if (vertexData) {
-        combinedVertexData = (char*)malloc(totalSize);
-        size_t sum = 0;
-        for (int i = 0; i < numAttributes; i++) {
-            size_t attributeSize = attributes[i].count * attributes[i].typeSize * vertexCount;
-            memcpy(combinedVertexData + sum, vertexData[i], attributeSize);
-            sum += attributeSize;
-        }
-        assert(totalSize == sum);
-    }
 
     GlModel model;
     glGenVertexArrays(1, &model.vao);
@@ -88,33 +61,43 @@ const GlVertexAttribute* attributes, unsigned int numAttributes) {
     model.ebo = 0;
     glBindVertexArray(model.vao);
     glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
-    glBufferData(GL_ARRAY_BUFFER, totalSize, combinedVertexData, vertexUsage);
-    free(combinedVertexData);
+    glBufferData(GL_ARRAY_BUFFER, totalSize, NULL, vertexUsage);
+    llvm::SmallVector<size_t> attributeOffsets(format.attributeCount());
+    size_t offset = 0;
+    for (int i = 0; i < format.attributeCount(); i++) {
+        size_t attributeSize = format.attributes[i].size() * vertexCount;
+        if (vertexData[i]) {
+            glBufferSubData(GL_ARRAY_BUFFER, offset, attributeSize, vertexData[i]);
+        }
+        attributeOffsets[i] = offset;
+        offset += attributeSize;
+    }
 
-    enableVertexAttribsSOA(attributes, numAttributes, vertexCount);
+    assert(offset == totalSize);
 
-    glBindVertexArray(0);
+    enableVertexAttribsSOA(format.attributes, vertexCount);
 
-    return model;
+    return {model, attributeOffsets};
 }
 
 GlModel makeModelIndexedSOA(
 size_t vertexCount, const void * const * vertexData, GLenum vertexUsage,
 size_t elementDataSize, const void* elementData, GLenum elementUsage,
-const GlVertexAttribute* attributes, unsigned int numAttributes) {
+const GlVertexFormat& format) {
     if (!vertexCount) return {0, 0, 0};
+    auto& attributes = format.attributes;
 
     // Combine all vertex data arrays into one to buffer into a gl array buffer
     size_t sizePerVertex = 0;
-    for (int i = 0; i < numAttributes; i++) {
-        sizePerVertex += attributes[i].count * attributes[i].typeSize;
+    for (auto attribute : attributes) {
+        sizePerVertex += attribute.count * attribute.typeSize;
     }
     size_t totalSize = sizePerVertex * vertexCount;
     char* combinedVertexData = nullptr;
     if (vertexData) {
         combinedVertexData = (char*)malloc(totalSize);
         size_t sum = 0;
-        for (int i = 0; i < numAttributes; i++) {
+        for (int i = 0; i < attributes.size(); i++) {
             size_t attributeSize = attributes[i].count * attributes[i].typeSize * vertexCount;
             memcpy(combinedVertexData + sum, vertexData[i], attributeSize);
             sum += attributeSize;
@@ -128,7 +111,7 @@ const GlVertexAttribute* attributes, unsigned int numAttributes) {
     free(combinedVertexData);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, elementDataSize, elementData, elementUsage);
 
-    enableVertexAttribsSOA(attributes, numAttributes, vertexCount);
+    enableVertexAttribsSOA(format.attributes, vertexCount);
 
     glBindVertexArray(0);
 
@@ -138,7 +121,7 @@ const GlVertexAttribute* attributes, unsigned int numAttributes) {
 
 GlModel makeModel(
 size_t vertexDataSize, const void* vertexData, GLenum vertexUsage,
-const GlVertexAttribute* attributes, unsigned int numAttributes) {
+const GlVertexFormat& format) {
     unsigned int vbo,vao;
     glGenBuffers(1, &vbo);
     glGenVertexArrays(1, &vao);
@@ -149,7 +132,7 @@ const GlVertexAttribute* attributes, unsigned int numAttributes) {
     if (vertexDataSize != 0)
         glBufferData(GL_ARRAY_BUFFER, vertexDataSize, vertexData, vertexUsage);
 
-    enableVertexAttribs(attributes, numAttributes);
+    enableVertexAttribs(format.attributes);
 
     glBindVertexArray(0);
 

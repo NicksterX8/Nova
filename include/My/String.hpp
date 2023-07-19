@@ -12,6 +12,7 @@
 MY_CLASS_START
 
 inline char* strdup(const char* str) {
+    if (!str) return nullptr;
     int strSize = strlen(str)+1;
     char* copy = (char*)MY_malloc(strSize);
     memcpy(copy, str, strSize);
@@ -297,6 +298,15 @@ struct StringBuffer {
                 break;
             }
         };
+    }
+
+    template<typename T>
+    void forEachStr(const T& callback, bool direction) const {
+       if (direction) {
+            forEachStr(callback);
+       } else {
+            forEachStrReverse(callback);
+       }
     }
 
     /*

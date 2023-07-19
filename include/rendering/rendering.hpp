@@ -25,4 +25,6 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight);
 void renderQuit(RenderContext& ren);
 void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* state, Camera& camera, Vec2 playerTargetPos, Mode mode, bool renderWorld);
 
+int setupShaders(RenderContext* ren);
+
 #endif

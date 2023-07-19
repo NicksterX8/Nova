@@ -51,6 +51,7 @@ struct FileSystemT {
         resources = Directory(get(unixResourcesPath));
         assets = Directory(get(resources, "assets/"));
         shaders = Directory(get(resources, "shaders/"));
+        shaders = Directory(get("../src/rendering/shaders/"));
         save = Directory(get(resources, "save/"));
     }
 

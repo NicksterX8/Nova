@@ -2,6 +2,7 @@
 
 GLuint usedShader = 0;
 
+/*
 char* readFileContents(FILE* file, size_t* outBytesRead) {
     size_t chunkSize = 64;
     ssize_t n;
@@ -29,7 +30,7 @@ char* readFileContents(FILE* file, size_t* outBytesRead) {
 }
 
 char* readFileContents(const char* filename, size_t* outBytesRead) {
-    FILE* file = fopen(filename, "r");
+    FILE* file = SDL_fopen(filename, "r");
     if (file) {
         char* contents = readFileContents(file, outBytesRead);
         fclose(file);
@@ -37,6 +38,7 @@ char* readFileContents(const char* filename, size_t* outBytesRead) {
     }
     return NULL;
 }
+*/
 
 GLuint compileShader(GLenum shaderType, const char* sourcePath) {
     const char* shaderName;
@@ -61,7 +63,7 @@ GLuint compileShader(GLenum shaderType, const char* sourcePath) {
     }
 
     size_t sourceLength;
-    char* source = readFileContents(sourcePath, &sourceLength);
+    char* source = (char*)SDL_LoadFile(sourcePath, &sourceLength);
     if (!source) {
         LogError("Failed to read %s shader file. Path: %s", shaderName, sourcePath);
         return 0;
@@ -71,7 +73,7 @@ GLuint compileShader(GLenum shaderType, const char* sourcePath) {
     GLint iSourceLength = sourceLength;
     glShaderSource(shader, 1, &source, &iSourceLength);
     glCompileShader(shader);
-    free(source); // no longer needed after giving it to opengl
+    SDL_free(source); // no longer needed after giving it to opengl
     // check for compilation errors
     GLint success;
     char infoLog[1024];
@@ -85,22 +87,38 @@ GLuint compileShader(GLenum shaderType, const char* sourcePath) {
     return shader;
 }
 
-GLuint makeShaderProgram(const char* vertexPath, const char* fragmentPath) {
-    GLuint vertex = compileShader(GL_VERTEX_SHADER, vertexPath);
-    if (!vertex) {
+ShaderProgram loadShaderProgram(const char* vertexPath, const char* fragmentPath, const char* geometryPath, GLuint id) {
+    // vertex and fragment shaders are required, geometry is optional
+
+    ShaderProgram program = {.programID = id, .vertex = ShaderInfo(0, vertexPath), .fragment = ShaderInfo(0, fragmentPath), .geometry = ShaderInfo(0, geometryPath ? geometryPath : std::string{})};
+
+    program.vertex.id = compileShader(GL_VERTEX_SHADER, vertexPath);
+    if (!program.vertex.id) {
         LogError("Shader program compilation failed while compiling vertex shader.");
-        return 0;
+        return program;
     }
 
-    GLuint fragment = compileShader(GL_FRAGMENT_SHADER, fragmentPath);
-    if (!fragment) {
+    program.fragment.id = compileShader(GL_FRAGMENT_SHADER, fragmentPath);
+    if (!program.fragment.id) {
         LogError("Shader program compilation failed while compiling fragment shader.");
-        return 0;
+        return program;
     }
 
-    GLuint id = glCreateProgram();
-    glAttachShader(id, vertex);
-    glAttachShader(id, fragment);
+    if (geometryPath) {
+        program.geometry.id = compileShader(GL_GEOMETRY_SHADER, geometryPath);
+        if (!program.geometry.id) {
+            LogError("Shader program compilation failed while compiling geometry shader.");
+            return program;
+        }
+    }
+
+    if (!id) id = glCreateProgram();
+    program.programID = id;
+
+    glAttachShader(id, program.vertex.id);
+    glAttachShader(id, program.fragment.id);
+    if (program.geometry.id)
+        glAttachShader(id, program.geometry.id);
     glLinkProgram(id);
     GLint success;
     char infoLog[1024];
@@ -109,61 +127,25 @@ GLuint makeShaderProgram(const char* vertexPath, const char* fragmentPath) {
         glGetProgramInfoLog(id, 1024, NULL, infoLog);
         LogError("Failed to link shader program! Program info log: %s\n -------------------------------------------------", infoLog);
     }
-    // delete the shaders as they're linked into our program now and are no longer needed
-    glDeleteShader(vertex);
-    glDeleteShader(fragment);
-    return id;
+
+    return program;
 }
 
-GLuint makeShaderProgram(const char* vertexPath, const char* fragmentPath, const char* geometryPath) {
-    GLuint vertex = compileShader(GL_VERTEX_SHADER, vertexPath);
-    if (!vertex) {
-        LogError("Shader program compilation failed while compiling vertex shader.");
-        return 0;
-    }
+void reloadShaderProgram(ShaderProgram* program) {
+    if (!program) return;
+    glDetachShader(program->programID, program->vertex.id);
+    glDetachShader(program->programID, program->fragment.id);
+    if (program->geometry.id)
+        glDetachShader(program->programID, program->geometry.id);
 
-    GLuint fragment = compileShader(GL_FRAGMENT_SHADER, fragmentPath);
-    if (!fragment) {
-        LogError("Shader program compilation failed while compiling fragment shader.");
-        return 0;
-    }
+    auto geometryFilename = program->geometry.filename;
 
-    GLuint geometry = compileShader(GL_GEOMETRY_SHADER, geometryPath);
-    if (!geometry) {
-        LogError("Shader program compilation failed while compiling geometry shader.");
-        return 0;
-    }
-
-    GLuint id = glCreateProgram();
-    glAttachShader(id, vertex);
-    glAttachShader(id, fragment);
-    glAttachShader(id, geometry);
-    glLinkProgram(id);
-    GLint success;
-    char infoLog[1024];
-    glGetProgramiv(id, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(id, 1024, NULL, infoLog);
-        LogError("Failed to link shader program! Program info log: %s\n -------------------------------------------------", infoLog);
-    }
-    // delete the shaders as they're linked into our program now and are no longer needed
-    glDeleteShader(vertex);
-    glDeleteShader(fragment);
-    glDeleteShader(geometry);
-    return id;
-}
-
-Shader::Shader(const char* vertexPath, const char* fragmentPath) {
-    id = makeShaderProgram(vertexPath, fragmentPath);
-}
-
-Shader::Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath) {
-    id = makeShaderProgram(vertexPath, fragmentPath, geometryPath);
+    *program = loadShaderProgram(program->vertex.filename.c_str(), program->fragment.filename.c_str(), !geometryFilename.empty() ? geometryFilename.c_str() : nullptr, program->programID);
 }
 
 GLint Shader::getUniformLocation(const char* name) const {
     if (!this->id) {
-        LogError("Attempted to use uninitialized shader!");
+        //LogError("Attempted to use uninitialized shader!");
         return 0;
     }
     

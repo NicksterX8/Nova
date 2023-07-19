@@ -105,10 +105,12 @@ static int packNode(Atlas* atlas, int nodeIndex, glm::ivec2 size) {
     }
 }
 
-glm::ivec2 packTexture(Atlas* atlas, Texture texture) {
+glm::ivec2 packTexture(Atlas* atlas, Texture texture, glm::ivec2 padding) {
     if (!texture.buffer || texture.size.x <= 0 || texture.size.y <= 0) {
         return {-1, -1};
     }
+
+    texture.size += padding;
 
     int nodeIndex = packNode(atlas, Atlas::root, texture.size);
     while (nodeIndex == NullNode) {
@@ -124,12 +126,13 @@ glm::ivec2 packTexture(Atlas* atlas, Texture texture) {
     assert(texture.size.y == node->size.y);
 
     // Copy the texture to the texture atlas' buffer
+    texture.size -= padding;
     copyTexture(atlas->atlas, texture, node->origin);
 
     return node->origin;
 }
 
-Texture packTextures(const int numTextures, const Texture* textures, int pixelSize, glm::ivec2* textureOrigins, int startSize) {
+Texture packTextures(const int numTextures, const Texture* textures, int pixelSize, glm::ivec2* textureOrigins, glm::ivec2 padding, int startSize) {
     if (!textures || !numTextures) return {nullptr, {0,0}};
 
     Atlas atlas;
@@ -142,32 +145,10 @@ Texture packTextures(const int numTextures, const Texture* textures, int pixelSi
     atlas.nodesEmpty.push_back(true);
 
     for (int i = 0; i < numTextures; i++) {
-        const auto texture = textures[i];
-        if (!texture.buffer || texture.size.x <= 0 || texture.size.y <= 0) {
-            // bad texture, skip it
-            if (textureOrigins)
-                textureOrigins[i] = {-1, -1};
-            continue;
+        auto origin = packTexture(&atlas, textures[i], padding);
+        if (textureOrigins) {
+            textureOrigins[i] = origin;
         }
-
-        int nodeIndex = packNode(&atlas, Atlas::root, texture.size);
-        while (nodeIndex == NullNode) {
-            // always keep atlas texture square
-            int newSize = MAX(MAX(atlas.atlas.size.x*2, texture.size.x*2), MAX(atlas.atlas.size.y*2, texture.size.y*2));
-            atlas.atlas = resizeTexture(atlas.atlas, glm::ivec2(newSize));
-            nodeIndex = packNode(&atlas, Atlas::root, texture.size);
-        }
-
-        Node* node = &atlas.nodes[nodeIndex];
-
-        assert(texture.size.x == node->size.x);
-        assert(texture.size.y == node->size.y);
-
-        // Copy the texture to the texture atlas' buffer
-        copyTexture(atlas.atlas, texture, node->origin);
-
-        if (textureOrigins)
-            textureOrigins[i] = node->origin;
     }
 
     atlas.nodes.destroy();

@@ -18,10 +18,6 @@
 #define COMBINE(X,Y) COMBINE1(X,Y)
 #define FOR_EACH_VAR_TYPE(func_call) int COMBINE(_dummy_for_each_var_type_helper, __LINE__)[] = {0, (func_call, 0) ...}; (void)COMBINE(_dummy_for_each_var_type_helper, __LINE__);
 
-std::chrono::time_point<std::chrono::high_resolution_clock> getNow() {
-    return std::chrono::high_resolution_clock::now();
-}
-
 //time elapsed: 949738584
 //time elapsed: 1358284833
 /*
@@ -115,27 +111,9 @@ struct Struct2 {
 #define UNLIKELY(expr) LLVM_UNLIKELY(expr)
 */
 
-struct Class {
-    int x;
-    constexpr int method() const {
-        return 3;
-    }
-};
-
-constexpr Class cls;
-
-constexpr int func() {
-    return cls.method();
-}
-
 int main() {
 
     using std::cout;
-
-    constexpr auto i = func();
-
-    cout << i;
-
 
     #define LIST "1", "2", "3", "4"
     #define FIRST(first, ...) first
@@ -143,8 +121,5 @@ int main() {
     #define STRINGIFY(x) #x
     #define TOSTRING(x) STRINGIFY(x)
 
-    Class c;
-    auto hash = std::hash<int>{};
-    hash(3);
-
+    
 }

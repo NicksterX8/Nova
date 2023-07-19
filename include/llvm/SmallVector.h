@@ -303,6 +303,7 @@ public:
   const_pointer data() const { return const_pointer(begin()); }
 
   reference operator[](size_type idx) {
+
     assert(idx < size());
     return begin()[idx];
   }

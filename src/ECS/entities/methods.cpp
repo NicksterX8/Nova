@@ -1,4 +1,5 @@
 #include "ECS/entities/methods.hpp"
+#include "GameState.hpp"
 
 namespace Entities {
 
@@ -71,6 +72,10 @@ void entitySizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<EC::P
 
 void entityPositionChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<EC::Position> entity, Vec2 oldPos) {
     Vec2 newPos = ecs->Get<EC::Position>(entity)->vec2();
+    if (UNLIKELY(!isValidEntityPosition(newPos))) {
+        LogCritical("Entity has invalid position! Entity: %s, Position: %f,%f", entity.DebugStr(), newPos.x, newPos.y);
+        *ecs->Get<EC::Position>(entity) = {NAN, NAN};
+    }
     if (oldPos.x == newPos.x && oldPos.y == newPos.y) {
         return;
     }

@@ -4,6 +4,16 @@
 #include "text.hpp"
 #include "utils.hpp"
 #include "renderers.hpp"
+#include "shaders.hpp"
+
+namespace RenderModes {
+    enum RenderMode {
+        World,
+        Screen
+    };
+}
+
+using RenderModes::RenderMode;
 
 struct GuiRenderer {
     QuadRenderer* quad;
@@ -11,14 +21,26 @@ struct GuiRenderer {
     TextureAtlas guiAtlas;
     RenderOptions options;
 
-    #define CONST(name, val) const auto name = (val * scale)
+    using Color = SDL_Color;
 
     GuiRenderer() {}
 
     GuiRenderer(QuadRenderer* quadRenderer, TextRenderer* textRenderer, TextureAtlas guiAtlas, RenderOptions options)
     : quad(quadRenderer), text(textRenderer), guiAtlas(guiAtlas), options(options) {}
 
-    QuadRenderer::Quad rectToQuad(FRect rect, std::array<QuadRenderer::TexCoord, 4> texCoords) {
+    float textScale() const {
+        return 1.0f; // scale is already factored into font sizes
+    }
+
+    float pixels(float f) const {
+        return f * options.scale;
+    }
+
+    glm::vec2 pixels(glm::vec2 p) const {
+        return p * options.scale;
+    }
+
+    QuadRenderer::Quad rectToQuad(FRect rect, std::array<QuadRenderer::TexCoord, 4> texCoords) const {
         SDL_Color color = {0,0,0,0};
         const float z = 0.0f;
         QuadRenderer::Quad q = {{
@@ -28,10 +50,10 @@ struct GuiRenderer {
             {{rect.x + rect.w, rect.h, z}, color, texCoords[3]}
         }};
         return q;
-    }   
+    }
 
     // texture will only be rendered if it's a gui type texture
-    void guiSprite(TextureID texture, FRect rect) {
+    void sprite(TextureID texture, FRect rect) {
         auto space = getTextureAtlasSpace(&guiAtlas, texture);
         if (!space.valid()) return;
         auto min = space.min;
@@ -45,21 +67,17 @@ struct GuiRenderer {
         quad->render(q);
     }
 
-    void textureArraySprite(TextureArray* textureArray, TextureID texture, FRect rect) {
-
-    }
-
     struct ColorRect {
         FRect rect;
-        SDL_Color color;
+        Color color;
     };
 
-    void colorRect(ColorRect rect) {
+    void colorRect(FRect rect, Color color, float z = 0.0f) {
         auto _quad = QuadRenderer::Quad{{
-            {glm::vec3{rect.rect.x, rect.rect.y, 0.0}, rect.color, glm::vec<2, GLushort>{0, 0}},
-            {glm::vec3{rect.rect.x, rect.rect.y + rect.rect.h, 0.0}, rect.color, glm::vec<2, GLushort>{0, 0}},
-            {glm::vec3{rect.rect.x + rect.rect.w, rect.rect.y + rect.rect.h, 0.0}, rect.color, glm::vec<2, GLushort>{0, 0}},
-            {glm::vec3{rect.rect.x + rect.rect.w, rect.rect.y, 0.0}, rect.color, glm::vec<2, GLushort>{0, 0}}
+            {glm::vec3{rect.x, rect.y, z}, color, QuadRenderer::NullCoord},
+            {glm::vec3{rect.x, rect.y + rect.h, z}, color, QuadRenderer::NullCoord},
+            {glm::vec3{rect.x + rect.w, rect.y + rect.h, z}, color, QuadRenderer::NullCoord},
+            {glm::vec3{rect.x + rect.w, rect.y, z}, color, QuadRenderer::NullCoord}
         }};
 
         quad->render(_quad);
@@ -67,10 +85,10 @@ struct GuiRenderer {
 
     void colorRect(glm::vec2 min, glm::vec2 max, SDL_Color color) {
         auto _quad = QuadRenderer::Quad{{
-            {glm::vec3{min.x, min.y, 0.0}, color, glm::vec<2, GLushort>{0, 0}},
-            {glm::vec3{min.x, max.y, 0.0}, color, glm::vec<2, GLushort>{0, 0}},
-            {glm::vec3{max.x, max.y, 0.0}, color, glm::vec<2, GLushort>{0, 0}},
-            {glm::vec3{max.x, min.y, 0.0}, color, glm::vec<2, GLushort>{0, 0}}
+            {glm::vec3{min.x, min.y, 0.0}, color, QuadRenderer::NullCoord},
+            {glm::vec3{min.x, max.y, 0.0}, color, QuadRenderer::NullCoord},
+            {glm::vec3{max.x, max.y, 0.0}, color, QuadRenderer::NullCoord},
+            {glm::vec3{max.x, min.y, 0.0}, color, QuadRenderer::NullCoord}
         }};
 
         quad->render(_quad);
@@ -88,10 +106,9 @@ struct GuiRenderer {
         quad->render(_quad);
     }
 
-    void rectOutline(ColorRect rect, float strokeIn, float strokeOut) {
-        glm::vec2 min = {rect.rect.x, rect.rect.y};
-        glm::vec2 max = {rect.rect.x + rect.rect.w, rect.rect.y + rect.rect.h};
-        auto color = rect.color;
+    void rectOutline(FRect rect, Color color, float strokeIn, float strokeOut) {
+        glm::vec2 min = {rect.x, rect.y};
+        glm::vec2 max = {rect.x + rect.w, rect.y + rect.h};
 
         colorRect({min.x - strokeOut, min.y - strokeOut}, {max.x - strokeIn,  min.y + strokeIn},  color);
         colorRect({max.x - strokeIn,  min.y - strokeOut}, {max.x + strokeOut, max.y - strokeIn},  color);
@@ -99,35 +116,55 @@ struct GuiRenderer {
         colorRect({min.x - strokeOut, max.y + strokeOut}, {min.x + strokeIn,  min.y + strokeIn},  color);
     }
 
-    // rect.rect.w&h are max sizes, rect.color is background color
-    void textBox(ColorRect rect, const My::StringBuffer& textBuffer, int maxLines, My::Vec<SDL_Color> textColors, float textScale = 1.0f) {
-        if (textBuffer.empty()) return;
-        const float padX = 20 * options.scale;
-        const float padY = 20 * options.scale;
-        // border and pad need to be the same, change this
-        TextFormattingSettings formatting = {
-            TextAlignment::BottomLeft,
-            rect.rect.w - padX, // max width
-        };
-        FRect textRect = text->renderStringBufferAsLinesReverse(
-            textBuffer, 
-            3, // max lines
-            glm::vec2(rect.rect.x+padX, rect.rect.y+padY), // position
-            textColors,
-            glm::vec2(options.scale * textScale), // scale
-            formatting
-        );
-        rect.rect = addBorder(textRect, {padX, padY});
-        colorRect(rect);
+    float alignmentOffsetFraction(HoriAlignment alignment) const {
+        switch (alignment) {
+        case HoriAlignment::Left:
+            return 0.0f;
+        case HoriAlignment::Center:
+            return 0.5f;
+        case HoriAlignment::Right:
+            return 1.0f;
+        }
+        return NAN;
     }
 
-    void flush(Shader quadShader, Shader textShader, glm::mat4 transform, GLuint textTextureUnit) {
-        quad->flush(quadShader, guiAtlas.texture);
-        text->flush(textShader, transform, textTextureUnit);
+    void textBox(const My::StringBuffer& textBuffer, int maxLines, My::Vec<SDL_Color> textColors,
+            glm::vec2 pos, TextAlignment alignment, Color backgroundColor, glm::vec2 padding,
+            glm::vec2 maxSize = {INFINITY, INFINITY}, glm::vec2 minSize = {0,0}) {
+
+        if (textBuffer.empty()) return;
+
+        glm::vec2 maxTextSize = maxSize - (padding*2.0f); // some space is used by padding, take it from the text space
+
+        TextFormattingSettings formatting = {
+            alignment,
+            maxTextSize.x,
+            maxTextSize.y
+        };
+        formatting.wrapOnWhitespace = true;
+        FRect textRect = text->renderStringBufferAsLinesReverse(
+            textBuffer, 
+            maxLines, // max lines
+            pos + padding, // position
+            textColors,
+            glm::vec2(textScale()), // scale
+            formatting
+        );
+
+
+        auto rect = addBorder(textRect, padding);
+        colorRect(rect, backgroundColor);
+
+    }
+
+    void flush(const ShaderManager& shaders, glm::mat4 transform) {
+        quad->flush(shaders.get(Shaders::Quad), transform, guiAtlas.unit);
+        auto textShaderID = text->getFont()->usingSDFs ? Shaders::SDF : Shaders::Text;
+        text->flush(shaders.get(textShaderID), transform);
     }
 
     void destroy() {
-        guiAtlas.destroy();
+        
     }
 };
 

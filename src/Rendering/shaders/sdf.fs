@@ -1,15 +1,31 @@
 #version 330 core
-in vec2 TexCoords;
+
+in vec2 TexCoord;
+in vec4 TextColor;
+
 out vec4 FragColor;
 
+//uniform float thickness;
+//uniform float soft;
 uniform sampler2D text;
-uniform vec3 textColor;
-//uniform float minD;
-uniform float thickness;
-uniform float soft;
 
 void main() {   
-    float a = texture(text, TexCoords).r;
-    a = smoothstep(1.0 - thickness - soft, 1.0 - thickness + soft, a);
-    FragColor = vec4(textColor, a);
+    float d = 1.0 - texture(text, TexCoord).r;
+
+    float soft = 0.1;
+    float thickness = 0.45;
+    float weight = thickness + soft;
+
+    float a;
+    if (d < thickness) {
+        a = 1.0;
+    }
+    else if (d > weight) {
+        discard;
+    } else {
+        a = smoothstep(1.0, 0.0, (d - thickness) / soft);
+
+    }
+
+    FragColor = vec4(TextColor.xyz, TextColor.w * a);
 }

@@ -56,7 +56,7 @@ struct Player {
             if (position)
                 return position->vec2();
         }
-        return {0, 0};
+        return {NAN, NAN};
         
     }
 

@@ -12,13 +12,16 @@
 #include "My/String.hpp"
 
 namespace TextureUnits {
-    enum TextureUnit : GLuint {
+    enum TextureUnit : GLubyte {
         MyTextureArray=0,
         MyTextureAtlas,
-        Text,
+        GuiAtlas,
+        Font0,
+        Font1,
         Random,
         Screen,
-        Available
+        Available,
+        Null = 255
     };
 }
 
@@ -171,14 +174,16 @@ namespace TextureTypes {
 }
 
 struct TextureArray {
+    My::DenseSparseSet<TextureID, int, TextureIDs::NumTextures> textureDepths;
     glm::ivec2 size; // width and height of each texture
     int depth; // z number of textures
     GLuint texture; // opengl texture id
-    My::DenseSparseSet<TextureID, int, TextureIDs::NumTextures> textureDepths;
+    TextureUnit unit;
 
     TextureArray() {}
 
-    TextureArray(glm::ivec2 size, int depth, GLuint texture) : size(size), depth(depth), texture(texture) {
+    TextureArray(glm::ivec2 size, int depth, GLuint texture, TextureUnit unit)
+    : size(size), depth(depth), texture(texture), unit(unit) {
         textureDepths = My::DenseSparseSet<TextureID, int, TextureIDs::NumTextures>::WithCapacity(depth);
     }
 
@@ -188,14 +193,13 @@ struct TextureArray {
     }
 };
 
-GLuint loadTextureArray(glm::ivec2 size, ArrayRef<SDL_Surface*> images);
+GLuint GlLoadTextureArray(glm::ivec2 size, ArrayRef<SDL_Surface*> images);
 // @typesIncluded can be one or more types (as a bit mask) of textures that should be included in the texture array
-TextureArray makeTextureArray(glm::ivec2 size, TextureManager* textures, TextureType typesIncluded, const char* assetsPath);
+TextureArray makeTextureArray(glm::ivec2 size, TextureManager* textures, TextureType typesIncluded, const char* assetsPath, TextureUnit target);
 int updateTextureArray(TextureArray* textureArray, TextureManager* textures, TextureID id, SDL_Surface* surface);
 
 struct TextureAtlas {
     glm::ivec2 size;
-    GLuint texture;
     using TexCoord = glm::vec<2, GLushort>;
     static constexpr TexCoord NullCoord = {UINT16_MAX, UINT16_MAX};
     struct Space {
@@ -207,10 +211,13 @@ struct TextureAtlas {
         }
     };
     My::DenseSparseSet<TextureID, Space, TextureIDs::NumTextures> textureSpaces;
+    GLuint texture;
+    TextureUnit unit;
 
     TextureAtlas() {}
 
-    TextureAtlas(glm::ivec2 size, GLuint texture) : size(size), texture(texture) {
+    TextureAtlas(glm::ivec2 size, GLuint texture, TextureUnit unit)
+    : size(size), texture(texture), unit(unit) {
         textureSpaces = My::DenseSparseSet<TextureID, Space, TextureIDs::NumTextures>::Empty();
     }
 
@@ -220,8 +227,8 @@ struct TextureAtlas {
     }
 };
 
-GlSizedTexture loadTextureAtlas(ArrayRef<SDL_Surface*> images, MutableArrayRef<glm::ivec2> texCoordsOut);
-TextureAtlas makeTextureAtlas(TextureManager* textures, TextureType typesIncluded, const char* assetsPath);
+GlSizedTexture GlLoadTextureAtlas(ArrayRef<SDL_Surface*> images, GLint minFilter, GLint magFilter, MutableArrayRef<glm::ivec2> texCoordsOut);
+TextureAtlas makeTextureAtlas(TextureManager* textures, TextureType typesIncluded, const char* assetsPath, GLint minFilter, GLint magFilter, TextureUnit target);
 
 // returns -1 on error
 inline int getTextureArrayDepth(const TextureArray* textureArray, TextureID id) {

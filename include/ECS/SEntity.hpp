@@ -4,6 +4,7 @@
 #include "../ECS/Entity.hpp"
 
 using ECS::ComponentFlags;
+using ECS::NullComponentID;
 
 using ECS::EntityID;
 using ECS::EntityVersion;

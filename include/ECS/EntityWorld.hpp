@@ -5,6 +5,9 @@
 #include "SECS.hpp"
 #include "components/components.hpp"
 #include <vector>
+#include <string>
+#include <sstream>
+
 #include "global.hpp"
 
 template<class... Components>
@@ -69,7 +72,7 @@ public:
 
     Sint32 getComponentSize(ECS::ComponentID id) const {
         auto pool = em.getPool(id);
-        return pool ? pool->size() : 0;
+        return pool ? pool->getValueSize() : 0;
     }
 
     /* Create a new entity with just an entity type component using the type name given.
@@ -252,7 +255,7 @@ public:
      * otherwise it will be added to the back of the deferred events queue to be executed when finished deferring.
      * @return 0 on success, any other value otherwise. A relevant error message should be logged.
      */
-    bool Add(Entity entity, ECS::ComponentID id) {
+    bool Add(ECS::ComponentID id, Entity entity) {
         //LogInfo("Adding %s to entity: %s", em.getComponentName<T>(), entity.DebugStr());
         bool ret = em.Add(id, entity);
         if (ret) {
@@ -373,8 +376,67 @@ public:
         return em.getPool(id);
     }
 
+    ECS::ComponentID GetComponentIdFromName(const char* name) const {
+        for (ComponentID id = 0; id < ECS_NUM_COMPONENTS; id++) {
+            if (My::streq(&componentNames[id][4], name)) {
+                return id;
+            }
+        }
+        return ECS::NullComponentID;
+    }
+
     inline Uint32 NumComponentPools() const {
         return em.nComponents;
+    }
+
+    template<typename T>
+    void setValue(void* valuePtr, T value) const {
+        memcpy(valuePtr, &value, sizeof(T));
+    }
+
+    bool GetComponentValueFromStr(ComponentID component, std::string str, void* v) const {
+        if (component == NullComponentID) return false;
+        auto componentSize = getComponentSize(component);
+        bool empty = str.empty() || str == "{}";
+        
+
+        using namespace EC;
+        #define CASE(component_name) case ECS::getID<EC::component_name>()
+        #define VALUE(component_name, ...) setValue<component_name>(v, __VA_ARGS__); return true
+        std::stringstream ss(str);
+        // TODO: for objects automatically parse out properties and stuff. make it an array
+        // OR / AND REGEX? dont use std library one casue it sucks balllssss
+        switch (component) {
+        CASE(Position): {
+            if (empty) {
+                VALUE(Position, {0.0f, 0.0f});
+            }
+
+            float x,y;
+
+            ss.ignore(1, '{');
+            ss >> x;
+            ss.ignore(1, ',');
+            ss >> y;
+
+            VALUE(Position, {x, y});
+        }
+        CASE(Size):
+            if (empty) {
+                VALUE(Size, {0.0f, 0.0f});
+            }
+
+            float width,height;
+
+            ss.ignore(1, '{');
+            ss >> width;
+            ss.ignore(1, ',');
+            ss >> height;
+
+            VALUE(Size, {width, height});
+        }
+
+        return false;
     }
 
     template<class... Components>

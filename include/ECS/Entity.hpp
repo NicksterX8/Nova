@@ -112,7 +112,7 @@ struct EntityBase {
 
     /*
     * Get a string listing the entity's properties, useful for debug logs.
-    * Warning: This is a slow method, should only be used for debugging.
+    * Warning: This is a slow method and should not be used frequently
     */
     const char* DebugStr() const {
         static thread_local char buffer[128];

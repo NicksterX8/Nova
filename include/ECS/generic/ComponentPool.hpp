@@ -24,8 +24,6 @@ private:
 public:
     using SizeT = Sint32;
 
-    
-
     ComponentPool() = default;
 
     ComponentPool(SizeT componentTypeSize)

@@ -4,6 +4,12 @@
 #include "../constants.hpp"
 #include <SDL2/SDL.h>
 
+using Tick = int64_t;
+constexpr Tick NullTick = 0;
+constexpr Tick InfinityTicks = INT64_MAX;
+
+using FrameCount = Uint32;
+
 /*
 * Useful metadata information and utilities
 */
@@ -13,7 +19,7 @@ struct MetadataTracker {
     double deltaTime; // the change in milliseconds from the last tick to the current tick
     double perfCountCurrentTick; // performance count of the tick that has not yet finished
     double perfCountLastTick; // performance count of the last finished tick
-    int _ticks; // the number of ticks that have passed
+    FrameCount _frames; // the number of frames that have passed
     Uint32 startTicks; // The start time of the game in ticks
 public:
     bool vsyncEnabled;
@@ -32,11 +38,8 @@ public:
     */
     double end();
 
-    /* 
-    * Tick to signify one update passing, allowing update time tracking
-    * @return The deltaTime of latest tick
-    */
-    double tick();
+    
+    FrameCount newFrame();
 
     /*
     * Get the current estimated frames (more accurately, ticks) per second,
@@ -47,8 +50,8 @@ public:
     void setTargetFps(double newTargetFps);
     double getTargetFps() const;
 
-    // Get the number of ticks (incremented each time Metadata::tick() is called) since the start of the application
-    int ticks() const;
+    // Get the current tick / the number of ticks (incremented each time Metadata::tick() is called) since the start of the application
+    FrameCount currentFrame() const;
 
     double seconds() const {
         return (GetTicks() - startTicks) / 1000.0f;
@@ -60,5 +63,39 @@ public:
 };
 
 extern const MetadataTracker* Metadata;
+
+extern Tick gTick;
+
+inline Tick newTick() {
+    return ++gTick;
+}
+
+inline Tick getTick() {
+    return gTick;
+}
+
+inline Tick secondsToTicks(int seconds) {
+    return seconds * 60;
+}
+
+enum TickDeltaEnum {
+    TickBefore,
+    TickAfter,
+    TickEqual,
+    TickInvalid
+};
+
+inline TickDeltaEnum tickDelta(Tick tick, Tick tick2) {
+    if (tick == NullTick || tick2 == NullTick) return TickInvalid;
+
+    Tick d = tick2 - tick;
+    if (d > 0) return TickAfter;
+    else if (d < 0) return TickBefore;
+    else return TickEqual;
+}
+
+inline Tick tickDelay(Tick delay) {
+    return getTick() + delay;
+}
 
 #endif

@@ -73,6 +73,7 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
         new FunctionKeyBinding('q', [&player](){
             player.releaseHeldItem();
         }),
+        /*
         new FunctionKeyBinding('c', [&itemManager, &ecs, &playerControls](){
             int width = 2;
             int height = 1;
@@ -106,6 +107,7 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
             });
             ecs.Destroy(NullEntity);
         }),
+        */
     };
 
     for (size_t i = 0; i < sizeof(keyBindings) / sizeof(KeyBinding*); i++) {
@@ -281,7 +283,7 @@ static void updateSystems(GameState* state) {
 int tick(GameState* state, PlayerControls* playerControls) {
     state->player.grenadeThrowCooldown--;
     updateSystems(state);
-    if (Metadata->ticks() % 1 == 0) {
+    if (getTick() % 1 == 0) {
         int i = 0;
         /*
         for (auto& chunk: state->chunkmap.chunkList) {
@@ -361,9 +363,14 @@ int Game::handleEvent(const SDL_Event* event) {
                 displaySizeChanged(sdlCtx.win, *renderContext, &camera);
             }
             if (event->window.event == SDL_WINDOWEVENT_DISPLAY_CHANGED) {
+                float oldPixelScale = SDL::pixelScale;
                 SDL::pixelScale = SDL::getPixelScale(sdlCtx.win);
                 camera.baseScale = BASE_UNIT_SCALE * SDL::pixelScale;
-                renderContext->font.load(renderContext->font.baseHeight * SDL::pixelScale, TextureUnit::Text);
+                float newFontScale = renderContext->font.currentScale / oldPixelScale * SDL::pixelScale;
+                float newDebugFontScale = renderContext->debugFont.currentScale / oldPixelScale * SDL::pixelScale;
+                renderContext->font.scale(newFontScale);
+                renderContext->debugFont.scale(newDebugFontScale);
+                displaySizeChanged(sdlCtx.win, *renderContext, &camera);
             }
             break;
         case SDL_MOUSEWHEEL: {
@@ -390,16 +397,48 @@ int Game::handleEvent(const SDL_Event* event) {
                 
                 camera.zoom = zoom;
             }
-            break;
-            }    
-        case SDL_KEYDOWN:
+        break;}    
+        case SDL_KEYDOWN: {
             switch (event->key.keysym.sym) {
-            case ']':
-                logComponentPoolSizes(state->ecs);
-                break;
+                case ']':
+                    logComponentPoolSizes(state->ecs);
+                    break;
+                case 't': {
+                    char* mapping = SDL_GameControllerMappingForDeviceIndex(0);
+                    if (mapping) {
+                        LogInfo("controller mapping: %s", mapping);
+                    }
+                    int numJoysticks = SDL_NumJoysticks();
+                    SDL_GameController* controller;
+                    for (int i = 0; i < 4; i++) {
+                        controller = SDL_GameControllerOpen(0);
+                    }
+                    if (!controller) {
+                        LogError("no controller ),: error: %s", SDL_GetError());
+                    }
+                    LogInfo("num joysticks: %d", numJoysticks);
+                    break;
+                }
             }
+        break;}
+        case SDL_CONTROLLERDEVICEADDED: {
+            int joystickIndex = event->jdevice.which;
+            LogInfo("Controller device added. Joystick index: %d", joystickIndex);
+            playerControls->connectController();
+        break;}
+        case SDL_CONTROLLERDEVICEREMOVED: {
+            int instanceID = event->jdevice.which;
+            LogInfo("Controller device removed. Instance id: %d", instanceID);
+            playerControls->controller.disconnect();
+        break;}
+        case SDL_CONTROLLERBUTTONDOWN: {
+            Uint8 buttonPressed = event->cbutton.button;
+            if (buttonPressed == SDL_CONTROLLER_BUTTON_A) {
+                playerControls->movePlayer(state, playerControls->mouseWorldPos - state->player.getPosition());
+            }
+        break;}
         default:
-            break;
+        break;
     }
 
     playerControls->handleEvent(event, state, gui);
@@ -427,14 +466,14 @@ int Game::update() {
         if (code == 1) quit = true;
     }
 
-    playerControls->update(state, gui);
+    playerControls->update(sdlCtx.win, state, gui);
     if (playerTargetPos != lastUpdatePlayerTargetPos) {
         playerControls->playerMouseTargetMoved(mouse, lastUpdateMouseState, state, gui);
     }
 
+    auto frame = metadata.newFrame();
+    double deltaTime = metadata.deltaTime;
 
-
-    double deltaTime = metadata.tick();
     if (deltaTime > 200.0) {
         LogWarn("Slow frame! dt: %f", deltaTime);
     }
@@ -443,21 +482,22 @@ int Game::update() {
     remainingTime += deltaTime;
     
     int updates = 0;
+    
     while (remainingTime > fixedFrametime) {
         remainingTime -= fixedFrametime;
 
         if (updates++ < maxUpdates) {
+            Tick currentTick = newTick();
             tick(state, playerControls);
         }
     }
-
-    //LogInfo("updates done: %d", updates);
 
     // update to new state from tick
     playerTargetPos = camera.pixelToWorld(mouse.x, mouse.y);
     Vec2 focus = state->player.getPosition();
     camera.position.x = focus.x;
     camera.position.y = focus.y;
+    assert(isValidEntityPosition(camera.position));
 
     float scale = SDL::pixelScale;
     RenderOptions options = {
@@ -465,7 +505,7 @@ int Game::update() {
         scale
     };
 
-    render(*renderContext, options, gui, state, camera, playerTargetPos, mode, updates > 0); 
+    render(*renderContext, options, gui, state, camera, playerTargetPos, mode, true); 
 
     lastUpdateMouseState = mouse;
     lastUpdatePlayerTargetPos = playerTargetPos;
@@ -481,6 +521,7 @@ int Game::init(int screenWidth, int screenHeight) {
     LogInfo("Starting game init");
 
     this->gui = new Gui();
+    this->debug->console = &this->gui->console;
 
     this->state = new GameState();
     this->state->init();
@@ -510,6 +551,8 @@ int Game::init(int screenWidth, int screenHeight) {
     renderInit(*renderContext, screenWidth, screenHeight);
 
     setCommands(this);
+
+    resizeRenderBuffer(renderContext->framebuffer, {screenWidth+1, screenHeight});
 
     return 0;
 }

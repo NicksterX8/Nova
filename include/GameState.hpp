@@ -57,4 +57,15 @@ findClosestEntityToPosition(const EntityWorld* ecs, const ChunkMap* chunkmap, Ve
 
 bool pointInsideEntityBounds(Vec2 point, EntityT<EC::Position, EC::Size> entity, const ComponentManager<const EC::Position, const EC::Size>& ecs);
 
+OptionalEntity<EC::Position, EC::Size, EC::Render>
+findPlayerFocusedEntity(const ComponentManager<EC::Position, const EC::Size, const EC::Render>& ecs, const ChunkMap& chunkmap, Vec2 playerMousePos);
+
+constexpr Vec2 EntityMaxPos = {(float)INT_MAX, (float)INT_MAX};
+constexpr Vec2 EntityMinPos = {(float)INT_MIN, (float)INT_MIN};
+
+constexpr inline bool isValidEntityPosition(Vec2 p) {
+    return p.x > EntityMinPos.x && p.y > EntityMinPos.y
+        && p.x < EntityMaxPos.x && p.y < EntityMaxPos.y;
+}
+
 #endif

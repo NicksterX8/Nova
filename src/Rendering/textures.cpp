@@ -134,7 +134,7 @@ SDL_Surface* loadTexture(TextureID id, TextureManager* textures, const char* bas
     return image;
 }
 
-GLuint loadTextureArray(glm::ivec2 size, ArrayRef<SDL_Surface*> images) {
+GLuint GlLoadTextureArray(glm::ivec2 size, ArrayRef<SDL_Surface*> images) {
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
@@ -176,7 +176,7 @@ GLuint loadTextureArray(glm::ivec2 size, ArrayRef<SDL_Surface*> images) {
     return texture;
 }
 
-TextureArray makeTextureArray(glm::ivec2 size, TextureManager* textures, TextureType typesIncluded, const char* assetsPath) {
+TextureArray makeTextureArray(glm::ivec2 size, TextureManager* textures, TextureType typesIncluded, const char* assetsPath, TextureUnit textureUnit) {
     llvm::SmallVector<SDL_Surface*> images;
     llvm::SmallVector<TextureID> ids;
     TextureMetaData* metadata = textures->metadata.data;
@@ -191,8 +191,9 @@ TextureArray makeTextureArray(glm::ivec2 size, TextureManager* textures, Texture
         }
     }
 
-    TextureArray texArray = TextureArray(size, images.size(), 0);
-    GLuint texture = loadTextureArray(size, images);
+    TextureArray texArray = TextureArray(size, images.size(), 0, textureUnit);
+    glActiveTexture(GL_TEXTURE0 + textureUnit);
+    GLuint texture = GlLoadTextureArray(size, images);
     texArray.texture = texture;
     
     if (!texArray.texture) {
@@ -224,8 +225,7 @@ int updateTextureArray(TextureArray* textureArray, TextureManager* textures, Tex
         return -1;
     }
 
-    glActiveTexture(GL_TEXTURE0 + TextureUnit::MyTextureArray);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, textureArray->texture);
+    glActiveTexture(GL_TEXTURE0 + textureArray->unit);
 
     SDL_LockSurface(surface);
     glTexSubImage3D(GL_TEXTURE_2D_ARRAY, // target is texture array
@@ -243,7 +243,7 @@ int updateTextureArray(TextureArray* textureArray, TextureManager* textures, Tex
     return 0;
 }
 
-GlSizedTexture loadTextureAtlas(ArrayRef<SDL_Surface*> images, MutableArrayRef<glm::ivec2> texCoordsOut) {
+GlSizedTexture GlLoadTextureAtlas(ArrayRef<SDL_Surface*> images, GLint minFilter, GLint magFilter, MutableArrayRef<glm::ivec2> texCoordsOut) {
     auto* textures = Alloc<Texture>(images.size());
     for (int i = 0; i < images.size(); i++) {
         auto* image = images[i];
@@ -261,8 +261,8 @@ GlSizedTexture loadTextureAtlas(ArrayRef<SDL_Surface*> images, MutableArrayRef<g
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
@@ -280,7 +280,7 @@ GlSizedTexture loadTextureAtlas(ArrayRef<SDL_Surface*> images, MutableArrayRef<g
     return {texture, packedTexture.size};
 }
 
-TextureAtlas makeTextureAtlas(TextureManager* textures, TextureType typesIncluded, const char* assetsPath) {
+TextureAtlas makeTextureAtlas(TextureManager* textures, TextureType typesIncluded, const char* assetsPath, GLint minFilter, GLint magFilter, TextureUnit textureUnit) {
     llvm::SmallVector<SDL_Surface*> images;
     llvm::SmallVector<TextureID> ids;
     TextureMetaData* metadata = textures->metadata.data;
@@ -297,11 +297,12 @@ TextureAtlas makeTextureAtlas(TextureManager* textures, TextureType typesInclude
 
     auto* textureOrigins = Alloc<glm::ivec2>(images.size());
 
-    auto textureAndSize = loadTextureAtlas(images, {textureOrigins, images.size()} /* to be filled in */);
+    glActiveTexture(GL_TEXTURE0 + textureUnit);
+    auto textureAndSize = GlLoadTextureAtlas(images, minFilter, magFilter, {textureOrigins, images.size()} /* to be filled in */);
     if (!textureAndSize.texture) {
         LogCritical("Failed to make texture array!");
     }
-    TextureAtlas atlas = TextureAtlas(textureAndSize.size, textureAndSize.texture);
+    TextureAtlas atlas = TextureAtlas(textureAndSize.size, textureAndSize.texture, textureUnit);
 
     TextureAtlas::Space* textureSpaces = atlas.textureSpaces.insertList(ids);
     for (int i = 0; i < ids.size(); i++) {

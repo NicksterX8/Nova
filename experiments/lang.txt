@@ -39,14 +39,28 @@ fn main :: (count c : int) -> (sum : int; square : float; a,b,c,d : int*) {
     
 }
 
+not :: operator property {
+    !($lhs is $rhs)
+}
+
 [inline(sometimes)] {
+
+    RealType :: struct {
+        x : int,
+    }
+
+    S :: type(RealType) {
+        empty :: property {
+            $x == 0
+        }
+    }
 
     [no_discard; inline(never); optimization(0)]
     fn callMain() {
         main(count: 2, 3);
         S := Size::withCapacity(3)
 
-        if S not empty { // translates to if(not(empty(S)), print("hello world))
+        if S is not empty { // translates to if(not(empty(S)), print("hello world))
             print("hello world")
         }
 

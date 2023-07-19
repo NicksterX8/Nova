@@ -15,21 +15,40 @@ char* readFileContents(FILE* file, size_t* outBytesRead=NULL);
 char* readFileContents(const char* filename, size_t* outBytesRead=NULL);
 
 GLuint compileShader(GLenum shaderType, const char* sourcePath);
-GLuint makeShaderProgram(const char* vertexPath, const char* fragmentPath);
-GLuint makeShaderProgram(const char* vertexPath, const char* fragmentPath, const char* geometryPath);
 
+struct ShaderInfo {
+    GLuint id = 0;
+    std::string filename;
+
+    ShaderInfo() {}
+
+    ShaderInfo(GLuint id, const std::string& filename) : id(id), filename(filename) {}
+};
+
+struct ShaderProgram {
+    GLuint programID = 0;
+
+    // shaders
+    ShaderInfo vertex;
+    ShaderInfo fragment;
+    ShaderInfo geometry;
+
+    void destroy() {
+        glDeleteShader(vertex.id);
+        glDeleteShader(fragment.id);
+        glDeleteShader(geometry.id);
+        glDeleteProgram(programID);
+    }
+};
+
+// By default generates new shader program, while if a program is provided the shaders will be linked to that program instead
+ShaderProgram loadShaderProgram(const char* vertexPath, const char* fragmentPath, const char* geometryPath=nullptr, GLuint program = 0);
 
 // An OpenGL Shader program wrapper/abstraction
 struct Shader {
     GLuint id;
 
     Shader() : id(0) {}
-
-    // constructor generates and compiles the shader program 
-    // ------------------------------------------------------------------------
-    Shader(const char* vertexPath, const char* fragmentPath);
-
-    Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath);
 
     Shader(GLuint program) : id(program) {}
 
@@ -95,16 +114,20 @@ struct Shader {
     }
 };
 
-inline Shader loadShader(const char* name) {
-    // check if geometry shader file is there 
-    auto geometryShader = FileSystem.shaders.get(str_add(name, ".gs"));
-    auto file = SDL_RWFromFile(geometryShader, "r");
-    if (file) {
-        // if so, include it in the shader program
-        SDL_RWclose(file);
-        return Shader(makeShaderProgram(FileSystem.shaders.get(str_add(name, ".vs")), FileSystem.shaders.get(str_add(name, ".fs")), geometryShader));
-    }
-    return Shader(makeShaderProgram(FileSystem.shaders.get(str_add(name, ".vs")), FileSystem.shaders.get(str_add(name, ".fs"))));
+struct ShaderData {
+    ShaderProgram program;
+    std::string name;
+};
+
+inline ShaderData loadShader(const char* name) {
+    if (!name) return {};
+    auto basePath = FileSystem.shaders.get(name);
+    auto geometryPath = str_add(basePath, ".gs");
+    auto geometryFile = SDL_RWFromFile(geometryPath, "r");
+    ShaderProgram program = loadShaderProgram(str_add(basePath, ".vs"), str_add(basePath, ".fs"), geometryFile ? geometryPath : nullptr);
+    return {program, std::string(name)};
 }
+
+void reloadShaderProgram(ShaderProgram* program);
 
 #endif

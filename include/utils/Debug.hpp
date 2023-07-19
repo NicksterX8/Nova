@@ -20,9 +20,11 @@ struct DebugSettings {
 
 struct DebugClass {
 public:
+    bool debugging = false;
+
     DebugSettings settings;
 
-    GUI::Console* console;
+    GUI::Console* console = nullptr;
 
     DebugClass();
 

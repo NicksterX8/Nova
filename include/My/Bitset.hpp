@@ -95,6 +95,7 @@ public:
     }    
 
     constexpr bool get(int32_t position) const {
+        assert(position >= 0);
         return bits[position/IntegerBits] & (1 << (position%IntegerBits));
     }
 

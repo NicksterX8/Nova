@@ -16,6 +16,7 @@
 #include "commands.hpp"
 
 struct Game;
+/* Mouse Stuff */
 
 inline Vec2 getMouseWorldPosition(const Camera& camera) {
     SDL_Point pixelPosition = SDL::getMousePixelPosition();
@@ -46,6 +47,10 @@ struct MouseState {
         return buttons & SDL_BUTTON_MMASK;
     }
 };
+
+MouseState getMouseState();
+
+/* Keyboard stuff */
 
 struct KeyBinding {
     char key;
@@ -107,33 +112,148 @@ struct ClickKeyBinding : public KeyBinding {
     }
 };
 
-MouseState getMouseState();
+struct Keyboard {
+    ArrayRef<Uint8> keyState; // index with SDL_Scancode to get a 1 for key being pressed, 0 otherwise
+    My::Vec<KeyBinding*> bindings;
 
-OptionalEntity<EC::Position, EC::Size, EC::Render>
-findPlayerFocusedEntity(const ComponentManager<EC::Position, const EC::Size, const EC::Render>& ecs, const ChunkMap& chunkmap, Vec2 playerMousePos);
-
-class PlayerControls {
-public:
-    Camera& camera;
-    MouseState mouse;
-    Vec2 mouseWorldPos;
-    My::Vec<KeyBinding*> keyBindings;
-    //My::Vec<ClickKeyBinding2> clickKeyBindings;
-    bool enteringText;
-
-    const Uint8* keyboardState;
-
-    PlayerControls(Camera& camera): camera(camera) {
-        keyboardState = SDL_GetKeyboardState(NULL);
-        keyBindings = My::Vec<KeyBinding*>(0);
-        enteringText = false;
+    Keyboard() {
+        int keyArrayLength;
+        const Uint8* state = SDL_GetKeyboardState(&keyArrayLength);
+        keyState = ArrayRef<Uint8>(state, keyArrayLength);
+        bindings = My::Vec<KeyBinding*>::Empty();
     }
 
     void destroy() {
-        for (auto keyBinding : keyBindings) {
-            delete keyBinding;
+        for (auto binding : bindings) {
+            delete binding;
         }
-        keyBindings.destroy();
+        bindings.destroy();
+    }
+};
+
+/* Controller Stuff */
+
+struct Controller {
+    static constexpr const char* TypeNames[] = {
+        "unknown",
+        "Xbox 360",
+        "Xbox One",
+        "PS3",
+        "PS4",
+        "Nintendo Switch Pro",
+        "virtual",
+        "PS5",
+        "Amazon Luna",
+        "Google Stadia"
+    };
+
+    int joystickIndex = 0;
+    SDL_GameController* gameController = nullptr;
+
+    SDL_GameControllerType type = SDL_CONTROLLER_TYPE_UNKNOWN;
+    const char* controllerName = TypeNames[SDL_CONTROLLER_TYPE_UNKNOWN];
+
+    float leftStickDeadzone = 0.15f;
+    float rightStickDeadzone = 0.05f;
+
+    Controller() {}
+
+    Controller(int joystick_index) {
+        connect(joystick_index);
+    }
+
+    bool connect(int joystick_index) {
+        if (connected()) disconnect();
+
+        int numJoysticks = SDL_NumJoysticks();
+        if (numJoysticks) {
+            gameController = SDL_GameControllerOpen(0);
+            joystickIndex = 0;
+            if (gameController) {
+                type = SDL_GameControllerGetType(gameController);
+                controllerName = TypeNames[type];
+                LogInfo("Connected %s controller with joystick index %d.", controllerName, joystickIndex);
+            } else {
+                LogError("Failed to open game controller - Error: %s", SDL_GetError());
+            }
+        }
+        return false;
+    }
+    
+    bool connected() const {
+        return gameController != nullptr;
+    }
+
+    void disconnect()  {
+        SDL_GameControllerClose(gameController);
+        gameController = nullptr;
+    }
+};
+
+/* Main class */
+
+class PlayerControls {
+public:
+    MouseState mouse;
+    Vec2 mouseWorldPos;
+    Keyboard keyboard = {};
+    Controller controller = {};
+    
+    Camera& camera;
+
+    bool enteringText;
+
+    bool connectController() {
+        bool success = controller.connect(0);
+        return success;
+    }
+
+    PlayerControls(Camera& camera): camera(camera) {
+        mouse = getMouseState();
+        mouseWorldPos = camera.pixelToWorld(glm::vec2(mouse.x, mouse.y));
+
+        connectController();
+       
+        enteringText = false;
+    }
+
+    Sint16 getAxisRaw(SDL_GameControllerAxis axis) const {
+        return SDL_GameControllerGetAxis(controller.gameController, axis);
+    }
+
+    float getNormalizedAxis(SDL_GameControllerAxis axis) const {
+        return (float)getAxisRaw(axis) / INT16_MAX;
+    }
+
+    Vec2 getLeftStickVector() const {
+        Sint16 x = getAxisRaw(SDL_CONTROLLER_AXIS_LEFTX);
+        Sint16 y = getAxisRaw(SDL_CONTROLLER_AXIS_LEFTY);
+
+        float xf = (float)x / INT16_MAX;
+        float yf = (float)-y / INT16_MAX;
+
+        if (abs(xf) < controller.leftStickDeadzone) xf = 0.0f;
+        if (abs(yf) < controller.leftStickDeadzone) yf = 0.0f;
+
+        return {xf, yf};
+    }
+
+    static float applyDeadzone(float x, float deadzone) {
+        return MAX(abs(x) - deadzone, 0) * ((int)signbit(x) * -2 + 1) ;
+    }
+
+    Vec2 getRightStickVector() const {
+        float x = getNormalizedAxis(SDL_CONTROLLER_AXIS_RIGHTX);
+        float y = getNormalizedAxis(SDL_CONTROLLER_AXIS_RIGHTY);
+
+        x = applyDeadzone(x, controller.rightStickDeadzone);
+        y = applyDeadzone(y, controller.rightStickDeadzone);
+        return {x, y};
+    }
+
+    void destroy() {
+        keyboard.destroy();
+        controller.disconnect();
     }
     
     /* 
@@ -142,12 +262,12 @@ public:
     * to prevent using outdated state.
     */
     void updateState() {
-        this->mouse = getMouseState();
+        mouse = getMouseState();
         mouseWorldPos = camera.pixelToWorld(glm::vec2(mouse.x, mouse.y));
     }
 
     void addKeyBinding(KeyBinding* keyBinding) {
-        keyBindings.push(keyBinding);
+        keyboard.bindings.push(keyBinding);
     }
 
     bool pixelInWorld(int x, int y, const Gui* gui) {
@@ -207,6 +327,34 @@ public:
         
     }
 
+    void clickOnEntity(Entity clickedEntity, GameState* state) {
+        // if the entity is already selected, deselect it, otherwise select the new one
+        if (clickedEntity != state->player.selectedEntity)
+            state->player.selectedEntity = clickedEntity;
+        else
+            state->player.selectedEntity = NullEntity;
+        
+        OptionalEntity<> selectedEntity = state->player.selectedEntity;
+        if (selectedEntity.Has<EC::Render, EC::EntityTypeEC>(&state->ecs)) {
+            auto e = selectedEntity;
+            const char* name = selectedEntity.Get<EC::EntityTypeEC>(&state->ecs)->name;
+            LogInfo("name: %s", name);
+            auto* pos = state->ecs.Get<EC::Position>(e);
+            auto* size = state->ecs.Get<EC::Size>(e);
+            if (pos) {
+                LogInfo("position: %.1f,%.1f", pos->x, pos->y);
+            }
+            if (size) {
+                LogInfo("size: %.1f,%.1f", size->width, size->height);
+            }
+        }
+        if (selectedEntity.Has<EC::Grabable, EC::ItemStack>(&state->ecs)) {
+            ItemStack itemGrabbed = selectedEntity.Get<EC::ItemStack>(&state->ecs)->item;
+            state->player.inventory()->addItemStack(itemGrabbed);
+            state->ecs.Destroy(selectedEntity);
+        }
+    }
+
     void handleClick(const SDL_MouseButtonEvent& event, GameState* state, const Gui* gui) {
         // mouse event coordinates are reported in pixel points, which are not representative of actual pixels
         // on high DPI displays, so we scale it by the pixel scale to get actual pixels.
@@ -261,21 +409,10 @@ public:
 
                     // find entity to select
                     auto entityOnMouse = findPlayerFocusedEntity(&state->ecs, state->chunkmap, mouseWorldPos);
-                    if (entityOnMouse != state->player.selectedEntity)
-                        state->player.selectedEntity = entityOnMouse;
-                    else
-                        state->player.selectedEntity = NullEntity;
+                    if (entityOnMouse.NotNull()) {
+                        clickOnEntity(entityOnMouse, state);
+                    }
                     
-                    OptionalEntity<> selectedEntity = state->player.selectedEntity;
-                    if (selectedEntity.Has<EC::Render, EC::EntityTypeEC>(&state->ecs)) {
-                        const char* name = selectedEntity.Get<EC::EntityTypeEC>(&state->ecs)->name;
-                        LogInfo("name: %s", name);
-                    }
-                    if (selectedEntity.Has<EC::Grabable, EC::ItemStack>(&state->ecs)) {
-                        ItemStack itemGrabbed = selectedEntity.Get<EC::ItemStack>(&state->ecs)->item;
-                        state->player.inventory()->addItemStack(itemGrabbed);
-                        state->ecs.Destroy(selectedEntity);
-                    }
                 }
             }
 
@@ -329,10 +466,13 @@ public:
         const SDL_Scancode scancode = event.keysym.scancode;
 
         if (enteringText) {
-            auto commandInput = gui->console.enterText(keycode, gCommands);
+            auto commandInput = gui->console.handleKeypress(keycode, gCommands);
             handleCommandInput(commandInput, gui);
         } else {
             switch (keycode) {
+                case 'r': {
+                    
+                break;}
                 case 'e': {
                     auto tileEntity = findTileEntityAtPosition(state, mouseWorldPos);
                     if (tileEntity != NullEntity) {
@@ -361,30 +501,38 @@ public:
                         Entities::ItemStack(&state->ecs, mouseWorldPos, dropStack, state->itemManager);
                     }
                 break;} 
+                case 'h': {
+                    static bool wireframeModeEnabled = false;
+                    if (!wireframeModeEnabled)
+                        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                    else
+                        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                    wireframeModeEnabled ^= 1;
+                break;}
+            }
+
+            for (int i = 1; i <= (int)state->player.numHotbarSlots; i++) {
+                if (event.keysym.sym == i + '0') {
+                    state->player.selectHotbarSlot(i - 1);
+                }
             }
         }
 
         switch (keycode) {
-            case 'h': {
-                static bool wireframeModeEnabled = false;
-                if (!wireframeModeEnabled)
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                else
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                wireframeModeEnabled ^= 1;
-            break;}
             case SDLK_RETURN:
                 enteringText = !enteringText;
-                gui->consoleOpen = enteringText;
+                gui->console.showLog = enteringText;
+                gui->console.promptOpen = enteringText;
+                break;
+            case SDLK_SLASH:
+                if (!enteringText) {
+                    enteringText = true;
+                    gui->console.showLog = true;
+                    gui->console.promptOpen = true;
+                }
                 break;
             default:
                 break;
-        }
-
-        for (int i = 1; i <= (int)state->player.numHotbarSlots; i++) {
-            if (event.keysym.sym == i + '0') {
-                state->player.selectHotbarSlot(i - 1);
-            }
         }
     }
 
@@ -401,9 +549,8 @@ public:
             break;
         case SDL_TEXTINPUT: {
             const char* text = event->text.text;
-            
             if (enteringText) {
-                gui->console.activeMessage += text;
+                gui->console.enterText(text);
             }
             break;
         }
@@ -423,9 +570,9 @@ public:
     void doPlayerMovementTick(GameState* state) {
         if (enteringText) return; // dont move player while typing... duh
 
-        int sidewaysInput = keyboardState[SDL_SCANCODE_D] - keyboardState[SDL_SCANCODE_A];
-        int updownInput = keyboardState[SDL_SCANCODE_W] - keyboardState[SDL_SCANCODE_S];
-        int rotationInput = keyboardState[SDL_SCANCODE_E] - keyboardState[SDL_SCANCODE_Q];
+        int sidewaysInput = keyboard.keyState[SDL_SCANCODE_D] - keyboard.keyState[SDL_SCANCODE_A];
+        int updownInput = keyboard.keyState[SDL_SCANCODE_W] - keyboard.keyState[SDL_SCANCODE_S];
+        int rotationInput = keyboard.keyState[SDL_SCANCODE_E] - keyboard.keyState[SDL_SCANCODE_Q];
 
         if (state->player.entity.Has<EC::Rotation, EC::Position>(&state->ecs)) {
             auto playerRotation = state->player.entity.Get<EC::Rotation>(&state->ecs);
@@ -444,9 +591,12 @@ public:
             playerRotation->degrees += rotationInput * PLAYER_ROTATION_SPEED;
             camera.setAngle(playerRotation->degrees);
         }
+
+        Vec2 leftStick = getLeftStickVector();
+        movePlayer(state, leftStick);
     }
 
-    void update(GameState* state, const Gui* gui) {
+    void update(SDL_Window* window, GameState* state, const Gui* gui) {
         Vec2 aimingPosition = camera.pixelToWorld({mouse.x, mouse.y});
 
         if (mouse.leftButtonDown()) {
@@ -456,7 +606,7 @@ public:
             rightMouseHeld(mouse, state, gui);
         }
 
-        if (keyboardState[SDL_SCANCODE_G]) {
+        if (keyboard.keyState[SDL_SCANCODE_G]) {
             Tile* selectedTile = getTileAtPosition(state->chunkmap, aimingPosition);
             // TODO: entity collision stuff
             if (selectedTile && false) {
@@ -465,8 +615,15 @@ public:
             }
         }
         
-        for (auto keyBinding : keyBindings) {
-            keyBinding->updateKeyState(keyboardState[SDL_GetScancodeFromKey(keyBinding->key)]);
+        for (auto keyBinding : keyboard.bindings) {
+            keyBinding->updateKeyState(keyboard.keyState[SDL_GetScancodeFromKey(keyBinding->key)]);
+        }
+
+        Vec2 rightStick = getRightStickVector();
+        if (rightStick.x != 0.0f || rightStick.y != 0.0f) {
+            int dx = (int)round(rightStick.x * 12);
+            int dy = (int)round(rightStick.y * 12);
+            SDL_WarpMouseInWindow(window, mouse.x + dx, mouse.y + dy);
         }
     }
 };

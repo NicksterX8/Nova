@@ -155,7 +155,6 @@ struct EntityManager {
 
     Sint32 entityCount = 0; // The number of entities being managed
 
-    // TODO: allocate pools in an array, find a solution to the optional pool problem.
     ComponentPool* pools = NULL; // a list of component pool pointers
     Sint32 nComponents = 0; // The number of unique component types, the size of the pools array
     ComponentID highestComponentID = 0; // The highest id of all the components used in the entity manager. Should be equal to nComponents most of the time
@@ -177,8 +176,8 @@ struct EntityManager {
     * @return The component pool corresponding to the component id. May be null if the size of the component is 0 or for other reasons.
     */
     inline ComponentPool* getPool(ComponentID id) const {
-        if (id > highestComponentID) {
-            LogError("EntityManager::getPool id passed is too high, could not get component pool!");
+        if (id > highestComponentID || id < 0) {
+            LogError("EntityManager::getPool id passed is out of range! id: %d", id);
             return NULL;
         }
         

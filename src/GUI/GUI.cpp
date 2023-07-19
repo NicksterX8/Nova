@@ -66,8 +66,8 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, SDL_Rect viewport, const Play
         border.h - borderSize * 2
     };
 
-    renderer.colorRect({border, {60, 60, 60, alpha}});
-    renderer.colorRect({inside, {100, 100, 100, alpha}});
+    renderer.colorRect(border, {60, 60, 60, alpha});
+    renderer.colorRect(inside, {100, 100, 100, alpha});
 
     {
         float hotbarHorizontalMargin = (inside.w - hotbarWidth);
@@ -85,8 +85,8 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, SDL_Rect viewport, const Play
             ItemStack item = inventory->get(i);
 
             // draw slot in hotbarSlot
-            renderer.colorRect({hotbarSlot, {60, 60, 60, alpha}});
-            renderer.colorRect({hotbarSlot, {30, 30, 30, alpha}});
+            renderer.colorRect(hotbarSlot, {60, 60, 60, alpha});
+            renderer.colorRect(hotbarSlot, {30, 30, 30, alpha});
 
             float innerMargin = 2 * scale;
             SDL_FRect innerSlot = {
@@ -99,7 +99,7 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, SDL_Rect viewport, const Play
             if (item.item.type) {
                 const ItemPrototype* prototype = items::getPrototype(item.item.type, itemManager);
                 // icon
-                //renderer.textureArraySprite(prototype->inventoryIcon, innerSlot);
+                renderer.sprite(prototype->inventoryIcon, innerSlot);
                 // quantity count
                 // dont draw item count over items that can only ever have one count,
                 // its pointless
@@ -122,7 +122,7 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, SDL_Rect viewport, const Play
             slotSize,
             slotSize
         };
-        renderer.colorRect({selectedHotbarSlot, {0, 0, 0, 255}});
+        renderer.colorRect(selectedHotbarSlot, {0, 0, 0, 255});
     }
 
     return rect;

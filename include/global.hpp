@@ -51,6 +51,7 @@ inline Mode modeID(const char* mode) {
 
 
 enum class CrashReason {
+    SDL_Initialization,
     MemoryFail,
     GameInitialization
 };
@@ -63,6 +64,8 @@ inline void crash(CrashReason reason, const char* message) {
         break;
     case CrashReason::GameInitialization:
         LogCritical("Failed to initialize game!");
+    case CrashReason::SDL_Initialization:
+        LogCritical("Failed to initalize SDL");
     }
     exit(EXIT_FAILURE);
 }

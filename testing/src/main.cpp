@@ -3,15 +3,16 @@
 #include "rendering/TexturePacker.hpp"
 #include "Chunks.hpp"
 #include <vector>
+#include <string>
+#include <sstream>
+#include <iostream>
 
 #define T_EQ(a, b) assert(a == b)
 
-
+using namespace std;
 
 int main() {
-    auto texture = packTextures(0, nullptr, nullptr);
-    IVec2 zero = {0, 0};
-    assert(texture.buffer == nullptr && texture.size == zero);
+    /*
 
     auto map = My::HashMap<int, int>::Empty();
     for (int i = 0; i < 200; i++) {
@@ -40,5 +41,20 @@ int main() {
     T_EQ(chunkmap.size(), 200);
     T_EQ(array.size(), 200);
     printf("Test successful!\n");
+    */
 
+    string s = "5.323, 1256734875928374928375987495823475982347958237495872349085723498572039485792348579234875982347598234759823475908234759823475908234750923487565.43283";
+
+    stringstream stream(s);
+    //stream.precision(30);
+
+    float x,y;
+
+    stream >> x;
+    stream.ignore(1, ',');
+    stream >> y;
+
+    cout.precision(5);
+
+    cout << x << ", " << y;
 }

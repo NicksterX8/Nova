@@ -99,6 +99,20 @@ public:
         return (scaled + glm::vec2{pixelWidth, pixelHeight}) / 2.0f;
     }
 
+    /* Camera viewport corner positions in world coordinates */
+    glm::vec2 TopLeftWorldPos() const {
+        return pixelToWorld({0, pixelHeight});
+    }
+    glm::vec2 TopRightWorldPos() const {
+        return pixelToWorld({pixelWidth, pixelHeight});
+    }
+    glm::vec2 BottomRightWorldPos() const {
+        return pixelToWorld({pixelWidth, 0});
+    }
+    glm::vec2 BottomLeftWorldPos() const {
+        return pixelToWorld({0, 0});
+    }
+    
     glm::vec2 minCorner() const {
         auto area = maxBoundingArea();
         return {area.x, area.y};

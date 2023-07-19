@@ -1,4 +1,5 @@
 #include "sdl.hpp"
+#include "global.hpp"
 
 namespace SDL {
     float pixelScale = 1.0f;
@@ -21,19 +22,25 @@ SDLContext initSDL() {
     }
 #endif
 
-    int sdlSubsystemsNeeded[4] = {SDL_INIT_VIDEO, SDL_INIT_AUDIO, SDL_INIT_EVENTS, SDL_INIT_TIMER};
-    bool sdlSubsystemsInitialized[4] = {0};
+    int sdlSubsystemsNeeded[5] = {
+        SDL_INIT_VIDEO,
+        SDL_INIT_AUDIO,
+        SDL_INIT_EVENTS,
+        SDL_INIT_TIMER,
+        SDL_INIT_GAMECONTROLLER
+    };
+    Uint32 subsystemsInitialized = 0;
+    Uint32 requiredSystems = SDL_INIT_VIDEO | SDL_INIT_AUDIO;
     for (int i = 0; i < sizeof(sdlSubsystemsNeeded)/sizeof(int); i++) {
         if (SDL_InitSubSystem(sdlSubsystemsNeeded[i])) {
             LogCritical("Failed to initialize SDL subsystem %d. %s", sdlSubsystemsNeeded[i], SDL_GetError());
         } else {
-            sdlSubsystemsInitialized[i] = true;
+            subsystemsInitialized |= sdlSubsystemsNeeded[i];
         }
     }
 
-    if (!sdlSubsystemsInitialized[0] || !sdlSubsystemsInitialized[2]) {
-        LogCritical("Failed to initialize one or more required SDL subsystems. %s", SDL_GetError());
-        exit(EXIT_FAILURE);
+    if ((subsystemsInitialized & requiredSystems) != requiredSystems) {
+        LogCrash(CrashReason::SDL_Initialization, "Failed to initialize one or more required SDL subsystems. %s", SDL_GetError());
     }
 
     LogInfo("SDL successfully initialized.");
@@ -58,6 +65,8 @@ SDLContext initSDL() {
         windowRect.w, windowRect.h,
         winFlags
     );
+
+    SDL_SetWindowMinimumSize(context.win, 800, 800);
 
     if (!context.win) {
         const char* sdlError = SDL_GetError();

@@ -74,6 +74,10 @@ protected:
     }
 
 public:
+    SizeT getValueSize() const {
+        return valueSize;
+    }
+
     GenericDenseSparseSet() = default;
 
     GenericDenseSparseSet(SizeT valueSize)
@@ -238,7 +242,7 @@ protected:
     Key* keys; // keys corresponding to each value
 
     void assertValidKey(Key key) const {
-        assert(key >= 0 && key <= MaxKeyValue && "DenseSparseSet key out of bounds!");
+        //assert(key >= 0 && key <= MaxKeyValue && "DenseSparseSet key out of bounds!");
     }
 
     void emptySet() {

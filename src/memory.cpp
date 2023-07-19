@@ -119,10 +119,9 @@ void* safe_malloc(size_t size) {
 void* safe_realloc(void* oldMem, size_t size) {
     void* newMem = _realloc(oldMem, size);
     if (newMem || !size) return newMem;
-    failedToAlloc(true, [oldMem, size](){
+    return failedToAlloc(true, [oldMem, size](){
         return MemoryBlock{safe_realloc(oldMem, size), size};
-    });
-    return nullptr;
+    }).ptr;
 }
 
 MemoryBlock aligned_min_realloc(void* mem, size_t min, size_t preferred, size_t alignment, bool nonnull) {

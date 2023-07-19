@@ -33,13 +33,13 @@ struct TexturePackingAtlas {
 
 TexturePackingAtlas makeTexturePackingAtlas(int pixelSize, int reserveCapacity = 1, int reserveTextureSize = 64);
 
-glm::ivec2 packTexture(TexturePackingAtlas* atlas, Texture texture);
-
 Texture doneTexturePackingAtlas(TexturePackingAtlas* atlas);
+
+glm::ivec2 packTexture(TexturePackingAtlas* atlas, Texture texture, glm::ivec2 padding = {0, 0});
 
 /* Texture
  * If the texture is unable to be packed for any reason ,the origin out will be {-1, -1}
  */
-Texture packTextures(const int numTextures, const Texture* textures, int pixelSize, glm::ivec2* textureOriginsOut, int reserveTextureSize = 128);
+Texture packTextures(const int numTextures, const Texture* textures, int pixelSize, glm::ivec2* textureOriginsOut, glm::ivec2 padding = {0, 0}, int reserveTextureSize = 128);
 
 #endif
