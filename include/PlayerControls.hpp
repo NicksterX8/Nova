@@ -203,11 +203,6 @@ public:
 
     bool enteringText;
 
-    bool connectController() {
-        bool success = controller.connect(0);
-        return success;
-    }
-
     PlayerControls(Camera& camera): camera(camera) {
         mouse = getMouseState();
         mouseWorldPos = camera.pixelToWorld(glm::vec2(mouse.x, mouse.y));
@@ -217,100 +212,109 @@ public:
         enteringText = false;
     }
 
-    Sint16 getAxisRaw(SDL_GameControllerAxis axis) const {
-        return SDL_GameControllerGetAxis(controller.gameController, axis);
-    }
+    /* Utils */
 
-    float getNormalizedAxis(SDL_GameControllerAxis axis) const {
-        return (float)getAxisRaw(axis) / INT16_MAX;
-    }
-
-    Vec2 getLeftStickVector() const {
-        Sint16 x = getAxisRaw(SDL_CONTROLLER_AXIS_LEFTX);
-        Sint16 y = getAxisRaw(SDL_CONTROLLER_AXIS_LEFTY);
-
-        float xf = (float)x / INT16_MAX;
-        float yf = (float)-y / INT16_MAX;
-
-        if (abs(xf) < controller.leftStickDeadzone) xf = 0.0f;
-        if (abs(yf) < controller.leftStickDeadzone) yf = 0.0f;
-
-        return {xf, yf};
-    }
-
-    static float applyDeadzone(float x, float deadzone) {
-        return MAX(abs(x) - deadzone, 0) * ((int)signbit(x) * -2 + 1) ;
-    }
-
-    Vec2 getRightStickVector() const {
-        float x = getNormalizedAxis(SDL_CONTROLLER_AXIS_RIGHTX);
-        float y = getNormalizedAxis(SDL_CONTROLLER_AXIS_RIGHTY);
-
-        x = applyDeadzone(x, controller.rightStickDeadzone);
-        y = applyDeadzone(y, controller.rightStickDeadzone);
-        return {x, y};
-    }
-
-    void destroy() {
-        keyboard.destroy();
-        controller.disconnect();
-    }
-    
-    /* 
-    * Update the internal state of this class, like mouse position.
-    * Call near the beginning of the frame, before using any methods of this class,
-    * to prevent using outdated state.
-    */
-    void updateState() {
-        mouse = getMouseState();
-        mouseWorldPos = camera.pixelToWorld(glm::vec2(mouse.x, mouse.y));
-    }
-
-    void addKeyBinding(KeyBinding* keyBinding) {
-        keyboard.bindings.push(keyBinding);
-    }
-
-    bool pixelInWorld(int x, int y, const Gui* gui) {
-        SDL_Point pos = {x, y};
-        bool clickInDisplay = SDL_PointInRect(&pos, &camera.displayViewport);
-        bool clickOnGui = gui->pointInArea(pos);
+    bool pixelInWorld(glm::vec2 pixel, const Gui* gui) {
+        bool clickInDisplay = pointInRect(pixel, camera.displayViewport);
+        bool clickOnGui = gui->pointInArea(pixel);
         return clickInDisplay && !clickOnGui;
     }
 
-    void playerMouseTargetMoved(const MouseState& mouseState, const MouseState& prevMouseState, GameState* state, const Gui* gui) {
-        Vec2 newWorldPos = camera.pixelToWorld(mouseState.x, mouseState.y);
-        Vec2 prevWorldPos = camera.pixelToWorld(prevMouseState.x, prevMouseState.y);
+    /* Mouse */
 
-        if (mouseState.buttons & SDL_BUTTON_LMASK) {
-            // only do it if the isnt in the gui either currently or previously
-            if (!gui->pointInArea({mouseState.x, mouseState.y}) || !gui->pointInArea({prevMouseState.x, prevMouseState.y})) {
-                auto line = raytraceDDA(prevWorldPos, newWorldPos);
-                ScopedAlloc(Tile, tiles, line.size());
-                getTiles(state->chunkmap, line.data(), tiles, line.size());
-                auto heldItemStack = state->player.heldItemStack;
-                if (heldItemStack && state->player.canPlaceItemStack(*heldItemStack)) {
-                    for (int i = 0; i < line.size(); i++) {
-                        Tile* tile = getTileAtPosition(state->chunkmap, line[i]);
-                        if (tile) {
-                            state->player.tryPlaceItemStack(*heldItemStack, tile, state->itemManager);
-                        }
-                    }
-                }
-            } 
-        }
+    glm::vec2 mousePixelPos() const {
+        glm::vec2 scaled = {mouse.x * SDL::pixelScale, mouse.y * SDL::pixelScale};
+        return {scaled.x, camera.pixelHeight - scaled.y};
     }
 
-    void placeItem(Item item, GameState* state, Vec2 at) {
-        Tile* tile = getTileAtPosition(state->chunkmap, at);
-        if (tile) {
-            //state->player.tryPlaceItem(tile);
+    void handleClick(const SDL_MouseButtonEvent& event, GameState* state, const Gui* gui) {
+        // mouse event coordinates are reported in pixel points, which are not representative of actual pixels
+        // on high DPI displays, so we scale it by the pixel scale to get actual pixels.
+        //SDL_Point mousePos = {(int)(event.x * SDL::pixelScale), (int)(event.y * SDL::pixelScale)};
+        //Vec2 worldPos = camera.pixelToWorld(mousePos.x, mousePos.y);
+        glm::vec2 mousePos = mousePixelPos();
+        bool clickInDisplay = pointInRect(mousePos, camera.displayViewport);
+        bool clickOnGui = gui->pointInArea(mousePos);
+        bool clickInWorld = clickInDisplay && !clickOnGui;
+        Tile* selectedTile = getTileAtPosition(state->chunkmap, mouseWorldPos);
+        if (event.button == SDL_BUTTON_LEFT) {
+
+            // make sure mouse is within display viewport
+            if (clickInDisplay) {
+                // first check for GUI clicks
+                if (clickOnGui) {
+                    // click counted as on gui, not world.
+                    // trigger gui stuff
+                    // find clicked hotbar slot (if it was a click on a hotbar slot)
+                    for (int slot = 0; slot < state->player.numHotbarSlots; slot++) {
+                        // TODO: gui slot collision does nothing right now
+                        SDL_FRect slotRect = gui->hotbar.slots[slot];
+                        if (pointInRect(mousePos, slotRect)) {
+                            // click was on slot
+                            ItemStack* stack = &state->player.inventory()->get(slot);
+                            if (state->player.heldItemStack) {
+                                // set held stack down in slot only if actually holding stack and if slot is empty
+                                if (stack->empty()) {
+                                    *stack = *state->player.heldItemStack;
+                                    *state->player.heldItemStack = ItemStack::None();
+                                    state->player.heldItemStack = nullptr;
+                                    state->player.selectedHotbarStack = -1;
+                                } else {
+                                    // stop holding item but dont move anything
+                                    state->player.releaseHeldItem();
+                                }
+                            } else {
+                                state->player.pickupItem(stack);
+                                state->player.selectHotbarSlot(slot);
+                            }
+                            break;
+                        }
+                    }
+                } else {
+
+                    ItemStack* heldItemStack = state->player.heldItemStack;
+                    // if the held item stack exists and is placeable, place it
+                    if (heldItemStack && heldItemStack->item.has<ITC::Proto::Placeable>()) {
+                        placeItem(heldItemStack->item, state, mouseWorldPos);
+                    } else {
+                        state->player.heldItemStack = NULL;
+                    }
+
+                    // find entity to select
+                    auto entityOnMouse = findPlayerFocusedEntity(&state->ecs, state->chunkmap, mouseWorldPos);
+                    if (entityOnMouse.NotNull()) {
+                        clickOnEntity(entityOnMouse, state);
+                    }
+                    
+                }
+            }
+
+        } else if (event.button == SDL_BUTTON_RIGHT) {
+            if (clickInWorld) {
+                auto tileEntity = findTileEntityAtPosition(state, mouseWorldPos);
+                if (tileEntity.Exists(&state->ecs)) {
+                    LogInfo("Removing entity at %d,%d", (int)floor(mouseWorldPos.x), (int)floor(mouseWorldPos.y));
+                        removeEntityOnTile(&state->ecs, selectedTile);
+                }
+
+                ItemStack* heldItemStack = state->player.heldItemStack;
+                if (heldItemStack) {
+                    if (heldItemStack->item.has<ITC::Usable>()) {
+                        state->player.tryThrowGrenade(&state->ecs, mouseWorldPos);
+                        auto usable = items::getComponent<ITC::Usable>(heldItemStack->item, state->itemManager);
+                        auto onUse = usable->onUse;
+                        if (onUse)
+                            onUse();
+                    }
+                }
+            }
         }
     }
 
     void leftMouseHeld(const MouseState& mouse, GameState* state, const Gui* gui) {
-        SDL_Point mousePos = {mouse.x, mouse.y};
-        if (SDL_PointInRect(&mousePos, &camera.displayViewport)) {
-            SDL_Point relMousePos = {mousePos.x - camera.displayViewport.x, mousePos.y - camera.displayViewport.y};
+        IVec2 mousePos = {mouse.x, mouse.y};
+        if (pointInRect(mousePos, camera.displayViewport)) {
+            glm::vec2 relMousePos = {mousePos.x - camera.displayViewport.x, mousePos.y - camera.displayViewport.y};
             if (!gui->pointInArea(relMousePos)) {
                 // do something
             }
@@ -318,7 +322,8 @@ public:
     }
 
     void rightMouseHeld(const MouseState& mouse, GameState* state, const Gui* gui) {
-        if (pixelInWorld(mouse.x, mouse.y, gui)) {
+        auto mousePixel = mousePixelPos();
+        if (pixelInWorld(mousePixel, gui)) {
             state->player.tryShootSandGun(&state->ecs, mouseWorldPos);
         }
     }
@@ -355,111 +360,30 @@ public:
         }
     }
 
-    void handleClick(const SDL_MouseButtonEvent& event, GameState* state, const Gui* gui) {
-        // mouse event coordinates are reported in pixel points, which are not representative of actual pixels
-        // on high DPI displays, so we scale it by the pixel scale to get actual pixels.
-        SDL_Point mousePos = {(int)(event.x * SDL::pixelScale), (int)(event.y * SDL::pixelScale)};
-        Vec2 worldPos = camera.pixelToWorld(mousePos.x, mousePos.y);
-        bool clickInDisplay = SDL_PointInRect(&mousePos, &camera.displayViewport);
-        bool clickOnGui = gui->pointInArea(mousePos);
-        bool clickInWorld = clickInDisplay && !clickOnGui;
-        Tile* selectedTile = getTileAtPosition(state->chunkmap, worldPos);
-        if (event.button == SDL_BUTTON_LEFT) {
+    void playerMouseTargetMoved(const MouseState& mouseState, const MouseState& prevMouseState, GameState* state, const Gui* gui) {
+        Vec2 newWorldPos = camera.pixelToWorld(mouseState.x, mouseState.y);
+        Vec2 prevWorldPos = camera.pixelToWorld(prevMouseState.x, prevMouseState.y);
 
-            // make sure mouse is within display viewport
-            if (clickInDisplay) {
-                // first check for GUI clicks
-                if (clickOnGui) {
-                    // click counted as on gui, not world.
-                    // trigger gui stuff
-                    // find clicked hotbar slot (if it was a click on a hotbar slot)
-                    for (int slot = 0; slot < state->player.numHotbarSlots; slot++) {
-                        // TODO: gui slot collision does nothing right now
-                        SDL_FRect slotRect = gui->hotbar.slots[slot];
-                        if (mousePos.x > slotRect.x && mousePos.x < slotRect.x + slotRect.w &&
-                            mousePos.y > slotRect.y && mousePos.y < slotRect.y + slotRect.h) {
-                            // click was on slot
-                            ItemStack* stack = &state->player.inventory()->get(slot);
-                            if (state->player.heldItemStack) {
-                                // set held stack down in slot only if actually holding stack and if slot is empty
-                                if (stack->empty()) {
-                                    *stack = *state->player.heldItemStack;
-                                    *state->player.heldItemStack = ItemStack::None();
-                                    state->player.heldItemStack = nullptr;
-                                } else {
-                                    // stop holding item but dont move anything
-                                    state->player.releaseHeldItem();
-                                }
-                            } else {
-                                state->player.pickupItem(stack);
-                                state->player.selectHotbarSlot(slot);
-                            }
-                            break;
+        if (mouseState.buttons & SDL_BUTTON_LMASK) {
+            // only do it if the isnt in the gui either currently or previously
+            if (!gui->pointInArea({mouseState.x, mouseState.y}) || !gui->pointInArea({prevMouseState.x, prevMouseState.y})) {
+                auto line = raytraceDDA(prevWorldPos, newWorldPos);
+                ScopedAlloc(Tile, tiles, line.size());
+                getTiles(state->chunkmap, line.data(), tiles, line.size());
+                auto heldItemStack = state->player.heldItemStack;
+                if (heldItemStack && state->player.canPlaceItemStack(*heldItemStack)) {
+                    for (int i = 0; i < line.size(); i++) {
+                        Tile* tile = getTileAtPosition(state->chunkmap, line[i]);
+                        if (tile) {
+                            state->player.tryPlaceItemStack(*heldItemStack, tile, state->itemManager);
                         }
                     }
-                } else {
-
-                    ItemStack* heldItemStack = state->player.heldItemStack;
-                    // if the held item stack exists and is placeable, place it
-                    if (heldItemStack && heldItemStack->item.has<ITC::Proto::Placeable>()) {
-                        placeItem(heldItemStack->item, state, worldPos);
-                    } else {
-                        state->player.heldItemStack = NULL;
-                    }
-
-                    // find entity to select
-                    auto entityOnMouse = findPlayerFocusedEntity(&state->ecs, state->chunkmap, mouseWorldPos);
-                    if (entityOnMouse.NotNull()) {
-                        clickOnEntity(entityOnMouse, state);
-                    }
-                    
                 }
-            }
-
-        } else if (event.button == SDL_BUTTON_RIGHT) {
-            if (clickInWorld) {
-                auto tileEntity = findTileEntityAtPosition(state, worldPos);
-                if (tileEntity.Exists(&state->ecs)) {
-                    LogInfo("Removing entity at %d,%d", (int)floor(worldPos.x), (int)floor(worldPos.y));
-                        removeEntityOnTile(&state->ecs, selectedTile);
-                }
-
-                ItemStack* heldItemStack = state->player.heldItemStack;
-                if (heldItemStack) {
-                    if (heldItemStack->item.has<ITC::Usable>()) {
-                        state->player.tryThrowGrenade(&state->ecs, worldPos);
-                        auto usable = items::getComponent<ITC::Usable>(heldItemStack->item, state->itemManager);
-                        auto onUse = usable->onUse;
-                        if (onUse)
-                            onUse();
-                    }
-                }
-            }
+            } 
         }
     }
 
-    void handleCommandInput(CommandInput commandInput, Gui* gui) {
-        if (!commandInput.name.empty()) {
-            // command entered
-            std::string message;
-            bool foundCommand = false;
-            for (auto& command : gCommands) {
-                if (My::streq(command.name, commandInput.name.c_str(), command.nameLength, commandInput.name.size())) {
-                    auto result = executeCommand(&command, commandInput.arguments.c_str());
-                    message = result.message;
-                    foundCommand = true;
-                }
-            }
-            if (!foundCommand) {
-                char messageBuf[256];
-                snprintf(messageBuf, 256, "Invalid command \"%s\"", commandInput.name.c_str());
-                message = std::string(messageBuf);
-            }
-
-            gui->console.newMessage(message.c_str(), GUI::Console::MessageType::CommandResult);
-        }
-    }
-
+    /* Keyboard */
 
     void handleKeydown(const SDL_KeyboardEvent& event, GameState* state, Gui* gui) {
         const SDL_Keycode keycode = event.keysym.sym;
@@ -536,6 +460,116 @@ public:
         }
     }
 
+    void handleCommandInput(CommandInput commandInput, Gui* gui) {
+        if (!commandInput.name.empty()) {
+            // command entered
+            std::string message;
+            bool foundCommand = false;
+            for (auto& command : gCommands) {
+                if (My::streq(command.name, commandInput.name.c_str(), command.nameLength, commandInput.name.size())) {
+                    auto result = executeCommand(&command, commandInput.arguments.c_str());
+                    message = result.message;
+                    foundCommand = true;
+                }
+            }
+            if (!foundCommand) {
+                char messageBuf[256];
+                snprintf(messageBuf, 256, "Invalid command \"%s\"", commandInput.name.c_str());
+                message = std::string(messageBuf);
+            }
+
+            gui->console.newMessage(message.c_str(), GUI::Console::MessageType::CommandResult);
+        }
+    }
+
+    void addKeyBinding(KeyBinding* keyBinding) {
+        keyboard.bindings.push(keyBinding);
+    }
+
+    /* Controller */
+
+    bool connectController() {
+        bool success = controller.connect(0);
+        return success;
+    }
+
+    Sint16 getAxisRaw(SDL_GameControllerAxis axis) const {
+        return SDL_GameControllerGetAxis(controller.gameController, axis);
+    }
+
+    float getNormalizedAxis(SDL_GameControllerAxis axis) const {
+        return (float)getAxisRaw(axis) / INT16_MAX;
+    }
+
+    Vec2 getLeftStickVector() const {
+        Sint16 x = getAxisRaw(SDL_CONTROLLER_AXIS_LEFTX);
+        Sint16 y = getAxisRaw(SDL_CONTROLLER_AXIS_LEFTY);
+
+        float xf = (float)x / INT16_MAX;
+        float yf = (float)-y / INT16_MAX;
+
+        if (abs(xf) < controller.leftStickDeadzone) xf = 0.0f;
+        if (abs(yf) < controller.leftStickDeadzone) yf = 0.0f;
+
+        return {xf, yf};
+    }
+
+    static float applyDeadzone(float x, float deadzone) {
+        return MAX(abs(x) - deadzone, 0) * ((int)signbit(x) * -2 + 1) ;
+    }
+
+    Vec2 getRightStickVector() const {
+        float x = getNormalizedAxis(SDL_CONTROLLER_AXIS_RIGHTX);
+        float y = getNormalizedAxis(SDL_CONTROLLER_AXIS_RIGHTY);
+
+        x = applyDeadzone(x, controller.rightStickDeadzone);
+        y = applyDeadzone(y, controller.rightStickDeadzone);
+        return {x, y};
+    }
+
+    /* Misc */
+
+    /* 
+    * Update the internal state of this class, e.g. mouse position.
+    * Call near the beginning of the frame, before using any methods of this class,
+    * to prevent using outdated state.
+    */
+    void updateState() {
+        mouse = getMouseState();
+        mouseWorldPos = camera.pixelToWorld(glm::vec2(mouse.x, mouse.y));
+    }
+
+    void update(SDL_Window* window, GameState* state, const Gui* gui) {
+        if (mouse.leftButtonDown()) {
+            leftMouseHeld(mouse, state, gui);
+        }
+        if (mouse.rightButtonDown()) {
+            rightMouseHeld(mouse, state, gui);
+        }
+
+        if (keyboard.keyState[SDL_SCANCODE_G]) {
+            Tile* selectedTile = getTileAtPosition(state->chunkmap, mouseWorldPos);
+            // TODO: entity collision stuff
+            if (selectedTile && false) {
+                Entity chest = Entities::Chest(&state->ecs, {floor(mouseWorldPos.x), floor(mouseWorldPos.y)}, 32, 1, 1, state->itemManager);
+                placeEntityOnTile(&state->ecs, selectedTile, chest);
+            }
+        }
+        
+        if (!enteringText) {
+            for (auto keyBinding : keyboard.bindings) {
+                keyBinding->updateKeyState(keyboard.keyState[SDL_GetScancodeFromKey(keyBinding->key)]);
+            }
+        }
+
+        Vec2 rightStick = getRightStickVector();
+        if (rightStick.x != 0.0f || rightStick.y != 0.0f) {
+            int dx = (int)round(rightStick.x * 12);
+            int dy = (int)round(rightStick.y * 12);
+            SDL_WarpMouseInWindow(window, mouse.x + dx, mouse.y + dy);
+        }
+    }
+
     void handleEvent(const SDL_Event* event, GameState* state, Gui* gui) {
         switch (event->type) {
         case SDL_KEYDOWN:
@@ -559,6 +593,13 @@ public:
         }
     }
 
+    void destroy() {
+        keyboard.destroy();
+        controller.disconnect();
+    }
+
+    /* Player stuff - This probably shouldn't be in this class but whateva */
+
     void movePlayer(GameState* state, Vec2 movement) {
         Player* player = &state->player;
         Vec2 oldPlayerPos = state->player.getPosition();
@@ -569,6 +610,8 @@ public:
 
     void doPlayerMovementTick(GameState* state) {
         if (enteringText) return; // dont move player while typing... duh
+
+        g.playerMovement = {0.0f, 0.0f};
 
         int sidewaysInput = keyboard.keyState[SDL_SCANCODE_D] - keyboard.keyState[SDL_SCANCODE_A];
         int updownInput = keyboard.keyState[SDL_SCANCODE_W] - keyboard.keyState[SDL_SCANCODE_S];
@@ -584,9 +627,10 @@ public:
                     moveVector.x * sin(angle) + moveVector.y * cos(angle)
                 ) * PLAYER_SPEED;
 
-                movePlayer(state, {movement.x, movement.y});
+                movePlayer(state, movement);
+                g.playerMovement = movement;
+                LogInfo("movement: %f,%f", movement.x, movement.y);
             }
-
             
             playerRotation->degrees += rotationInput * PLAYER_ROTATION_SPEED;
             camera.setAngle(playerRotation->degrees);
@@ -596,34 +640,12 @@ public:
         movePlayer(state, leftStick);
     }
 
-    void update(SDL_Window* window, GameState* state, const Gui* gui) {
-        Vec2 aimingPosition = camera.pixelToWorld({mouse.x, mouse.y});
+    /* Random */
 
-        if (mouse.leftButtonDown()) {
-            leftMouseHeld(mouse, state, gui);
-        }
-        if (mouse.rightButtonDown()) {
-            rightMouseHeld(mouse, state, gui);
-        }
-
-        if (keyboard.keyState[SDL_SCANCODE_G]) {
-            Tile* selectedTile = getTileAtPosition(state->chunkmap, aimingPosition);
-            // TODO: entity collision stuff
-            if (selectedTile && false) {
-                Entity chest = Entities::Chest(&state->ecs, {floor(aimingPosition.x), floor(aimingPosition.y)}, 32, 1, 1, state->itemManager);
-                placeEntityOnTile(&state->ecs, selectedTile, chest);
-            }
-        }
-        
-        for (auto keyBinding : keyboard.bindings) {
-            keyBinding->updateKeyState(keyboard.keyState[SDL_GetScancodeFromKey(keyBinding->key)]);
-        }
-
-        Vec2 rightStick = getRightStickVector();
-        if (rightStick.x != 0.0f || rightStick.y != 0.0f) {
-            int dx = (int)round(rightStick.x * 12);
-            int dy = (int)round(rightStick.y * 12);
-            SDL_WarpMouseInWindow(window, mouse.x + dx, mouse.y + dy);
+    void placeItem(Item item, GameState* state, Vec2 at) {
+        Tile* tile = getTileAtPosition(state->chunkmap, at);
+        if (tile) {
+            //state->player.tryPlaceItem(tile);
         }
     }
 };

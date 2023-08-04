@@ -66,7 +66,7 @@ const GlVertexFormat& format) {
     size_t offset = 0;
     for (int i = 0; i < format.attributeCount(); i++) {
         size_t attributeSize = format.attributes[i].size() * vertexCount;
-        if (vertexData[i]) {
+        if (vertexData && vertexData[i]) {
             glBufferSubData(GL_ARRAY_BUFFER, offset, attributeSize, vertexData[i]);
         }
         attributeOffsets[i] = offset;

@@ -146,3 +146,11 @@ void items::destroyItem(Item* item, ItemManager& manager) {
     freeItem(*item, manager);
     *item = Item::None();
 }
+
+
+Item Items::tile(ItemManager& manager, TileType type) {
+    auto i = makeItem(ItemTypes::Tile, manager);
+    addComponent<ITC::TileC>(i, manager, {type});
+    addComponent<ITC::Display>(i, manager, ITC::Display{TileTypeData[type].background});
+    return i;
+}

@@ -1,5 +1,6 @@
 #include "GUI/Gui.hpp"
 #include "rendering/gui.hpp"
+#include "rendering/drawing.hpp"
 
 /*
 
@@ -17,7 +18,7 @@ void Draw::itemStack(SDL_Renderer* renderer, float scale, ItemStack item, SDL_Re
 
 */
 
-SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, SDL_Rect viewport, const Player* player, const ItemManager& itemManager) {
+SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, const Player* player, const ItemManager& itemManager) {
     float scale = renderer.options.scale;
 
     slots.clear();
@@ -31,8 +32,8 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, SDL_Rect viewport, const Play
 
     const float opacity = 0.5;
     Uint8 alpha = opacity * 255;
-    float width = viewport.w;
-    float height = viewport.h;
+    float width = renderer.options.size.x;
+    float height = renderer.options.size.y;
 
     const float maxSlotSize = 60 * scale;
     const float borderSize = 3 * scale;
@@ -51,7 +52,7 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, SDL_Rect viewport, const Play
 
     float horizontalMargin = (width - borderWidth) / 2;
     SDL_FRect border = {
-        horizontalMargin + viewport.x,
+        horizontalMargin,
         0,
         borderWidth,
         borderHeight 
@@ -96,18 +97,21 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, SDL_Rect viewport, const Play
                 hotbarSlot.h - innerMargin*2
             };
 
-            if (item.item.type) {
+            if (!item.empty()) {
                 const ItemPrototype* prototype = items::getPrototype(item.item.type, itemManager);
-                // icon
-                renderer.sprite(prototype->inventoryIcon, innerSlot);
-                // quantity count
-                // dont draw item count over items that can only ever have one count,
-                // its pointless
-                if (prototype->stackSize != 1 && item.quantity != items::ItemQuantityInfinity) {
-                    char text[128];
-                    snprintf(text, 128, "%d", item.quantity);
-                    glm::vec2 pos = {hotbarSlot.x, hotbarSlot.y};
-                    renderer.text->render(text, pos, {TextAlignment::BottomLeft}, TextRenderingSettings(glm::vec2(scale/2.0f)));
+                const ITC::Display* displayComponent = items::getComponent<ITC::Display>(item.item, itemManager);
+                if (displayComponent && prototype) {
+                    // icon
+                    renderer.sprite(displayComponent->inventoryIcon, innerSlot);
+                    // quantity count
+                    // dont draw item count over items that can only ever have one count,
+                    // its pointless
+                    if (prototype->stackSize != 1 && item.quantity != items::ItemQuantityInfinity) {
+                        char text[128];
+                        snprintf(text, 128, "%d", item.quantity);
+                        glm::vec2 pos = {hotbarSlot.x, hotbarSlot.y};
+                        renderer.text->render(text, pos, {TextAlignment::BottomLeft}, TextRenderingSettings(glm::vec2(scale/2.0f)));
+                    }
                 }
             }
             
@@ -116,26 +120,28 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, SDL_Rect viewport, const Play
         }
 
         // draw highlight around selected hotbar slot
-        SDL_FRect selectedHotbarSlot = {
-            inside.x + player->selectedHotbarStack * (slotSize + hotbarHorizontalMargin / (numSlots - 1)),
-            inside.y + hotbarVerticalMargin / 2,
-            slotSize,
-            slotSize
-        };
-        renderer.colorRect(selectedHotbarSlot, {0, 0, 0, 255});
+        int selectedHotbarSlot = player->selectedHotbarStack;
+        if (selectedHotbarSlot > 0 && selectedHotbarSlot < (int)player->numHotbarSlots) {
+            SDL_FRect selectedHotbarSlotRect = {
+                inside.x + selectedHotbarSlot * (slotSize + hotbarHorizontalMargin / (numSlots - 1)),
+                inside.y + hotbarVerticalMargin / 2,
+                slotSize,
+                slotSize
+            };
+            renderer.rectOutline(selectedHotbarSlotRect, {120, 200, 250, 200}, renderer.pixels(2.0f), 0.0f);
+        }
     }
 
     return rect;
 }
 
-void GUI::Gui::drawHeldItemStack(GuiRenderer& renderer, SDL_Rect viewport) {
-    SDL_Point mousePosition = SDL::getMousePixelPosition();
-    const int size = 60 * renderer.options.scale;
-    SDL_Rect destination = {
-        mousePosition.x - size/2,
-        mousePosition.y - size/2,
+void GUI::Gui::drawHeldItemStack(GuiRenderer& renderer, const ItemManager& itemManager, const ItemStack& itemStack, glm::vec2 pos) {
+    const float size = renderer.pixels(60);
+    FRect destination = {
+        pos.x - size/2,
+        pos.y - size/2,
         size,
         size
     };
-    //Draw::itemStack(ren, scale, *heldItemStack, &destination);
+    Draw::drawItemStack(renderer, itemManager, itemStack, destination);
 }

@@ -11,19 +11,7 @@ typedef Uint16 TextureID;
 
 typedef Uint32 ItemType;
 typedef Sint32 ItemQuantity;
-/*
-namespace ItemTypes {
-    enum IDs : ItemType {
-        None = 0,
-        SpaceFloor = 1,
-        Tile,
-        Wall,
-        Grenade,
-        SandGun,
-        NumItems
-    };
-}
-*/
+
 namespace items {
 
 struct IDGetter {
@@ -53,14 +41,15 @@ constexpr auto NullComponentsAddress = GECS::NullElementAddress;
 using GECS::ComponentInfo;
 using GECS::ComponentInfoRef;
 
-using ItemType = Uint16; // 65k should be way more than enough
 using ItemQuantity = Sint32;
 constexpr ItemQuantity ItemQuantityInfinity = -1;
 
 namespace ItemTypes {
     #define ITEM_TYPE_LIST None, Grenade, SandGun, Tile
-    GEN_IDS(ItemType, ITEM_TYPE_LIST, Count);
+    GEN_IDS(ItemTypes, Uint16, ITEM_TYPE_LIST, Count);  // 65k types should be way more than enough
 }
+
+using ItemType = Uint16;
 
 struct Item {
     ComponentSignature signature;
@@ -69,7 +58,7 @@ struct Item {
  
     Item() : signature(0), componentsLoc(NullComponentsAddress), type(ItemTypes::None) {};
 
-    Item(ItemType type, ComponentSignature signature, ComponentsAddress components = NullComponentsAddress) : signature(signature), componentsLoc(components), type(type) {}
+    Item(ItemType type, ComponentSignature signature = 0, ComponentsAddress components = NullComponentsAddress) : signature(signature), componentsLoc(components), type(type) {}
 
     static Item None() {
         return {ItemTypes::None, ComponentSignature{0}, NullComponentsAddress};

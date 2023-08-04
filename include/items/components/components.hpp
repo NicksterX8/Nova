@@ -12,10 +12,10 @@ typedef Uint16 TileType;
 namespace items {
 
 namespace ComponentIDs {
-    #define ITEM_REGULAR_COMPONENTS_LIST Durability, Wetness, TileC
+    #define ITEM_REGULAR_COMPONENTS_LIST Durability, Wetness, TileC, Display
     #define ITEM_PROTO_COMPONENTS_LIST Edible, Fuel, Wettable, StartDurability, Placeable, Usable
     #define ITEM_COMPONENTS_LIST ITEM_REGULAR_COMPONENTS_LIST, ITEM_PROTO_COMPONENTS_LIST
-    GEN_IDS(ComponentID, ITEM_COMPONENTS_LIST, Count);
+    GEN_IDS(ComponentIDs, ComponentID, ITEM_COMPONENTS_LIST, Count);
 }
 
 #define BEGIN_COMPONENT(name) struct name {\
@@ -49,6 +49,10 @@ namespace ITC {
     BEGIN_COMPONENT(TileC)
         TileType type;
     END_COMPONENT(TileC)
+
+    BEGIN_COMPONENT(Display)
+        TextureID inventoryIcon;
+    END_COMPONENT(Display)
 
     namespace Proto {
         BEGIN_PROTO_COMPONENT(Edible)

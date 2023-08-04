@@ -20,13 +20,13 @@ public:
     float cosine;
     float sine;
 
-    SDL_Rect displayViewport;
+    SDL_FRect displayViewport;
 
     Camera() {}
 
     Camera(float baseUnitScale, glm::vec3 pos, int pixelWidth, int pixelHeight, float _rotation = 0.0f)
     : pixelWidth(pixelWidth), pixelHeight(pixelHeight), baseScale(baseUnitScale),
-    zoom(1.0f), position(pos), rotation(_rotation), displayViewport({0, 0, pixelWidth, pixelHeight}) {
+    zoom(1.0f), position(pos), rotation(_rotation), displayViewport(FRect{0, 0, (float)pixelWidth, (float)pixelHeight}) {
         auto radians = glm::radians(rotation);
         sine = sin(rotation);
         cosine = cos(rotation);    

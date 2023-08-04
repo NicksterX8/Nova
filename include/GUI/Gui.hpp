@@ -22,7 +22,7 @@ public:
         slots = My::Vec<SDL_FRect>::Empty();
     }
 
-    SDL_FRect draw(GuiRenderer& renderer, SDL_Rect viewport, const Player* player, const ItemManager& itemManager);
+    SDL_FRect draw(GuiRenderer& renderer, const Player* player, const ItemManager& itemManager);
 
     void destroy() {
         slots.destroy();
@@ -193,23 +193,22 @@ struct Console {
 struct Gui {
     My::Vec<SDL_FRect> area = My::Vec<SDL_FRect>(0);
     Hotbar hotbar;
-    ItemStack* heldItemStack = nullptr;
     Console console = {};
 
     Gui() {}
 
-    void draw(GuiRenderer& renderer, float scale, SDL_Rect viewport, const Player* player, const ItemManager& itemManager) {
+    void draw(GuiRenderer& renderer, const FRect& viewport, glm::vec2 mousePosition, const Player* player, const ItemManager& itemManager) {
         area.size = 0;
-        SDL_FRect hotbarArea = hotbar.draw(renderer, viewport, player, itemManager);
-        heldItemStack = player->heldItemStack;
+        SDL_FRect hotbarArea = hotbar.draw(renderer, player, itemManager);
+        const ItemStack* heldItemStack = player->heldItemStack;
         if (heldItemStack && !heldItemStack->empty())
-            drawHeldItemStack(renderer, viewport);
+            drawHeldItemStack(renderer, itemManager, *heldItemStack, mousePosition);
         area.push(hotbarArea);
     }
 
-    void drawHeldItemStack(GuiRenderer& renderer, SDL_Rect viewport);
+    void drawHeldItemStack(GuiRenderer& renderer, const ItemManager& itemManager, const ItemStack& itemStack, glm::vec2 pos);
 
-    bool pointInArea(SDL_Point point) const {
+    bool pointInArea(glm::vec2 point) const {
         for (int i = 0; i < area.size; i++) {
             if (point.x > area[i].x && point.x < area[i].x + area[i].w &&
                 point.y > area[i].y && point.y < area[i].y + area[i].h) {

@@ -36,6 +36,7 @@ struct RenderBuffer {
     GLuint fbo;
     GLuint rbo;
     GLuint colorTexture;
+    GLuint velocityTexture;
 };
 
 struct RenderSystem;

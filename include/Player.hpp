@@ -26,8 +26,8 @@ struct Player {
     Direction facingDirection = DirectionUp;
 
     unsigned int numHotbarSlots = 9;
-    ItemStack* heldItemStack = NULL;
-    int selectedHotbarStack = 0;
+    ItemStack* heldItemStack = NULL; // need more information for this, pointer isnt enough
+    int selectedHotbarStack = -1; // -1 means no slot is selected. TODO: rename this to slot
 
     OptionalEntity<> selectedEntity;
 

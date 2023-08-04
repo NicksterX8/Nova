@@ -2,13 +2,14 @@ cmake_minimum_required(VERSION 3.23.3)
 
 project(faketorio VERSION 1.0)
 
-add_compile_options(-g -Wall -std=c++17
+add_compile_options(-Wall -std=c++17
     -Wno-macro-redefined -Wno-unused-variable -Wno-char-subscripts -Wno-comment
     -Wliteral-conversion
-    -D_GLIBCXX_DEBUG -D_GLIBXX_DEBUG_PEDANTIC)
+    )
 
 add_link_options(-framework OpenGL)
 
+set(CMAKE_BUILD_TYPE Debug)
 set(SD src)
 
 set(SRC_FILES 

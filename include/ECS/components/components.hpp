@@ -298,6 +298,8 @@ struct Transporter : EntityComponent<Transporter>, Serializable<Transporter> {
 
 struct Immortal : EntityComponent<Immortal>, Serializable<Immortal> {};
 
+struct Special : EntityComponent<Special>, Serializable<Special> {};
+
 }
 
 #endif

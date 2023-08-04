@@ -30,10 +30,9 @@ struct ItemPrototype {
 
     ComponentInfoRef componentInfo;
 
-    /* Universal components */
+    /* Customizable, universal components */
 
     ItemQuantity stackSize = 0;
-    TextureID inventoryIcon = TextureIDs::Null;
 
     /* Constructors */
 

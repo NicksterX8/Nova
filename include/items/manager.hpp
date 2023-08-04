@@ -80,10 +80,20 @@ C* getRegularComponent(const Item& item, const ItemManager& manager) {
 
 template<class C>
 typename std::conditional<C::PROTOTYPE, const C*, C*>::type getComponent(const Item& item, const ItemManager& manager) {
-    if (C::PROTOTYPE) {
+    if constexpr (C::PROTOTYPE) {
         return getProtoComponent<C>(item, manager);
     } else {
         return getRegularComponent<C>(item, manager);
+    }
+}
+
+template<class C>
+void setComponent(const Item& item, const ItemManager& manager, const C& value) {
+    C* component = getComponent<C>(item, manager);
+    if (component) {
+        *component = value;
+    } else {
+        LogError("Component %s does not exist for item!", manager.components.componentInfo.name(C::ID));
     }
 }
 

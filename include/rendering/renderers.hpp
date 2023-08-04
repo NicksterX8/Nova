@@ -96,7 +96,7 @@ struct QuadRenderer {
         return buffer.require(quadCount);
     }
 
-    void flush(Shader shader, glm::mat4 transform, TextureUnit texture) {
+    void flush(Shader shader, const glm::mat4& transform, TextureUnit texture) {
         if (buffer.empty()) return;
 
         shader.use();

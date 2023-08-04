@@ -66,7 +66,8 @@ namespace Entities {
 
     #define ENTITY_PLAYER_COMPONENTS EC::Health, EC::Nametag,\
         EC::Rotation, EC::Size, EC::Inventory,\
-        EC::Render, EC::Position, EC::Immortal
+        EC::Render, EC::Position, EC::Immortal,\
+        EC::Special
     struct Player : public EntityT<ENTITY_PLAYER_COMPONENTS> {
         Player(EntityWorld* ecs, Vec2 position, ItemManager& inventoryAllocator) : EntityT<ENTITY_PLAYER_COMPONENTS>(ecs, "player") {
             MARK_START_ENTITY_CREATION(ecs);
@@ -79,6 +80,7 @@ namespace Entities {
             Add<EC::Inventory>(ecs, {inventory});
             Add<EC::Render>(ecs, {TextureIDs::Player, RenderLayers::Player});
             Add<EC::Immortal>(ecs, {});
+            Add<EC::Special>(ecs, {});
 
             MARK_END_ENTITY_CREATION(ecs);
         }
@@ -94,7 +96,7 @@ namespace Entities {
             Add<EC::Size>(ecs, {0.5f, 0.5f});
             Add<EC::ItemStack>(ecs, {item});
             Add<EC::Grabable>(ecs, {item});
-            Add<EC::Render>(ecs, EC::Render(getPrototype(item.item.type, itemManager)->inventoryIcon, RenderLayers::Items));
+            Add<EC::Render>(ecs, EC::Render(items::getComponent<ITC::Display>(item.item, itemManager)->inventoryIcon, RenderLayers::Items));
             
             MARK_END_ENTITY_CREATION(ecs);
         }

@@ -13,9 +13,6 @@
 #define GetTicks SDL_GetTicks
 #define GetPerformanceCounter SDL_GetPerformanceCounter
 #define GetPerformanceFrequency SDL_GetPerformanceFrequency
-#define Rect SDL_Rect
-#define FRect SDL_FRect
-//#define Color SDL_Color
 
 #define PLAYER_INVENTORY_SIZE 32
 

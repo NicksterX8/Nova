@@ -4,9 +4,11 @@
 #include "constants.hpp"
 #include "utils/Log.hpp"
 #include "My/String.hpp"
+#include "utils/vectors.hpp"
 
 struct Globals {
     unsigned int debugTexture = 0;
+    glm::vec2 playerMovement = {NAN, NAN};
 };
 
 extern Globals g;

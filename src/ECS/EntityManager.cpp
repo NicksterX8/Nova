@@ -88,7 +88,6 @@ void EntityManager::Destroy(Entity entity) {
     Uint32 lastEntityIndex = entityCount-1;
     Entity lastEntity = entities[lastEntityIndex];
 
-    //Uint32 entityIndex = indices[entity.id]; // the index of the entity being removed
     // move last entity to removed entity position in array
     entities[entityData->index] = lastEntity;
     // tell indices where the (formerly) last entity now is

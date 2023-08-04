@@ -23,3 +23,4 @@ Transporter
 Grabable
 EntityTypeEC
 Fresh
+Special

@@ -40,20 +40,20 @@ struct GuiRenderer {
         return p * options.scale;
     }
 
-    QuadRenderer::Quad rectToQuad(FRect rect, std::array<QuadRenderer::TexCoord, 4> texCoords) const {
+    QuadRenderer::Quad rectToQuad(const FRect& rect, std::array<QuadRenderer::TexCoord, 4> texCoords) const {
         SDL_Color color = {0,0,0,0};
         const float z = 0.0f;
         QuadRenderer::Quad q = {{
             {{rect.x, rect.y, z}, color, texCoords[0]},
-            {{rect.x, rect.y+rect.h, z}, color, texCoords[1]},
+            {{rect.x, rect.y + rect.h, z}, color, texCoords[1]},
             {{rect.x + rect.w, rect.y + rect.h, z}, color, texCoords[2]},
-            {{rect.x + rect.w, rect.h, z}, color, texCoords[3]}
+            {{rect.x + rect.w, rect.y, z}, color, texCoords[3]}
         }};
         return q;
     }
 
     // texture will only be rendered if it's a gui type texture
-    void sprite(TextureID texture, FRect rect) {
+    void sprite(TextureID texture, const FRect& rect) {
         auto space = getTextureAtlasSpace(&guiAtlas, texture);
         if (!space.valid()) return;
         auto min = space.min;
@@ -62,7 +62,7 @@ struct GuiRenderer {
             {min.x, min.y},
             {min.x, max.y},
             {max.x, max.y},
-            {max.x, max.y}
+            {max.x, min.y}
         }});
         quad->render(q);
     }
@@ -158,7 +158,9 @@ struct GuiRenderer {
     }
 
     void flush(const ShaderManager& shaders, glm::mat4 transform) {
-        quad->flush(shaders.get(Shaders::Quad), transform, guiAtlas.unit);
+        auto quadShader = shaders.use(Shaders::Quad);
+        quadShader.setVec2("texSize", glm::vec2(guiAtlas.size));
+        quad->flush(quadShader, transform, guiAtlas.unit);
         auto textShaderID = text->getFont()->usingSDFs ? Shaders::SDF : Shaders::Text;
         text->flush(shaders.get(textShaderID), transform);
     }

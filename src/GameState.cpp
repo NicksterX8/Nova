@@ -14,6 +14,21 @@
 #include "ECS/systems/systems.hpp"
 #include "metadata/ecs/ecs.hpp"
 
+void makeItemPrototypes(ItemManager& im) {
+    using namespace items;
+    auto* pm = &im.prototypes;
+
+    auto tile = New<ITC::Proto::Placeable>(pm, ItemTypes::Tile);
+
+    ItemPrototype prototypes[] = {
+        tile,
+    };
+
+    for (int i = 0; i < sizeof(prototypes) / sizeof(ItemPrototype); i++) {
+        pm->add(prototypes[i]);
+    }
+}
+
 void GameState::init() {
     /* Init Chunkmap */
     chunkmap.init();
@@ -86,6 +101,8 @@ void GameState::init() {
         componentInfo = My::Vec<items::ComponentInfo>(&componentInfoArray[0], componentInfoArray.size());
     }
     itemManager = ItemManager(ArrayRef(componentInfo.data, componentInfo.size));
+
+    makeItemPrototypes(itemManager);
 
     /* Init Player */
     player = Player(&ecs, Vec2(0, 0), itemManager);

@@ -71,11 +71,7 @@ namespace Items {
         return i;
     }
 
-    inline Item tile(ItemManager& manager, TileType type) {
-        auto i = makeItem(ItemTypes::Tile, manager);
-        addComponent<ITC::TileC>(i, manager, {type});
-        return i;
-    }
+    Item tile(ItemManager& manager, TileType type);
 }
 
 inline float getFuelValue(ItemManager& manager, ItemStack stack) {

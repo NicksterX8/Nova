@@ -1,5 +1,6 @@
 #include "rendering/drawing.hpp"
 #include "utils/Debug.hpp"
+#include "PlayerControls.hpp"
 
 /*
 int Draw::drawChunkBorders(SDL_Renderer* renderer, float scale, const GameViewport* gameViewport) {
@@ -277,12 +278,11 @@ static void testTextRendering(GuiRenderer& guiRenderer, TextRenderer& textRender
     Draw::thickLines(*guiRenderer.quad, 2, points, SDL_Color{0, 255, 0, 255}, 2.0f);
 }
 
-void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& screenTransform, GUI::Gui* gui, const GameState* state) {
+void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& screenTransform, GUI::Gui* gui, const GameState* state, const PlayerControls& playerControls) {
     auto& textRenderer = ren.guiTextRenderer;
     //textRenderer.setFont(&ren.debugFont);
 
     GuiRenderer& guiRenderer = ren.guiRenderer;
-
     auto quadShader = ren.shaders.get(Shaders::Quad);
     quadShader.use();
     quadShader.setMat4("transform", screenTransform);
@@ -291,7 +291,7 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
     textShader.use();
     textShader.setMat4("transform", screenTransform);
 
-    gui->draw(guiRenderer, 1.0f, {0, 0, (int)guiRenderer.options.size.x, (int)guiRenderer.options.size.y}, &state->player, state->itemManager);
+    gui->draw(guiRenderer, {0, 0, guiRenderer.options.size.x, guiRenderer.options.size.y}, playerControls.mousePixelPos(), &state->player, state->itemManager);
 
     //textRenderer.setFont(&ren.font);
     Draw::drawFpsCounter(textRenderer, (float)Metadata->fps(), guiRenderer.options);
@@ -303,4 +303,5 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
     //testTextRendering(guiRenderer, textRenderer);
 
     guiRenderer.flush(ren.shaders, screenTransform);
+    
 }

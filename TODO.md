@@ -1,6 +1,8 @@
 # TODO
 
 ## Big picture
+- Move stuff to .cpp files 
+    - Player Controls needs this bad
 - Multithreading??
 - bring back all the old systems
 - make stuff not extremely ugly like it is now
@@ -17,10 +19,14 @@
     √ started, kinda works
 
 ## little guys
+- Make bound box entity component instead of "size"
+- fix motion blur for dynamic objects (use nvidia article)
+
+- bring back rendering chunk borders
 - Scrolling text box
 
 - gui texture rendering
-    - make/steal (preferable) gui textures 
+    - make/steal (preferable) gui textures -
         - button
         - rectangels
         - other stuff
@@ -28,6 +34,7 @@
 
 - make inventory work again??? or maybe thats not gonna happen
     - be able to look inside chests and junk
+- make bulk ecs functions (add/get multiple components at once)
 - fix shader hot loading. issue is a copy is made of all shaders before running so the one i modify is the wrong one
     √ temp fix (i dont know what do)
 - make tilemap rendering more SOA, do texcoords then positions
@@ -40,9 +47,11 @@
 - make new commands
     - make commands for messing with entities and stuff
     - switch hotkeys out for commands
-    - other cool debugging ones, partially for fun :p
+    - other cool debugging ones, partially for fun :| 
 
 - make static text rendering (for text that doesn't change, increase performance)
+
+- If possible make window open on second monitor by default
 
 ### things done
 √ Move to openGL rendering
@@ -65,6 +74,7 @@
 ----------
 
 ## Bugs:
+- Entities on chunk borders can be rendered multiple times
 - setComponent with garbage as the value gives garbage output
 - world isn't rendered until window is resized for some reason
 - Destroying all entities leaves entity existence information and component information in a broken state (seg faults!!!!)

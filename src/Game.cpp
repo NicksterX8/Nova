@@ -73,7 +73,7 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
         new FunctionKeyBinding('q', [&player](){
             player.releaseHeldItem();
         }),
-        /*
+        
         new FunctionKeyBinding('c', [&itemManager, &ecs, &playerControls](){
             int width = 2;
             int height = 1;
@@ -95,7 +95,7 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
         new FunctionKeyBinding('r', [&playerControls, &ecs, &chunkmap](){
             auto focusedEntity = findPlayerFocusedEntity(ecs, chunkmap, playerControls.mouseWorldPos);
             if (focusedEntity.Has<EC::Rotation, EC::Rotatable>(&ecs))
-                rotateEntity(ComponentManager<EC::Rotation, EC::Rotatable, EC::Position>(&ecs), focusedEntity.cast<EC::Rotation, EC::Rotatable>(), playerControls.keyboardState[SDL_SCANCODE_LSHIFT]);
+                rotateEntity(ComponentManager<EC::Rotation, EC::Rotatable, EC::Position>(&ecs), focusedEntity.cast<EC::Rotation, EC::Rotatable>(), playerControls.keyboard.keyState[SDL_SCANCODE_LSHIFT]);
         }),
         // testing stuff
         new FunctionKeyBinding('5', [&](){
@@ -105,9 +105,8 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
                     ecs.Destroy(entity);
                 }
             });
-            ecs.Destroy(NullEntity);
         }),
-        */
+        
     };
 
     for (size_t i = 0; i < sizeof(keyBindings) / sizeof(KeyBinding*); i++) {
@@ -403,22 +402,6 @@ int Game::handleEvent(const SDL_Event* event) {
                 case ']':
                     logComponentPoolSizes(state->ecs);
                     break;
-                case 't': {
-                    char* mapping = SDL_GameControllerMappingForDeviceIndex(0);
-                    if (mapping) {
-                        LogInfo("controller mapping: %s", mapping);
-                    }
-                    int numJoysticks = SDL_NumJoysticks();
-                    SDL_GameController* controller;
-                    for (int i = 0; i < 4; i++) {
-                        controller = SDL_GameControllerOpen(0);
-                    }
-                    if (!controller) {
-                        LogError("no controller ),: error: %s", SDL_GetError());
-                    }
-                    LogInfo("num joysticks: %d", numJoysticks);
-                    break;
-                }
             }
         break;}
         case SDL_CONTROLLERDEVICEADDED: {
@@ -456,7 +439,6 @@ int Game::update() {
     // get user input state for this update
     SDL_PumpEvents();
     MouseState mouse = getMouseState();
-    Vec2 playerTargetPos = camera.pixelToWorld(mouse.x, mouse.y);
     // handle events //
     playerControls->updateState();
 
@@ -467,7 +449,7 @@ int Game::update() {
     }
 
     playerControls->update(sdlCtx.win, state, gui);
-    if (playerTargetPos != lastUpdatePlayerTargetPos) {
+    if (playerControls->mouseWorldPos != lastUpdatePlayerTargetPos) {
         playerControls->playerMouseTargetMoved(mouse, lastUpdateMouseState, state, gui);
     }
 
@@ -493,11 +475,12 @@ int Game::update() {
     }
 
     // update to new state from tick
-    playerTargetPos = camera.pixelToWorld(mouse.x, mouse.y);
     Vec2 focus = state->player.getPosition();
+
     camera.position.x = focus.x;
     camera.position.y = focus.y;
     assert(isValidEntityPosition(camera.position));
+    // in full release maybe just set the position to 0,0
 
     float scale = SDL::pixelScale;
     RenderOptions options = {
@@ -505,10 +488,10 @@ int Game::update() {
         scale
     };
 
-    render(*renderContext, options, gui, state, camera, playerTargetPos, mode, true); 
+    render(*renderContext, options, gui, state, camera, *playerControls, mode, true); 
 
     lastUpdateMouseState = mouse;
-    lastUpdatePlayerTargetPos = playerTargetPos;
+    lastUpdatePlayerTargetPos = playerControls->mouseWorldPos;
 
     if (quit) {
         LogInfo("Returning from main update loop.");
@@ -552,7 +535,7 @@ int Game::init(int screenWidth, int screenHeight) {
 
     setCommands(this);
 
-    resizeRenderBuffer(renderContext->framebuffer, {screenWidth+1, screenHeight});
+    //resizeRenderBuffer(renderContext->framebuffer, {screenWidth+1, screenHeight});
 
     return 0;
 }

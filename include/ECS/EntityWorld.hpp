@@ -105,6 +105,7 @@ public:
     void Destroy(Entity entity) {
         if (!EntityExists(entity)) {
             LogError("EntityWorld::Destroy : Entity passed does not exist! Entity: %s", entity.DebugStr());
+            return;
         }
 
         ComponentFlags entityComponents = em.EntitySignature(entity.id);

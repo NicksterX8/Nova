@@ -265,6 +265,8 @@ int setupShaders(RenderContext* ren) {
     auto entity = mgr.setup(Shaders::Entity, "entity");
     entity.setInt("texAtlas", TextureUnit::MyTextureAtlas);
     entity.setVec2("texAtlasSize", ren->textureAtlas.size);
+    glBindFragDataLocation(entity.id, 0, "FragColor");
+    glBindFragDataLocation(entity.id, 1, "FragVelocity");
 
     auto tilemap = mgr.setup(Shaders::Tilemap, "tilemap");
     tilemap.setInt("tex", TextureUnit::MyTextureAtlas);
@@ -275,22 +277,22 @@ int setupShaders(RenderContext* ren) {
 
     auto sdf = mgr.setup(Shaders::SDF, "sdf");
     sdf.setInt("text", TextureUnit::Font1);
-    sdf.setFloat("thickness", 0.5f);
-    sdf.setFloat("soft", 0.2f);
+    sdf.setFloat("thickness", 0.1f);
+    sdf.setFloat("soft", 0.45f);
 
     auto texture = mgr.setup(Shaders::Texture, "texture");
     texture.setInt("tex", TextureUnit::Random);
 
-    auto quad = mgr.setup(Shaders::Quad, "color");
+    auto quad = mgr.setup(Shaders::Quad, "quad");
     quad.setInt("tex", TextureUnit::GuiAtlas);
-    quad.setVec2("texSize", {10, 10});
+    quad.setVec2("texSize", glm::vec2(ren->guiRenderer.guiAtlas.size));
     
     auto point = mgr.setup(Shaders::Point, "point");
 
     auto screen = mgr.setup(Shaders::Screen, "screen");
-    screen.setInt("tex", TextureUnit::Screen);
-    screen.setInt("numSamples", 6);
-    screen.setVec2("velocity", {0, 0});
+    screen.setInt("tex", TextureUnit::Screen0);
+    screen.setInt("velocityBuffer", TextureUnit::Screen1);
+    screen.setInt("numSamples", 5);
 
     GL::logErrors();
 
@@ -303,10 +305,6 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
     setTextureMetadata(&ren.textures);
     ren.textureArray = makeTextureArray({256, 256}, &ren.textures, TextureTypes::World, FileSystem.assets.get(), TextureUnit::MyTextureArray);
     ren.textureAtlas = makeTextureAtlas(&ren.textures, TextureTypes::World, FileSystem.assets.get(), GL_NEAREST, GL_NEAREST, TextureUnit::MyTextureAtlas);
-
-    /* Init Shaders */
-    ren.shaders = {};
-    setupShaders(&ren);
     
     /* Init text stuff */
     initFreetype();
@@ -339,6 +337,7 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
     ren.worldQuadRenderer = QuadRenderer(0);
 
     TextureAtlas guiAtlas = makeTextureAtlas(&ren.textures, TextureTypes::Gui | TextureTypes::World, FileSystem.assets.get(), GL_LINEAR, GL_LINEAR, TextureUnit::GuiAtlas);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     RenderOptions guiOptions = {
         .size = {screenWidth, screenHeight}, // won't render if not set later
         .scale = 1.0f
@@ -352,7 +351,6 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
     GL::logErrors();
 
     /* Tilemap rendering setup */
-
     auto& chunkModel = ren.chunkModel;
     
     chunkModel.vao = setupVAO();
@@ -379,6 +377,10 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
     //resizeRenderBuffer(ren.framebuffer, {screenWidth, screenHeight});
 
     ren.renderSystem = new RenderSystem();
+
+    /* Init Shaders */
+    ren.shaders = {};
+    setupShaders(&ren);
 }
 
 void renderQuit(RenderContext& ren) {
@@ -492,6 +494,15 @@ static void renderWorld(RenderContext& ren, Camera& camera, GameState* state, Ve
     ren.worldGuiRenderer.flush(ren.shaders, camera.getTransformMatrix());
 }
 
+// Binds the newly made texture on the active texture unit
+GLuint makeTexture(glm::vec2 size, const void* data, GLenum type, GLint internalFormat, GLenum format) {
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, size.x, size.y, 0, format, type, data);
+    return texture;
+}
+
 RenderBuffer makeRenderBuffer(glm::ivec2 size) {
     /* Make fbo */
     GLuint fbo;
@@ -501,13 +512,25 @@ RenderBuffer makeRenderBuffer(glm::ivec2 size) {
     /* Make color attachment (texture) */
     GLuint texture;
     glGenTextures(1, &texture);
-    glActiveTexture(GL_TEXTURE0 + TextureUnit::Screen);
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::Screen0);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);  
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size.x, size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);  
+
+    /* Make texture for storing pixel velocities */
+    // Old pixel position is stored for each pixel
+    GLuint velocityTexture;
+    glGenTextures(1, &velocityTexture);
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::Screen1);
+    glBindTexture(GL_TEXTURE_2D, velocityTexture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_SHORT, NULL);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, velocityTexture, 0);  
 
     /* Make depth attachment with render buffer */
     GLuint rbo;
@@ -524,21 +547,31 @@ RenderBuffer makeRenderBuffer(glm::ivec2 size) {
     //glBindFramebuffer(GL_FRAMEBUFFER, 0);
     GL::logErrors();
 
-    return RenderBuffer{fbo, rbo, texture};
+    return RenderBuffer{fbo, rbo, texture, velocityTexture};
 }
 
 void resizeRenderBuffer(RenderBuffer renderBuffer, glm::ivec2 newSize) {
-    glActiveTexture(GL_TEXTURE0 + TextureUnit::Screen);
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::Screen0);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, newSize.x, newSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glActiveTexture(GL_TEXTURE0 + TextureUnit::Screen1);
+    glBindTexture(GL_TEXTURE_2D, renderBuffer.velocityTexture);
+    char* zeroes = (char*)malloc(newSize.x * newSize.y * 24);
+    //memset(zeroes, 0, newSize.x * newSize.y * 24);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, newSize.x, newSize.y, 0, GL_RGBA, GL_UNSIGNED_SHORT, NULL);
+    free(zeroes);
 
-    //glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer.rbo);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, newSize.x, newSize.y);
     glActiveTexture(GL_TEXTURE0);
+
+    GL::logErrors();
+
+    LogInfo("Resized render buffer!");
 }
 
 void destroyRenderBuffer(RenderBuffer renderBuffer) {
     glDeleteRenderbuffers(1, &renderBuffer.rbo);
     glDeleteTextures(1, &renderBuffer.colorTexture);
+    glDeleteTextures(1, &renderBuffer.velocityTexture);
     glDeleteFramebuffers(1, &renderBuffer.fbo);
 }
 
@@ -577,7 +610,7 @@ void renderWorldRenderBuffer(RenderContext& ren, const Camera& camera) {
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* state, Camera& camera, Vec2 playerTargetPos, Mode mode, bool doRenderWorld) {
+void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* state, Camera& camera, const PlayerControls& controls, Mode mode, bool doRenderWorld) {
     GL::logErrors();    
     auto& shaders = ren.shaders;
 
@@ -602,24 +635,36 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     if (true) {
         glBindFramebuffer(GL_FRAMEBUFFER, ren.framebuffer.fbo);
 
-        glClearColor(0.5f, 0.5f, 0.8f, 1.0f);
+        GLenum buffers[] = {
+            GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1
+        };
+        //glDrawBuffers(2, buffers);
+
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        /*
+        GLenum buffers2[] = {
+            GL_COLOR_ATTACHMENT0
+        };
+        glDrawBuffers(sizeof(buffers2) / sizeof(GLenum), buffers2);
+        */
+        
         glEnable(GL_DEPTH_TEST);
 
-        renderWorld(ren, camera, state, playerTargetPos);
+        renderWorld(ren, camera, state, controls.mouseWorldPos);
 
         if (getTick() == 3) {
-            resizeRenderBuffer(ren.framebuffer, glm::ivec2(options.size.x + 1, options.size.y));
+            //resizeRenderBuffer(ren.framebuffer, glm::ivec2(options.size.x + 1, options.size.y));
         }
 
-        resizeRenderBuffer(ren.framebuffer, glm::ivec2(options.size.x, options.size.y + 1));
+        //Buffer(ren.framebuffer, glm::ivec2(options.size.x, options.size.y + 1));
     }
 
     /* Second pass */
     glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
 
-    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // only need blending for points and stuff, not entities or tilemap
@@ -651,7 +696,7 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
 
     ren.guiRenderer.options = options;
 
-    Draw::drawGui(ren, camera, screenTransform, gui, state);
+    Draw::drawGui(ren, camera, screenTransform, gui, state, controls);
     GL::logErrors();
 
     //renderTexture(ren.shaders.get(Shaders::Texture), ren.font.atlasTexture);

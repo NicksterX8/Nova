@@ -42,7 +42,7 @@ constexpr size_t element_offset() {
     }
 }
 
-#define GEN_IDS(type, list, elNumName) enum : type { list, elNumName };
+#define GEN_IDS(name, type, list, elNumName) enum name : type { list, elNumName };
 //#define GEN_IDS_STARTING(type, list, elNumName, firstName, firstID) enum : type { firstName = firstID, list, elNumName };
 
 namespace GECS {

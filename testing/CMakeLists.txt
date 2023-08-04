@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.23.3)
 
 project(testing VERSION 1.0)
 
-add_compile_options(-g -Wall -std=c++17 -O2
+add_compile_options(-g -Wall -std=c++17
     -Wno-macro-redefined -Wno-unused-variable
     -Wliteral-conversion)
 

@@ -19,7 +19,8 @@ namespace TextureUnits {
         Font0,
         Font1,
         Random,
-        Screen,
+        Screen0,
+        Screen1,
         Available,
         Null = 255
     };
@@ -201,7 +202,7 @@ int updateTextureArray(TextureArray* textureArray, TextureManager* textures, Tex
 struct TextureAtlas {
     glm::ivec2 size;
     using TexCoord = glm::vec<2, GLushort>;
-    static constexpr TexCoord NullCoord = {UINT16_MAX, UINT16_MAX};
+    static constexpr TexCoord NullCoord = {-1, -1};
     struct Space {
         TexCoord min;
         TexCoord max;
