@@ -24,3 +24,5 @@ Grabable
 EntityTypeEC
 Fresh
 Special
+ViewBox
+Point

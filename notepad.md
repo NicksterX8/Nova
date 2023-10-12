@@ -11,3 +11,9 @@ Anyways, might do entity highlights and stuff, hotbar fix. k byee
 add texture rendering to quad renderer (change name?)
 
 fix issue with cursor rendering on the back of first character of new line instead of last character of old line
+
+should I make player position centered on bottom left or center?
+
+Text rendering stuff is fun but idk if it's the best thing to do right now. try make things playable first?
+
+make method for getting player center maybe

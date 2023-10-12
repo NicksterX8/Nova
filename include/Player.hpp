@@ -40,24 +40,14 @@ struct Player {
         entity = Entities::Player(ecs, startPosition, inventoryAllocator);
     }
 
-    Vec2 getSize() const {
-        if (entity.Exists(ecs)) {
-            auto size = entity.Get<EC::Size>(ecs);
-            if (size) {
-                return size->vec2();
-            }
-        }
-        return {1, 1};
+    template<class C>
+    const C* get() const {
+        return ecs->Get<C>(entity);
     }
 
-    Vec2 getPosition() const {
-        if (entity.Exists(ecs)) {
-            auto position = entity.Get<EC::Position>(ecs);
-            if (position)
-                return position->vec2();
-        }
-        return {NAN, NAN};
-        
+    template<class C>
+    C* get() {
+        return ecs->Get<C>(entity);
     }
 
     void setPosition(ChunkMap& chunkmap, Vec2 pos) {
@@ -65,7 +55,8 @@ struct Player {
             auto position = entity.Get<EC::Position>(ecs);
             if (position) {
                 Vec2 oldPosition = position->vec2();
-                *position = pos;
+                position->x = pos.x;
+                position->y = pos.y;
                 entityPositionChanged(&chunkmap, ecs, entity, oldPosition);
             }
         }
@@ -96,20 +87,23 @@ struct Player {
             MARK_START_ENTITY_CREATION(ecs);
             ecs->Add<
                 EC::Position,
-                EC::Size,
+                EC::ViewBox,
                 EC::Motion,
                 EC::Render
             >(sand);
 
             // adjust position by half a tile to make the tile's center spawn on top of the player,
             // instead of the top left corner 
-            *ecs->Get<EC::Position>(sand) = 
-                EC::Position(getPosition().x - 0.5f, getPosition().y - 0.5f);
-            *ecs->Get<EC::Size>(sand) = {1, 1};
+            Vec2 position = get<EC::Position>()->vec2() - Vec2{0.5f, 0.5f};
+
+            constexpr Vec2 size = {1.0f, 1.0f};
+            *ecs->Get<EC::ViewBox>(sand) = EC::ViewBottomLeft1x1;
+
             // adjust position by half a tile to make center of the sand go towards the aiming point,
             // instead of the top left corner
-            *ecs->Get<EC::Motion>(sand) = 
-                EC::Motion({aimingPosition.x - 0.5f, aimingPosition.y - 0.5f}, 2);
+            aimingPosition -= Vec2{0.5f, 0.5f};
+            constexpr float speed = 2.0f;
+            *ecs->Get<EC::Motion>(sand) = EC::Motion(aimingPosition, speed);
             *ecs->Get<EC::Render>(sand) = EC::Render(TextureIDs::Tiles::Sand, RenderLayers::Particles);
             MARK_END_ENTITY_CREATION(ecs);
             return true;
@@ -121,7 +115,7 @@ struct Player {
         if (heldItemStack)
         if (heldItemStack->item.type == ItemTypes::Grenade && heldItemStack->quantity > 0) {
             if (grenadeThrowCooldown <= 0) {
-                Entities::ThrownGrenade(ecs, getPosition(), aimingPosition);
+                Entities::ThrownGrenade(ecs, get<EC::Position>()->vec2(), aimingPosition);
                 grenadeThrowCooldown = GrenadeCooldown;
                 heldItemStack->reduceQuantity(1);
                 return true;

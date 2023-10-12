@@ -17,7 +17,7 @@ float getLayerHeight(int layer) {
 
 struct RenderSystem {
     typedef ECS::EntityQuery<
-        ECS::RequireComponents<EC::Render, EC::Size, EC::Position>
+        ECS::RequireComponents<EC::Render, EC::Position, EC::ViewBox>
     > Query;
 
     float scale = 1.0f;
@@ -92,13 +92,20 @@ struct RenderSystem {
         *buffer = {};
     }
 
-    using ECS_t = ComponentManager<EC::Render, const EC::Size, const EC::Position, const EC::Health, const EC::Rotation>;
+    using ECS_t = ComponentManager<EC::Render, const EC::ViewBox, const EC::Health, const EC::Rotation>;
 
     bool renderEntity(Entity entity, const ECS_t& ecs, const TextureAtlas* textureAtlas, RenderContext& ren, VertexDataArrays buffer, int& entityCounter) {
         /* Get necessary entity data */
-        auto position =  ecs.Get<const EC::Position>(entity)->vec2();
-        auto renderEC =  ecs.Get<const EC::Render>(entity);
-        auto size     = *ecs.Get<const EC::Size>(entity);
+        auto position = ecs.Get<const EC::Position>(entity)->vec2();
+        auto viewbox  = ecs.Get<const EC::ViewBox>(entity);
+        auto renderEC = ecs.Get<const EC::Render>(entity);
+        if (!viewbox || !renderEC) {
+            LogError("necessary components not found when rendering entity!");
+            return false;
+        }
+
+        Vec2 entityCenter = position + viewbox->center();
+        Vec2 entitySize = viewbox->size;
 
         float rotation = 0.0f;
         if (ecs.EntityHas<EC::Rotation>(entity)) {
@@ -112,10 +119,10 @@ struct RenderSystem {
         glm::vec<2, GLushort> texMin = space.min;
         glm::vec<2, GLushort> texMax = space.max;
 
-        float w = size.width  / 2.0f;
-        float h = size.height / 2.0f;
+        float w = entitySize.x / 2.0f;
+        float h = entitySize.y / 2.0f;
 
-        glm::vec3 p = glm::vec3(position.x, position.y, getLayerHeight(renderEC->layer));
+        glm::vec3 p = glm::vec3(entityCenter, getLayerHeight(renderEC->layer));
         
         glm::vec3 vertexPosition = {
             p.x,   p.y,   p.z,
@@ -172,13 +179,6 @@ struct RenderSystem {
     }
 
     void Update(const ECS_t& ecs, const ChunkMap& chunkmap, RenderContext& ren, Camera& camera) {
-        /*
-        GLenum buffers[] = {
-            GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1
-        };
-        glDrawBuffers(2, buffers);
-        */
-
         auto camTransform = camera.getTransformMatrix();
 
         auto shader = ren.shaders.use(Shaders::Entity);
@@ -197,10 +197,13 @@ struct RenderSystem {
         const auto* textureData = ren.textures.data.data;
 
         int entityCounter = 0, entitiesRendered = 0;
+        // TODO: make this betterd
+        Vec2 viewSize = camera.maxCorner() - camera.minCorner();
+        Vec2 bottomLeft = Vec2(camera.position) - viewSize / 2.0f;
+        Vec2 bottomRight = bottomLeft + viewSize;
         forEachEntityInBounds(ecs, &chunkmap, 
-            camera.position,
-            camera.maxCorner() - camera.minCorner(), 
-        [&](EntityT<EC::Position> entity){
+            {{bottomLeft, bottomRight}}, 
+        [&](Entity entity){
             if (Query::Check(ecs.EntitySignature(entity))) {
                 entitiesRendered += (int)renderEntity(entity, ecs, textureAtlas, ren, buffer, entityCounter);
             }
@@ -224,12 +227,5 @@ struct RenderSystem {
             });
             LogInfo("rendered %d ids", nRenderedIDs);
         }
-
-        /*
-        GLenum buffers2[] = {
-            GL_COLOR_ATTACHMENT0
-        };
-        glDrawBuffers(1, buffers2);
-        */
     }
 };

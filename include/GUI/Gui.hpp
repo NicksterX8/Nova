@@ -53,8 +53,9 @@ struct Console {
     int logHistoryIndex = -1; // going through the log, to retype and old message, this index is for seeing what message its on. -1 means not using the log history currently
     int selectedCharIndex = 0;
 
-    #define CONSOLE_LOG_NEW_MESSAGE_OPEN_DURATION secondsToTicks(8)
-    Tick tLastMessageSent = NullTick;
+    #define CONSOLE_LOG_NEW_MESSAGE_OPEN_DURATION 6.0 // seconds
+    double timeLastMessageSent = NAN;
+    double timeLastCursorMove = NAN;
 
     bool showLog = false;
     bool promptOpen = false;
@@ -81,7 +82,14 @@ struct Console {
         SDL_Color color = typeColors[(int)type];
 
         logTextColors.push(color);
-        tLastMessageSent = getTick();
+        timeLastMessageSent = Metadata->seconds();
+    }
+
+    void moveCursor(int index) {
+        int min = MIN(index, activeMessage.size());
+        index = MAX(min, -1);
+        selectedCharIndex = index;
+        timeLastCursorMove = Metadata->seconds();
     }
 
     // will clamp indices below or above the limit to an empty message or oldest message, respectively
@@ -120,13 +128,13 @@ struct Console {
         activeMessage = msg ? std::string(msg) : "";
         logHistoryIndex = i; // we set the new index to i, not historyIndex because we might not actually end up on that one,
         // if the index is too great (see method desc)
-        selectedCharIndex = activeMessage.size();
+        moveCursor(activeMessage.size());
     }
 
-    void insertChar(char c) {
+    void enterChar(char c) {
         int index = MAX(MIN(selectedCharIndex, activeMessage.size()), 0);
         activeMessage.insert(index, 1, c);
-        selectedCharIndex++;
+        moveCursor(selectedCharIndex + 1);
     }
 
     void enterText(const char* text) {
@@ -134,7 +142,7 @@ struct Console {
         int index = MAX(MIN(selectedCharIndex, activeMessage.size()), 0);
         int textLen = strlen(text);
         activeMessage.insert(index, text);
-        selectedCharIndex += textLen;
+        moveCursor(selectedCharIndex + textLen);
     }
 
     CommandInput handleKeypress(SDL_Keycode keycode, ArrayRef<Command> possibleCommands) {
@@ -158,13 +166,13 @@ struct Console {
             if (!activeMessage.empty()) {
                 if (selectedCharIndex > 0) {
                     activeMessage.erase(MIN(selectedCharIndex-1, activeMessage.size()-1), 1);
-                    selectedCharIndex--;
+                    moveCursor(selectedCharIndex - 1);
                 }
             }
             break;
         case SDLK_TAB:
-            insertChar('\t');
-            break;
+            enterChar('\t');
+        break;
         case SDLK_UP:
             moveLoggedMessage(1);
             break;
@@ -172,10 +180,10 @@ struct Console {
             moveLoggedMessage(-1);
             break;
         case SDLK_LEFT:
-            selectedCharIndex = MAX(selectedCharIndex-1, 0);
+            moveCursor(MAX(selectedCharIndex - 1, 0));
             break;
         case SDLK_RIGHT:
-            selectedCharIndex = MIN(selectedCharIndex+1, activeMessage.size());
+            moveCursor(MIN(selectedCharIndex + 1, activeMessage.size()));
             break;
         } // end keycode switch
 

@@ -61,7 +61,7 @@ namespace Entities {
         return inserter;
     }
 
-    Entity Enemy(EntityWorld* ecs, Vec2 position, EntityT<EC::Position> following) {
+    Entity Enemy(EntityWorld* ecs, Vec2 position, Entity following) {
         Entity enemy = ecs->New("enemy");
         ecs->Add<EC::Position>(enemy, position);
         ecs->Add<EC::Health>(enemy, {100.0f});

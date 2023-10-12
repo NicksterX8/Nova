@@ -101,6 +101,96 @@ struct Growth : EntityComponent<Growth>, Serializable<Growth> {
     Growth(float Growth) : growth(Growth) {}
 };
 
+struct ViewBox : EntityComponent<ViewBox>, Serializable<ViewBox> {
+    Vec2 min;
+    Vec2 size;
+
+    Vec2 max() const {
+        return min + size;
+    };
+
+    constexpr ViewBox(Vec2 min, Vec2 size) : min(min), size(size) {}
+
+    static constexpr ViewBox BottomLeft(Vec2 size) {
+        return ViewBox(Vec2{0.0f, 0.0f}, size);
+    }
+
+    static constexpr ViewBox Centered(Vec2 size) {
+        return ViewBox(size/2.0f, size);
+    }
+
+    Vec2 center() const {
+        return min + size * 0.5f;
+    }
+
+    FRect rect() const {
+        return FRect{
+            min.x,
+            min.y,
+            size.x,
+            size.y
+        };
+    }
+};
+
+constexpr EC::ViewBox ViewBottomLeft1x1 = {
+    Vec2{0.0f, 0.0f},
+    Vec2{1.0f, 1.0f}
+};
+
+constexpr EC::ViewBox ViewCenter1x1 = {
+    Vec2{0.5f, 0.5f},
+    Vec2{1.0f, 1.0f}
+};
+
+struct CollisionBox : EntityComponent<CollisionBox>, Serializable<CollisionBox> {
+    Vec2 min;
+    Vec2 size;
+
+    Vec2 max() const {
+        return min + size;
+    };
+
+    constexpr CollisionBox(Vec2 min, Vec2 size) : min(min), size(size) {}
+
+    static constexpr CollisionBox BottomLeft(Vec2 size) {
+        return CollisionBox(Vec2{0.0f, 0.0f}, size);
+    }
+
+    static constexpr CollisionBox Centered(Vec2 size) {
+        return CollisionBox(size/2.0f, size);
+    }
+
+    Vec2 center() const {
+        return min + size * 0.5f;
+    }
+
+    FRect rect() const {
+        return FRect{
+            min.x,
+            min.y,
+            size.x,
+            size.y
+        };
+    }
+};
+
+constexpr EC::CollisionBox CollisionBottomLeft1x1 = {
+    Vec2{0.0f, 0.0f},
+    Vec2{1.0f, 1.0f}
+};
+
+constexpr EC::CollisionBox CollisionCenter1x1 = {
+    Vec2{0.5f, 0.5f},
+    Vec2{1.0f, 1.0f}
+};
+
+struct Point : EntityComponent<Point>, Serializable<Point> {
+    Vec2 p;
+
+    Point(Vec2 p) : p(p) {}
+};
+
 struct Position : EntityComponent<Position>, Serializable<Position> {
     float x;
     float y;
@@ -112,6 +202,7 @@ struct Position : EntityComponent<Position>, Serializable<Position> {
         return Vec2(x, y);
     }
 };
+
 
 struct Size : EntityComponent<Size>, Serializable<Size> {
     float width;
@@ -275,10 +366,10 @@ struct Rotatable : EntityComponent<Rotatable>, Serializable<Rotatable> {
 // Entity that must have components
 
 struct Follow : EntityComponent<Follow>, Serializable<Follow> {
-    EntityT<EC::Position> entity;
+    Entity entity;
     float speed;
 
-    Follow(EntityT<EC::Position> following, float speed)
+    Follow(Entity following, float speed)
     : entity(following), speed(speed) {
         
     }

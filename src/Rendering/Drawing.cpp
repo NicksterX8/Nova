@@ -2,72 +2,96 @@
 #include "utils/Debug.hpp"
 #include "PlayerControls.hpp"
 
-/*
-int Draw::drawChunkBorders(SDL_Renderer* renderer, float scale, const GameViewport* gameViewport) {
-    float distanceToChunkX = fmod(gameViewport->world.x, CHUNKSIZE);
-    float firstChunkX = gameViewport->world.x - distanceToChunkX;
-    float distanceToChunkY = fmod(gameViewport->world.y, CHUNKSIZE);
-    float firstChunkY = gameViewport->world.y - distanceToChunkY;
-    Vec2 borderScreenPos = gameViewport->worldToPixelPositionF({firstChunkX, firstChunkY});
-    int nLinesDrawn = 0;
-    for (; borderScreenPos.x < gameViewport->displayRightEdge(); borderScreenPos.x += TileWidth * CHUNKSIZE) {
-        debugVLine(renderer, borderScreenPos.x, gameViewport->display.y, gameViewport->displayBottomEdge(), scale);
-        nLinesDrawn++;
-    }
-    for (; borderScreenPos.y < gameViewport->displayBottomEdge(); borderScreenPos.y += TileHeight * CHUNKSIZE) {
-        // SDL_RenderDrawLineF(renderer, gameViewport->display.x, borderScreenPos.y, gameViewport->displayRightEdge(), borderScreenPos.y);
-        debugHLine(renderer, borderScreenPos.y, gameViewport->display.x, gameViewport->displayRightEdge(), scale);
-        nLinesDrawn++;
-    }
-    return nLinesDrawn;
+vao_vbo_t Draw::makePointVertexAttribArray() {
+    unsigned int vbo,vao;
+    glGenBuffers(1, &vbo);
+    glGenVertexArrays(1, &vao);
+
+    glBindVertexArray(vao);
+
+    constexpr GLsizei stride = sizeof(ColoredPoint);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    // position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
+    glEnableVertexAttribArray(0);
+    // color
+    glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, stride, (void*)(3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
+    // point size
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(GLfloat) + sizeof(SDL_Color)));
+    glEnableVertexAttribArray(2);
+
+    return {vao, vbo};
 }
 
+void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec3* points, const SDL_Color* colors, const GLfloat* lineWidths) {
+    QuadRenderer::Quad* quads = renderer.renderManual(numLines);
+    for (GLuint i = 0; i < numLines; i++) {
+        GLuint ind = i * 4;
+        glm::vec2 p1 = points[i*2];
+        glm::vec2 p2 = points[i*2+1];
+        glm::vec2 d = p2 - p1;
+        glm::vec2 offset = glm::normalize(glm::vec2(-d.y, d.x)) * lineWidths[i] / 2.0f;
 
-int Draw::chunkBorders(float scale, Camera& camera) {
-    const float z = 0.5f;
-    float distanceToChunkX = fmod(camera.position.x, CHUNKSIZE);
-    float firstChunkX = camera.position.x - distanceToChunkX;
-    float distanceToChunkY = fmod(camera.position.y, CHUNKSIZE);
-    float firstChunkY = camera.position.y - distanceToChunkY;
-    Vec2 borderScreenPos = camera.worldToPixel({firstChunkX, firstChunkY});
-    int nLinesDrawn = 0;
-    int linesToDraw = ceil((camera.displayViewport.x + camera.displayViewport.w - borderScreenPos.x) / (TileWidth * CHUNKSIZE)) +
-        ceil((camera.displayViewport.y + camera.displayViewport.h - borderScreenPos.y) / (TileHeight * CHUNKSIZE));
-    glm::vec3* linePoints = new glm::vec3[linesToDraw*2];
-    for (; borderScreenPos.x < camera.displayViewport.x + camera.displayViewport.w; borderScreenPos.x += TileWidth * CHUNKSIZE) {
-        linePoints[nLinesDrawn * 2]   = {borderScreenPos.x, camera.displayViewport.y, z};
-        linePoints[nLinesDrawn * 2+1] = {borderScreenPos.x, camera.displayViewport.y + camera.displayViewport.h, z};
-        nLinesDrawn++;
+        for (int j = 0; j < 4; j++) {
+            quads[ind][j].color = colors[i];
+            quads[ind][j].texCoord = {0, 0};
+        }
+        
+        quads[ind][0].pos = {p1 + offset, points[i*2].z};
+        quads[ind][1].pos = {p1 - offset, points[i*2].z};
+        quads[ind][2].pos = {p2 - offset, points[i*2+1].z};
+        quads[ind][3].pos = {p2 + offset, points[i*2+1].z};
     }
-    for (; borderScreenPos.y < camera.displayViewport.y + camera.displayViewport.h; borderScreenPos.y += TileHeight * CHUNKSIZE) {
-        linePoints[nLinesDrawn * 2]   = {borderScreenPos.y, camera.displayViewport.x, z};
-        linePoints[nLinesDrawn * 2+1] = {borderScreenPos.y, camera.displayViewport.x + camera.displayViewport.w, z};
-        nLinesDrawn++;
+}
+
+void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec3* points, SDL_Color color, const GLfloat* lineWidths) {
+    QuadRenderer::Quad* quads = renderer.renderManual(numLines);
+    for (GLuint i = 0; i < numLines; i++) {
+        GLuint ind = i * 4;
+        glm::vec2 p1 = points[i*2];
+        glm::vec2 p2 = points[i*2+1];
+        glm::vec2 d = p2 - p1;
+        glm::vec2 offset = glm::normalize(glm::vec2(-d.y, d.x)) * lineWidths[i] / 2.0f;
+
+        for (int j = 0; j < 4; j++) {
+            quads[ind][j].color = color;
+            quads[ind][j].texCoord = {0, 0};
+        }
+        
+        quads[ind][0].pos = {p1 + offset, points[i*2].z};
+        quads[ind][1].pos = {p1 - offset, points[i*2].z};
+        quads[ind][2].pos = {p2 - offset, points[i*2+1].z};
+        quads[ind][3].pos = {p2 + offset, points[i*2+1].z};
     }
-    glm::vec4* lineColors = new glm::vec4[linesToDraw];
-    GLfloat* lineWidths = new GLfloat[linesToDraw];
-    for (GLuint i = 0; i < linesToDraw; i++) {
-        lineColors[i] = glm::vec4(1, 1, 0, 0.5);
-        lineWidths[i] = scale;
+}
+
+void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec3* points, SDL_Color color, GLfloat lineWidth) {
+    QuadRenderer::Quad* quads = renderer.renderManual(numLines);
+    for (GLuint i = 0; i < numLines; i++) {
+        glm::vec2 p1 = points[i*2];
+        glm::vec2 p2 = points[i*2+1];
+        glm::vec2 d = p2 - p1;
+        glm::vec2 offset = glm::normalize(glm::vec2(-d.y, d.x)) * lineWidth / 2.0f;
+
+        for (int j = 0; j < 4; j++) {
+            quads[i][j].color = color;
+            quads[i][j].texCoord = QuadRenderer::NullCoord;
+        }
+        
+        quads[i][0].pos = {p1 + offset, points[i*2].z};
+        quads[i][1].pos = {p1 - offset, points[i*2].z};
+        quads[i][2].pos = {p2 - offset, points[i*2+1].z};
+        quads[i][3].pos = {p2 + offset, points[i*2+1].z};
     }
-    if (linesToDraw != nLinesDrawn) {
-        printf("lines to draw is incorrect! linesToDraw: %d. nLinesDrawn: %d\n", linesToDraw, nLinesDrawn);
-    }
-    Draw::lines(nLinesDrawn, linePoints, lineColors, lineWidths);
-    return nLinesDrawn;
-}*/
+}
 
 int Draw::chunkBorders(QuadRenderer& renderer, const Camera& camera, SDL_Color color, float pixelLineWidth, float z) {
-    glm::vec2 cameraMin = camera.minCorner();
-    glm::vec2 cameraMax = camera.maxCorner();
-    glm::ivec2 minChunkPos = toChunkPosition(cameraMin);
-    glm::ivec2 maxChunkPos = toChunkPosition(cameraMax);
-
-    
-
-    // TODO: Rewrite this allowing camera rotation to exist
-
-    /*
+    Boxf cameraBounds = camera.maxBoundingArea();
+    glm::ivec2 minChunkPos = toChunkPosition(cameraBounds[0]);
+    glm::ivec2 maxChunkPos = toChunkPosition(cameraBounds[1]);
 
     int numLines = maxChunkPos.x - minChunkPos.x + maxChunkPos.y - minChunkPos.y + 2;
     int lineIndex = 0;
@@ -75,22 +99,20 @@ int Draw::chunkBorders(QuadRenderer& renderer, const Camera& camera, SDL_Color c
     assert(numLines >= 0);
     glm::vec3* points = new glm::vec3[numLines*2];
     for (int y = minChunkPos.y; y <= maxChunkPos.y; y++) {
-        points[lineIndex*2] = glm::vec3(cameraMin.x, y * CHUNKSIZE, z);
-        points[lineIndex*2+1] = glm::vec3(cameraMax.x, y * CHUNKSIZE, z);
+        points[lineIndex*2] = glm::vec3(cameraBounds[0].x, y * CHUNKSIZE, z);
+        points[lineIndex*2+1] = glm::vec3(cameraBounds[1].x, y * CHUNKSIZE, z);
         lineIndex++;
     }
     for (int x = minChunkPos.x; x <= maxChunkPos.x; x++) {
-        points[lineIndex*2] = glm::vec3(x * CHUNKSIZE, cameraMin.y, z);
-        points[lineIndex*2+1] = glm::vec3(x * CHUNKSIZE, cameraMax.y, z);
+        points[lineIndex*2] = glm::vec3(x * CHUNKSIZE, cameraBounds[0].y, z);
+        points[lineIndex*2+1] = glm::vec3(x * CHUNKSIZE, cameraBounds[1].y, z);
         lineIndex++;
     }
 
-    Draw::thickLines(renderer, numLines, points, color, pixelLineWidth / camera.scale());
+    Draw::thickLines(renderer, numLines, points, color, pixelLineWidth / camera.worldScale());
     delete[] points;
 
     return numLines;
-    */
-    return 0;
 }
 
 void Draw::drawFpsCounter(TextRenderer& renderer, float fps, RenderOptions options) {
@@ -105,13 +127,13 @@ void Draw::drawFpsCounter(TextRenderer& renderer, float fps, RenderOptions optio
 
     // if fps is negative or NaN somehow, it will be black
     SDL_Color color = {0,0,0,255};
-    if (fps > 120.0f) {
+    if (fps > 110.0f) {
         color = {0, 255, 0, 255};
-    } else if (fps > 60.0f) {
+    } else if (fps > 54.0f) {
         color = {0, 200, 0, 255};
-     } else if (fps > 40.0f) {
+     } else if (fps > 36.0f) {
         color = {205, 150, 0, 255};
-     } else if (fps > 20.0f) {
+     } else if (fps > 18.0f) {
         color = {235, 60, 0, 255};
      } else if (fps > 0.0f) {
         color = {255, 0, 0, 255};
@@ -147,7 +169,7 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
         int selectedCharIndex = console->selectedCharIndex;
         FRect activeMessageRect = {0, 0, activeMsgMinWidth, activeMsgMinHeight};
         if (!console->activeMessage.empty()) {
-            TextFormattingSettings formatting(TextAlignment::BottomLeft, maxWidth, maxHeight); // active message max width is only the screen width
+            TextFormattingSettings formatting(TextAlignment::BottomLeft, maxWidth - activeMsgBorder.x, maxHeight - activeMsgBorder.y); // active message max width is only the screen width
             formatting.wrapOnWhitespace = true;
             TextRenderingSettings rendering(GUI::Console::activeTextColor, glm::vec2(renderer.textScale()));
             llvm::SmallVector<glm::vec2> characterPositions(console->activeMessage.size());
@@ -174,22 +196,29 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
         renderer.colorRect(activeMessageRect, activeMessageBackground);
         
         // render cursor
-        double secondsFlashInterval = 0.5;
-        if (fmod(Metadata->seconds(), 2 * secondsFlashInterval) > secondsFlashInterval) {
-            const auto cursorSize = renderer.pixels({2.0f, renderer.text->lineHeight()});
+        constexpr double flashDelay = 0.5;
+        static double timeTilFlash = flashDelay;
+        constexpr double flashDuration = 0.5;
+        timeTilFlash -= Metadata->deltaTime / 1000.0; // subtract time in seconds from time
+        double secondsSinceCursorMove = Metadata->seconds() - console->timeLastCursorMove;
+        if (secondsSinceCursorMove < flashDuration) timeTilFlash = -secondsSinceCursorMove;
+        if (timeTilFlash < 0.0) {
             FRect cursor = {
                 selectedCharPos.x,
                 selectedCharPos.y + renderer.text->getFont()->descender(),
-                cursorSize.x,
-                cursorSize.y
+                renderer.pixels(2.0f),
+                renderer.text->lineHeight()
             };
             renderer.colorRect(cursor, GUI::Console::activeTextColor, 0.9f);
+            if (timeTilFlash < -flashDuration) {
+                timeTilFlash = flashDelay;
+            }
         }
         
         logOffsetY = activeMessageRect.y + activeMessageRect.h;
     }
 
-    if (console->promptOpen || tickDelta(console->tLastMessageSent, tickDelay(-CONSOLE_LOG_NEW_MESSAGE_OPEN_DURATION)) == TickBefore) {
+    if (console->promptOpen || Metadata->seconds() - console->timeLastMessageSent < CONSOLE_LOG_NEW_MESSAGE_OPEN_DURATION) {
         // Render console log
         SDL_Color logBackground = {90, 90, 90, 150};
         renderer.textBox(console->log, 10, console->logTextColors, {0, logOffsetY}, TextAlignment::BottomLeft, logBackground, renderer.pixels({20, 20}), {logMaxWidth, maxHeight});

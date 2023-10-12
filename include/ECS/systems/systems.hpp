@@ -150,22 +150,19 @@ public:
     void Update(const EntityWorld& ecs, ChunkMap* chunkmap) {
         ecs.ForEach< EntityQuery< ECS::RequireComponents<EC::Motion, EC::Position> > >(
         [&](auto entity){
-            auto positionComponent = ecs.Get<EC::Position>(entity);
-            Vec2 position = positionComponent->vec2();
+            auto viewbox = ecs.Get<EC::ViewBox>(entity);
             Vec2 target = ecs.Get<EC::Motion>(entity)->target;
-            Vec2 delta = target - position;
+            Vec2 delta = target - viewbox->min;
             float speed = ecs.Get<EC::Motion>(entity)->speed;
             Vec2 unit = glm::normalize(delta) * speed;
 
             if (delta.length() < speed) {
-                positionComponent->x = target.x;
-                positionComponent->y = target.y;
+                viewbox->min = target;
             } else {
-                positionComponent->x += unit.x;
-                positionComponent->y += unit.y;
+                viewbox->min += unit;
             }
 
-            entityPositionChanged(chunkmap, &ecs, entity.template cast<EC::Position>(), position);
+            entityPositionChanged(chunkmap, &ecs, entity, viewbox->min);
         });
     }
 };

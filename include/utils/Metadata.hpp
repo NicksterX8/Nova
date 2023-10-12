@@ -20,7 +20,7 @@ struct MetadataTracker {
     double perfCountCurrentTick; // performance count of the tick that has not yet finished
     double perfCountLastTick; // performance count of the last finished tick
     FrameCount _frames; // the number of frames that have passed
-    Uint32 startTicks; // The start time of the game in ticks
+    Uint64 startTicks; // The start time of the game in ticks
 public:
     bool vsyncEnabled;
 
@@ -30,7 +30,7 @@ public:
     * Mark the start time of the application, for better tracking of various data (like start time)
     * @return The current time in ticks.
     */ 
-    Uint32 start();
+    Uint64 start();
 
     /*
     * Mark the end of the application's main loop.
@@ -58,8 +58,7 @@ public:
     }
 
     // Get the start time (when start() was called) of the game in ticks.
-    Uint32 getStartTicks() const;
-
+    Uint64 getStartTicks() const;
 };
 
 extern const MetadataTracker* Metadata;

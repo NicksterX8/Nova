@@ -359,22 +359,18 @@ struct EntityManager {
         return false;
     }
 
-    int AddSignature(Entity entity, ComponentFlags signature) {
+    ComponentFlags AddSignature(Entity entity, ComponentFlags signature) {
         if (!EntityExists(entity)) {
             LogError("Attempted to add components to a non-existent entity! Entity: %s", entity.DebugStr());
-            return -1;
+            return {0};
         }
         
         // just in case the same component is tried to be added twice
         ComponentFlags* components = &entityDataList[entity.id].flags;
         *components |= signature;
-        int code = 0;
-        for (ComponentID id = 0; id < nComponents; id++) {
-            if (signature[id])
-                code |= pools[id].add(entity.id);
-        }
+        ComponentFlags addedComponents = {0};
         signature.forEachSet([&](uint32_t id){
-            code |= pools[id].add(entity.id);
+            addedComponents.set(id, pools[id].add(entity.id));
         });
         /*
         for (int i = 0; i < signature.nInts; i++) {
@@ -391,7 +387,7 @@ struct EntityManager {
             }
         }
         */
-        return code;
+        return addedComponents;
     }
 
     int RemoveComponents(Entity entity, ComponentID* componentIDs, Uint32 numComponentIDs) {

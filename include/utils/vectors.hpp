@@ -5,6 +5,7 @@
 #include <glm/vec3.hpp>
 #include <math.h>
 #include <SDL2/SDL_rect.h>
+#include <array>
 
 using Vec2 = glm::vec2;
 using IVec2 = glm::ivec2;
@@ -48,15 +49,20 @@ inline bool pointInRect(IVec2 p, Rect rect) {
     );
 }
 
-struct iRect {
-    glm::ivec2 pos;
-    glm::ivec2 size;
+/*
+struct Boxi {
+    glm::ivec2 min;
+    glm::ivec2 max;
 };
 
-struct fRect {
-    glm::vec2 pos;
-    glm::vec2 size;
+struct Boxf {
+    glm::vec2 min;
+    glm::vec2 max;
 };
+*/
+
+using Boxf = std::array<glm::vec2, 2>; // array with min and max vertices
+using Boxi = std::array<glm::ivec2, 2>; // array with min and max vertices
 
 inline Vec2 vecFloor(Vec2 vec) {
     return {floor(vec.x), floor(vec.y)};

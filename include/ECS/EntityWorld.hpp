@@ -272,9 +272,15 @@ public:
         return ret;
     }
 
-    int AddSignature(Entity entity, ECS::ComponentFlags signature) {
-        // TODO: idk
-        UNFINISHED_CRASH();
+    bool AddSignature(Entity entity, ECS::ComponentFlags signature) {
+        auto addedComponents = em.AddSignature(entity, signature);
+        addedComponents.forEachSet([&](ComponentID component){
+            auto& onAddT = callbacksOnAdd[component];
+            if (onAddT) {
+                deferredEvents.push_back({entity, onAddT});
+            }
+        });
+        return addedComponents == signature;
     }
 
     /* Add the template argument components to the entity.
@@ -407,10 +413,13 @@ public:
         std::stringstream ss(str);
         // TODO: for objects automatically parse out properties and stuff. make it an array
         // OR / AND REGEX? dont use std library one casue it sucks balllssss
+
         switch (component) {
+
+        
         CASE(Position): {
             if (empty) {
-                VALUE(Position, {0.0f, 0.0f});
+                VALUE(Position, {{0.0f, 0.0f}, });
             }
 
             float x,y;
@@ -422,6 +431,7 @@ public:
 
             VALUE(Position, {x, y});
         }
+        /*
         CASE(Size):
             if (empty) {
                 VALUE(Size, {0.0f, 0.0f});
@@ -435,6 +445,7 @@ public:
             ss >> height;
 
             VALUE(Size, {width, height});
+        */
         }
 
         return false;
@@ -474,10 +485,10 @@ public:
 
     template<class T>
     T* Get(Entity entity) const {
-        static_assert(ECS::componentInComponents<T, Components...>(), "component manager must be manager of component");
+        //static_assert(ECS::componentInComponents<T, Components...>(), "component manager must be manager of component");
         constexpr ComponentFlags mutSignature = ECS::componentMutSignature<Components...>();
         constexpr ECS::ComponentID id = ECS::getID<T>();
-        static_assert(mutSignature[id] || std::is_const<T>(), "need mutable signature to get mutable component");
+        //static_assert(mutSignature[id] || std::is_const<T>(), "need mutable signature to get mutable component");
         return ecs->Get<T>(entity);
     }
 

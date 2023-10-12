@@ -1,7 +1,6 @@
 #version 330 core
 
 layout (location = 0) out vec4 FragColor;
-layout (location = 1) out vec4 FragVelocity; 
 
 in vec2 TexCoord;
 in vec2 Velocity;
@@ -14,5 +13,5 @@ void main() {
         discard;
     }
 
-    FragVelocity = vec4(gl_FragCoord.x + 0.1, gl_FragCoord.y + 0.1, 0.0, 0.0);
+    //FragVelocity = vec4(gl_FragCoord.x + 0.1, gl_FragCoord.y + 0.1, 0.0, 0.0);
 }

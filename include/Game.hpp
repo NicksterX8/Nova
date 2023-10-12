@@ -38,7 +38,9 @@ struct Game {
     Mode mode;
 
     Game(SDLContext sdlContext):
-    sdlCtx(sdlContext), metadata(TARGET_FPS, true) {
+    sdlCtx(sdlContext), metadata(TARGET_FPS, ENABLE_VSYNC) {
+        Metadata = &metadata;
+
         debug = new DebugClass();
         Debug = debug;
         debug->debugging = DEBUG;

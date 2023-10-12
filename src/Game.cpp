@@ -70,6 +70,11 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
         new ToggleKeyBinding<bool>('c', &debug.settings.drawChunkCoordinates),
         new ToggleKeyBinding<bool>('[', &debug.settings.drawChunkEntityCount),
 
+        new FunctionKeyBinding('t', [&player, &playerControls, &chunkmap](){
+            // teleport
+            player.setPosition(chunkmap, playerControls.mouseWorldPos);
+        }),
+
         new FunctionKeyBinding('q', [&player](){
             player.releaseHeldItem();
         }),
@@ -417,7 +422,7 @@ int Game::handleEvent(const SDL_Event* event) {
         case SDL_CONTROLLERBUTTONDOWN: {
             Uint8 buttonPressed = event->cbutton.button;
             if (buttonPressed == SDL_CONTROLLER_BUTTON_A) {
-                playerControls->movePlayer(state, playerControls->mouseWorldPos - state->player.getPosition());
+                playerControls->movePlayer(state, playerControls->mouseWorldPos - state->player.get<EC::Position>()->vec2());
             }
         break;}
         default:
@@ -430,7 +435,7 @@ int Game::handleEvent(const SDL_Event* event) {
 
 int Game::update() {
     
-    constexpr double targetFPS = 60.0;
+    constexpr double targetFPS = TARGET_FPS;
     constexpr double fixedFrametime = 1000.0 / targetFPS;
     constexpr int maxUpdates = 3;
 
@@ -456,10 +461,6 @@ int Game::update() {
     auto frame = metadata.newFrame();
     double deltaTime = metadata.deltaTime;
 
-    if (deltaTime > 200.0) {
-        LogWarn("Slow frame! dt: %f", deltaTime);
-    }
-
     static double remainingTime = 0.0;
     remainingTime += deltaTime;
     
@@ -475,7 +476,17 @@ int Game::update() {
     }
 
     // update to new state from tick
-    Vec2 focus = state->player.getPosition();
+    auto* playerViewbox = state->player.get<EC::ViewBox>();
+    auto* playerPos = state->player.get<EC::Position>();
+    Vec2 focus = {0, 0};
+    if (playerPos) {
+        if (playerViewbox) {
+            focus = playerPos->vec2() + playerViewbox->center(); // focus on player center
+        } else {
+            // player has no viewbox for some reason, just use position
+            focus = playerPos->vec2();
+        }
+    }
 
     camera.position.x = focus.x;
     camera.position.y = focus.y;
@@ -560,8 +571,6 @@ void Game::destroy() {
 
 int Game::start() {
     // GameSave::load()
-
-    Metadata = &metadata;
 
     LogInfo("Starting!");
     mode = Playing;

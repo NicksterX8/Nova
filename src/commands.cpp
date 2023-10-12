@@ -35,7 +35,7 @@ namespace Commands {
                         objectDepth--;
                         if (objectDepth < 0) objectDepth = 0;
                     }
-                    else if (c == ' ') {
+                    else if (c == ' ' && (argsLen - i) > 1) {
                         if (objectDepth == 0) {
                             c = '\0';
                             argc++;
@@ -70,6 +70,15 @@ namespace Commands {
             }
             
             return std::string(arg, size);
+        }
+
+        Result require(int numArgs) {
+            if (argc < numArgs) {
+                return Result{"Too few arguments provided!"};
+            } else if (argc > numArgs) {
+                return Result{"Too many arguments provided!"};
+            }
+            return Result{};
         }
 
     };
@@ -118,6 +127,13 @@ namespace Commands {
         return {std::string(message)};
     }
 
+    Entity getEntity(std::string entityIdStr, EntityWorld* ecs) {
+        if (entityIdStr.empty()) return NullEntity;
+        EntityID entityID = atoi(entityIdStr.c_str());
+        EntityVersion version = ecs->GetEntityVersion(entityID);
+        return Entity(entityID, version);
+    }
+
     Result setComponent(Args args, EntityWorld* ecs) {
         auto entityIdStr = args.get();
         auto componentName = args.get();
@@ -127,8 +143,7 @@ namespace Commands {
             return {"Not enough arguments provided!"};
         }
 
-        EntityID entityID = atoi(entityIdStr.c_str());
-        Entity entity = Entity(entityID, ECS::WILDCARD_ENTITY_VERSION);
+        Entity entity = getEntity(entityIdStr, ecs);
         if (!ecs->EntityExists(entity)) {
             return {"That entity doesn't exist!"};
         }
@@ -229,6 +244,19 @@ namespace Commands {
         }
         return {"Invalid scale."};
     }
+    
+    #define REQUIRE(num_args) {auto result = args.require(num_args); if (!result.message.empty()) return result;}
+
+    Result clone(Args args, EntityWorld* ecs) {
+        REQUIRE(1);
+        auto entityIdStr = args.get();
+        Entity entity = getEntity(entityIdStr, ecs);
+        Entity clone  = Entities::clone(ecs, entity);
+        if (ecs->EntityExists(clone)) {
+            return Result{string_format("Entity successfully cloned! ID: %d", clone.id)};
+        }
+        return Result{"Failed to clone entity!"};
+    }
 }
 
 std::vector<Command> gCommands;
@@ -251,6 +279,7 @@ void setCommands(Game* game) {
     REG_COMMAND(showTexture, textures);
     REG_COMMAND(setFontScale, ren);
     REG_COMMAND(setComponent, ecs);
+    REG_COMMAND(clone, ecs);
     REG_COMMAND(reloadShader, ren);
 }
 

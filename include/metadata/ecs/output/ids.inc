@@ -22,3 +22,5 @@ template<> constexpr ID_Type getID<EC::Grabable>() { return 19; }
 template<> constexpr ID_Type getID<EC::EntityTypeEC>() { return 20; }
 template<> constexpr ID_Type getID<EC::Fresh>() { return 21; }
 template<> constexpr ID_Type getID<EC::Special>() { return 22; }
+template<> constexpr ID_Type getID<EC::ViewBox>() { return 23; }
+template<> constexpr ID_Type getID<EC::Point>() { return 24; }

@@ -11,7 +11,7 @@ in vec2 TexCoord;
 in vec2 Velocity;
 
 uniform sampler2D tex;
-uniform sampler2D velocityBuffer;
+//uniform sampler2D velocityBuffer;
 int numSamples;
 
 void main() {

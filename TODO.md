@@ -2,7 +2,7 @@
 
 ## Big picture
 - Move stuff to .cpp files 
-    - Player Controls needs this bad
+    √ Player Controls needs this bad
 - Multithreading??
 - bring back all the old systems
 - make stuff not extremely ugly like it is now
@@ -22,7 +22,6 @@
 - Make bound box entity component instead of "size"
 - fix motion blur for dynamic objects (use nvidia article)
 
-- bring back rendering chunk borders
 - Scrolling text box
 
 - gui texture rendering
@@ -70,21 +69,22 @@
 √ make types for console result messsages, with different colors (command fail, command success, etc)
 √ allow moving the console cursor with left and right arrow keys
 √ log errors to in game console as well as regular one
+√ bring back rendering chunk borders
 
 ----------
 
 ## Bugs:
 - Entities on chunk borders can be rendered multiple times
 - setComponent with garbage as the value gives garbage output
-- world isn't rendered until window is resized for some reason
 - Destroying all entities leaves entity existence information and component information in a broken state (seg faults!!!!)
 
 ### top 10 disney actors you didn't know were bugs
 √ console cursor doesn't move over for white space, so it's at the wrong spot
 √ entities dont get rendered when at edges of screen
+√ world isn't rendered until window is resized for some reason
 
 # Things that need to be tested:
 - sizeOffsetScale in text rendering
 
 # Current task(s):
-Controller support
+Do easy things, clean up code, stop adding more features!!! focus on making the project able to be displayed and understood by humans

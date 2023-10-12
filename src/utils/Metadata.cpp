@@ -10,7 +10,7 @@ MetadataTracker::MetadataTracker(double targetFps, bool vsync) {
     vsyncEnabled = vsync;
 }
 
-Uint32 MetadataTracker::start() {
+Uint64 MetadataTracker::start() {
     startTicks = GetTicks();
     return startTicks;
 }
@@ -51,7 +51,7 @@ FrameCount MetadataTracker::currentFrame() const {
 }
 
 // Get the start time (when start() was called) of the game in ticks.
-Uint32 MetadataTracker::getStartTicks() const {
+Uint64 MetadataTracker::getStartTicks() const {
     return startTicks;
 }
 

@@ -14,6 +14,7 @@ struct Command {
     int nameLength;
     struct Result {
         std::string message;
+        // enum type?
     };
     using FunctionType = std::function<Result(const char* arguments)>;
     FunctionType function;

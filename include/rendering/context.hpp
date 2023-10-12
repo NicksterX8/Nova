@@ -14,7 +14,7 @@ using ChunkVertexMap = My::HashMap<IVec2, int32_t, IVec2Hash>;
 struct ChunkBuffer {
     ChunkVertexMap map = ChunkVertexMap::Empty();
     size_t chunksStored = 0;
-    static constexpr size_t bufferChunkCapacity = (2 * 1024 * 1024) / (CHUNKSIZE * CHUNKSIZE * 4 * 5 * sizeof(GLfloat));
+    static constexpr size_t bufferChunkCapacity = (4 * 1024 * 1024) / (CHUNKSIZE * CHUNKSIZE * 4 * 5 * sizeof(GLfloat));
 };
 
 struct ChunkModel {

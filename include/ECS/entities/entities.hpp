@@ -29,21 +29,20 @@ namespace Entities {
         Explosion(EntityWorld* ecs, Vec2 position, const EC::Explosion& explosionComponent) : ExplosionType(ecs, "explosion") {
             MARK_START_ENTITY_CREATION(ecs);
 
-            Add<EC::Position>(ecs, position);
+            Add<EC::Point>(ecs, position);
             Add<EC::Explosion>(ecs, explosionComponent);
 
             MARK_END_ENTITY_CREATION(ecs);
         }
     };
 
-    using ExplosiveType = EntityT<EC::Position, EC::Size, EC::Explosive, EC::Render, EC::Rotation>;
+    using ExplosiveType = EntityT<EC::ViewBox, EC::Explosive, EC::Render, EC::Rotation>;
     struct Explosive : ExplosiveType {
         Explosive(EntityWorld* ecs, Vec2 position, Vec2 size, TextureID texture, const EC::Explosion& explosion, float startRotation = 0.0f)
         : ExplosiveType(ecs, "explosive") {
             MARK_START_ENTITY_CREATION(ecs);
 
-            Add<EC::Position>(ecs, position);
-            Add<EC::Size>(ecs, {size.x, size.y});
+            Add<EC::ViewBox>(ecs, {position, size});
             Add<EC::Explosive>(ecs, EC::Explosive(explosion));
             Add<EC::Render>(ecs, EC::Render(texture, RenderLayers::Particles));
             Add<EC::Rotation>(ecs, {startRotation});
@@ -62,20 +61,20 @@ namespace Entities {
 
     Entity Inserter(EntityWorld* ecs, Vec2 position, int reach, IVec2 inputTile, IVec2 outputTile);
 
-    Entity Enemy(EntityWorld* ecs, Vec2 position, EntityT<EC::Position> following);
+    Entity Enemy(EntityWorld* ecs, Vec2 position, Entity following);
 
     #define ENTITY_PLAYER_COMPONENTS EC::Health, EC::Nametag,\
-        EC::Rotation, EC::Size, EC::Inventory,\
-        EC::Render, EC::Position, EC::Immortal,\
+        EC::Rotation, EC::Inventory,\
+        EC::Render, EC::ViewBox, EC::Immortal,\
         EC::Special
     struct Player : public EntityT<ENTITY_PLAYER_COMPONENTS> {
         Player(EntityWorld* ecs, Vec2 position, ItemManager& inventoryAllocator) : EntityT<ENTITY_PLAYER_COMPONENTS>(ecs, "player") {
             MARK_START_ENTITY_CREATION(ecs);
 
             Add<EC::Position>(ecs, position);
+            Add<EC::ViewBox>(ecs, EC::ViewBottomLeft1x1);
             Add<EC::Health>(ecs, {1000});
             Add<EC::Rotation>(ecs, {0.0f});
-            Add<EC::Size>(ecs, {0.8f, 0.8f});
             Inventory inventory = Inventory(&inventoryAllocator, PLAYER_INVENTORY_SIZE);
             Add<EC::Inventory>(ecs, {inventory});
             Add<EC::Render>(ecs, {TextureIDs::Player, RenderLayers::Player});
@@ -86,14 +85,13 @@ namespace Entities {
         }
     };
 
-    #define ENTITY_ITEMSTACK_COMPONENTS EC::Position, EC::Size, EC::Render,\
+    #define ENTITY_ITEMSTACK_COMPONENTS EC::ViewBox, EC::Render,\
         EC::Grabable, EC::ItemStack
     struct ItemStack : EntityT<ENTITY_ITEMSTACK_COMPONENTS> {
         //using EntityT<ENTITY_ITEMSTACK_COMPONENTS>::EntityT;
         ItemStack(EntityWorld* ecs, Vec2 position, ::ItemStack item, const ItemManager& itemManager) : EntityT<ENTITY_ITEMSTACK_COMPONENTS>(ecs, "itemstack") {
             MARK_START_ENTITY_CREATION(ecs);
-            Add<EC::Position>(ecs, position);
-            Add<EC::Size>(ecs, {0.5f, 0.5f});
+            Add<EC::ViewBox>(ecs, EC::ViewBottomLeft1x1);
             Add<EC::ItemStack>(ecs, {item});
             Add<EC::Grabable>(ecs, {item});
             Add<EC::Render>(ecs, EC::Render(items::getComponent<ITC::Display>(item.item, itemManager)->inventoryIcon, RenderLayers::Items));
@@ -103,13 +101,13 @@ namespace Entities {
     };
 
     #define ENTITY_TRANSPORT_BELT_COMPONENTS EC::Health, EC::Rotation, EC::Rotatable,\
-        EC::Render, EC::Position, EC::Size, EC::Transporter
+        EC::Render, EC::ViewBox, EC::Transporter, EC::Position
     struct TransportBelt : EntityT<ENTITY_TRANSPORT_BELT_COMPONENTS> {
         TransportBelt(EntityWorld* ecs, Vec2 position) : EntityT<ENTITY_TRANSPORT_BELT_COMPONENTS>(ecs, "transport_belt") {
             MARK_START_ENTITY_CREATION(ecs);
             Add<EC::Health>(ecs, {100.0f});
             Add<EC::Position>(ecs, position);
-            Add<EC::Size>(ecs, {1.0f, 1.0f});
+            Add<EC::ViewBox>(ecs, EC::ViewBottomLeft1x1);
             Add<EC::Render>(ecs, EC::Render(TextureIDs::Inserter, RenderLayers::Buildings));
             Add<EC::Rotation>(ecs, {0.0f});
             Add<EC::Rotatable>(ecs, EC::Rotatable(0.0f, 90.0f));
@@ -119,19 +117,18 @@ namespace Entities {
     };
 
     using TreeType = EntityT<
-        EC::Health, EC::Growth, EC::Position,
-        EC::Render, EC::Size, EC::Nametag,
-        EC::Inventory
+        EC::Health, EC::Growth,  EC::Position, EC::ViewBox,
+        EC::Render, EC::Nametag, EC::Inventory
     >;
     struct Tree : TreeType {
         //using TreeType::TreeType;
         Tree(EntityWorld* ecs, Vec2 position, Vec2 size) : TreeType(ecs, "tree") {
             MARK_START_ENTITY_CREATION(ecs);
             Add(ecs, EC::Health(100.0f));
-            Add(ecs, EC::Position(position));
             Add(ecs, EC::Growth(0.0f));
             Add(ecs, EC::Render(TextureIDs::Tree, RenderLayers::Trees));
-            Add(ecs, EC::Size(size.x, size.y));
+            Add(ecs, EC::Position(position));
+            Add(ecs, EC::ViewBox::BottomLeft(size));
             MARK_END_ENTITY_CREATION(ecs);
         }
     };

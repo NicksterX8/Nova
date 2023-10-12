@@ -125,9 +125,9 @@ static void renderChunk(RenderContext& ren, Chunk* chunk, ChunkCoord pos, glm::v
 int renderTilemap(RenderContext& ren, const Camera& camera, ChunkMap* chunkmap) {
     assert(isValidEntityPosition(camera.position));
 
-    auto maxBoundingArea = camera.maxBoundingArea();
-    Vec2 minChunkRelativePos = Vec2{(maxBoundingArea.x) / CHUNKSIZE, (maxBoundingArea.y) / CHUNKSIZE};
-    Vec2 maxChunkRelativePos = Vec2{(maxBoundingArea.x + maxBoundingArea.w) / CHUNKSIZE, (maxBoundingArea.y + maxBoundingArea.h) / CHUNKSIZE};
+    Boxf maxBoundingArea = camera.maxBoundingArea();
+    Vec2 minChunkRelativePos = maxBoundingArea[0] / (float)CHUNKSIZE;
+    Vec2 maxChunkRelativePos = maxBoundingArea[1] / (float)CHUNKSIZE;
 
     const IVec2 minChunkPos = {(int)floor(minChunkRelativePos.x), (int)floor(minChunkRelativePos.y)};
     const IVec2 maxChunkPos = {(int)floor(maxChunkRelativePos.x), (int)floor(maxChunkRelativePos.y)};
@@ -229,7 +229,7 @@ int renderTilemap(RenderContext& ren, const Camera& camera, ChunkMap* chunkmap) 
 
 static GlModelSOA makeScreenModel() {
     constexpr int numVertices = 6;
-    float z = 0.0f;
+    float z = -0.9f;
     const GLfloat vertexPositions[3 * numVertices] = {
         -1.0,   -1.0,   z, // bottom left
         -1.0,    1.0,   z, // top left
@@ -291,8 +291,8 @@ int setupShaders(RenderContext* ren) {
 
     auto screen = mgr.setup(Shaders::Screen, "screen");
     screen.setInt("tex", TextureUnit::Screen0);
-    screen.setInt("velocityBuffer", TextureUnit::Screen1);
-    screen.setInt("numSamples", 5);
+    //screen.setInt("velocityBuffer", TextureUnit::Screen1);
+    //screen.setInt("numSamples", 5);
 
     GL::logErrors();
 
@@ -484,14 +484,15 @@ static void renderTexture(Shader textureShader, GLuint texture) {
 
 static void renderWorld(RenderContext& ren, Camera& camera, GameState* state, Vec2 playerTargetPos) {
     renderTilemap(ren, camera, &state->chunkmap);
-
     ren.renderSystem->Update(state->ecs, state->chunkmap, ren, camera);
 
+    /*
     const static auto demoQuads = makeDemoQuads();
     ren.worldQuadRenderer.render(demoQuads);
 
     ren.worldGuiRenderer.colorRect({0.0f, 0.0f}, {1.0f, 1.0f}, {255, 0, 0, 255});
     ren.worldGuiRenderer.flush(ren.shaders, camera.getTransformMatrix());
+    */
 }
 
 // Binds the newly made texture on the active texture unit
@@ -522,6 +523,7 @@ RenderBuffer makeRenderBuffer(glm::ivec2 size) {
 
     /* Make texture for storing pixel velocities */
     // Old pixel position is stored for each pixel
+    /*
     GLuint velocityTexture;
     glGenTextures(1, &velocityTexture);
     glActiveTexture(GL_TEXTURE0 + TextureUnit::Screen1);
@@ -531,6 +533,7 @@ RenderBuffer makeRenderBuffer(glm::ivec2 size) {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_SHORT, NULL);
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, velocityTexture, 0);  
+    */
 
     /* Make depth attachment with render buffer */
     GLuint rbo;
@@ -547,18 +550,20 @@ RenderBuffer makeRenderBuffer(glm::ivec2 size) {
     //glBindFramebuffer(GL_FRAMEBUFFER, 0);
     GL::logErrors();
 
-    return RenderBuffer{fbo, rbo, texture, velocityTexture};
+    return RenderBuffer{fbo, rbo, texture, 0};
 }
 
 void resizeRenderBuffer(RenderBuffer renderBuffer, glm::ivec2 newSize) {
     glActiveTexture(GL_TEXTURE0 + TextureUnit::Screen0);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, newSize.x, newSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    /*
     glActiveTexture(GL_TEXTURE0 + TextureUnit::Screen1);
     glBindTexture(GL_TEXTURE_2D, renderBuffer.velocityTexture);
     char* zeroes = (char*)malloc(newSize.x * newSize.y * 24);
     //memset(zeroes, 0, newSize.x * newSize.y * 24);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, newSize.x, newSize.y, 0, GL_RGBA, GL_UNSIGNED_SHORT, NULL);
     free(zeroes);
+    */
 
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, newSize.x, newSize.y);
     glActiveTexture(GL_TEXTURE0);
@@ -623,7 +628,7 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     const glm::mat4 worldTransform = camera.getTransformMatrix(); // or camTransform
     const Vec2 cameraMin = camera.minCorner();
     const Vec2 cameraMax = camera.maxCorner();
-    const FRect maxBoundingArea = camera.maxBoundingArea();
+    const Boxf maxBoundingArea = camera.maxBoundingArea();
 
     ren.shaders.use(Shaders::Quad).setMat4("transform", screenTransform);
     ren.shaders.use(Shaders::Tilemap).setMat4("transform", worldTransform);
@@ -635,30 +640,16 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     if (true) {
         glBindFramebuffer(GL_FRAMEBUFFER, ren.framebuffer.fbo);
 
-        GLenum buffers[] = {
-            GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1
-        };
-        //glDrawBuffers(2, buffers);
+        //glDrawBuffer(GL_COLOR_ATTACHMENT0)
 
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glDepthMask(GL_TRUE);
+        glDisable(GL_DEPTH_TEST);
+        glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        /*
-        GLenum buffers2[] = {
-            GL_COLOR_ATTACHMENT0
-        };
-        glDrawBuffers(sizeof(buffers2) / sizeof(GLenum), buffers2);
-        */
         
         glEnable(GL_DEPTH_TEST);
-
+        glDepthMask(GL_TRUE);
         renderWorld(ren, camera, state, controls.mouseWorldPos);
-
-        if (getTick() == 3) {
-            //resizeRenderBuffer(ren.framebuffer, glm::ivec2(options.size.x + 1, options.size.y));
-        }
-
-        //Buffer(ren.framebuffer, glm::ivec2(options.size.x, options.size.y + 1));
     }
 
     /* Second pass */
@@ -670,21 +661,20 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     // only need blending for points and stuff, not entities or tilemap
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
-
-    glDisable(GL_DEPTH_TEST);
+    // can't use blending and depth tests at once
     glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
 
     renderWorldRenderBuffer(ren, camera);
 
-    GL::logErrors();
+    /* GUI rendering */
 
     auto quadShader = shaders.use(Shaders::Quad);
     quadShader.setMat4("transform", worldTransform);
-
-    Draw::chunkBorders(ren.guiQuadRenderer, camera, SDL_Color{255, 0, 255, 125}, 8.0f, 0.5f);
-    
+    if (Debug->settings.drawChunkBorders) {
+        Draw::chunkBorders(ren.guiQuadRenderer, camera, SDL_Color{255, 0, 255, 155}, 8.0f, 0.5f);
+    }
     ren.shaders.use(Shaders::Quad).setMat4("transform", screenTransform);
-    
     ren.guiQuadRenderer.flush(quadShader, worldTransform, ren.guiRenderer.guiAtlas.unit);
     
     GL::logErrors();

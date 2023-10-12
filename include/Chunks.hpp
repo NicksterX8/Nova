@@ -48,10 +48,18 @@ struct ChunkData {
 #define CHUNK_TILE_INDEX(chunk_ptr, index) ((&(*chunk_ptr)[0][0])[index])
 
 inline IVec2 toChunkPosition(Vec2 position) {
-    const float chunkSize = (float)CHUNKSIZE;
+    constexpr float chunkSize = (float)CHUNKSIZE;
     return {
         (int)floor(position.x / chunkSize),
         (int)floor(position.y / chunkSize)
+    };
+}
+
+inline Vec2 toChunkPositionf(Vec2 position) {
+    constexpr float chunkSize = (float)CHUNKSIZE;
+    return {
+        floor(position.x / chunkSize),
+        floor(position.y / chunkSize)
     };
 }
 
@@ -71,14 +79,10 @@ struct ChunkMap {
     using InternalChunkMap = My::HashMap<IVec2, ChunkData, IVec2Hash>;
     using ChunkBucketArray = My::BucketArray<Chunk, CHUNK_BUCKET_SIZE>;
     // TODO: try to use a hybrid map so we dont need this bucket array
-    using ChunkDataBucketArray = My::BucketArray< ChunkData, CHUNKDATA_BUCKET_SIZE>;
+    using ChunkDataBucketArray = My::BucketArray<ChunkData, CHUNKDATA_BUCKET_SIZE>;
 
     InternalChunkMap map;
     ChunkBucketArray chunkList;
-    //ChunkDataBucketArray chunkdataList;
-
-    //mutable Chunk* cachedChunk;
-    //mutable ChunkCoord cachedChunkCoord;
 
     /* Methods */
 

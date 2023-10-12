@@ -345,48 +345,7 @@ public:
         texCoordScale = font->currentScale;
     }
 
-    static TextRenderer init(Font* font) {
-        TextRenderer self;
-        self.font = font;
-
-        self.model = GlGenModel();
-        self.model.bindAll();
-
-        const static GlVertexFormat vertexFormat = GlMakeVertexFormat(0, {
-            {2, GL_FLOAT, sizeof(GLfloat)}, // pos
-            {2, GL_FLOAT, sizeof(GLfloat)}, // texcoord
-            {4, GL_UNSIGNED_BYTE, sizeof(GLubyte), true}, // color, normalized
-            {2, GL_FLOAT, sizeof(GLfloat)} // scale
-        });
-
-        assert(vertexFormat.totalSize() == sizeof(Vertex));
-
-        vertexFormat.enable();
-        
-        GlBufferData(
-            GL_ARRAY_BUFFER, 
-            {maxBatchSize * 4 * sizeof(Vertex), 
-            nullptr, 
-            GL_STREAM_DRAW});
-        GlBufferData(
-            GL_ELEMENT_ARRAY_BUFFER, 
-            {maxBatchSize * 6 * sizeof(GLushort), 
-            nullptr, 
-            GL_STATIC_DRAW});
-
-        GLushort* indices = (GLushort*)glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
-        generateQuadVertexIndices(maxBatchSize, indices);
-        glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-
-        self.defaultColor = {0,0,0,0};
-        self.defaultFormatting = FormattingSettings::Default();
-        self.defaultRendering = RenderingSettings();
-
-        self.characterTexCoords = Alloc<std::array<TexCoord, 4>>(font->numChars()); 
-        self.calculateCharacterTexCoords();
-
-        return self;
-    }
+    static TextRenderer init(Font* font);
 
     const Font* getFont() const {
         return font;

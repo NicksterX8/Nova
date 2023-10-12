@@ -22,8 +22,6 @@ extern "C" {
 }
 */
 
-#define WINDOW_HIGH_DPI 1
-
 typedef struct SDLContext {
     SDL_Window *win;
     SDL_GLContext gl;

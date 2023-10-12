@@ -113,18 +113,18 @@ public:
         return pixelToWorld({0, 0});
     }
     
+    /* TODO: make these more efficient */
     glm::vec2 minCorner() const {
         auto area = maxBoundingArea();
-        return {area.x, area.y};
+        return area[0];
     }
-
     glm::vec2 maxCorner() const {
         auto area = maxBoundingArea();
-        return {area.x + area.w, area.y + area.h};
+        return area[1];
     }
 
     // get a rect including all area coverd by the camera, and possibly some extra corners and stuff if the camera is rotated, so the final rect can be larger than actual width and height
-    FRect maxBoundingArea() const {
+    Boxf maxBoundingArea() const {
         const glm::vec2 corners[4] = {
             pixelToWorld({0, 0}),
             pixelToWorld({pixelWidth, 0}),
@@ -141,8 +141,7 @@ public:
             max.x = MAX(max.x, corner.x);
             max.y = MAX(max.y, corner.y);
         }
-        glm::vec2 size = max - min;
-        return {min.x, min.y, size.x, size.y};
+        return {min, max};
     }
 
     bool rectIsVisible(glm::vec2 p, glm::vec2 q) const {
