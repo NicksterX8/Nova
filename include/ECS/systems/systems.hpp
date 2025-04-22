@@ -12,9 +12,10 @@
 #include "utils/Log.hpp"
 #include "constants.hpp"
 
+/*
+
 static std::default_random_engine randomGen;
 
-/*
 
 class PositionSystem : public EntitySystem {
 public:
@@ -130,6 +131,7 @@ public:
     GrowthSystem(ECS* ecs) : EntitySystem(ecs) {
         using namespace ComponentAccess;
         sys.GiveAccess<EC::Growth>(Read | Write);
+        s
     }
 
     bool Query(ComponentFlags entitySignature) const {
@@ -144,7 +146,7 @@ public:
 private:
 
 };
-*/
+
 class MotionSystem {
 public:
     void Update(const EntityWorld& ecs, ChunkMap* chunkmap) {
@@ -166,7 +168,9 @@ public:
         });
     }
 };
-/*
+
+#define SYSTEM_ACCESS(component) sys
+
 
 class FollowSystem : public EntitySystem {
 public:

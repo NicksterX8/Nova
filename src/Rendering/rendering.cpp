@@ -54,9 +54,55 @@ void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport*
 }
 */
 
+
+void renderWater(RenderContext& ren, const Camera& camera, Vec2 min, Vec2 max, float time) {
+    auto shader = ren.shaders.use(Shaders::Water);
+    shader.setFloat("iTime", time);
+    //shader.setFloat("surface_y", 400.0f);
+    int width,height;
+    SDL_GL_GetDrawableSize(ren.window, &width, &height);
+    //shader.setVec2("iResolution", Vec2(width, height));
+
+    float z = getLayerHeight(RenderLayer::Water);
+    glm::vec3 p1 = {min.x, min.y, z};
+    glm::vec3 p2 = {max.x, max.y, z};
+    glm::vec4 color = {1.0, 1.0, 1.0, 1.0};
+    float scale = 2.0;
+    shader.setFloat("scale", camera.worldScale());
+    if (camera.worldScale() < 12.0f) {
+        //scale *= 12.0f / camera.worldScale();
+    }
+    Vec2 timeMov = Vec2(time / 6.0f, time / 12.0f);
+    glm::vec2 texMin = min / scale + timeMov;
+    glm::vec2 texMax = max / scale + timeMov;
+
+    static GlVertexAttribute attributes[] = {
+        {3, GL_FLOAT, sizeof(GLfloat)},
+        {4, GL_FLOAT, sizeof(GLfloat)},
+        {2, GL_FLOAT, sizeof(GLfloat)},
+    };
+    static GlVertexFormat format = GlMakeVertexFormat(0, attributes);
+
+    float vertices[6 * 9] = {
+        p1.x, p1.y, p1.z, color.r, color.g, color.b, color.a, texMin.x, texMin.y, // bottom left
+        p2.x, p1.y, p1.z, color.r, color.g, color.b, color.a, texMax.x, texMin.y, // bottom right
+        p2.x, p2.y, p1.z, color.r, color.g, color.b, color.a, texMax.x, texMax.y, // top right
+        p2.x, p2.y, p1.z, color.r, color.g, color.b, color.a, texMax.x, texMax.y, // top right
+        p1.x, p2.y, p1.z, color.r, color.g, color.b, color.a, texMin.x, texMax.y, // top left
+        p1.x, p1.y, p1.z, color.r, color.g, color.b, color.a, texMin.x, texMin.y, // bottom left
+    };
+    GlBuffer buffer = {6 * 9 * sizeof(float), vertices, GL_STREAM_DRAW};
+    GlModel model = makeModel(buffer, format);
+    model.bindAll();
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    model.destroy();
+}
+
 constexpr int numChunkVerts = CHUNKSIZE * CHUNKSIZE * 1;
 
-static void renderChunk(RenderContext& ren, Chunk* chunk, ChunkCoord pos, glm::vec2* vertexPositions, GLushort* vertexTexCoords) {
+static void renderChunk(RenderContext& ren, const Camera& camera, Chunk* chunk, ChunkCoord pos, glm::vec2* vertexPositions, GLushort* vertexTexCoords) {
     assert(vertexPositions && vertexTexCoords);
 
     if (!chunk) return;
@@ -97,6 +143,7 @@ static void renderChunk(RenderContext& ren, Chunk* chunk, ChunkCoord pos, glm::v
     }
     */
 
+    // coords
     for (int row = 0; row < CHUNKSIZE; row++) {
         for (int col = 0; col < CHUNKSIZE; col++) {
             int index = row * CHUNKSIZE + col;
@@ -106,6 +153,7 @@ static void renderChunk(RenderContext& ren, Chunk* chunk, ChunkCoord pos, glm::v
         }
     }
 
+    // backgrounds
     for (int row = 0; row < CHUNKSIZE; row++) {
         for (int col = 0; col < CHUNKSIZE; col++) {
             int index = (row * CHUNKSIZE + col) * 4;
@@ -120,6 +168,21 @@ static void renderChunk(RenderContext& ren, Chunk* chunk, ChunkCoord pos, glm::v
         }
     }
 
+    // animations
+    for (int row = 0; row < CHUNKSIZE; row++) {
+        for (int col = 0; col < CHUNKSIZE; col++) {
+            int index = (row * CHUNKSIZE + col) * 4;
+            TileType type = (*chunk)[row][col].type;
+            Animation& animation = TileTypeData[type].animation;
+            if (!animation.texture) continue;
+            auto texSpace = getAnimationFrameFromAtlas(*atlas, animation);
+
+            vertexTexCoords[index + 0] = texSpace.min.x;
+            vertexTexCoords[index + 1] = texSpace.min.y;
+            vertexTexCoords[index + 2] = texSpace.max.x;
+            vertexTexCoords[index + 3] = texSpace.max.y;
+        }
+    }
 }
 
 int renderTilemap(RenderContext& ren, const Camera& camera, ChunkMap* chunkmap) {
@@ -204,7 +267,7 @@ int renderTilemap(RenderContext& ren, const Camera& camera, ChunkMap* chunkmap) 
         auto* chunkVertexPositions = vertexPositions + index * numChunkVerts; 
         auto* chunkVertexTexCoords = vertexTexCoords + index * numChunkVerts * 4;
 
-        renderChunk(ren, chunkAndPos.chunk, chunkAndPos.chunkCoord, chunkVertexPositions, chunkVertexTexCoords);
+        renderChunk(ren, camera, chunkAndPos.chunk, chunkAndPos.chunkCoord, chunkVertexPositions, chunkVertexTexCoords);
 
         chunksBuffered++;
     }
@@ -271,6 +334,7 @@ int setupShaders(RenderContext* ren) {
     auto tilemap = mgr.setup(Shaders::Tilemap, "tilemap");
     tilemap.setInt("tex", TextureUnit::MyTextureAtlas);
     tilemap.setVec2("texSize", ren->textureAtlas.size);
+    tilemap.setFloat("height", getLayerHeight(RenderLayer::Tilemap));
 
     auto text = mgr.setup(Shaders::Text, "text");
     text.setInt("text", TextureUnit::Font0);
@@ -294,6 +358,12 @@ int setupShaders(RenderContext* ren) {
     //screen.setInt("velocityBuffer", TextureUnit::Screen1);
     //screen.setInt("numSamples", 5);
 
+    auto water = mgr.setup(Shaders::Water, "water");
+    water.setFloat("wave_height", 15.0f);
+    water.setFloat("wave_length", 100.0f);
+    water.setFloat("wave_speed", 0.15f);
+
+
     GL::logErrors();
 
     return 0;
@@ -315,13 +385,20 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
 
     const char* fontPath = "fonts/Ubuntu-Regular.ttf";
 
-    ren.font = Font(FileSystem.assets.get(fontPath), 48, true, 32, 127, SDL::pixelScale, fontFormatting, TextureUnit::Font0);
+    ren.font = Font(
+        FileSystem.assets.get(fontPath),
+        48,
+        false,
+        32, 127,
+        SDL::pixelScale,
+        fontFormatting,
+        TextureUnit::Font0
+    );
     ren.debugFont = Font(
         FileSystem.assets.get("fonts/Ubuntu-Regular.ttf"),
         24, // size
         false, // use sdfs?
-        32, // first char  (space)
-        127, // last char
+        32, 127, // first char (space), last char
         SDL::pixelScale, // scale
         fontFormatting, // formatting settings
         TextureUnit::Font1
@@ -484,6 +561,20 @@ static void renderTexture(Shader textureShader, GLuint texture) {
 
 static void renderWorld(RenderContext& ren, Camera& camera, GameState* state, Vec2 playerTargetPos) {
     renderTilemap(ren, camera, &state->chunkmap);
+
+    auto maxBoundingArea = camera.maxBoundingArea();
+    float seconds = Metadata->frame.timestamp / 1000.0f;
+    renderWater(ren, camera, maxBoundingArea[0], maxBoundingArea[1], seconds);
+
+    /*
+    renderWater(ren, camera, {0.0, 0.0}, {1.0, 1.0}, time);
+    renderWater(ren, camera, {1.0, 1.0}, {2.0, 2.0}, time);
+    renderWater(ren, camera, {1.0, 0.0}, {2.0, 1.0}, time);
+    renderWater(ren, camera, {0.0,-2.0}, {1.0, -1.0}, time);
+    renderWater(ren, camera, {-30.0,-30.0}, {-10.0, -20.0}, time);
+    renderWater(ren, camera, {-200.0,-200.0}, {-20.0, -20.0}, time);
+    */
+
     ren.renderSystem->Update(state->ecs, state->chunkmap, ren, camera);
 
     /*
@@ -632,6 +723,7 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
 
     ren.shaders.use(Shaders::Quad).setMat4("transform", screenTransform);
     ren.shaders.use(Shaders::Tilemap).setMat4("transform", worldTransform);
+    ren.shaders.use(Shaders::Water).setMat4("transform", worldTransform);
     auto textureShader = ren.shaders.use(Shaders::Texture);
     textureShader.setMat4("transform", screenTransform);
 
@@ -671,9 +763,19 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
 
     auto quadShader = shaders.use(Shaders::Quad);
     quadShader.setMat4("transform", worldTransform);
-    if (Debug->settings.drawChunkBorders) {
+    if (Debug->settings["drawChunkBorders"]) {
         Draw::chunkBorders(ren.guiQuadRenderer, camera, SDL_Color{255, 0, 255, 155}, 8.0f, 0.5f);
     }
+
+    auto holyTree = Entities::findNamedEntity("Holy tree", &state->ecs);
+ 
+    ren.worldGuiRenderer.text->render("HI", {5, 5});
+    ren.worldGuiRenderer.flush(ren.shaders, worldTransform);
+    ren.worldTextRenderer.defaultRendering.scale = Vec2(0.01);
+    //ren.worldGuiRenderer.render("HI", {5, 5});
+    
+    //ren.worldTextRenderer.flush(ren.shaders.get(Shaders::Text), worldTransform);
+
     ren.shaders.use(Shaders::Quad).setMat4("transform", screenTransform);
     ren.guiQuadRenderer.flush(quadShader, worldTransform, ren.guiRenderer.guiAtlas.unit);
     

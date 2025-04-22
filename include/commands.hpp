@@ -11,10 +11,19 @@ struct Game;
 
 struct Command {
     char name[32];
+    std::string description;
     int nameLength;
     struct Result {
+        enum Type {
+            Error,
+            Warn,
+            Success,
+            Other,
+            Null
+        } type = Null;
+
         std::string message;
-        // enum type?
+
     };
     using FunctionType = std::function<Result(const char* arguments)>;
     FunctionType function;
@@ -53,5 +62,15 @@ inline Command::Result executeCommand(Command* command, const char* arguments) {
 }
 
 CommandInput processMessage(std::string message, ArrayRef<Command> possibleCommands);
+
+// returns null if a command can't be found with that name
+inline Command* getCommand(std::string name) {
+    for (auto& command : gCommands) {
+        if (command.name == name) {
+            return &command;
+        }
+    }
+    return nullptr;
+}
 
 #endif

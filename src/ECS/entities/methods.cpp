@@ -12,93 +12,56 @@ namespace Entities {
         }
     }
 
-}
-
-void entitySizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<EC::ViewBox> entity, Vec2 oldSize) {
-    /*
-    Vec2 newSize = ecs->Get<EC::Size>(entity)->vec2();
-    if (oldSize.x == newSize.x && oldSize.y == newSize.y) {
-        return;
-    }
-    bool oldSizeIsNan = false;
-    if (isnan(oldSize.x) || isnan(oldSize.y)) {
-        oldSize = newSize;
-        oldSizeIsNan = true;
-    }
-    Vec2 pos = ecs->Get<EC::Position>(entity)->vec2();
-    IVec2 oldMinChunkPosition = toChunkPosition(pos - oldSize * 0.5f);
-    IVec2 oldMaxChunkPosition = toChunkPosition(pos + oldSize * 0.5f);
-    IVec2 newMinChunkPosition = toChunkPosition(pos - newSize * 0.5f);
-    IVec2 newMaxChunkPosition = toChunkPosition(pos + newSize * 0.5f);
-    IVec2 minChunkPosition = {
-        (oldMinChunkPosition.x < newMinChunkPosition.x) ? oldMaxChunkPosition.x : newMaxChunkPosition.x,
-        (oldMinChunkPosition.y < newMinChunkPosition.y) ? oldMaxChunkPosition.y : newMaxChunkPosition.y
-    };
-    IVec2 maxChunkPosition = {
-        (oldMaxChunkPosition.x < newMaxChunkPosition.x) ? oldMaxChunkPosition.x : newMaxChunkPosition.x,
-        (oldMaxChunkPosition.y < newMaxChunkPosition.y) ? oldMaxChunkPosition.y : newMaxChunkPosition.y
-    };
-    for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
-        for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
-            IVec2 chunkPosition = {col, row};
-
-            bool inNewArea = (chunkPosition.x >= newMinChunkPosition.x && chunkPosition.y >= newMinChunkPosition.y &&
-                chunkPosition.x <= newMaxChunkPosition.x && chunkPosition.y <= newMaxChunkPosition.y);
-            
-            bool inOldArea = (chunkPosition.x >= oldMinChunkPosition.x && chunkPosition.y >= oldMinChunkPosition.y &&
-                chunkPosition.x <= oldMaxChunkPosition.x && chunkPosition.y <= oldMaxChunkPosition.y);
-
-            if ((inNewArea && !inOldArea) || oldSizeIsNan) {
-                // add entity to new chunk
-                ChunkData* newChunkdata = chunkmap->get(chunkPosition);
-                if (newChunkdata) {
-                    newChunkdata->closeEntities.push(entity);
-                }
+    Entity findNamedEntity(const char* name, const EntityWorld* ecs) {
+        Entity target = NullEntity;
+        ecs->ForEach_EarlyReturn< EntityQuery< ECS::RequireComponents<EC::Nametag> > >(
+        [&](Entity entity)->bool{
+            auto nametag = ecs->Get<const EC::Nametag>(entity);
+            // super inefficient btw
+            if (My::streq(name, nametag->name)) {
+                target = entity;
+                return true;
             }
+            return false;
+        });
 
-            if (inOldArea && !inNewArea && !oldSizeIsNan) {
-                // remove entity from old chunk
-                ChunkData* oldChunkdata = chunkmap->get(chunkPosition);
-                if (oldChunkdata) {
-                    for (unsigned int e = 0; e < oldChunkdata->closeEntities.size; e++) {
-                        // TODO: try implementing binary search with sorting for faster removal
-                        if (oldChunkdata->closeEntities[e].id == entity.id)
-                            oldChunkdata->closeEntities.remove(e);
-                    }
-                }
-            }
+        return target;
+    }
+
+    void scaleGuy(GameState* state, Entity guy, float scale) {
+        auto view = state->ecs.Get<EC::ViewBox>(guy);
+        if (view) {
+            auto oldViewbox = view->box;
+            view->box.size = view->box.size * scale;
+            entityViewboxChanged(state, guy, oldViewbox);
+        }
+        auto collision = state->ecs.Get<EC::CollisionBox>(guy);
+        if (collision) {
+            Vec2 size = collision->box.size;
+            Vec2 newSize = size * scale;
+            collision->box.min *= scale;
+            collision->box.size *= scale;
         }
     }
-    */
+
 }
 
-void entityPositionChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<EC::ViewBox> entity, Vec2 oldPos) {
+void entityViewChanged(ChunkMap* chunkmap, Entity entity, Vec2 newPos, Vec2 oldPos, Box newViewbox, Box oldViewbox, bool justMade) {
     /* put entity in to the chunks it's visible in */
-    auto* position = ecs->Get<EC::Position>(entity);
-    auto* viewbox  = ecs->Get<EC::ViewBox>(entity);
-    if (!position || !viewbox) return;
-    Vec2 newPos = position->vec2() + viewbox->min;
-    oldPos += viewbox->min;
-    Vec2 size = viewbox->size;
-
     if (UNLIKELY(!isValidEntityPosition(newPos))) {
-        LogCritical("Entity has invalid position! Entity: %s, Position: %f,%f", entity.DebugStr(), newPos.x, newPos.y);
-        *ecs->Get<EC::Position>(entity) = {NAN, NAN};
-    }
-    if (oldPos.x == newPos.x && oldPos.y == newPos.y) {
-        return;
+        LogCritical("Entity has invalid position! Position: %f,%f", newPos.x, newPos.y);
     }
 
-    bool oldPosIsNan = false;
-    if (isnan(oldPos.x) || isnan(oldPos.y)) {
-        oldPos = newPos;
-        oldPosIsNan = true;
-    }
+    IVec2 oldMinChunkPosition = toChunkPosition(oldPos + oldViewbox.min);
+    IVec2 oldMaxChunkPosition = toChunkPosition(oldPos + oldViewbox.max());
+    IVec2 newMinChunkPosition = toChunkPosition(newPos + newViewbox.min);
+    IVec2 newMaxChunkPosition = toChunkPosition(newPos + newViewbox.max());
 
-    IVec2 oldMinChunkPosition = toChunkPosition(oldPos - size * 0.5f);
-    IVec2 oldMaxChunkPosition = toChunkPosition(oldPos + size * 0.5f);
-    IVec2 newMinChunkPosition = toChunkPosition(newPos - size * 0.5f);
-    IVec2 newMaxChunkPosition = toChunkPosition(newPos + size * 0.5f);
+    // early exit for simple and common case where entity never changed what chunks its in
+    if ((newMinChunkPosition == oldMinChunkPosition) &&
+        (newMaxChunkPosition == oldMaxChunkPosition) &&
+        !justMade) return;
+
     IVec2 minChunkPosition = {
         (oldMinChunkPosition.x < newMinChunkPosition.x) ? oldMinChunkPosition.x : newMinChunkPosition.x,
         (oldMinChunkPosition.y < newMinChunkPosition.y) ? oldMinChunkPosition.y : newMinChunkPosition.y
@@ -107,111 +70,70 @@ void entityPositionChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<E
         (oldMaxChunkPosition.x > newMaxChunkPosition.x) ? oldMaxChunkPosition.x : newMaxChunkPosition.x,
         (oldMaxChunkPosition.y > newMaxChunkPosition.y) ? oldMaxChunkPosition.y : newMaxChunkPosition.y
     };
-    for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
-        for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
-            IVec2 chunkPosition = {col, row};
 
-            bool inNewArea = (chunkPosition.x >= newMinChunkPosition.x && chunkPosition.y >= newMinChunkPosition.y &&
-                chunkPosition.x <= newMaxChunkPosition.x && chunkPosition.y <= newMaxChunkPosition.y);
-            
-            bool inOldArea = (chunkPosition.x >= oldMinChunkPosition.x && chunkPosition.y >= oldMinChunkPosition.y &&
-                chunkPosition.x <= oldMaxChunkPosition.x && chunkPosition.y <= oldMaxChunkPosition.y);
+    if (!justMade) {
+        for (int col = oldMinChunkPosition.x; col <= oldMaxChunkPosition.x; col++) {
+            for (int row = oldMinChunkPosition.y; row <= oldMaxChunkPosition.y; row++) {
+                IVec2 chunkPosition = {col, row};
 
-            if ((inNewArea && !inOldArea) || oldPosIsNan) {
-                // add entity to new chunk
-                ChunkData* newChunkdata = chunkmap->get(chunkPosition);
-                if (newChunkdata) {
-                    newChunkdata->closeEntities.push(entity);
-                }
-            }
+                bool inNewArea = (chunkPosition.x >= newMinChunkPosition.x && chunkPosition.y >= newMinChunkPosition.y &&
+                    chunkPosition.x <= newMaxChunkPosition.x && chunkPosition.y <= newMaxChunkPosition.y);
 
-            if (inOldArea && !inNewArea && !oldPosIsNan) {
-                // remove entity from old chunk
-                ChunkData* oldChunkdata = chunkmap->get(chunkPosition);
-                if (oldChunkdata) {
-                    oldChunkdata->removeCloseEntity(entity);
-                }
-            }
-        }
-    }
-     /*   
-    } else {
-        IVec2 oldChunkPosition = toChunkPosition(oldPos);
-        IVec2 newChunkPosition = toChunkPosition(newPos);
-        if (oldChunkPosition != newChunkPosition) {
-            // add entity to new chunk
-            ChunkData* newChunkdata = chunkmap->get(newChunkPosition);
-            if (newChunkdata) {
-                newChunkdata->closeEntities.push(entity);
-            }
-            // remove entity from old chunk
-            ChunkData* oldChunkdata = chunkmap->get(oldChunkPosition);
-            if (oldChunkdata) {
-                for (unsigned int e = 0; e < oldChunkdata->closeEntities.size; e++) {
-                    // TODO: try implementing binary search with sorting for faster removal
-                    if (oldChunkdata->closeEntities[e].id == entity.id)
-                        oldChunkdata->closeEntities.remove(e);
-                }
-            }
-        }
-    }
-    */
-    
-}
-
-void entityPositionAndSizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<EC::ViewBox> entity, Vec2 oldPos, Vec2 oldSize) {
-    /*
-    Vec2 newPos = ecs->Get<EC::Position>(entity)->vec2();
-    Vec2 newSize = ecs->Get<EC::Size>(entity)->vec2();
-    if (oldPos.x == newPos.x && oldPos.y == newPos.y) {
-        return;
-    }
-    if (oldSize.x == newSize.x && oldSize.y == newSize.y) {
-        return;
-    }
-
-    IVec2 oldMinChunkPosition = toChunkPosition(oldPos - oldSize * 0.5f);
-    IVec2 oldMaxChunkPosition = toChunkPosition(oldPos + oldSize * 0.5f);
-    IVec2 newMinChunkPosition = toChunkPosition(newPos - newSize * 0.5f);
-    IVec2 newMaxChunkPosition = toChunkPosition(newPos + newSize * 0.5f);
-    IVec2 minChunkPosition = {
-        (oldMinChunkPosition.x < newMinChunkPosition.x) ? oldMinChunkPosition.x : newMinChunkPosition.x,
-        (oldMinChunkPosition.y < newMinChunkPosition.y) ? oldMinChunkPosition.y : newMinChunkPosition.y
-    };
-    IVec2 maxChunkPosition = {
-        (oldMaxChunkPosition.x > newMaxChunkPosition.x) ? oldMaxChunkPosition.x : newMaxChunkPosition.x,
-        (oldMaxChunkPosition.y > newMaxChunkPosition.y) ? oldMaxChunkPosition.y : newMaxChunkPosition.y
-    };
-    for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
-        for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
-            IVec2 chunkPosition = {col, row};
-
-            bool inNewArea = (chunkPosition.x >= newMinChunkPosition.x && chunkPosition.y >= newMinChunkPosition.y &&
-                chunkPosition.x <= newMaxChunkPosition.x && chunkPosition.y <= newMaxChunkPosition.y);
-            
-            bool inOldArea = (chunkPosition.x >= oldMinChunkPosition.x && chunkPosition.y >= oldMinChunkPosition.y &&
-                chunkPosition.x <= oldMaxChunkPosition.x && chunkPosition.y <= oldMaxChunkPosition.y);
-
-            if (inNewArea && !inOldArea) {
-                // add entity to new chunk
-                ChunkData* newChunkdata = chunkmap->get(chunkPosition);
-                if (newChunkdata) {
-                    newChunkdata->closeEntities.push(entity);
-                }
-            }
-
-            if (inOldArea && !inNewArea) {
-                // remove entity from old chunk
-                ChunkData* oldChunkdata = chunkmap->get(chunkPosition);
-                if (oldChunkdata) {
-                    for (int e = 0; e < oldChunkdata->closeEntities.size; e++) {
-                        // TODO: try implementing binary search with sorting for faster removal
-                        if (oldChunkdata->closeEntities[e].id == entity.id)
-                            oldChunkdata->closeEntities.remove(e);
+                if (!inNewArea) {
+                    // remove entity from old chunk
+                    ChunkData* oldChunkdata = chunkmap->get(chunkPosition);
+                    if (oldChunkdata) {
+                        oldChunkdata->removeCloseEntity(entity);
                     }
                 }
             }
         }
     }
-    */
+
+    for (int col = newMinChunkPosition.x; col <= newMaxChunkPosition.x; col++) {
+        for (int row = newMinChunkPosition.y; row <= newMaxChunkPosition.y; row++) {
+            IVec2 chunkPosition = {col, row};
+            bool inOldArea = (chunkPosition.x >= oldMinChunkPosition.x && chunkPosition.y >= oldMinChunkPosition.y &&
+                chunkPosition.x <= oldMaxChunkPosition.x && chunkPosition.y <= oldMaxChunkPosition.y);
+
+            if (!inOldArea) {
+                // add entity to new chunk
+                ChunkData* newChunkdata = chunkmap->get(chunkPosition);
+                if (newChunkdata) {
+                    newChunkdata->closeEntities.push(entity);
+                }
+            }
+        }
+    }
+}
+
+void entityPositionChanged(GameState* state, Entity entity, Vec2 oldPos) {
+    auto* position = state->ecs.Get<EC::Position>(entity);
+    auto* viewbox = state->ecs.Get<EC::ViewBox>(entity);
+    if (!position || !viewbox) {
+        LogError("why here? no veiwbox or pos");
+    }
+    entityViewChanged(&state->chunkmap, entity, position->vec2(), oldPos, viewbox->box, viewbox->box, false);
+}
+
+void entityViewboxChanged(GameState* state, Entity entity, Box oldViewbox) {
+    auto* position = state->ecs.Get<EC::Position>(entity);
+    auto* viewbox = state->ecs.Get<EC::ViewBox>(entity);
+    if (!position || !viewbox) {
+        LogError("why here? no veiwbox or pos");
+    }
+    entityViewChanged(&state->chunkmap, entity, position->vec2(), position->vec2(), viewbox->box, oldViewbox, false);
+}
+
+void entityViewAndPosChanged(GameState* state, Entity entity, Vec2 oldPos, Box oldViewbox) {
+    auto* position = state->ecs.Get<EC::Position>(entity);
+    auto* viewbox = state->ecs.Get<EC::ViewBox>(entity);
+    if (!position || !viewbox) {
+        LogError("why here? no veiwbox or pos");
+    }
+    entityViewChanged(&state->chunkmap, entity, position->vec2(), oldPos, viewbox->box, oldViewbox, false);
+}
+
+void entityCreated(GameState* state, Entity entity) {
+
 }

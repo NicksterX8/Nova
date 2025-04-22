@@ -20,13 +20,51 @@ enum Direction {
     DirectionDownLeft
 };
 
+struct ItemHold {
+    union DataType {
+        ItemStack value;
+        ItemStack* pointer;
+
+        DataType(ItemStack* ptr) : pointer(ptr) {
+
+        }
+
+        DataType(const ItemStack& value) : value(value) {}
+    } data;
+
+    enum Type {
+        Null,
+        Inventory, // ref
+        Value
+    } type;
+
+    ItemHold() : data(nullptr), type(Null) {}
+    ItemHold(const ItemStack& value) : data(value), type(Value) {}
+    ItemHold(Type type, DataType value) : data(value), type(type) {}
+
+    ItemStack* get() {
+        if (type == Value) return &data.value;
+        else return data.pointer; // could probably just always return data.pointer
+    }
+
+    const ItemStack* get() const {
+        if (type == Value) return &data.value;
+        else return data.pointer; // could probably just always return data.pointer
+    }
+
+    operator bool() const {
+        auto item = this->get();
+        return item && !item->empty();
+    }
+};
+
 struct Player {
     OptionalEntityT<Entities::Player> entity;
     const EntityWorld* ecs = NULL;
     Direction facingDirection = DirectionUp;
 
     unsigned int numHotbarSlots = 9;
-    ItemStack* heldItemStack = NULL; // need more information for this, pointer isnt enough
+    ItemHold heldItemStack;
     int selectedHotbarStack = -1; // -1 means no slot is selected. TODO: rename this to slot
 
     OptionalEntity<> selectedEntity;
@@ -38,6 +76,7 @@ struct Player {
 
     Player(EntityWorld* ecs, Vec2 startPosition, ItemManager& inventoryAllocator) : ecs(ecs) {
         entity = Entities::Player(ecs, startPosition, inventoryAllocator);
+        Entities::giveName(entity, "player", ecs);
     }
 
     template<class C>
@@ -54,10 +93,10 @@ struct Player {
         if (entity.Exists(ecs)) {
             auto position = entity.Get<EC::Position>(ecs);
             if (position) {
-                Vec2 oldPosition = position->vec2();
                 position->x = pos.x;
                 position->y = pos.y;
-                entityPositionChanged(&chunkmap, ecs, entity, oldPosition);
+            } else {
+                LogError("No dynamic position component on player!");
             }
         }
     }
@@ -81,8 +120,9 @@ struct Player {
         return NULL;
     }
 
+    /*
     bool tryShootSandGun(EntityWorld* ecs, Vec2 aimingPosition) {
-        if (heldItemStack && heldItemStack->item.type == ItemTypes::SandGun) {
+        if (heldItemStack && heldItemStack.get()->item.type == ItemTypes::SandGun) {
             Entity sand = ecs->New("sand");
             MARK_START_ENTITY_CREATION(ecs);
             ecs->Add<
@@ -110,20 +150,7 @@ struct Player {
         }
         return false;
     }
-
-    bool tryThrowGrenade(EntityWorld* ecs, Vec2 aimingPosition) {
-        if (heldItemStack)
-        if (heldItemStack->item.type == ItemTypes::Grenade && heldItemStack->quantity > 0) {
-            if (grenadeThrowCooldown <= 0) {
-                Entities::ThrownGrenade(ecs, get<EC::Position>()->vec2(), aimingPosition);
-                grenadeThrowCooldown = GrenadeCooldown;
-                heldItemStack->reduceQuantity(1);
-                return true;
-            }
-        }
-        
-        return false;
-    }
+    */
 
     void selectHotbarSlot(int index) {
         if (!entity.Has<EC::Inventory>(ecs)) return;
@@ -131,23 +158,30 @@ struct Player {
         selectedHotbarStack = index;
         auto* slot = &inventory()->get(index);
         if (!slot->empty()) {
-            heldItemStack = slot;
+            heldItemStack = ItemHold(*slot);
         }
     }
 
-    void pickupItem(ItemStack* stack) {
-        releaseHeldItem();
-        heldItemStack = stack;
+    bool isHoldingItem() {
+        return heldItemStack.type != ItemHold::Null;
+    }
+
+    bool pickupItem(const ItemStack& stack) {
+        if (isHoldingItem()) return false;
+        heldItemStack = ItemHold(ItemHold::Value, stack);
+        return true;
     }
 
     void releaseHeldItem() {
-        if (heldItemStack) {
-            heldItemStack = NULL;
+        if (heldItemStack.type == ItemHold::Inventory) {
+        } else if (heldItemStack.type == ItemHold::Value) {
+            inventory()->addItemStack(*heldItemStack.get());
         }
+        heldItemStack = ItemHold();
     }
 
     bool canPlaceItemStack(ItemStack stack) {
-        if (heldItemStack->item.has<ITC::Placeable>()) {
+        if (stack.item.has<ITC::Placeable>()) {
             if (stack.quantity > 0) {
                 return true;
             }
@@ -155,18 +189,15 @@ struct Player {
         return false;
     }
 
-    bool tryPlaceItemStack(ItemStack stack, Tile* targetTile, ItemManager& itemManager) {
-        if (canPlaceItemStack(stack)) {
-            auto placeable = items::getComponent<ITC::Placeable>(stack.item, itemManager);
+    bool tryPlaceItemStack(ItemStack* stack, Tile* targetTile, ItemManager& itemManager) {
+        if (!stack || !targetTile) return false;
+        if (canPlaceItemStack(*stack)) {
+            auto placeable = items::getComponent<ITC::Placeable>(stack->item, itemManager);
             TileType newTileType = placeable->tile;
             if (targetTile->type != newTileType) {
                 // place it
                 targetTile->type = newTileType;
-                heldItemStack->reduceQuantity(1);
-                // when held item stack runs out, automatically drop it so the player isnt holding nothing
-                if (stack.empty()) {
-                    heldItemStack = NULL;
-                }
+                stack->reduceQuantity(1);
                 return true;
             }
         }

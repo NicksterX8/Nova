@@ -221,62 +221,41 @@ public:
 
     bool enteringText;
 
-    PlayerControls(Camera& camera): camera(camera) {
-        mouse = getMouseState();
-        mouseWorldPos = camera.pixelToWorld(glm::vec2(mouse.x, mouse.y));
+    bool justGrabbedItem;
 
-        connectController();
-       
-        enteringText = false;
-    }
+    Game* game;
+
+    PlayerControls(Game* game);
 
     /* Utils */
 
-    bool pixelInWorld(glm::vec2 pixel, const Gui* gui) {
-        bool clickInDisplay = pointInRect(pixel, camera.displayViewport);
-        bool clickOnGui = gui->pointInArea(pixel);
-        return clickInDisplay && !clickOnGui;
-    }
+    bool pixelInWorld(glm::vec2 pixel);
 
     /* Mouse */
 
     glm::vec2 mousePixelPos() const {
-        glm::vec2 scaled = {mouse.x * SDL::pixelScale, mouse.y * SDL::pixelScale};
-        return {scaled.x, camera.pixelHeight - scaled.y};
+        return {mouse.x, camera.pixelHeight - mouse.y};
     }
 
-    void handleClick(const SDL_MouseButtonEvent& event, GameState* state, const Gui* gui);
+    void handleClick(const SDL_MouseButtonEvent& event);
 
-    void leftMouseHeld(const MouseState& mouse, GameState* state, const Gui* gui) {
-        IVec2 mousePos = {mouse.x, mouse.y};
-        if (pointInRect(mousePos, camera.displayViewport)) {
-            glm::vec2 relMousePos = {mousePos.x - camera.displayViewport.x, mousePos.y - camera.displayViewport.y};
-            if (!gui->pointInArea(relMousePos)) {
-                // do something
-            }
-        }
-    }
+    void leftMouseHeld(const MouseState& mouse);
 
-    void rightMouseHeld(const MouseState& mouse, GameState* state, const Gui* gui) {
-        auto mousePixel = mousePixelPos();
-        if (pixelInWorld(mousePixel, gui)) {
-            state->player.tryShootSandGun(&state->ecs, mouseWorldPos);
-        }
-    }
+    void rightMouseHeld(const MouseState& mouse);
 
-    void handleMouseMotion(const SDL_MouseMotionEvent& event, GameState* state) {
+    void handleMouseMotion(const SDL_MouseMotionEvent& event) {
         
     }
 
-    void clickOnEntity(Entity clickedEntity, GameState* state);
+    void clickOnEntity(Entity clickedEntity);
 
-    void playerMouseTargetMoved(const MouseState& mouseState, const MouseState& prevMouseState, GameState* state, const Gui* gui);
+    void playerMouseTargetMoved(const MouseState& mouseState, const MouseState& prevMouseState);
 
     /* Keyboard */
 
-    void handleKeydown(const SDL_KeyboardEvent& event, GameState* state, Gui* gui);
+    void handleKeydown(const SDL_KeyboardEvent& event);
 
-    void handleCommandInput(CommandInput commandInput, Gui* gui);
+    void handleCommandInput(CommandInput commandInput);
 
     void addKeyBinding(KeyBinding* keyBinding) {
         keyboard.bindings.push(keyBinding);
@@ -301,9 +280,9 @@ public:
         mouseWorldPos = camera.pixelToWorld(glm::vec2(mouse.x, mouse.y));
     }
 
-    void update(SDL_Window* window, GameState* state, const Gui* gui);
+    void update();
 
-    void handleEvent(const SDL_Event* event, GameState* state, Gui* gui);
+    void handleEvent(const SDL_Event* event);
 
     void destroy() {
         keyboard.destroy();
@@ -312,28 +291,13 @@ public:
 
     /* Player stuff - This probably shouldn't be in this class but whateva */
 
-    void movePlayer(GameState* state, Vec2 movement) {
-        Player* player = &state->player;
-        auto* oldPlayerPos = state->player.get<EC::Position>();
-        if (!oldPlayerPos) {
-            LogError("no player position!");
-            return;
-        }
-        Vec2 newPlayerPos = oldPlayerPos->vec2() + movement;
+    void movePlayer(Vec2 movement);
 
-        player->setPosition(state->chunkmap, newPlayerPos);
-    }
-
-    void doPlayerMovementTick(GameState* state);
+    void doPlayerMovementTick();
 
     /* Random */
 
-    void placeItem(Item item, GameState* state, Vec2 at) {
-        Tile* tile = getTileAtPosition(state->chunkmap, at);
-        if (tile) {
-            //state->player.tryPlaceItem(tile);
-        }
-    }
+    void placeItem(ItemStack* item, Vec2 at);
 };
 
 #endif

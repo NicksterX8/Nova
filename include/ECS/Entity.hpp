@@ -180,6 +180,12 @@ protected:
     int Add(S* s, const T& startValue) {
         return s->template Add<T>(*this, startValue);
     }
+/*
+    template<class... Cs, class S>
+    bool Add(S* s) {
+        return s->template Add<Cs...>(*this);
+    }
+*/
 public:
 
     constexpr static ComponentFlags typeComponentFlags() {

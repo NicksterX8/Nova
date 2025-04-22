@@ -64,7 +64,7 @@ void Logger::logOutputFunction(LogCategory category, LogPriority priority, const
     }
 
     if (Debug && Debug->console) {
-        if (priority == LogPriority::Error)
+        if (true)
             Debug->console->newMessage(message, GUI::Console::MessageType::Error);
     }
 }

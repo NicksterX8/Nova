@@ -111,6 +111,10 @@ struct Struct2 {
 #define UNLIKELY(expr) LLVM_UNLIKELY(expr)
 */
 
+void func(int arr[5]) {
+
+}
+
 int main() {
 
     using std::cout;
@@ -121,5 +125,8 @@ int main() {
     #define STRINGIFY(x) #x
     #define TOSTRING(x) STRINGIFY(x)
 
-    
+    int tex[] = {
+        0,1,2,3
+    };
+    func(tex);
 }

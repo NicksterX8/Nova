@@ -38,6 +38,7 @@ struct Inventory {
     //Uint16 startIndex = 0; // The index of the first non-empty item slot, or 0 if the inventory is empty
     //Uint16 endIndex = 0; // the index one past the index of the last non-empty item slot
     ItemManager* manager = NULL;
+    int refCount = 0;
     constexpr static int InfiniteSize = -1;
 
     Inventory() = default;
@@ -50,8 +51,18 @@ struct Inventory {
         }
     }
 
-    void destroy(InventoryAllocator& allocator) {
-        allocator.deallocate(items, size);
+    void addRef() {
+        refCount++;
+    }
+    
+    void removeRef() {
+        if (--refCount <= 0) {
+            this->destroy();
+        }
+    }
+
+    void destroy() {
+        manager->inventoryAllocator.deallocate(items, size);
         size = 0;
         items = NULL;
     }

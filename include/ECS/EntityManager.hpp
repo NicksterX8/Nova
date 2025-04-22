@@ -211,7 +211,7 @@ struct EntityManager {
             self.entityDataList[i] = {
                 .version = 1,
                 .flags = ComponentFlags(0),
-                .index = NULL_ENTITY_ID
+                .index = EntityData::NullIndex
             };
         }
 
@@ -301,7 +301,7 @@ struct EntityManager {
     }
 
     // Get a component of the entity. May be NULL if the entity does not have the component
-    template<class T> 
+    template<class T>
     T* Get(Entity entity) const {
         if (sizeof(T) == 0) return NULL;
 
@@ -312,7 +312,6 @@ struct EntityManager {
                 return static_cast<T*>(pool->get(entity.id));
         }
 
-        LogError("Attempted to get unowned component \"%s\" of an entity! Returning NULL. Entity: %s", getComponentName<T>(), entity.DebugStr());
         return NULL;
     }
 
@@ -322,7 +321,6 @@ struct EntityManager {
         if (EntityExists(entity) && pool)
             return pool->get(entity.id);
 
-        LogError("Failed to get component \"%s\" of an entity! Returning NULL. Entity: %s", getComponentName(componentID), entity.DebugStr());
         return NULL;
     }
 

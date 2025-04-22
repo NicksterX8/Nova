@@ -18,7 +18,7 @@ struct GameState {
     Player player;
     ItemManager itemManager;
 
-    void init();
+    void init(const TextureManager* textureManager);
     void destroy();
 };
 
@@ -29,12 +29,15 @@ llvm::SmallVector<IVec2> raytraceDDA(Vec2 start, Vec2 end);
 
 void worldLineAlgorithm(Vec2 start, Vec2 end, const std::function<int(IVec2)>& callback);
 
-inline bool pointInEntity(Vec2 point, Entity entity, ComponentManager<const EC::ViewBox> ecs) {
+inline bool pointInEntity(Vec2 point, Entity entity, ComponentManager<const EC::ViewBox, const EC::Position> ecs) {
     bool clickedOnEntity = false;
 
     const auto* viewbox = ecs.Get<const EC::ViewBox>(entity);
-    if (viewbox) {
-        FRect entityRect = viewbox->rect();
+    const auto* position = ecs.Get<const EC::Position>(entity);
+    if (viewbox && position) {
+        FRect entityRect = viewbox->box.rect();
+        entityRect.x += position->x;
+        entityRect.y += position->y;
         clickedOnEntity = pointInRect(point, entityRect); 
     }
     
@@ -108,6 +111,14 @@ constexpr Vec2 EntityMinPos = {(float)INT_MIN, (float)INT_MIN};
 constexpr inline bool isValidEntityPosition(Vec2 p) {
     return p.x > EntityMinPos.x && p.y > EntityMinPos.y
         && p.x < EntityMaxPos.x && p.y < EntityMaxPos.y;
+}
+
+inline void setEntityStaticPosition(GameState* state, Entity entity, Vec2 position) {
+    auto* positionEc = state->ecs.Get<EC::Position>(entity);
+    Vec2 oldPos = positionEc->vec2();
+    positionEc->x = position.x;
+    positionEc->y = position.y;
+    entityPositionChanged(state, entity, oldPos);
 }
 
 #endif

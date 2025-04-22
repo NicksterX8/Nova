@@ -171,10 +171,15 @@ public:
     }
 
     /* Get the latest entity version in use for the given ID.
-     * In the case that the entity with the id given does not exist, the version returned will be the next version to be used for that entity.
+     * In the case that the entity with the id given does not exist,
+     * ECS::NULL_ENTITY_VERSION will be returned
      */
     inline EntityVersion GetEntityVersion(EntityID id) const {
-        return em.entityDataList[id].version;
+        assert(id <= NullEntity.id);
+        auto* data = &em.entityDataList[id];
+        if (data->index != ECS::EntityData::NullIndex)
+            return data->version;
+        return NullEntity.version;
     }
 
     /* Get the number of entities currently in existence.
@@ -192,7 +197,7 @@ public:
     const Entity* GetEntityList() const {
         return (Entity*)em.entities;
     }
-
+    
     /* Get a component from the entity of the type T.
      * Completely side-effect free. Will log an error and return null if the entity does not exist or if the entity does not own a component of the type.
      * Passing a type that has not been initialized with init() will result in an error message and getting null.
@@ -216,7 +221,7 @@ public:
 
     template<class T>
     T* Set(Entity entity, const T& value) {
-        static_assert(std::is_const<T>(), "Component must be const to set values!");
+        static_assert(!std::is_const<T>(), "Component must not be const to set values!");
         if (sizeof(T) == 0) return NULL;
 
         T* component = em.Get<T>(entity);
@@ -237,7 +242,10 @@ public:
     bool Add(Entity entity, const T& startValue) {
         //LogInfo("Adding %s to entity: %s", em.getComponentName<T>(), entity.DebugStr());
         if (em.Add<T>(entity)) {
-            *em.Get<T>(entity) = startValue;
+            T* component = em.Get<T>(entity);
+            *component = startValue;
+            //component->construct(this, entity);
+            
             auto& onAddT = callbacksOnAdd[ECS::getID<T>()];
             if (onAddT) {
                 if (deferringEvents) {
@@ -247,6 +255,7 @@ public:
                 }
             }
             return true;
+            
         }
         return false;
     }
@@ -272,7 +281,8 @@ public:
         return ret;
     }
 
-    bool AddSignature(Entity entity, ECS::ComponentFlags signature) {
+    bool 
+    AddSignature(Entity entity, ECS::ComponentFlags signature) {
         auto addedComponents = em.AddSignature(entity, signature);
         addedComponents.forEachSet([&](ComponentID component){
             auto& onAddT = callbacksOnAdd[component];
@@ -290,8 +300,9 @@ public:
      * The events will not be triggered if adding any of the components failed.
      * @return 0 on success, -1 if adding any one of the components failed. A relevant error message should be logged.
      */
+    /*
     template<class... Components>
-    int Add(Entity entity) {
+    bool Add(Entity entity) {
         constexpr auto ids = ECS::getComponentIDs<Components...>();
         bool ret = em.Add<Components...>(entity);
         if (ret) {
@@ -309,9 +320,11 @@ public:
 
         return ret;
     }
+    */
 
     template<class T>
     int Remove(Entity entity) {
+        
         auto& beforeRemoveT = callbacksBeforeRemove[ECS::getID<T>()];
         if (beforeRemoveT) {
             if (deferringEvents) {
@@ -320,6 +333,13 @@ public:
                 beforeRemoveT(this, entity);
             }
         }
+        
+       /*
+        T* component = Get<T>(entity);
+        if (component) {
+            component->deconstruct(this, entity);
+        }
+        */
         int ret = em.RemoveComponents<T>(entity);
         
         return ret;
@@ -372,6 +392,20 @@ public:
        EntityQueryT::ForEach(&em, callback);
     }
 
+    /* Iterate entities filtered using an EntityQuery.
+     * It is safe to destroy entities while iterating.
+     * Creating entities while iterating is also safe, but keep in mind that entities created during iteration will be skipped.
+     * Iteration is significantly more efficient when atleast one very uncommon component is required.
+     * Entity passed to the callback uses a wildcard version instead of a real version for performance reasons.
+     * As such, version comparisons may not work as expected.
+     * Return false in the callback to continue iterating
+     * Return true to break and stop iterating
+     */
+    template<typename EntityQueryT>
+    inline void ForEach_EarlyReturn(std::function<bool(Entity entity)> callback) const {
+       EntityQueryT::ForEach(&em, callback);
+    }
+
     /* Get a pointer to the component pool for a given component type */
     template<class T>
     inline const ECS::ComponentPool* GetPool() const {
@@ -416,10 +450,9 @@ public:
 
         switch (component) {
 
-        
         CASE(Position): {
             if (empty) {
-                VALUE(Position, {{0.0f, 0.0f}, });
+                VALUE(Position, {{0.0f, 0.0f}});
             }
 
             float x,y;
@@ -545,8 +578,8 @@ public:
     template<class... Cs>
     constexpr ComponentManager(const ComponentManager<Cs...>& other) {
         constexpr bool castCheckResult = castCheck<Cs...>();
-        static_assert(castCheckResult, "cast failed!");
-        // THIS IS BAD, LOOK FOR ALTERNATIVES
+        //static_assert(castCheckResult, "cast failed!");
+        // TODO: THIS IS BAD, LOOK FOR ALTERNATIVES
         ecs = ((const ComponentManager<Components...>*)&other)->ecs;
     }
 };

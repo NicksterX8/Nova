@@ -64,6 +64,28 @@ struct Boxf {
 using Boxf = std::array<glm::vec2, 2>; // array with min and max vertices
 using Boxi = std::array<glm::ivec2, 2>; // array with min and max vertices
 
+struct Box {
+    Vec2 min;
+    Vec2 size;
+
+    Vec2 max() const {
+        return min + size;
+    }
+
+    Vec2 center() const {
+        return min + size/2.0f;
+    }
+
+    FRect rect() const {
+        return FRect{
+            min.x,
+            min.y,
+            size.x,
+            size.y
+        };
+    }
+};
+
 inline Vec2 vecFloor(Vec2 vec) {
     return {floor(vec.x), floor(vec.y)};
 }

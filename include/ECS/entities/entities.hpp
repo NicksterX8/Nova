@@ -42,7 +42,10 @@ namespace Entities {
         : ExplosiveType(ecs, "explosive") {
             MARK_START_ENTITY_CREATION(ecs);
 
-            Add<EC::ViewBox>(ecs, {position, size});
+            Box box = {{0.0f,0.0f}, size};
+            Add<EC::Position>(ecs, position);
+            Add<EC::Dynamic>(ecs, position);
+            Add<EC::ViewBox>(ecs, {box});
             Add<EC::Explosive>(ecs, EC::Explosive(explosion));
             Add<EC::Render>(ecs, EC::Render(texture, RenderLayers::Particles));
             Add<EC::Rotation>(ecs, {startRotation});
@@ -51,7 +54,7 @@ namespace Entities {
         }
     };
 
-    Explosive Grenade(EntityWorld* ecs, Vec2 position, Vec2 size);
+    Explosive Grenade(EntityWorld* ecs, Vec2 position);
     Explosive Airstrike(EntityWorld* ecs, Vec2 position, Vec2 size, Vec2 target);
     Explosive ThrownGrenade(EntityWorld* ecs, Vec2 position, Vec2 target);
 
@@ -64,7 +67,7 @@ namespace Entities {
     Entity Enemy(EntityWorld* ecs, Vec2 position, Entity following);
 
     #define ENTITY_PLAYER_COMPONENTS EC::Health, EC::Nametag,\
-        EC::Rotation, EC::Inventory,\
+        EC::Rotation, EC::Inventory, EC::Position,\
         EC::Render, EC::ViewBox, EC::Immortal,\
         EC::Special
     struct Player : public EntityT<ENTITY_PLAYER_COMPONENTS> {
@@ -72,14 +75,20 @@ namespace Entities {
             MARK_START_ENTITY_CREATION(ecs);
 
             Add<EC::Position>(ecs, position);
-            Add<EC::ViewBox>(ecs, EC::ViewBottomLeft1x1);
-            Add<EC::Health>(ecs, {1000});
+            Add<EC::Dynamic>(ecs, {position});
+            Add<EC::ViewBox>(ecs, {Vec2(0), Vec2(1.0f)});
+            Add<EC::CollisionBox>(ecs, EC::CollisionBox(Vec2(0.05f), Vec2(0.9f)));
+            Add<EC::Health>(ecs, {300});
             Add<EC::Rotation>(ecs, {0.0f});
             Inventory inventory = Inventory(&inventoryAllocator, PLAYER_INVENTORY_SIZE);
             Add<EC::Inventory>(ecs, {inventory});
-            Add<EC::Render>(ecs, {TextureIDs::Player, RenderLayers::Player});
-            Add<EC::Immortal>(ecs, {});
+            EC::Render::Texture textures[] = {
+                {TextureIDs::Player, RenderLayers::Player},
+                {TextureIDs::PlayerShadow, RenderLayers::Shadows, 0.4f}
+            };
+            Add<EC::Render>(ecs, EC::Render(textures, 2));
             Add<EC::Special>(ecs, {});
+            Add<EC::Immortal>(ecs, {});
 
             MARK_END_ENTITY_CREATION(ecs);
         }
@@ -91,7 +100,7 @@ namespace Entities {
         //using EntityT<ENTITY_ITEMSTACK_COMPONENTS>::EntityT;
         ItemStack(EntityWorld* ecs, Vec2 position, ::ItemStack item, const ItemManager& itemManager) : EntityT<ENTITY_ITEMSTACK_COMPONENTS>(ecs, "itemstack") {
             MARK_START_ENTITY_CREATION(ecs);
-            Add<EC::ViewBox>(ecs, EC::ViewBottomLeft1x1);
+            Add<EC::ViewBox>(ecs, {Box{Vec2(0), Vec2(1)}});
             Add<EC::ItemStack>(ecs, {item});
             Add<EC::Grabable>(ecs, {item});
             Add<EC::Render>(ecs, EC::Render(items::getComponent<ITC::Display>(item.item, itemManager)->inventoryIcon, RenderLayers::Items));
@@ -107,11 +116,25 @@ namespace Entities {
             MARK_START_ENTITY_CREATION(ecs);
             Add<EC::Health>(ecs, {100.0f});
             Add<EC::Position>(ecs, position);
-            Add<EC::ViewBox>(ecs, EC::ViewBottomLeft1x1);
-            Add<EC::Render>(ecs, EC::Render(TextureIDs::Inserter, RenderLayers::Buildings));
+            Add<EC::ViewBox>(ecs, {Box{Vec2(0), Vec2(1)}});
+            Add<EC::Render>(ecs, EC::Render(TextureIDs::Buildings::TransportBelt, RenderLayers::Buildings));
             Add<EC::Rotation>(ecs, {0.0f});
             Add<EC::Rotatable>(ecs, EC::Rotatable(0.0f, 90.0f));
             Add<EC::Transporter>(ecs, {0.15f});
+            MARK_END_ENTITY_CREATION(ecs);
+        }
+    };
+
+    
+
+    #define ENTITY_TRANSPORT_LINE_COMPONENTS EC::Position
+    struct TransportLine : EntityT<ENTITY_TRANSPORT_LINE_COMPONENTS> {
+        TransportLine(EntityWorld* ecs, Vec2 position) : EntityT<ENTITY_TRANSPORT_LINE_COMPONENTS>(ecs, "transport_line") {
+            MARK_START_ENTITY_CREATION(ecs);
+
+            Add<EC::Position>(ecs, position);
+            //Add<EC::TransportLineEC(ecs, {});
+            
             MARK_END_ENTITY_CREATION(ecs);
         }
     };
@@ -126,9 +149,16 @@ namespace Entities {
             MARK_START_ENTITY_CREATION(ecs);
             Add(ecs, EC::Health(100.0f));
             Add(ecs, EC::Growth(0.0f));
-            Add(ecs, EC::Render(TextureIDs::Tree, RenderLayers::Trees));
+            EC::Render::Texture textures[] = {
+                {TextureIDs::TreeBottom, RenderLayers::Tilemap},
+                {TextureIDs::TreeTop, RenderLayers::Trees, 0.8f}
+            };
+            Add(ecs, EC::Render(textures, 2));
             Add(ecs, EC::Position(position));
             Add(ecs, EC::ViewBox::BottomLeft(size));
+
+            Box box = {Vec2(0.2) * size, Vec2(0.6) * size};
+            Add(ecs, EC::CollisionBox(box));
             MARK_END_ENTITY_CREATION(ecs);
         }
     };

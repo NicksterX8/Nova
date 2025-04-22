@@ -12,7 +12,7 @@ inline int highestBit(unsigned int x){
 
 // result is undefined if x is 0
 inline int highestBit(unsigned long long x) {
-    return 31 - __builtin_clzll(x);
+    return 63 - __builtin_clzll(x);
 }
 
 template<class F>
@@ -36,9 +36,9 @@ void forEachSetBitULL(unsigned long long bits, const F& functor) {
 template<typename IntegerT, class F>
 void forEachSetBit(IntegerT bits, const F& functor) {
     static_assert(std::is_unsigned<IntegerT>::value, "Invalid type");
-    if (std::is_same<IntegerT, unsigned long long>::value) {
+    if (sizeof(IntegerT) == sizeof(unsigned long long)) {
         forEachSetBitULL(bits, functor);
-    } else if (std::is_same<IntegerT, unsigned int>::value) {
+    } else if (sizeof(IntegerT) == sizeof(unsigned int)) {
         forEachSetBitUint(bits, functor);
     } else {
         for (IntegerT j = 0; bits != 0 && j < sizeof(IntegerT) * 8; j++) {
@@ -121,9 +121,9 @@ public:
 
     constexpr void set(uint32_t position, bool value) {
         uint32_t position64 = position / IntegerBits;
-        uint32_t remainder = (position - (position64 * IntegerBits));
-        IntegerT digit = (uint64_t)value << (uint64_t)remainder;
-        bits[position64] = (bits[position64] | digit) & digit; // disabling part
+        uint32_t modulus = (position - (position64 * IntegerBits));
+        IntegerT digit = (uint64_t)value << (uint64_t)modulus;
+        bits[position64] = (bits[position64] & ~((uint64_t)1 << (uint64_t)modulus)) | digit; // disabling part
     }
 
     constexpr bool any() const {

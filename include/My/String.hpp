@@ -248,6 +248,10 @@ struct StringBuffer {
         push(str, strlen(str)+1);
     }
 
+    inline void operator+=(std::string str) {
+        push(str.c_str(), str.size());
+    }
+
     // returns true if the string buffer is empty, meaning it contains no characters other than the default terminating character.
     // If the string buffer is empty, it is not safe to pop a character
     bool empty() const {

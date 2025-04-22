@@ -2,6 +2,7 @@
 #define UPDATE_INCLUDED
 
 #include <vector>
+#include <variant>
 #include <random>
 #include <SDL2/SDL.h>
 #include <math.h>
@@ -23,11 +24,24 @@ void rotateEntity(const ComponentManager<EC::Rotation, EC::Rotatable>& ecs, Enti
 
 void setDefaultKeyBindings(Game& ctx, PlayerControls* controls);
 
+struct CameraEntityFocus {
+    EntityT<EC::Position> entity;
+    bool rotateWithEntity;
+};
+
+struct CameraFocus {
+    std::variant<
+        CameraEntityFocus, // follow entity
+        Vec2 // static point
+    > focus;
+};
+
 struct Game {
     SDLContext sdlCtx;
     const Uint8 *keyboard;
     GameState* state;
     Camera camera;
+    CameraFocus cameraFocus;
     Gui* gui;
     PlayerControls* playerControls;
     MouseState lastUpdateMouseState;
@@ -38,7 +52,7 @@ struct Game {
     Mode mode;
 
     Game(SDLContext sdlContext):
-    sdlCtx(sdlContext), metadata(TARGET_FPS, ENABLE_VSYNC) {
+    sdlCtx(sdlContext), metadata(TARGET_FPS, TICKS_PER_SECOND, ENABLE_VSYNC) {
         Metadata = &metadata;
 
         debug = new DebugClass();

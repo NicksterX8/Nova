@@ -22,17 +22,12 @@ void addComponents(EntityWorld* ecs, Entity entity, Components... components) {
     ecs->StopDeferringEvents();
 }
 
-struct Box {
-    Vec2 min;
-    Vec2 max;
-};
-
 Box getEntityViewBoxBounds(const EntityWorld* ecs, Entity entity) {
     Vec2 pos = ecs->Get<EC::Position>(entity)->vec2();
     auto* viewbox = ecs->Get<EC::ViewBox>(entity);
     return Box{
-        pos + viewbox->min,
-        pos + viewbox->max()
+        pos + viewbox->box.min,
+        pos + viewbox->box.min + viewbox->box.size
     };
 }
 
@@ -40,10 +35,14 @@ void makeItemPrototypes(ItemManager& im) {
     using namespace items;
     auto* pm = &im.prototypes;
 
-    auto tile = New<ITC::Proto::Placeable>(pm, ItemTypes::Tile);
+    auto tile = New<>(pm, ItemTypes::Tile);
+    tile.stackSize = 64;
+
+    auto grenade = items::Prototypes::Grenade(&im.prototypes);
+
 
     ItemPrototype prototypes[] = {
-        tile,
+        tile, grenade
     };
 
     for (int i = 0; i < sizeof(prototypes) / sizeof(ItemPrototype); i++) {
@@ -51,7 +50,7 @@ void makeItemPrototypes(ItemManager& im) {
     }
 }
 
-void GameState::init() {
+void GameState::init(const TextureManager* textureManager) {
     /* Init Chunkmap */
     chunkmap.init();
     int chunkRadius = 4;
@@ -70,7 +69,7 @@ void GameState::init() {
     /* Init ECS */
     ecs = EntityWorld::Init<ECS_COMPONENTS>();
     ecs.SetOnAdd<EC::ViewBox>([&](EntityWorld* ecs, Entity entity) {
-        entityPositionChanged(&chunkmap, ecs, entity, {NAN, NAN});
+
         auto* viewBox = ecs->Get<EC::ViewBox>(entity);
         if (!viewBox) {
             LogError("entity viewbox not found!");
@@ -84,8 +83,8 @@ void GameState::init() {
 
         Vec2 pos = position->vec2();
 
-        IVec2 minChunkPosition = toChunkPosition(pos + viewBox->min);
-        IVec2 maxChunkPosition = toChunkPosition(pos + viewBox->max());
+        IVec2 minChunkPosition = toChunkPosition(pos + viewBox->box.min);
+        IVec2 maxChunkPosition = toChunkPosition(pos + viewBox->box.max());
         for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
             for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
                 IVec2 chunkPosition = {col, row};
@@ -99,15 +98,36 @@ void GameState::init() {
     });
     ecs.SetBeforeRemove<EC::ViewBox>([&](EntityWorld* ecs, Entity entity){
         auto* viewbox = ecs->Get<EC::ViewBox>(entity);
-        assert(viewbox);
-        forEachChunkContainingBounds(&chunkmap, {{viewbox->min, viewbox->max()}}, [entity](ChunkData* chunkdata){
+        if (!viewbox) {
+            LogError("entity viewbox not found!");
+            return;
+        }
+        auto* position = ecs->Get<EC::Position>(entity);
+        if (!position) {
+            LogError("Entity position not found");
+            return;
+        }
+        forEachChunkContainingBounds(&chunkmap, {{position->vec2() + viewbox->box.min, position->vec2() + viewbox->box.max()}}, [entity](ChunkData* chunkdata){
             if (!chunkdata->removeCloseEntity(entity)) {
                 LogWarn("couldn't remove entity");
             }
         });
     });
-    ecs.SetBeforeRemove<EC::Inventory>([this](EntityWorld* ecs, Entity entity){
-        ecs->Get<EC::Inventory>(entity)->inventory.destroy(this->itemManager.inventoryAllocator);
+
+    ecs.SetOnAdd<EC::Inventory>([](EntityWorld* ecs, Entity entity){
+        ecs->Get<EC::Inventory>(entity)->inventory.addRef();
+    });
+    ecs.SetBeforeRemove<EC::Inventory>([](EntityWorld* ecs, Entity entity){
+        ecs->Get<EC::Inventory>(entity)->inventory.removeRef();
+    });
+
+    ecs.SetOnAdd<EC::TransportLineEC>([](EntityWorld* ecs, Entity entity){
+        auto* transportLineEc = ecs->Get<EC::TransportLineEC>(entity);
+        
+    });
+    ecs.SetBeforeRemove<EC::TransportLineEC>([&](EntityWorld* ecs, Entity entity){
+        auto* transportLineEc = ecs->Get<EC::TransportLineEC>(entity);
+        transportLineEc->belts.destroy();
     });
 
     /* Init Items */
@@ -120,15 +140,18 @@ void GameState::init() {
     itemManager = ItemManager(ArrayRef(componentInfo.data, componentInfo.size));
 
     makeItemPrototypes(itemManager);
+    loadTileData(itemManager, textureManager);
 
     /* Init Player */
     player = Player(&ecs, Vec2(0, 0), itemManager);
 
     ItemStack startInventory[] = {
-        items::Items::sandGun(itemManager),
+       // items::Items::sandGun(itemManager),
+        ItemStack(items::Prototypes::Grenade::make(itemManager), 67),
         ItemStack(items::Items::tile(itemManager, TileTypes::Grass), 64),
         ItemStack(items::Items::tile(itemManager, TileTypes::Sand), 24),
-        ItemStack(items::Items::tile(itemManager, TileTypes::Grass), 2)
+        ItemStack(items::Items::tile(itemManager, TileTypes::TransportBelt), 200),
+       // ItemStack(items::Items::tile(itemManager, TileTypes::Grass), 2)
     };
 
     Inventory* playerInventory = player.inventory();
@@ -136,10 +159,28 @@ void GameState::init() {
         playerInventory->addItemStack(startInventory[i]);
     }
 
+    auto* display = items::getComponent<ITC::Display>(startInventory[1].item, itemManager);
+    TextureID id = display->inventoryIcon;
+    LogInfo("tex id: %d", id);
+    TextureID grassId = TileTypeData[TileTypes::Grass].background;
+    LogInfo("grass tex: %d", id);
+
     Entities::Tree(&ecs, {-2, -2}, {5, 5});
     
-    auto tree = Entities::Tree(&ecs, {-6, -6}, {5, 5});
-    ecs.Get<EC::Render>(tree)->layer = RenderLayer::Highest;
+    auto tree = Entities::Tree(&ecs, {-20, -20}, {5, 5});
+    Entities::giveName(tree, "Holy tree", &ecs);
+
+    Entities::scaleGuy(this, tree, 2.0f);
+
+    auto enemy = Entities::Enemy(&ecs, {15, 15}, player.entity);
+    /*
+    auto view = ecs.Get<EC::ViewBox>(enemy);
+    view->size = {0.2, 0.2};
+    auto collision = ecs.Get<EC::CollisionBox>(enemy);
+    collision->box[]
+    */
+    Entities::scaleGuy(this, enemy, 2.0f);
+    Entities::giveName(enemy, "MyLittleGuy", &ecs);
 }
 
 void GameState::destroy() {
@@ -408,8 +449,8 @@ void forEachEntityInRange(const ComponentManager<EC::ViewBox>& ecs, const ChunkM
                 }
                 EC::ViewBox* entityBox = ecs.Get<EC::ViewBox>(closeEntity);
                 assert(entityBox);
-                Vec2 entityCenter = entityBox->center();
-                Vec2 entitySize = entityBox->size;
+                Vec2 entityCenter = entityBox->box.center();
+                Vec2 entitySize = entityBox->box.size;
 
                 Vec2 halfSize = entitySize * 0.5f;
 
@@ -466,16 +507,20 @@ void forEachEntityInBounds(ComponentManager<const EC::ViewBox> ecs, const ChunkM
         Vec2 min = bounds[0];
         Vec2 max = bounds[1];
 
-        for (int i = 0; i < chunkdata->closeEntities.size; i++) {
+        for (int i = chunkdata->closeEntities.size-1 ; i >= 0; i--) {
             auto closeEntity = chunkdata->closeEntities[i];
-            assert(ecs.EntityExists(closeEntity));
+            /* TEMPORARY!  TODO: replace this */
+            if (!ecs.EntityExists(closeEntity)) {
+                chunkdata->removeCloseEntity(closeEntity);
+                continue;
+            }
 
             auto* entityViewbox = ecs.Get<const EC::ViewBox>(closeEntity);
             auto* entityPos = ecs.Get<const EC::Position>(closeEntity);
             assert(entityViewbox && entityPos);
 
-            Vec2 eMin = entityPos->vec2() + entityViewbox->min;
-            Vec2 eMax = eMin + entityViewbox->size;
+            Vec2 eMin = entityPos->vec2() + entityViewbox->box.min;
+            Vec2 eMax = eMin + entityViewbox->box.size;
 
             if (eMin.x < max.x && eMax.x > min.x &&
                 eMin.y < max.y && eMax.y > min.y)
@@ -509,7 +554,7 @@ findClosestEntityToPosition(const EntityWorld* ecs, const ChunkMap* chunkmap, Ve
     float closestDistSqrd = INFINITY;
     forEachEntityNearPoint(ComponentManager<EC::ViewBox>(ecs), chunkmap, position, [&](Entity entity){
         // TODO: only works correctly for squares
-        Vec2 entityCenter = ecs->Get<EC::ViewBox>(entity)->center();
+        Vec2 entityCenter = ecs->Get<EC::ViewBox>(entity)->box.center();
         Vec2 delta = entityCenter - position;
         float entityDistSqrd = delta.x*delta.x + delta.y*delta.y;
         if (entityDistSqrd < closestDistSqrd) {
@@ -525,24 +570,23 @@ findClosestEntityToPosition(const EntityWorld* ecs, const ChunkMap* chunkmap, Ve
 OptionalEntity<EC::ViewBox, EC::Render>
 findPlayerFocusedEntity(ComponentManager<EC::ViewBox, const EC::Render> ecs, const ChunkMap& chunkmap, Vec2 playerMousePos) {
     Vec2 target = playerMousePos;
-    OptionalEntity<EC::ViewBox, EC::Render> focusedEntity;
+    Entity focusedEntity;
     int focusedEntityLayer = RenderLayers::Lowest;
-    Uint32 focusedEntityRenderIndex = 0;
     forEachEntityNearPoint(ecs, &chunkmap, target,
     [&](Entity entity){
-        if (!entity.Has<EC::Size, EC::Render>(&ecs)) {
+        if (!entity.Has<EC::Position, EC::ViewBox, EC::Render>(&ecs)) {
             return 0;
         }
 
         auto render = entity.Get<const EC::Render>(&ecs);
-        int entityLayer = render->layer;
-        Uint32 entityRenderIndex = 0;
+        // TODO: enhance for multiple textures
+        int entityLayer = render->textures[0].layer;
 
         if (pointInEntity(target, entity, ecs)) {
-            if (entityLayer > focusedEntityLayer || (entityLayer == focusedEntityLayer && entityRenderIndex > focusedEntityRenderIndex)) {
-                focusedEntity = entity.cast<EC::ViewBox, EC::Render>();
+            if (entityLayer > focusedEntityLayer
+            || (entityLayer == focusedEntityLayer && entity.id > focusedEntity.id)) {
+                focusedEntity = entity;
                 focusedEntityLayer = entityLayer;
-                focusedEntityRenderIndex = entityRenderIndex;
             }
         }
 

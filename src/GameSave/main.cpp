@@ -563,7 +563,6 @@ int save(const GameState* state) {
 
 int load(GameState* state) {
     //int code = readEverythingFromFiles("save/", state);
-    state->player.releaseHeldItem();
     LogInfo("Loaded!");
     return /*code*/0;
 }

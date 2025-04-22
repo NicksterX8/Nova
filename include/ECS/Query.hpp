@@ -116,11 +116,60 @@ public:
         return (signature.hasAll(Require::signature()) && signature.hasNone(Avoid::signature()));
     }
 public:
+    static void ForEach(const EntityManager* em, const std::function<bool(Entity)>& callback) {
+        if (Require::size() > 0) {
+            // find minimum component pool size so we can search through that one, for speed
+            ComponentPool* iteratedPool = Require::smallestPool(em);
+            for (int c = iteratedPool->size()-1; c >= 0; c--) {
+                EntityID entityID = iteratedPool->keys[c];
+                EntityData entityData = em->entityDataList[entityID];
+                // check required and avoided
+                if (entityData.flags.hasAll(Require::signature()) && entityData.flags.hasNone(Avoid::signature())) {
+                    // check logical ORs
+                    for (int i = 0; i < (int)LogicalORs::size(); i++) {
+                        const ComponentFlags logicalOrSignature = getLogicalOrSignature(logicalORs, i);
+                        if (entityData.flags.hasNone(logicalOrSignature)) {
+                            goto endEntityLoop;
+                        }
+                    }
+
+                    // Entity has required, does not have avoided, and has the logical OR components.
+                    if (callback(Entity(entityID, entityData.version))) {
+                        return;
+                    }
+
+                }
+            endEntityLoop:
+                continue;
+            }
+        } else {
+            // iterate main entity list
+            const Entity* entities = (Entity*)em->entities;
+            for (int c = em->getEntityCount()-1; c >= 0; c--) {
+                Entity entity = entities[c];
+                ComponentFlags entityComponents = em->EntitySignature(entity.id);
+                if (entityComponents.hasNone(Avoid::signature())) {
+                    for (int i = 0; i < (int)LogicalORs::size(); i++) {
+                        const ComponentFlags logicalOrSignature = getLogicalOrSignature(logicalORs, i);
+                        if (entityComponents.hasNone(logicalOrSignature)) {
+                            goto endEntityLoop2;
+                        }
+                    }
+
+                    if (callback(entity)) {
+                        return;
+                    }
+                }
+            endEntityLoop2:
+                continue;
+            }
+            
+        }
+    }
+
     static void ForEach(const EntityManager* em, const std::function<void(Entity)>& callback) {
         if (Require::size() > 0) {
             // find minimum component pool size so we can search through that one, for speed
-            //Require::PoolArrayType requiredPools = Require::getPoolArray();
-            //ComponentPool* iteratedPool = smallestComponentPool<RequiredComponents...>(ecs);
             ComponentPool* iteratedPool = Require::smallestPool(em);
             for (int c = iteratedPool->size()-1; c >= 0; c--) {
                 EntityID entityID = iteratedPool->keys[c];

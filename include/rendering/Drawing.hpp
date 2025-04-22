@@ -45,12 +45,15 @@ namespace Draw {
     /* GUI */
 
     int chunkBorders(QuadRenderer& renderer, const Camera& camera, SDL_Color color, float pixelLineWidth, float z);
-    void drawFpsCounter(TextRenderer& renderer, float fps, RenderOptions options);
+    void drawFpsCounter(GuiRenderer& renderer, float fps, float tps, RenderOptions options);
     void drawConsole(GuiRenderer& renderer, const GUI::Console* console);
     void drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& screenTransform, GUI::Gui* gui, const GameState* state, const PlayerControls& playerControls);
     inline void drawItemStack(GuiRenderer& renderer, const ItemManager& itemManager, const ItemStack& itemStack, const FRect& destination) {
-        auto icon = items::getComponent<ITC::Display>(itemStack.item, itemManager)->inventoryIcon;
-        renderer.sprite(icon, destination);
+        auto displayEc = items::getComponent<ITC::Display>(itemStack.item, itemManager);
+        if (displayEc) {
+            auto icon = displayEc->inventoryIcon;
+            renderer.sprite(icon, destination);
+        }
     }
 }
 

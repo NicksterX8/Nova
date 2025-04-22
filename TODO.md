@@ -1,5 +1,12 @@
 # TODO
 
+actual (new):
+fix scrolling up/down with keys on console
+more text features (copying & pasting??)
+
+do new gui
+
+
 ## Big picture
 - Move stuff to .cpp files 
     √ Player Controls needs this bad
@@ -19,7 +26,6 @@
     √ started, kinda works
 
 ## little guys
-- Make bound box entity component instead of "size"
 - fix motion blur for dynamic objects (use nvidia article)
 
 - Scrolling text box

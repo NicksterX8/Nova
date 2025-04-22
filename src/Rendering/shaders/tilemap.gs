@@ -11,9 +11,10 @@ out vec2 TexCoord;
 
 uniform mat4 transform;
 uniform vec2 texSize;
+uniform float height;
 
 void make_vertex(vec2 pos, vec2 offset) {
-    gl_Position = transform * vec4(pos.xy + offset, 0.0, 1.0);
+    gl_Position = transform * vec4(pos.xy + offset, height, 1.0);
     EmitVertex();
 }
 

@@ -4,7 +4,8 @@
 #include "utils/ints.hpp"
 #include "ECS/generic/components.hpp"
 #include "items/Item.hpp"
-#include <functional>
+
+struct Game;
 
 // forward declare this
 typedef Uint16 TileType;
@@ -12,8 +13,8 @@ typedef Uint16 TileType;
 namespace items {
 
 namespace ComponentIDs {
-    #define ITEM_REGULAR_COMPONENTS_LIST Durability, Wetness, TileC, Display
-    #define ITEM_PROTO_COMPONENTS_LIST Edible, Fuel, Wettable, StartDurability, Placeable, Usable
+    #define ITEM_REGULAR_COMPONENTS_LIST Durability, Wetness, TileC, Display, Placeable
+    #define ITEM_PROTO_COMPONENTS_LIST Edible, Fuel, Wettable, StartDurability, Usable
     #define ITEM_COMPONENTS_LIST ITEM_REGULAR_COMPONENTS_LIST, ITEM_PROTO_COMPONENTS_LIST
     GEN_IDS(ComponentIDs, ComponentID, ITEM_COMPONENTS_LIST, Count);
 }
@@ -54,6 +55,10 @@ namespace ITC {
         TextureID inventoryIcon;
     END_COMPONENT(Display)
 
+    BEGIN_COMPONENT(Placeable)
+        TileType tile;
+    END_COMPONENT(Placeable)
+
     namespace Proto {
         BEGIN_PROTO_COMPONENT(Edible)
             float hungerValue;
@@ -71,12 +76,8 @@ namespace ITC {
             float duration;
         END_PROTO_COMPONENT(Fuel)
 
-        BEGIN_PROTO_COMPONENT(Placeable)
-            TileType tile;
-        END_PROTO_COMPONENT(Placeable)
-
         BEGIN_PROTO_COMPONENT(Usable)
-            std::function<void()> onUse;
+            bool (*onUse)(Game*); // return: if the item was used successfully
         END_PROTO_COMPONENT(Usable)
     }
 

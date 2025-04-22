@@ -29,6 +29,7 @@ struct ItemPrototype {
     ItemECS::LargeComponentList components = ItemECS::LargeComponentList::New();
 
     ComponentInfoRef componentInfo;
+    My::Vec<void*> allocations = My::Vec<void*>::Empty();
 
     /* Customizable, universal components */
 
@@ -38,6 +39,11 @@ struct ItemPrototype {
 
     ItemPrototype() {}
 
+    ItemPrototype(ComponentInfoRef componentInfo, ItemType id)
+    : id(id), componentInfo(componentInfo) {
+
+    }
+
     ItemPrototype(AllocListRef componentsStorage, ComponentInfoRef componentInfo, ItemType id, ComponentSignature signature = 0)
     : id(id), signature(signature), componentInfo(componentInfo) {
         int i = 0;
@@ -45,7 +51,7 @@ struct ItemPrototype {
             components.add(componentID, componentsStorage.allocations[i]);
             i++;
         });
-        componentsStorage.destroy();
+        //componentsStorage.destroy();
     }
 
     virtual ~ItemPrototype() {}
@@ -93,6 +99,35 @@ struct ItemPrototype {
         } else {
             LogError("Attempted to set unowned prototype component (%s)", componentInfo.name(C::ID));
         }
+    }
+
+    template<class C>
+    void add(const C& value) {
+        auto component = get<C>();
+        if (component) {
+            *component = value;
+            LogWarn("Component (%s) already attached to this prototype!", componentInfo.name(C::ID));
+        } else {
+            void* storage = malloc(sizeof(C));
+            allocations.push(storage);
+            memcpy(storage, &value, sizeof(C));
+            C* casted = (C*)storage;
+            components.add(C::ID, storage);
+            signature.set(C::ID);
+
+            C* c = get<C>();
+            LogInfo("what");
+
+        }
+    }
+
+    void destroy() {
+        components.destroy();
+
+        for (auto ptr : allocations) {
+            free(ptr);
+        }
+        allocations.destroy();
     }
 };
 
@@ -149,10 +184,12 @@ struct PrototypeManager {
 };
 
 template<class... Components>
-ItemPrototype New(PrototypeManager* manager, ItemType typeID) {
+ItemPrototype New(PrototypeManager* manager, ItemType typeID, Components... components) {
     constexpr auto signature = getComponentSignature<Components...>();
     auto componentsStorage = manager->allocateComponents(signature);
-    return ItemPrototype(componentsStorage, manager->componentInfo, typeID, signature);
+    auto prototype = ItemPrototype(componentsStorage, manager->componentInfo, typeID, signature);
+    FOR_EACH_VAR_TYPE(prototype.set<Components>(components...));
+    return prototype;
 }
 
 } // namespace items

@@ -15,7 +15,11 @@ namespace TileTypes {
         Sand,
         Water,
         SpaceFloor,
-        Wall
+        GreyFloor,
+        GreyFloorOverhang,
+        Wall,
+        TransportBelt,
+        Count
     };
 
     enum Flags: Uint32 {
@@ -30,12 +34,18 @@ namespace TileTypes {
 typedef Uint16 TileType;
 typedef TileTypes::Flags TileTypeFlag;
 
-#define NUM_TILE_TYPES 7
+#define NUM_TILE_TYPES TileTypes::Count
 
 struct TileTypeDataStruct {
-    SDL_Color color;
-    TextureID background;
-    Uint32 flags;
+    SDL_Color color = {255, 0, 0, 255};
+    TextureID background = 0;
+    Animation animation = {
+        .texture = 0,
+        .frameSize = {-1, -1},
+        .frameCount = 0,
+        .updatesPerFrame = 1
+    };
+    Uint32 flags = 0;
 
     TileTypes::MineableTile mineable;
 };
@@ -58,6 +68,6 @@ namespace items {
     struct ItemManager;
 }
 
-void loadTileData(items::ItemManager& itemManager);
+void loadTileData(items::ItemManager& itemManager, const TextureManager* textureManager);
 
 #endif

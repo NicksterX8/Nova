@@ -12,19 +12,5 @@ void Nametag::setName(const char* name) {
     strcpy(this->name, name);
 }
 
-void Nametag::setType(const char* type) {
-    assert(strlen(type) < MAX_ENTITY_NAME_LENGTH && "entity type name too long");
-    strcpy(this->type, type);
-}
-
-Nametag::Nametag() {
-    name[0] = '\0';
-    type[0] = '\0';
-}
-
-Nametag::Nametag(const char* type, const char* name) {
-    setType(type);
-    setName(name);
-}
 
 }

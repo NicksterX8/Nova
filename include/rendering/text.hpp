@@ -388,6 +388,14 @@ public:
         return render(text, pos, defaultFormatting, defaultRendering, outCharPositions);
     }
 
+    inline RenderResult render(const char* text, glm::vec2 pos, const TextFormattingSettings& formatSettings, glm::vec2* outCharPositions = nullptr) {
+        return render(text, strlen(text), pos, formatSettings, defaultRendering, outCharPositions);
+    }
+
+    inline RenderResult render(const char* text, glm::vec2 pos, const TextRenderingSettings& renderSettings, glm::vec2* outCharPositions = nullptr) {
+        return render(text, strlen(text), pos, defaultFormatting, renderSettings, outCharPositions);
+    }
+
     inline RenderResult render(const char* text, glm::vec2 pos, const TextFormattingSettings& formatSettings, const TextRenderingSettings& renderSettings, glm::vec2* outCharPositions = nullptr) {
         return render(text, strlen(text), pos, formatSettings, renderSettings, outCharPositions);
     }

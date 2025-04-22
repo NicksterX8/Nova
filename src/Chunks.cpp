@@ -17,13 +17,13 @@ void generateChunk(ChunkData* chunkdata) {
             
             switch(rand() % 4) {
             case 0:
-                tileType = TileTypes::SpaceFloor;
+                tileType = TileTypes::GreyFloor;
                 break;
             case 1:
-                tileType = TileTypes::Grass;
+                tileType = TileTypes::Water;
                 break;
             case 2:
-                tileType = TileTypes::Sand;
+                tileType = TileTypes::GreyFloorOverhang;
                 break;
             default:
                 break;

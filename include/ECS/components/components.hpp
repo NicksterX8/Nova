@@ -60,6 +60,9 @@ struct EntityComponent : public ECS::Component {
             T::Deserialize(NULL, 0, NULL);
         }
     public:
+
+        void construct(EntityWorld*, Entity) {}
+        void deconstruct(EntityWorld*, Entity) {}
 };
 
 #define ENTITY_TYPE_NAME_SIZE 64
@@ -91,6 +94,20 @@ struct Grabable : EntityComponent<Grabable>, Serializable<Grabable> {
 
 struct Health : EntityComponent<Health>, Serializable<Health> {
     float health;
+    float damageTaken = 0.0f;
+    Tick timeDamaged = NullTick;
+    int32_t iFrames = 0; // frames of invincibility the entity has. -1 for permanent invincibility
+
+    #define ENTITY_HIT_COOLDOWN 30 // frames
+
+    void damage(float amount) {
+        if (!iFrames) {
+            health -= amount;
+            damageTaken = amount;
+            timeDamaged = Metadata->getTick();
+            iFrames = ENTITY_HIT_COOLDOWN;
+        }
+    }
 
     Health(float Health) : health(Health) {}
 };
@@ -102,87 +119,30 @@ struct Growth : EntityComponent<Growth>, Serializable<Growth> {
 };
 
 struct ViewBox : EntityComponent<ViewBox>, Serializable<ViewBox> {
-    Vec2 min;
-    Vec2 size;
+    Box box;
 
-    Vec2 max() const {
-        return min + size;
-    };
+    constexpr ViewBox(Box box) : box(box) {}
 
-    constexpr ViewBox(Vec2 min, Vec2 size) : min(min), size(size) {}
+    constexpr ViewBox(Vec2 min, Vec2 size) : box(Box{min, size}) {}
 
     static constexpr ViewBox BottomLeft(Vec2 size) {
-        return ViewBox(Vec2{0.0f, 0.0f}, size);
+        return ViewBox(Vec2(0.0, 0.0), size);
     }
 
     static constexpr ViewBox Centered(Vec2 size) {
-        return ViewBox(size/2.0f, size);
+        return ViewBox{Box{size/2.0f, size}};
     }
-
-    Vec2 center() const {
-        return min + size * 0.5f;
-    }
-
-    FRect rect() const {
-        return FRect{
-            min.x,
-            min.y,
-            size.x,
-            size.y
-        };
-    }
-};
-
-constexpr EC::ViewBox ViewBottomLeft1x1 = {
-    Vec2{0.0f, 0.0f},
-    Vec2{1.0f, 1.0f}
-};
-
-constexpr EC::ViewBox ViewCenter1x1 = {
-    Vec2{0.5f, 0.5f},
-    Vec2{1.0f, 1.0f}
+        
 };
 
 struct CollisionBox : EntityComponent<CollisionBox>, Serializable<CollisionBox> {
-    Vec2 min;
-    Vec2 size;
+    Box box;
 
-    Vec2 max() const {
-        return min + size;
-    };
+    CollisionBox(Box box) : box(box) {}
 
-    constexpr CollisionBox(Vec2 min, Vec2 size) : min(min), size(size) {}
-
-    static constexpr CollisionBox BottomLeft(Vec2 size) {
-        return CollisionBox(Vec2{0.0f, 0.0f}, size);
+    CollisionBox(Vec2 min, Vec2 size) {
+        box = Box{min, size};
     }
-
-    static constexpr CollisionBox Centered(Vec2 size) {
-        return CollisionBox(size/2.0f, size);
-    }
-
-    Vec2 center() const {
-        return min + size * 0.5f;
-    }
-
-    FRect rect() const {
-        return FRect{
-            min.x,
-            min.y,
-            size.x,
-            size.y
-        };
-    }
-};
-
-constexpr EC::CollisionBox CollisionBottomLeft1x1 = {
-    Vec2{0.0f, 0.0f},
-    Vec2{1.0f, 1.0f}
-};
-
-constexpr EC::CollisionBox CollisionCenter1x1 = {
-    Vec2{0.5f, 0.5f},
-    Vec2{1.0f, 1.0f}
 };
 
 struct Point : EntityComponent<Point>, Serializable<Point> {
@@ -203,7 +163,6 @@ struct Position : EntityComponent<Position>, Serializable<Position> {
     }
 };
 
-
 struct Size : EntityComponent<Size>, Serializable<Size> {
     float width;
     float height;
@@ -216,15 +175,47 @@ struct Size : EntityComponent<Size>, Serializable<Size> {
     };
 };
 
+/*
 struct Render : EntityComponent<Render>, Serializable<Render> {
     TextureID texture;
     int layer;
 
     Render(TextureID texture, int layer) : texture(texture), layer(layer) {}
 };
+*/
 
-struct NewRender : EntityComponent<NewRender> {
+#define RENDER_COMPONENT_MAX_TEX 3
+struct Render : EntityComponent<Render> {
+    static constexpr Box FullBox = Box{Vec2(0), Vec2(1)};
+
+    struct Texture {
+        TextureID tex;
+        int layer;
+        Box box;
+        float opacity;
+
+        Texture() {}
+
+        Texture(TextureID tex, int layer, Box box = FullBox, float opacity = 1.0f) : tex(tex), layer(layer), box(box), opacity(opacity) {}
+        Texture(TextureID tex, int layer, float opacity) : tex(tex), layer(layer), box(FullBox), opacity(opacity) {}
+    };
+    Texture textures[RENDER_COMPONENT_MAX_TEX];
+    int numTextures;
+
     
+
+    // constructor for single texture that takes up whole viewbox
+    Render(TextureID texture, int layer, float opacity = 1.0f) {
+        textures[0] = {texture, layer, FullBox, opacity};
+        numTextures = 1;
+    }
+
+    Render(Texture* textures, int numTextures) {
+        this->numTextures = numTextures;
+        for (int i = 0; i < numTextures; i++) {
+            this->textures[i] = textures[i];
+        }
+    }
 };
 
 struct Explosion : EntityComponent<Explosion>, Serializable<Explosion> {
@@ -254,17 +245,18 @@ struct Explosive : EntityComponent<Explosive>, Serializable<Explosive> {
 };
 
 #define MAX_ENTITY_NAME_LENGTH 64
-#define MAX_ENTITY_TYPENAME_LENGTH 64
 
 struct Nametag : EntityComponent<Nametag>, Serializable<Nametag>{
     char name[MAX_ENTITY_NAME_LENGTH];
-    char type[MAX_ENTITY_TYPENAME_LENGTH];
 
     void setName(const char* name);
-    void setType(const char* type);
 
-    Nametag();
-    Nametag(const char* type, const char* name);
+    Nametag() {
+        name[0] = '\0';
+    }
+    Nametag(const char* name) {
+        setName(name);
+    }
 };
 
 struct Motion : EntityComponent<Motion>, Serializable<Motion> {
@@ -285,6 +277,15 @@ struct Inventory : EntityComponent<Inventory> {
     ::Inventory inventory;
 
     Inventory(::Inventory inventory) : inventory(inventory) {}
+
+    void construct(EntityWorld* ecs, Entity entity) {
+        inventory.addRef();
+    }
+
+    void deconstruct(EntityWorld* ecs, Entity entity) {
+        inventory.removeRef();
+    }
+
     /*
     static int Serialize(const Inventory* components, Uint32 count, SerializerOutput output) {
         for (Uint32 i = 0; i < count; i++) {
@@ -382,14 +383,30 @@ struct ItemStack : EntityComponent<ItemStack>, Serializable<ItemStack> {
 };
 
 struct Transporter : EntityComponent<Transporter>, Serializable<Transporter> {
+    IVec2 facing;
     float speed;
 
     Transporter(float speed) : speed(speed) {}
 };
 
+struct TransportLineEC : EntityComponent<TransportLineEC>, Serializable<TransportLineEC> {
+    IVec2 originTile;
+    float cycle; // 0 to 1
+    IVec2 endTile;
+    My::Vec<IVec2> belts;
+};
+
 struct Immortal : EntityComponent<Immortal>, Serializable<Immortal> {};
 
 struct Special : EntityComponent<Special>, Serializable<Special> {};
+
+struct Dynamic : EntityComponent<Dynamic>, Serializable<Dynamic> {
+    Dynamic(Vec2 pos) : pos(pos) {}
+
+    Vec2 pos;
+};
+
+struct Selected : EntityComponent<Selected>, Serializable<Selected> {};
 
 }
 

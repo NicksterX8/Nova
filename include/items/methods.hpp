@@ -29,10 +29,11 @@ void moveItemStack(Inventory* dst, int dstSlot, Inventory* src, int srcSlot) {
 }
 
 ItemQuantity addItemStackToInventory(ItemManager& manager, Inventory* dst, ItemStack stack, ItemQuantity itemStackSize) {
+    UNFINISHED_CRASH();
     for (int s = 0; s < dst->size; s++) {
         auto slotType = dst->type(s);
         // the second check should become more complicated later on for stuff like durability stacks adding together
-        if (stackable(stack, dst->get(s), manager)) {
+        if (isSame(stack.item, dst->get(s).item)) {
             
         }
         if (slotType == stack.item.type && dst->signature(s) == stack.item.signature) {

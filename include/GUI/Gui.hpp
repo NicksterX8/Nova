@@ -41,19 +41,24 @@ struct Console {
     constexpr static SDL_Color typeColors[(int)MessageType::NumTypes] = {
         {230, 230, 230, 255},
         {220, 220, 60, 255},
-        {150, 150, 50, 255},
+        {200, 200, 50, 255},
         {255, 0, 0, 255}
     };
 
-    My::StringBuffer log = My::StringBuffer::FromStr("\0");
-    My::Vec<MessageType> logMessageTypes = My::Vec<MessageType>::Empty();
-    My::Vec<SDL_Color> logTextColors = My::Vec<SDL_Color>::Empty();
+    struct LogMessage {
+        std::string text;
+        SDL_Color color;
+        MessageType type;
+        bool playerEntered = false;
+    };
+
+    std::vector<LogMessage> log;
 
     std::string activeMessage;
-    int logHistoryIndex = -1; // going through the log, to retype and old message, this index is for seeing what message its on. -1 means not using the log history currently
+    int recallIndex = -1; // going through the log, to retype and old message, this index is for seeing what message its on. -1 means not using the log history currently
     int selectedCharIndex = 0;
 
-    #define CONSOLE_LOG_NEW_MESSAGE_OPEN_DURATION 6.0 // seconds
+    #define CONSOLE_LOG_NEW_MESSAGE_OPEN_DURATION 4.0 // seconds
     double timeLastMessageSent = NAN;
     double timeLastCursorMove = NAN;
 
@@ -72,16 +77,19 @@ struct Console {
         activeMessage.clear();
 
         selectedCharIndex = 0;
-        logHistoryIndex = -1;
+        recallIndex = -1;
     }
 
-    void newMessage(const char* message, MessageType type) {
-        log.push(message);
-        logMessageTypes.push(type);
+    void newMessage(const char* text, MessageType type) {
+        bool playerEntered = type == MessageType::Default || type == MessageType::Command;
+        LogMessage message = {
+            .text = text,
+            .color = typeColors[(int)type],
+            .type = type,
+            .playerEntered = playerEntered
+        };
+        log.push_back(message);
 
-        SDL_Color color = typeColors[(int)type];
-
-        logTextColors.push(color);
         timeLastMessageSent = Metadata->seconds();
     }
 
@@ -92,41 +100,48 @@ struct Console {
         timeLastCursorMove = Metadata->seconds();
     }
 
-    // will clamp indices below or above the limit to an empty message or oldest message, respectively
-    // TODO: fix name
-    void moveLoggedMessage(int offset) {
-        if (offset == 0) return;
-        int dir = (offset > 0) ? 1 : -1;
-        int historyIndex = logHistoryIndex + offset;
-
-        if (historyIndex < 0) {
-            activeMessage = "";
-            logHistoryIndex = -1;
-            return;
+    int playerMessageCount() const {
+        int count = 0;
+        for (auto& message : log) {
+            count += message.playerEntered;
         }
+        return count;
+    }
 
-        int i = -1;
-        const char* msg = nullptr;
-        log.forEachStrReverse([&](const char* str){
-            int wouldBeIndex = i+1;
-            if (wouldBeIndex > historyIndex) {
-                return true; // means: break
+    // will clamp indices below or above the limit to an empty message or oldest message, respectively
+    void recallPastMessage() { 
+        if (recallIndex >= (int)log.size() - 1) return;
+        int relativeIndex = (int)log.size() - recallIndex - 2; // reverse
+        relativeIndex = std::clamp(relativeIndex, 0, (int)log.size() - 1);
+        for (int i = relativeIndex; i < log.size(); i++) {
+            LogMessage newMessage = log[i];
+            if (newMessage.type == MessageType::Default) {
+                activeMessage = newMessage.text;
+                recallIndex += i - relativeIndex + 1;
+                break;
             }
-            // skip over message results - they don't count
-            int wouldBeReverseIndex = logMessageTypes.size - wouldBeIndex - 1;
-            if (wouldBeReverseIndex < 0) return true;
-            if (logMessageTypes[wouldBeReverseIndex] == MessageType::CommandResult && wouldBeIndex + (dir == -1) >= historyIndex) {
-                historyIndex += dir;
-            } else {
-                msg = str;
-            }
-            i = wouldBeIndex;
-            return false; // means: dont break
-        });
+        }
+        //if (activeMessage.empty()) LogError("Failed to select logged message!");
+        //logHistoryIndex = i; // we set the new index to i, not historyIndex because we might not actually end up on that one,
+        // if the index is too great (see method desc)
+        moveCursor(activeMessage.size());
+    }
 
-        if (!msg) LogError("Failed to select logged message!");
-        activeMessage = msg ? std::string(msg) : "";
-        logHistoryIndex = i; // we set the new index to i, not historyIndex because we might not actually end up on that one,
+    // will clamp indices below or above the limit to an empty message or oldest message, respectively
+    void recallBackMessage() {
+        if (recallIndex <= 0) return; // already on that index, don't need to do anything
+        int relativeIndex = (int)log.size() - recallIndex; // reverse
+        relativeIndex = std::clamp(relativeIndex, 0, (int)log.size() - 1);
+        for (int i = relativeIndex; i >= 0; i--) {
+            LogMessage newMessage = log[i];
+            if (newMessage.type == MessageType::Default) {
+                activeMessage = newMessage.text;
+                recallIndex += i - relativeIndex - 1;
+                break;
+            }
+        }
+        if (activeMessage.empty()) LogError("Failed to select logged message!");
+        //logHistoryIndex = i; // we set the new index to i, not historyIndex because we might not actually end up on that one,
         // if the index is too great (see method desc)
         moveCursor(activeMessage.size());
     }
@@ -150,7 +165,7 @@ struct Console {
         switch (keycode) {
         case SDLK_RETURN2:
         case SDLK_RETURN: {
-            logHistoryIndex = -1;
+            recallIndex = -1;
 
             command = processMessage(activeMessage, possibleCommands);
             if (command) {
@@ -174,10 +189,10 @@ struct Console {
             enterChar('\t');
         break;
         case SDLK_UP:
-            moveLoggedMessage(1);
+            recallPastMessage();
             break;
         case SDLK_DOWN:
-            moveLoggedMessage(-1);
+            recallBackMessage();
             break;
         case SDLK_LEFT:
             moveCursor(MAX(selectedCharIndex - 1, 0));
@@ -190,10 +205,17 @@ struct Console {
         return command;
     }
 
+    // the string buffer must be handled (freed) after calling this function
+    My::StringBuffer newLogStringBuffer() const {
+        auto buffer = My::StringBuffer::WithCapacity(64);
+        for (int i = 0; i < log.size(); i++) {
+            buffer += log[i].text.c_str();
+        }
+        return buffer;
+    }
+
     void destroy() {
-        log.destroy();
-        logMessageTypes.destroy();
-        logTextColors.destroy();
+        
     }
 };
 
@@ -208,9 +230,12 @@ struct Gui {
     void draw(GuiRenderer& renderer, const FRect& viewport, glm::vec2 mousePosition, const Player* player, const ItemManager& itemManager) {
         area.size = 0;
         SDL_FRect hotbarArea = hotbar.draw(renderer, player, itemManager);
-        const ItemStack* heldItemStack = player->heldItemStack;
-        if (heldItemStack && !heldItemStack->empty())
-            drawHeldItemStack(renderer, itemManager, *heldItemStack, mousePosition);
+        const auto* heldItemStack = &player->heldItemStack;
+        if (heldItemStack) {
+            const ItemStack* item = heldItemStack->get();
+            if (item && !item->empty())
+                drawHeldItemStack(renderer, itemManager, *item, mousePosition);
+        }
         area.push(hotbarArea);
     }
 

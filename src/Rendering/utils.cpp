@@ -30,7 +30,18 @@ GLuint enableVertexAttribsSOA(ArrayRef<GlVertexDetailedAttribute> attributes, un
     return offset /* total size */;
 }
 
+GlModel makeModel(
+GlBuffer vertexBuffer,
+const GlVertexFormat& format) {
+    GlModel model = GlGenModel();
+    model.bindAll();
 
+    enableVertexAttribs(format.attributes);
+
+    GlBufferData(GL_ARRAY_BUFFER, vertexBuffer);
+
+    return model;
+}
 
 GlModel makeModel(
 GlBuffer vertexBuffer,

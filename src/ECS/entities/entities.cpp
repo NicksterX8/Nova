@@ -10,8 +10,8 @@ namespace Entities {
     EC::Explosion grenadeExplosion = EC::Explosion(4, 25, 1.0f, 60);
     EC::Explosion airstrikeExplosion = EC::Explosion(8, 10000, 1.0f, 30);
 
-    Explosive Grenade(EntityWorld* ecs, Vec2 position, Vec2 size) {
-        Explosive grenade = Explosive(ecs, position, size, TextureIDs::Grenade, grenadeExplosion);
+    Explosive Grenade(EntityWorld* ecs, Vec2 position) {
+        Explosive grenade = Explosive(ecs, position, Vec2(0.5), TextureIDs::Grenade, grenadeExplosion);
         return grenade;
     }
 
@@ -22,7 +22,7 @@ namespace Entities {
     }
 
     Explosive ThrownGrenade(EntityWorld* ecs, Vec2 position, Vec2 target) {
-        Explosive grenade = Grenade(ecs, position, {1, 1});
+        Explosive grenade = Grenade(ecs, position);
         throwEntity(ecs, grenade, target, 0.2f);
         return grenade;
     }
@@ -30,7 +30,10 @@ namespace Entities {
     Entity Chest(EntityWorld* ecs, Vec2 position, int inventorySize, int width, int height, ItemManager& allocator) {
         Entity chest = ecs->New("chest");
         ecs->Add<EC::Position>(chest, position);
-        ecs->Add<EC::Size>(chest, {(float)width - 0.2f, (float)height - 0.2f});
+        auto min = position + Vec2{0.1, 0.1};
+        auto size = Vec2{width - 0.2, height - 0.2};
+        ecs->Add<EC::ViewBox>(chest, EC::ViewBox(Box{min, size}));
+        ecs->Add<EC::CollisionBox>(chest, EC::CollisionBox(Box{min, size}));
         ecs->Add<EC::Render>(chest, EC::Render(TextureIDs::Chest, RenderLayers::Buildings));
         Inventory inventory = Inventory(&allocator, inventorySize);
         ecs->Add<EC::Inventory>(chest, {inventory});
@@ -41,7 +44,7 @@ namespace Entities {
     Entity Particle(EntityWorld* ecs, Vec2 position, Vec2 size, EC::Render render, EC::Motion motion) {
         Entity particle = ecs->New("particle");
         ecs->Add<EC::Position>(particle, position);
-        ecs->Add<EC::Size>(particle, {size.x, size.y});
+       //TODO: ecs->Add<EC::Size>(particle, {size.x, size.y});
         ecs->Add<EC::Motion>(particle, motion);
         ecs->Add<EC::Render>(particle, render);
         float distance = (motion.target - position).length();
@@ -52,7 +55,7 @@ namespace Entities {
     Entity Inserter(EntityWorld* ecs, Vec2 position, int reach, IVec2 inputTile, IVec2 outputTile) {
         Entity inserter = ecs->New("inserter");
         ecs->Add<EC::Position>(inserter, position);
-        ecs->Add<EC::Size>(inserter, {1.0f, 1.0f});
+        //TODO: ecs->Add<EC::Size>(inserter, {1.0f, 1.0f});
         ecs->Add<EC::Render>(inserter, EC::Render(TextureIDs::Inserter, RenderLayers::Buildings));
         ecs->Add<EC::Rotation>(inserter, {0.0f});
         ecs->Add<EC::Rotatable>(inserter, {0.0f, 90.0f});
@@ -63,14 +66,17 @@ namespace Entities {
 
     Entity Enemy(EntityWorld* ecs, Vec2 position, Entity following) {
         Entity enemy = ecs->New("enemy");
+        ecs->StartDeferringEvents();
         ecs->Add<EC::Position>(enemy, position);
+        ecs->Add<EC::Dynamic>(enemy, position);
         ecs->Add<EC::Health>(enemy, {100.0f});
-        ecs->Add<EC::Nametag>(enemy, EC::Nametag("Enemy", ""));
         ecs->Add<EC::Rotation>(enemy, {0.0f});
-        ecs->Add<EC::Size>(enemy, {0.8f, 0.8f});
+        ecs->Add<EC::ViewBox>(enemy, {Box{Vec2(0), Vec2(1)}});
+        ecs->Add<EC::CollisionBox>(enemy, {Box{Vec2(0.05), Vec2(0.9)}});
         ecs->Add<EC::Render>(enemy, EC::Render(TextureIDs::Player, RenderLayers::Player));
         ecs->Add<EC::Rotatable>(enemy, EC::Rotatable(0.0f, 45.0f));
         ecs->Add<EC::Follow>(enemy, EC::Follow(following, 0.05));
+        ecs->StopDeferringEvents();
         return enemy;
     }
 }

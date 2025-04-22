@@ -93,8 +93,6 @@ void EntityManager::Destroy(Entity entity) {
     // tell indices where the (formerly) last entity now is
     entityDataList[lastEntity.id].index = entityData->index;
 
-    // Version goes up one everytime it's removed
-    entityDataList[entity.id].version += 1;
     freeEntities.push(entity.id);
 
     entityCount--;
@@ -105,6 +103,7 @@ void EntityManager::Destroy(Entity entity) {
     // set other destroyed entity data back to null just in case
     entityData->index = EntityData::NullIndex;
     entityData->flags = ComponentFlags(0);
+    entityData->version += 1; // Version goes up one everytime it's removed
 }
 
 void EntityManager::Destroy(int count, const Entity* targetEntities) {

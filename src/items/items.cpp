@@ -45,14 +45,14 @@ ItemQuantity Inventory::addItemStack(ItemStack stack) {
             // add as many items as can fit based on the item's stack size and how many are in the stack
             // if it weren't for the possibility of a stack of items having a quantity higher
             // than the stack's stacksize it would work to just copy the stack straight into the inventory slot
-            inventoryStack.item.type = stack.item.type;
+            inventoryStack.item = stack.item;
             ItemQuantity stackSize = getPrototype(stack.item.type, *manager)->stackSize;
             ItemQuantity itemsToAdd = (stackSize < itemsLeft) ? 
                                 stackSize : itemsLeft;
             inventoryStack.quantity = itemsToAdd;
             itemsLeft -= itemsToAdd;
         }
-        else if (stackable(inventoryStack, stack, *manager)) {
+        else if (isSame(inventoryStack.item, stack.item)) {
             if (inventoryStack.quantity == ItemQuantityInfinity) {
                 return stack.quantity;
             }
@@ -124,6 +124,7 @@ ItemQuantity Inventory::itemCount(ItemType type) {
     return count;
 }
 
+// unused
 PrototypeManager* items::makePrototypes(ComponentInfoRef componentInfo) {
     auto manager = new PrototypeManager(componentInfo, ItemTypes::Count);
     namespace ids = ItemTypes;
@@ -152,5 +153,6 @@ Item Items::tile(ItemManager& manager, TileType type) {
     auto i = makeItem(ItemTypes::Tile, manager);
     addComponent<ITC::TileC>(i, manager, {type});
     addComponent<ITC::Display>(i, manager, ITC::Display{TileTypeData[type].background});
+    addComponent<ITC::Placeable>(i, manager, ITC::Placeable{type});
     return i;
 }

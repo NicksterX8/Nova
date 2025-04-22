@@ -190,15 +190,19 @@ public:
     void remove(Key key) {
         assertValidKey(key);
         assert(contains(key) && "Tried to remove nonexistent key!");
+        assert(size >= 0 && "No elements to remove!");
 
         const auto indexOfRemoved = set[key];
         const auto topIndex = (Index)size-1;
+
         const auto topKey = keys[topIndex];
         // move key, value, and index over
         keys[indexOfRemoved] = topKey;
-        memcpy(getValue(indexOfRemoved), getValue(topIndex), valueSize);
-        set[topKey] = NullIndex;
-        set[key] = indexOfRemoved; // mark removed key as gone
+        if (size > 1) {
+            memcpy(getValue(indexOfRemoved), getValue(topIndex), valueSize);
+            set[topKey] = indexOfRemoved; // top value moved
+        }
+        set[key] = NullIndex; // mark removed key as gone
         size--;
     }
 
@@ -242,7 +246,7 @@ protected:
     Key* keys; // keys corresponding to each value
 
     void assertValidKey(Key key) const {
-        //assert(key >= 0 && key <= MaxKeyValue && "DenseSparseSet key out of bounds!");
+        assert(key >= 0 && key <= MaxKeyValue && "DenseSparseSet key out of bounds!");
     }
 
     void emptySet() {

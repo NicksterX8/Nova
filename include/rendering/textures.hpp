@@ -94,17 +94,34 @@ struct TextureData {
     glm::ivec2 size;
 };
 
+// a special type of texture
+struct Animation {
+    TextureID texture;
+    IVec2 frameSize;
+    int frameCount;
+    int updatesPerFrame;
+};
+
 struct TextureManager {
     My::Vec<TextureMetaData> metadata;
     My::Vec<TextureData> data;
+    My::HashMap<TextureID, Animation> animations;
 
     TextureManager(int numTextures) {
         metadata = My::Vec<TextureMetaData>::Filled(numTextures, {nullptr, nullptr});
         data = My::Vec<TextureData>::Filled(numTextures, {{0,0}});
+        animations = My::HashMap<TextureID, Animation>::WithBuckets(8);
     }
 
-    void add(TextureID id, const char* stringIdentifier, TextureType type, const char* filename) {
+    void add(TextureID id, const char* stringIdentifier, TextureType type, const char* filename, const Animation* animation = nullptr) {
         metadata[id] = TextureMetaData{stringIdentifier, filename, type};
+        if (animation) {
+            animations.insert(id, *animation);
+        }
+    }
+
+    void addAnimation(const Animation* animation) {
+        animations.insert(animation->texture, *animation);
     }
 
     TextureID getID(const char* identifier) const {
@@ -120,6 +137,7 @@ struct TextureManager {
     void destroy() {
         metadata.destroy();
         data.destroy();
+        animations.destroy();
     }
 };
 
@@ -142,12 +160,21 @@ namespace TextureIDs {
             Water,
             SpaceFloor,
             Wall,
+            GreyFloor,
+            GreyFloorOverhang,
             lastTile
+        };
+    }
+    namespace Buildings {
+        enum Building : TextureID {
+            TransportBelt = Tiles::lastTile,
+            TransportBeltAnimation,
+            lastBuilding
         };
     }
     namespace GUI {
         enum Gui : TextureID {
-            lastGui = Tiles::lastTile
+            lastGui = Buildings::lastBuilding
         };
     }
     enum General : TextureID {
@@ -155,7 +182,9 @@ namespace TextureIDs {
         Chest,
         Grenade,
         Player,
-        Tree,
+        PlayerShadow,
+        TreeBottom,
+        TreeTop,
         LastPlusOne
     };
 
@@ -194,7 +223,7 @@ struct TextureArray {
     }
 };
 
-GLuint GlLoadTextureArray(glm::ivec2 size, ArrayRef<SDL_Surface*> images);
+GLuint GlLoadTextureArray(glm::ivec2 size, ArrayRef<SDL_Surface*> images, GLenum minFilter, GLenum magFilter);
 // @typesIncluded can be one or more types (as a bit mask) of textures that should be included in the texture array
 TextureArray makeTextureArray(glm::ivec2 size, TextureManager* textures, TextureType typesIncluded, const char* assetsPath, TextureUnit target);
 int updateTextureArray(TextureArray* textureArray, TextureManager* textures, TextureID id, SDL_Surface* surface);
@@ -206,6 +235,10 @@ struct TextureAtlas {
     struct Space {
         TexCoord min;
         TexCoord max;
+
+        TexCoord size() const {
+            return max - min;
+        }
 
         bool valid() const {
             return !(min == NullCoord || max == NullCoord); // not gonna bother checking every single other one
@@ -240,6 +273,35 @@ inline int getTextureArrayDepth(const TextureArray* textureArray, TextureID id) 
 inline TextureAtlas::Space getTextureAtlasSpace(const TextureAtlas* textureAtlas, TextureID id) {
     auto* space = textureAtlas->textureSpaces.lookup(id);
     return space ? *space : TextureAtlas::Space{TextureAtlas::NullCoord, TextureAtlas::NullCoord};
+}
+
+inline Animation* getAnimation(const TextureManager* textureManager, TextureID id) {
+    return textureManager->animations.lookup(id);
+}
+
+// first frame is frame 0
+inline TextureAtlas::Space getAnimationFrame(const TextureAtlas::Space& atlas, const Animation& animation, int frame) {
+    if (frame < 0 || frame >= animation.frameCount) return TextureAtlas::Space{TextureAtlas::NullCoord, TextureAtlas::NullCoord};
+
+    int totalPixelOffset = animation.frameSize.x * frame;
+    auto atlasSize = atlas.size();
+    int row = totalPixelOffset / atlasSize.x;
+    TextureAtlas::TexCoord offset = {totalPixelOffset % atlasSize.x, row * animation.frameSize.y};
+    TextureAtlas::TexCoord min = atlas.min + offset;
+    
+    return {
+        min,
+        {min.x + animation.frameSize.x, min.y + animation.frameSize.y}
+    };
+}
+
+inline TextureAtlas::Space getCurrentAnimationFrame(const TextureAtlas::Space& atlas, const Animation& animation) {
+    return getAnimationFrame(atlas, animation, (Metadata->getTick() / animation.updatesPerFrame) % animation.frameCount);
+}
+
+inline TextureAtlas::Space getAnimationFrameFromAtlas(const TextureAtlas& atlas, const Animation& animation) {
+    auto animationSpace = getTextureAtlasSpace(&atlas, animation.texture);
+    return getCurrentAnimationFrame(animationSpace, animation);
 }
 
 #endif

@@ -12,7 +12,7 @@ constexpr int mySizeof() {
 }
 
 float getLayerHeight(int layer) {
-    return (int)layer * 0.05f;
+    return layer * 0.05f - 0.5f;
 }
 
 struct RenderSystem {
@@ -34,7 +34,7 @@ struct RenderSystem {
         glm::vec2 size;
         GLfloat rotation;
         GLushort texCoords[4];
-        glm::vec2 velocity;
+        glm::vec4 color;
     };
     //constexpr static GLint vertexSize = 3 * sizeof(GLfloat) + 2 * sizeof(GLfloat) + 1 * sizeof(GLfloat) + 4 * sizeof(GLushort) + 2 * sizeof(GLfloat);
     //static_assert(sizeof(Vertex) == vertexSize, "");
@@ -46,7 +46,7 @@ struct RenderSystem {
             {2, GL_FLOAT, sizeof(GLfloat)}, // size
             {1, GL_FLOAT, sizeof(GLfloat)}, // rotation
             {4, GL_UNSIGNED_SHORT, sizeof(GLushort)}, // texCoords (min.x, min.y, max.x, max.y)
-            {2, GL_FLOAT, sizeof(GLfloat)} // velocity
+            {4, GL_FLOAT, sizeof(GLfloat)} // color
         });
 
         model = makeModelSOA(verticesPerBatch, nullptr, GL_STREAM_DRAW, vertexFormat);
@@ -66,7 +66,7 @@ struct RenderSystem {
         glm::vec2* sizes = nullptr;
         GLfloat* rotations = nullptr;
         GLushort* texCoords = nullptr;
-        glm::vec2* velocities = nullptr;
+        glm::vec4* colors = nullptr;
     };
 
     VertexDataArrays mapVertexBuffer() {
@@ -81,7 +81,7 @@ struct RenderSystem {
         buffer.sizes     = (glm::vec2*)&buffer.positions[verticesPerBatch];
         buffer.rotations = (GLfloat*)&buffer.sizes[verticesPerBatch];
         buffer.texCoords = (GLushort*)&buffer.rotations[verticesPerBatch];
-        buffer.velocities = (glm::vec2*)&buffer.texCoords[4 * verticesPerBatch];
+        buffer.colors = (glm::vec4*)&buffer.texCoords[4 * verticesPerBatch];
         return buffer;
     }
 
@@ -94,88 +94,156 @@ struct RenderSystem {
 
     using ECS_t = ComponentManager<EC::Render, const EC::ViewBox, const EC::Health, const EC::Rotation>;
 
-    bool renderEntity(Entity entity, const ECS_t& ecs, const TextureAtlas* textureAtlas, RenderContext& ren, VertexDataArrays buffer, int& entityCounter) {
-        /* Get necessary entity data */
-        auto position = ecs.Get<const EC::Position>(entity)->vec2();
-        auto viewbox  = ecs.Get<const EC::ViewBox>(entity);
-        auto renderEC = ecs.Get<const EC::Render>(entity);
-        if (!viewbox || !renderEC) {
-            LogError("necessary components not found when rendering entity!");
-            return false;
+    float getEntityHeight(EntityID id, int renderLayer) {
+        return getLayerHeight(renderLayer) + id * 0.0000001f;
+    }
+
+    void blend(glm::vec4* base, glm::vec4 fg) {
+        float alpha = fg.a;
+        float invAlpha = 1 - alpha;
+        *base = fg * alpha + *base * invAlpha;
+    }
+
+    int renderBatch(ArrayRef<Entity> entities, ArrayRef<Uint16> texIndices, VertexDataArrays buffer, const ECS_t& ecs, const ChunkMap& chunkmap, RenderContext& ren) {
+        int batchSize = entities.size();
+    
+        // position and size
+        for (int e = 0; e < batchSize; e++) {
+            Entity entity = entities[e];
+            Vec2 pos = ecs.Get<EC::Position>(entity)->vec2();
+            EC::ViewBox* viewbox = ecs.Get<EC::ViewBox>(entity);
+            EC::Render* renderComponent = ecs.Get<EC::Render>(entity);
+            auto& texture = renderComponent->textures[texIndices[e]];
+            
+            Vec2 viewMin = viewbox->box.min + texture.box.min;
+            Vec2 size = viewbox->box.size * texture.box.size * 0.5f;
+            buffer.positions[e].x = pos.x + viewMin.x + size.x;
+            buffer.positions[e].y = pos.y + viewMin.y + size.y;
+
+            buffer.sizes[e] = size;
         }
 
-        Vec2 entityCenter = position + viewbox->center();
-        Vec2 entitySize = viewbox->size;
-
-        float rotation = 0.0f;
-        if (ecs.EntityHas<EC::Rotation>(entity)) {
-            rotation = ecs.Get<const EC::Rotation>(entity)->degrees;
+        if (Debug->settings["drawEntityViewBoxes"]) {
+            for (int e = 0; e < batchSize; e++) {
+                Entity entity = entities[e];
+                Vec2 pos = ecs.Get<EC::Position>(entity)->vec2();
+                EC::ViewBox* viewbox = ecs.Get<EC::ViewBox>(entity);
+                
+                Vec2 viewMin = viewbox->box.min;
+                Vec2 size = viewbox->box.size;
+                Vec2 min = pos + viewMin;
+                FRect entityRect = {
+                    pos.x,
+                    pos.y,
+                    size.x,
+                    size.y
+                };
+                constexpr SDL_Color rectColor = {255, 0, 255, 180};
+                ren.worldGuiRenderer.rectOutline(entityRect, rectColor, 0.05f, 0.05f);
+            }
         }
 
-        TextureID texture = renderEC->texture;
-
-        /* Render entity sprite */
-        auto space = getTextureAtlasSpace(textureAtlas, texture);
-        glm::vec<2, GLushort> texMin = space.min;
-        glm::vec<2, GLushort> texMax = space.max;
-
-        float w = entitySize.x / 2.0f;
-        float h = entitySize.y / 2.0f;
-
-        glm::vec3 p = glm::vec3(entityCenter, getLayerHeight(renderEC->layer));
-        
-        glm::vec3 vertexPosition = {
-            p.x,   p.y,   p.z,
-        };
-        const GLushort vertexTexCoords[4] = {
-            texMin.x,  texMin.y,
-            texMax.x,  texMax.y, 
-        };
-        glm::vec2 vertexSize = {
-            w, h
-        };
-        const GLfloat vertexRotation = rotation;
-        const GLubyte vertexTexture = texture;
-        // TODO: fix
-        glm::vec2 vertexVelocity = g.playerMovement;
-
-        buffer.positions[entityCounter] = vertexPosition;
-        memcpy(&buffer.texCoords[entityCounter * 4], vertexTexCoords, 4 * sizeof(GLfloat));
-        buffer.sizes[entityCounter] = vertexSize;
-        buffer.rotations[entityCounter] = vertexRotation;
-        buffer.velocities[entityCounter] = vertexVelocity;
-        
-        entityCounter++;
-
-        if (entityCounter == entitiesPerBatch) {
-            unmapVertexBuffer(&buffer); // put vertex data into effect
-            //glDrawElements(GL_TRIANGLES, entityCounter*indicesPerEntity, GL_UNSIGNED_INT, 0); // draw a batch of entities
-            glDrawArrays(GL_POINTS, 0, entityCounter);
-            entityCounter = 0;
-            // have to remap vertex buffer after unmapping
-            buffer = mapVertexBuffer();
+        if (Debug->settings["drawEntityCollisionBoxes"]) {
+            for (int e = 0; e < batchSize; e++) {
+                Entity entity = entities[e];
+                Vec2 pos = ecs.Get<EC::Position>(entity)->vec2();
+                auto* box = ecs.Get<EC::CollisionBox>(entity);
+                if (!box) continue;
+                
+                Vec2 boxMin = box->box.min;
+                Vec2 size = box->box.size;
+                Vec2 min = pos + boxMin;
+                FRect entityRect = {
+                    min.x,
+                    min.y,
+                    size.x,
+                    size.y
+                };
+                constexpr SDL_Color rectColor = {0, 255, 255, 180};
+                ren.worldGuiRenderer.rectOutline(entityRect, rectColor, 0.05f, 0.05f);
+            }
         }
 
-        /* Render misc entity details */
-        if (Debug->settings.drawEntityRects) {
-            // TODO: Render entity rectangles
-            FRect entityRect = {
-                p.x - w,
-                p.y - h,
-                w*2,
-                h*2
-            };
-            constexpr SDL_Color rectColor = {255, 0, 255, 180};
-            ren.worldGuiRenderer.rectOutline(entityRect, rectColor, 0.05f, 0.05f);
+        if (Debug->settings["drawEntityIDs"]) {
+            for (int e = 0; e < batchSize; e++) {
+                Entity entity = entities[e];
+                Vec2 pos = ecs.Get<EC::Position>(entity)->vec2();
+                EC::ViewBox* viewbox = ecs.Get<EC::ViewBox>(entity);
+
+                Vec2 min = pos + viewbox->box.min;
+                Vec2 max = pos + viewbox->box.max();
+
+                char message[256];
+                snprintf(message, 256, "%d", entity.id);
+                ren.worldGuiRenderer.text->render(message,
+                    {min.x, max.y},
+                    TextFormattingSettings(TextAlignment::TopLeft), {}
+                );
+            }
         }
 
-        if (Debug->settings.drawEntityIDs) {
-            char message[256];
-            snprintf(message, 256, "%d", entity.id);
-            ren.worldGuiRenderer.text->render(message, {p.x, p.y});
+        // texture
+        for (int e = 0; e < batchSize; e++) {
+            Entity entity = entities[e];
+            EC::Render* renderComponent = ecs.Get<EC::Render>(entity);
+            auto& texture = renderComponent->textures[texIndices[e]];
+            auto space = getTextureAtlasSpace(&ren.textureAtlas, texture.tex);
+            float height = getEntityHeight(entity.id, texture.layer);
+            buffer.positions[e].z = height;
+            buffer.texCoords[e * 4 + 0] = space.min.x;
+            buffer.texCoords[e * 4 + 1] = space.min.y;
+            buffer.texCoords[e * 4 + 2] = space.max.x;
+            buffer.texCoords[e * 4 + 3] = space.max.y;
         }
 
-        return true;
+        // animation
+        for (int e = 0; e < batchSize; e++) {
+            Entity entity = entities[e];
+            EC::Render* renderComponent = ecs.Get<EC::Render>(entity);
+            auto& texture = renderComponent->textures[texIndices[e]];
+            auto animation = getAnimation(&ren.textures, texture.tex);
+            if (!animation) continue;
+            auto animationSpace = getTextureAtlasSpace(&ren.textureAtlas, texture.tex);
+            auto space = getAnimationFrame(animationSpace, *animation, (int)floor(fmod(Metadata->getTick(), animation->frameCount * animation->updatesPerFrame) / animation->updatesPerFrame));
+            buffer.positions[e].z = getEntityHeight(entity.id, texture.layer);
+            buffer.texCoords[e * 4 + 0] = space.min.x;
+            buffer.texCoords[e * 4 + 1] = space.min.y;
+            buffer.texCoords[e * 4 + 2] = space.max.x;
+            buffer.texCoords[e * 4 + 3] = space.max.y;
+        }
+
+        // rotation
+        for (int e = 0; e < batchSize; e++) {
+            Entity entity = entities[e];
+            auto* rotation = ecs.Get<EC::Rotation>(entity);
+            buffer.rotations[e] = rotation ? rotation->degrees : 0.0f;
+        }
+
+        // color
+        for (int e = 0; e < batchSize; e++) {
+            Entity entity = entities[e];
+            
+            glm::vec4 colorShading = {1.0, 1.0, 1.0, 1.0};
+            auto* health = ecs.Get<EC::Health>(entity);
+            if (health) {
+                if (health->timeDamaged != NullTick && Metadata->getTick() - health->timeDamaged < 5) {
+                    blend(&colorShading, glm::vec4{1, 0, 0, 0.5});
+                }
+            }
+
+            auto* selected = ecs.Get<EC::Selected>(entity);
+            if (selected) {
+                blend(&colorShading, glm::vec4{0.0, 0.0, 1.0, 0.5});
+            }
+
+            auto* render = ecs.Get<EC::Render>(entity);
+            colorShading.a = render->textures[texIndices[e]].opacity;
+
+            buffer.colors[e] = colorShading;
+        }
+
+        // draw a batch of entities
+        glDrawArrays(GL_POINTS, 0, batchSize);
     }
 
     void Update(const ECS_t& ecs, const ChunkMap& chunkmap, RenderContext& ren, Camera& camera) {
@@ -196,18 +264,35 @@ struct RenderSystem {
         const auto* textureAtlas = &ren.textureAtlas;
         const auto* textureData = ren.textures.data.data;
 
-        int entityCounter = 0, entitiesRendered = 0;
-        // TODO: make this betterd
-        Vec2 viewSize = camera.maxCorner() - camera.minCorner();
-        Vec2 bottomLeft = Vec2(camera.position) - viewSize / 2.0f;
-        Vec2 bottomRight = bottomLeft + viewSize;
-        forEachEntityInBounds(ecs, &chunkmap, 
-            {{bottomLeft, bottomRight}}, 
+        Boxf cameraBounds = camera.maxBoundingArea();
+
+        My::Vec<Entity> entityList = My::Vec<Entity>::WithCapacity(16);
+
+        forEachEntityInBounds(ecs, &chunkmap, cameraBounds, 
         [&](Entity entity){
             if (Query::Check(ecs.EntitySignature(entity))) {
-                entitiesRendered += (int)renderEntity(entity, ecs, textureAtlas, ren, buffer, entityCounter);
+                entityList.push(entity);
             }
         });
+
+        My::Vec<Uint16> textureIndexList = My::Vec<Uint16>::Filled(entityList.size, 0);
+
+        int realNumEntities = entityList.size;
+        for (int e = 0; e < realNumEntities; e++) {
+            Entity entity = entityList[e];
+            EC::Render* renderComponent = ecs.Get<EC::Render>(entity);
+            for (int i = 1; i < renderComponent->numTextures; i++) {
+                entityList.push(entity);
+                textureIndexList.push(i);
+            }
+        }
+
+        int entitiesRendered = 0;
+        while (entitiesRendered < entityList.size) {
+            int batchSize = MIN(entityList.size - entitiesRendered, entitiesPerBatch);
+            renderBatch(ArrayRef(entityList.data, entityList.size), ArrayRef(textureIndexList.data, textureIndexList.size), buffer, ecs, chunkmap, ren);
+            entitiesRendered += batchSize;
+        }
 
         // put vertex data into effect, if the buffer exists
         if (buffer.positions) {
@@ -215,17 +300,9 @@ struct RenderSystem {
         }
 
         // number of entities wasn't exactly divisible by entitiesPerBatch, so we have some left to do
-        if (entityCounter > 0) {
+        if (entitiesRendered < entityList.size) {
             // draw a batch of entities
-            glDrawArrays(GL_POINTS, 0, entityCounter);
-        }
-
-        if (Debug->settings.drawEntityIDs) {
-            int nRenderedIDs = 0;
-            ecs.ForEach<Query>([&](Entity entity){
-                // TODO: Render entity ids with TEXT_RENDERING
-            });
-            LogInfo("rendered %d ids", nRenderedIDs);
+            glDrawArrays(GL_POINTS, 0, entityList.size - entitiesRendered);
         }
     }
 };

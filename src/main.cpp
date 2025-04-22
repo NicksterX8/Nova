@@ -8,17 +8,13 @@
 #include "sdl_gl.hpp"
 
 #include "GUI/Gui.hpp"
-#include "utils/Debug.hpp"
-#include "loadData.hpp"
-
 #include "Game.hpp"
 #include "utils/Debug.hpp"
 #include "GameSave/main.hpp"
-#include "sdl.hpp"
-#include "global.hpp"
 #include "global.hpp"
 
 #include "memory.hpp"
+#include "physics/physics.hpp"
 
 #ifdef DEBUG
     //#include "Testing.hpp"
@@ -173,7 +169,7 @@ void initPaths() {
 }
 
 void tests() {
-
+    physics_test();
 }
 
 int main(int argc, char** argv) { 

@@ -17,3 +17,11 @@ should I make player position centered on bottom left or center?
 Text rendering stuff is fun but idk if it's the best thing to do right now. try make things playable first?
 
 make method for getting player center maybe
+
+Instead of start/stop events, have an entity finalization kinda thing
+Should modifications not take effect until somehting else is done?
+I'm basically reinventing command buffers??
+Either way, the current system kinda sucks!
+
+I feel like everything i do is super inefficient with component access and stuff idk. like what do for functions
+

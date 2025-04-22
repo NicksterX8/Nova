@@ -100,6 +100,7 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, const Player* player, const I
             if (!item.empty()) {
                 const ItemPrototype* prototype = items::getPrototype(item.item.type, itemManager);
                 const ITC::Display* displayComponent = items::getComponent<ITC::Display>(item.item, itemManager);
+                const ITC::TileC* tileComponent = items::getComponent<ITC::TileC>(item.item, itemManager);
                 if (displayComponent && prototype) {
                     // icon
                     renderer.sprite(displayComponent->inventoryIcon, innerSlot);
@@ -121,7 +122,7 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, const Player* player, const I
 
         // draw highlight around selected hotbar slot
         int selectedHotbarSlot = player->selectedHotbarStack;
-        if (selectedHotbarSlot > 0 && selectedHotbarSlot < (int)player->numHotbarSlots) {
+        if (selectedHotbarSlot >= 0 && selectedHotbarSlot < (int)player->numHotbarSlots) {
             SDL_FRect selectedHotbarSlotRect = {
                 inside.x + selectedHotbarSlot * (slotSize + hotbarHorizontalMargin / (numSlots - 1)),
                 inside.y + hotbarVerticalMargin / 2,
@@ -136,12 +137,19 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, const Player* player, const I
 }
 
 void GUI::Gui::drawHeldItemStack(GuiRenderer& renderer, const ItemManager& itemManager, const ItemStack& itemStack, glm::vec2 pos) {
+    if (itemStack.empty()) return;
     const float size = renderer.pixels(60);
-    FRect destination = {
+    Vec2 bottomLeft = {
         pos.x - size/2,
-        pos.y - size/2,
+        pos.y - size/2
+    };
+    FRect destination = {
+        bottomLeft.x,
+        bottomLeft.y,
         size,
         size
     };
     Draw::drawItemStack(renderer, itemManager, itemStack, destination);
+    renderer.text->render(string_format("%d", itemStack.quantity).c_str(), bottomLeft,
+        TextFormattingSettings(TextAlignment::BottomLeft));
 }

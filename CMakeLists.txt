@@ -26,6 +26,7 @@ set(SRC_FILES
     ${SD}/My/HashMap.cpp
     ${SD}/GUI/Gui.cpp
     ${SD}/items/items.cpp
+    ${SD}/items/prototypes/prototypes.cpp
     ${SD}/Chunks.cpp
     ${SD}/Tiles.cpp
     ${SD}/Game.cpp
@@ -47,6 +48,7 @@ set(SRC_FILES
     ${SD}/ECS/components/components.cpp
     ${SD}/ECS/entities/entities.cpp
     ${SD}/ECS/entities/methods.cpp
+    ${SD}/physics/physics.cpp
 )
 
 #find_package (glog 0.6.0 REQUIRED)
@@ -60,7 +62,7 @@ set(VLB /Users/nick/vcpkg/packages)
 target_link_directories(${PROJECT_NAME} PUBLIC 
     ${HLB}/sdl2/2.0.22/lib
     ${HLB}/sdl2_image/2.6.0/lib
-    ${HLB}/freetype/2.12.1/lib
+    ${HLB}/freetype/2.13.3/lib
 
     #${VLB}/glog_arm64-osx/lib
 )
@@ -75,7 +77,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${HLB}/sdl2_image/2.6.0/include
     ${HLB}/glm/0.9.9.8/include
 
-    ${HLB}/freetype/2.12.1/include/freetype2 # Freetype is weird so you have to include it like this
+    ${HLB}/freetype/2.13.3/include/freetype2 # Freetype is weird so you have to include it like this
 )
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD

@@ -1,13 +1,14 @@
 #ifndef ENTITY_SYSTEM_INCLUDED
 #define ENTITY_SYSTEM_INCLUDED
 
-#include "Entity.hpp"
 #include "Query.hpp"
-#include "EntityManager.hpp"
+#include "ECS/EntityWorld.hpp"
 #include "../constants.hpp"
 #include <vector>
 
 namespace ECS {
+
+/*
 
 typedef Uint32 ComponentAccessType;
 
@@ -33,21 +34,21 @@ namespace ComponentAccess {
     }
 }
 
-class ECS;
+using ECS = EntityWorld;
 
 class EntityCommandBuffer {
    // ECS* ecs;
 public:
     std::vector< std::function<void(ECS*)> > commands;
 
-    /*
+    *
     int Remove(Entity entity) {
         commands.push_back([entity](ECS* ecs){
             ecs->Remove(entity);
         });
         return 0;
     }
-    */
+    *
 
     void DeferredStructuralChange(std::function<void(ECS*)> callback) {
         commands.push_back(callback);
@@ -55,12 +56,11 @@ public:
 
 };
 
-/*
 
 class EntitySystemAccess {
     ECS* ecs;
 public:
-    ComponentAccessType componentAccess[NUM_COMPONENTS] = {ComponentAccess::None};
+    ComponentAccessType componentAccess[ECS_NUM_COMPONENTS] = {ComponentAccess::None};
     EntitySystemAccess(ECS* ecs)
     : ecs(ecs) {
         
@@ -111,7 +111,7 @@ public:
     }
 
     inline ComponentFlags entityComponents(EntityID id) const {
-        return ecs->entityComponents(id);
+        return ecs->EntitySignature(Entity{id, WILDCARD_ENTITY_VERSION});
     }
 
     template<class... Components>
@@ -227,7 +227,6 @@ protected:
 };
 
 */
-
 }
 
 #endif

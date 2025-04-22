@@ -68,6 +68,7 @@ namespace Items {
     inline Item sandGun(ItemManager& manager) {
         auto i = makeItem(ItemTypes::SandGun, manager);
         addComponent<ITC::Durability>(i, manager, {100});
+        addComponent<ITC::Display>(i, manager, ITC::Display{TextureIDs::Tiles::Sand});
         return i;
     }
 

@@ -134,12 +134,12 @@ SDL_Surface* loadTexture(TextureID id, TextureManager* textures, const char* bas
     return image;
 }
 
-GLuint GlLoadTextureArray(glm::ivec2 size, ArrayRef<SDL_Surface*> images) {
+GLuint GlLoadTextureArray(glm::ivec2 size, ArrayRef<SDL_Surface*> images, GLenum minFilter, GLenum magFilter) {
     GLuint texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, minFilter);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, magFilter);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);	
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
@@ -193,7 +193,7 @@ TextureArray makeTextureArray(glm::ivec2 size, TextureManager* textures, Texture
 
     TextureArray texArray = TextureArray(size, images.size(), 0, textureUnit);
     glActiveTexture(GL_TEXTURE0 + textureUnit);
-    GLuint texture = GlLoadTextureArray(size, images);
+    GLuint texture = GlLoadTextureArray(size, images, GL_NEAREST, GL_NEAREST);
     texArray.texture = texture;
     
     if (!texArray.texture) {
@@ -322,26 +322,49 @@ TextureAtlas makeTextureAtlas(TextureManager* textures, TextureType typesInclude
     return atlas;
 }
 
+static void addAnimation(const Animation& animation, TextureManager* textureManager) {
+    textureManager->addAnimation(&animation);
+}
+
 int setTextureMetadata(TextureManager* textureManager) {
     if (!textureManager) return -1;
+
+    using namespace TextureIDs;
+    using namespace TextureIDs::Tiles;
 
     #define TEX(id, type, filename) textureManager->add(TextureIDs::id, TOSTRING(id), TextureTypes::type, filename)
     
     TEX(Null, Other, NULL);
     TEX(Player, World, "player.png");
+    TEX(PlayerShadow, World, "player-shadow.png");
     TEX(Inserter, World, "inserter.png");
     TEX(Chest, World, "chest.png");
     TEX(Grenade, World, "grenade.png");
-    TEX(Tree, World, "tree.png");
+    TEX(TreeBottom, World, "tree-bottom.png");
+    TEX(TreeTop, World, "tree-top.png");
 
     #define TILE(id, filename) TEX(Tiles::id, World, "tiles/" filename)
     #define GUI(id, filename) TEX(GUI::id, Gui, "gui/" filename)
 
     TILE(Grass, "grass.png");
     TILE(Sand, "sand.png");
-    TILE(Water, "../tree.png");
+    TEX(Tiles::Water, World, "tiles/grass.png");
     TILE(SpaceFloor, "space-floor.png");
     TILE(Wall, "wall.png");
+    TILE(GreyFloor, "grey-floor.png");
+    TILE(GreyFloorOverhang, "grey-floor-overhang.png");
+
+    #define ANIMATION(id, type, filename, frameCount, frameSize, duration) {Animation animation = {TextureIDs::id, frameSize, frameCount, duration}; textureManager->add(TextureIDs::id, TOSTRING(id), TextureTypes::type, filename, &animation);}
+
+    TEX(Buildings::TransportBelt, World, "buildings/belt.png");
+    TEX(Buildings::TransportBeltAnimation, World, "buildings/belt-animation.png");
+    Animation beltAnimation = {
+        Buildings::TransportBeltAnimation,
+        .frameSize = {32, 32},
+        .frameCount = 16,
+        .updatesPerFrame = 2
+    };
+    addAnimation(beltAnimation, textureManager);
 
     //GUI(SquareButton, "square-button.png");
 

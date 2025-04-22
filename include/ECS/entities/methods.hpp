@@ -7,7 +7,13 @@
 
 namespace Entities {
 
+void scaleGuy(GameState* state, Entity guy, float scale);
+
+Entity findNamedEntity(const char* name, const EntityWorld* ecs);
+
 inline Entity clone(EntityWorld* ecs, Entity entity) {
+    if (!ecs->EntityExists(entity)) return NullEntity;
+
     ecs->StartDeferringEvents();
 
     ComponentFlags signature = ecs->EntitySignature(entity);
@@ -30,12 +36,17 @@ inline Entity clone(EntityWorld* ecs, Entity entity) {
  */
 void throwEntity(EntityWorld* ecs, Entity entity, Vec2 target, float speed);
 
+inline void giveName(Entity entity, const char* name, EntityWorld* ecs) {
+    ecs->Add<EC::Nametag>(entity, EC::Nametag(name));
+}
+
 }
 
 void entityCreated(GameState* state, Entity entity);
 
-void entitySizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<EC::ViewBox> entity, Vec2 oldSize);
-void entityPositionChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<EC::ViewBox> entity, Vec2 oldPos);
-void entityPositionAndSizeChanged(ChunkMap* chunkmap, const EntityWorld* ecs, EntityT<EC::ViewBox> entity, Vec2 oldPos, Vec2 oldSize);
+void entityViewChanged(ChunkMap* chunkmap, Entity entity, Vec2 newPos, Vec2 oldPos, Box newViewbox, Box oldViewbox, bool justMade);
+void entityPositionChanged(GameState* state, Entity entity, Vec2 oldPos);
+void entityViewboxChanged(GameState* state, Entity entity, Box oldViewbox);
+void entityViewAndPosChanged(GameState* state, Entity entity, Vec2 oldPos, Box oldViewbox);
 
 #endif

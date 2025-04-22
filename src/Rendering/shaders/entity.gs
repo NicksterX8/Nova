@@ -7,16 +7,15 @@ in VS_OUT {
     vec4  TexCoords;
     vec2  Size;
     float Rotation;
-    vec2  Velocity;
+    vec4  Color;
 } gs_in[];
 
 out vec2 TexCoord;
-out vec2 Velocity;
+out vec4 Color;
 
 uniform mat4 transform;
 
 mat4 trans;
-vec2 velocity;
 
 float c;
 float s;
@@ -32,18 +31,8 @@ void make_vertex(vec3 pos, vec2 offset) {
     vec4 rotated = vec4(rotate(offset), pos.z, 1.0);
     // translate back
     rotated.xy += pos.xy;
-    vec4 newNormalizedPos = trans * rotated;
-
-    rotated.xy -= velocity;
-
-    vec4 oldNormalizedPos = trans * rotated;
-    vec2 normalizedVelocity = newNormalizedPos.xy - oldNormalizedPos.xy;
-
-    gl_Position = newNormalizedPos;
-    Velocity = oldNormalizedPos.xy;
-    //if (normalizedVelocity.x < 1.0 && normalizedVelocity.x > 0.0) {
-        EmitVertex();
-    //}
+    gl_Position = trans * rotated;
+    EmitVertex();
 }
 
 void main() {
@@ -51,7 +40,7 @@ void main() {
     vec3  pos       = gs_in[0].Pos;
     vec2  size      = gs_in[0].Size;
     float rotation  = gs_in[0].Rotation;
-          velocity  = gs_in[0].Velocity;
+          Color     = gs_in[0].Color;
 
     trans = transform;
     /*

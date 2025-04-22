@@ -45,22 +45,6 @@ inline void freeItem(Item item, ItemManager& manager) {
     // TODO:
 }
 
-inline bool stackable(ItemStack lhs, ItemStack rhs, const ItemManager& manager) {
-    return (lhs.item.type == rhs.item.type && lhs.item.signature == rhs.item.signature);
-}
-
-/* Combine the two item stacks into one
- *
- */
-inline ItemStack combineStacks(ItemStack dst, ItemStack src, ItemManager& manager) {
-    if (src.item.type == dst.item.type && src.item.signature == dst.item.signature) {
-        freeItem(src.item, manager);
-        return ItemStack(dst.item, dst.quantity + src.quantity);
-    }
-    // not stackable
-    return ItemStack::None();
-}
-
 inline const ItemPrototype* getPrototype(ItemType type, const ItemManager& manager) {
     //TODO: check for null
     if (type >= manager.prototypes.prototypes.size()) return nullptr;
@@ -89,6 +73,7 @@ typename std::conditional<C::PROTOTYPE, const C*, C*>::type getComponent(const I
 
 template<class C>
 void setComponent(const Item& item, const ItemManager& manager, const C& value) {
+    static_assert(C::PROTOTYPE == false);
     C* component = getComponent<C>(item, manager);
     if (component) {
         *component = value;
@@ -99,6 +84,10 @@ void setComponent(const Item& item, const ItemManager& manager, const C& value) 
 
 inline Item makeItem(ItemType type, ItemManager& manager) {
     auto* prototype = getPrototype(type, manager);
+    if (!prototype) {
+        LogError("NO prototype found for item type %d!", type);
+        return Item::None();
+    }
     ComponentSignature prototypeSignature = 0;
     if (prototype) {
         prototypeSignature = prototype->signature;
@@ -114,8 +103,7 @@ inline void destroyItemStack(ItemStack* stack, ItemManager& manager) {
 
 template<class C>
 bool addComponent(Item& item, ItemManager& manager, const C& startValue) {
-    // TODO:
-    return false;
+    static_assert(C::PROTOTYPE == false);
     manager.components.addComponent(&item.componentsLoc, C::ID);
     C* component = (C*)manager.components.getComponent(item.componentsLoc, C::ID);
     if (component) {
@@ -128,12 +116,39 @@ bool addComponent(Item& item, ItemManager& manager, const C& startValue) {
 
 template<class C>
 void addComponent(Item& item, ItemManager& manager) {
+    static_assert(C::PROTOTYPE == false);
     manager.components.addComponent(item.componentsLoc, C::ID);
     item.signature.set(C::ID);
 }
 
 inline ItemQuantity getStackSize(Item item, const ItemManager& manager) {
-    return getPrototype(item.type, manager)->stackSize;
+    auto prototype = getPrototype(item.type, manager);
+    assert(prototype && "no prototype for item!");
+    return prototype->stackSize;
+}
+
+inline bool isSame(const Item& lhs, const Item& rhs) {
+    return (lhs.componentsLoc.archetype == rhs.componentsLoc.archetype)
+        && (lhs.componentsLoc.index     == rhs.componentsLoc.index);
+}
+
+/* Combine the two item stacks into one
+ *
+ */
+inline bool combineStacks(ItemStack* dst, ItemStack* src, ItemManager& manager) {
+    if (!dst || !src) return false;
+    if (isSame(src->item, dst->item)) {
+        ItemQuantity stackSize = getStackSize(dst->item, manager);
+        ItemQuantity totalSize = dst->quantity + src->quantity;
+        ItemQuantity itemsToMove = MIN(stackSize, totalSize) - dst->quantity;
+
+        dst->quantity += itemsToMove;
+        src->reduceQuantity(itemsToMove);
+
+        return true;
+    }
+    // not stackable
+    return false;
 }
 
 } // namespace items

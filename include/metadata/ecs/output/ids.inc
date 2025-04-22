@@ -24,3 +24,7 @@ template<> constexpr ID_Type getID<EC::Fresh>() { return 21; }
 template<> constexpr ID_Type getID<EC::Special>() { return 22; }
 template<> constexpr ID_Type getID<EC::ViewBox>() { return 23; }
 template<> constexpr ID_Type getID<EC::Point>() { return 24; }
+template<> constexpr ID_Type getID<EC::CollisionBox>() { return 25; }
+template<> constexpr ID_Type getID<EC::Dynamic>() { return 26; }
+template<> constexpr ID_Type getID<EC::Selected>() { return 27; }
+template<> constexpr ID_Type getID<EC::TransportLineEC>() { return 28; }

@@ -14,6 +14,7 @@ namespace Shaders {
         SDF,
         Texture,
         Screen,
+        Water,
         Count
     };
 }

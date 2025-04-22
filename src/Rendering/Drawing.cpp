@@ -115,35 +115,60 @@ int Draw::chunkBorders(QuadRenderer& renderer, const Camera& camera, SDL_Color c
     return numLines;
 }
 
-void Draw::drawFpsCounter(TextRenderer& renderer, float fps, RenderOptions options) {
+void Draw::drawFpsCounter(GuiRenderer& renderer, float fps, float tps, RenderOptions options) {
     static char fpsCounter[128];
 
-    static float fpsLastFrame = fps;
-
-    if (Metadata->currentFrame() % 5) {
-        float averagedFps = (fps + fpsLastFrame) / 2.0f;
-        snprintf(fpsCounter, 128, "FPS: %.1f", averagedFps);
+    // only update every 5 frames to not be annoying
+    if (Metadata->getFrame() % 5) {
+        snprintf(fpsCounter, 128, "FPS: %.1f", fps);
     }
 
     // if fps is negative or NaN somehow, it will be black
     SDL_Color color = {0,0,0,255};
-    if (fps > 110.0f) {
+    int target = Metadata->frame.targetUpdatesPerSecond;
+    if (fps > target - 5) {
         color = {0, 255, 0, 255};
-    } else if (fps > 54.0f) {
+    } else if (fps > target - 15) {
         color = {0, 200, 0, 255};
-     } else if (fps > 36.0f) {
+    } else if (fps > target - 30) {
         color = {205, 150, 0, 255};
-     } else if (fps > 18.0f) {
+    } else if (fps > target - 45) {
         color = {235, 60, 0, 255};
-     } else if (fps > 0.0f) {
+    } else if (fps > target - 55) {
         color = {255, 0, 0, 255};
-     }
+    }
     
-    renderer.render(fpsCounter, {0, options.size.y}, 
+    auto fpsRenderInfo = renderer.text->render(fpsCounter, {0, options.size.y}, 
         TextFormattingSettings(TextAlignment::TopLeft), 
         TextRenderingSettings(color, glm::vec2(2.0f)));
 
-    fpsLastFrame = fps;
+    {
+        static char tpsCounter[128];
+
+        if (Metadata->getFrame() % 5) {
+            snprintf(tpsCounter, 128, "TPS: %.1f", tps);
+        }
+
+        // if fps is negative or NaN somehow, it will be black
+        SDL_Color color = {0,0,0,255};
+        int target = Metadata->tick.targetUpdatesPerSecond;
+        if (tps > target - 5) {
+            color = {0, 255, 0, 255};
+        } else if (tps > target - 15) {
+            color = {0, 200, 0, 255};
+        } else if (tps > target - 30) {
+            color = {205, 150, 0, 255};
+        } else if (tps > target - 45) {
+            color = {235, 60, 0, 255};
+        } else if (tps > target - 55) {
+            color = {255, 0, 0, 255};
+        }
+        
+        float offset = fpsRenderInfo.rect.x + fpsRenderInfo.rect.w + 2 * renderer.text->getFont()->advance(' ');
+        renderer.text->render(tpsCounter, {offset, options.size.y}, 
+            TextFormattingSettings(TextAlignment::TopLeft), 
+            TextRenderingSettings(color, glm::vec2(2.0f)));
+    }
 }
 
 void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
@@ -199,7 +224,7 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
         constexpr double flashDelay = 0.5;
         static double timeTilFlash = flashDelay;
         constexpr double flashDuration = 0.5;
-        timeTilFlash -= Metadata->deltaTime / 1000.0; // subtract time in seconds from time
+        timeTilFlash -= Metadata->frame.deltaTime / 1000.0; // subtract time in seconds from time
         double secondsSinceCursorMove = Metadata->seconds() - console->timeLastCursorMove;
         if (secondsSinceCursorMove < flashDuration) timeTilFlash = -secondsSinceCursorMove;
         if (timeTilFlash < 0.0) {
@@ -221,7 +246,14 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
     if (console->promptOpen || Metadata->seconds() - console->timeLastMessageSent < CONSOLE_LOG_NEW_MESSAGE_OPEN_DURATION) {
         // Render console log
         SDL_Color logBackground = {90, 90, 90, 150};
-        renderer.textBox(console->log, 10, console->logTextColors, {0, logOffsetY}, TextAlignment::BottomLeft, logBackground, renderer.pixels({20, 20}), {logMaxWidth, maxHeight});
+        auto strBuffer = console->newLogStringBuffer();
+        My::Vec<SDL_Color> colors = My::Vec<SDL_Color>::WithCapacity(console->log.size());
+        for (auto& message : console->log) {
+            colors.push(message.color);
+        }
+        
+        renderer.textBox(strBuffer, 10, colors, {0, logOffsetY}, TextAlignment::BottomLeft, logBackground, renderer.pixels({20, 20}), {logMaxWidth, maxHeight});
+        strBuffer.destroy();
     }
 }
 
@@ -323,7 +355,7 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
     gui->draw(guiRenderer, {0, 0, guiRenderer.options.size.x, guiRenderer.options.size.y}, playerControls.mousePixelPos(), &state->player, state->itemManager);
 
     //textRenderer.setFont(&ren.font);
-    Draw::drawFpsCounter(textRenderer, (float)Metadata->fps(), guiRenderer.options);
+    Draw::drawFpsCounter(guiRenderer, (float)Metadata->fps(), (float)Metadata->tps(), guiRenderer.options);
 
     //textRenderer.setFont(&ren.debugFont);
     Draw::drawConsole(guiRenderer, &gui->console);

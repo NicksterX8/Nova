@@ -228,10 +228,10 @@ struct ArchetypalComponentManager {
             return {ComponentOffsetSet::Empty(), 0, 0, 0, nullptr};
         }
 
-        uint16_t getOffset(ComponentID component) const {
-            uint16_t* offset = componentOffsets.lookup(component);
-            assert(offset && "Invalid component!");
-            return *offset;
+        // returns pointer to offset value on success,
+        // returns nullptr on error - if component isn't in the archetype
+        uint16_t* getOffset(ComponentID component) const {
+            return componentOffsets.lookup(component);
         }
     };
 
@@ -282,6 +282,10 @@ struct ArchetypalComponentManager {
 
         ArchetypePool(const Archetype& archetype) : archetype(archetype) {
             entities = decltype(entities)::New(archetype.totalSize);
+            freeIndices = My::Vec<ArchetypeElementIndexType>::WithCapacity(100);
+            for (int i = 0; i < 100; i++) {
+                freeIndices.push(i);
+            }
         }
 
         // index must be in bounds
@@ -309,10 +313,10 @@ struct ArchetypalComponentManager {
         }
     };
 
-    using ArchetypeID = int32_t;
-    static constexpr ArchetypeID NullArchetypeID = -1;
+    using ArchetypeID = uint16_t;
+    static constexpr ArchetypeID NullArchetypeID = (1 << GECS_ARCHETYPE_ELEMENT_ARCHETYPE_BITS) - 1;
 
-    static constexpr uint32_t MaxNumArchetypes = 1 << 10; // 10 bits address space
+    static constexpr uint32_t MaxNumArchetypes = (1 << GECS_ARCHETYPE_ELEMENT_ARCHETYPE_BITS) - 1; // 10 bits address space - 1 for null archetype
 
     using ElementAddress = ArchetypeElementAddress;
     static constexpr auto NullAddress = NullElementAddress;
@@ -350,14 +354,21 @@ public:
         const auto& pool = pools[element.archetype];
         if (pool.archetype.signature[component]) {
             void* elementPtr = pool.get(element.index);
-            auto componentOffset = pool.archetype.getOffset(component);
-            return (char*)elementPtr + componentOffset;
+            uint16_t* componentOffset = pool.archetype.getOffset(component);
+            if (componentOffset) {
+                return (char*)elementPtr + *componentOffset;
+            }
         }
         return nullptr;
     }
 
     bool addComponent(ElementAddress* element, ComponentID component) {
         assert(element->archetype < MaxNumArchetypes && "Invalid element archetype!");
+
+        if (element->archetype >= pools.size) {
+            LogError("Element archetype %d out of range!", element->archetype);
+            return false;
+        }
         auto& pool = pools[element->archetype];
 
         Signature oldSignature = pool.archetype.signature;
@@ -369,20 +380,35 @@ public:
             newArchetypeID = initArchetype(newSignature);
         }
 
-        auto newArchetype = getArchetypePool(newArchetypeID);
-        element->index = newArchetype.getNew();
-        element->archetype = newArchetypeID;
+        ArchetypePool* newArchetype = getArchetypePool(newArchetypeID);
+        ElementAddress newElement = {
+            newArchetypeID,
+            newArchetype->getNew()
+        };
         if (oldArchetypeID != NullArchetypeID) {
             auto oldArchetype = getArchetypePool(oldArchetypeID);
+            void* oldElementValue = oldArchetype->get(element->index);
+            void* newElementValue = newArchetype->get(newElement.index);
+            assert(newElementValue && "couldn't make new element index!");
+            if (oldElementValue) {
+                oldSignature.forEachSet([&](ComponentID componentId){
+                    uint16_t* oldComponentOffset = oldArchetype->archetype.getOffset(componentId);
+                    assert(oldComponentOffset);
+                    void* oldComponentValue = (char*)oldElementValue + *oldComponentOffset;
+                    uint16_t* newComponentOffset = newArchetype->archetype.getOffset(componentId);
+                    assert(newComponentOffset);
+                    void* newComponentValue = (char*)newElementValue + *newComponentOffset;
+
+                    size_t componentSize = componentInfo.size(componentId);
+                    memcpy(newComponentValue, oldComponentValue, componentSize);
+                });
+            }
+            oldArchetype->remove(element->index);
         }
-        
 
-        oldSignature.forEachSet([&](auto componentID){
-            
-        });
+        *element = newElement;
 
-        // TODO:
-        UNFINISHED_CRASH();
+        return true;
     }
 
 private:
@@ -395,8 +421,9 @@ private:
         return NullArchetypeID;
     }
 
-    ArchetypePool& getArchetypePool(ArchetypeID id) const {
-        return pools[id];
+    ArchetypePool* getArchetypePool(ArchetypeID id) const {
+        if (id >= pools.size) return nullptr;
+        return &pools[id];
     }
 public:
 
@@ -553,7 +580,11 @@ public:
     }
 
     void* get(ComponentID component) const {
-        return components.lookup(component);
+        void** ptrToActualPtr = (void**)components.lookup(component);
+        if (ptrToActualPtr) {
+            return *ptrToActualPtr;
+        }
+        return nullptr;
     }
 
     // warning: slow and not too efficient
@@ -561,6 +592,7 @@ public:
         this->components.contains(component);
     }
 
+    // storage must be stable, allocated memory to hold the component value
     void add(ComponentID component, void* storage) {
         components.insert(component, storage);
     }

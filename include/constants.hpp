@@ -26,7 +26,8 @@ static_assert(CHUNKSIZE > 0, "Chunks can't be empty");
 const float PLAYER_SPEED = 0.15f;
 const float PLAYER_ROTATION_SPEED = 1.0f;
 
-#define TARGET_FPS 120
+#define TARGET_FPS 60
+#define TICKS_PER_SECOND 60
 #define ENABLE_VSYNC 0
 
 const float PLAYER_DIAMETER = 0.8f;
@@ -35,11 +36,13 @@ namespace RenderLayers {
     enum Layers {
         Lowest,
         Water,
+        Tilemap,
+        Shadows,
         Items,
         Buildings,
         Particles,
-        Trees,
         Player,
+        Trees,
         Highest
     };
 }
