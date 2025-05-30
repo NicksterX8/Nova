@@ -4,6 +4,7 @@
 #include "items/items.hpp"
 #include "ECS/Entity.hpp"
 #include "items/manager.hpp"
+#include "items/prototypes/prototypes.hpp"
 
 TileTypeDataStruct TileTypeData[NUM_TILE_TYPES];
 
@@ -32,12 +33,31 @@ static const TileTypeDataStruct defaultTileTypeData = {
 #define Animation(anim) {auto* animation = getAnimation(textureManager, anim); if (animation) {tile->animation = *animation;} else {LogError("No animation found with id %d!", anim);}};
 #define Flags(...) tile->flags = flagsSignature(__VA_ARGS__);
 
+struct TileMaker {
+    ItemManager* itemManager;
+
+    TileTypeDataStruct& newTile(TileType type, SDL_Color color, TextureID background, Uint32 flags) {
+        TileTypeDataStruct& tile = TileTypeData[type];
+        tile.color = color;
+        tile.background = background;
+        tile.flags = flags;
+        
+        if (tile.flags & TileTypes::Mineable) {
+            tile.mineable.item = items::Prototypes::Tile::make(*itemManager, type);
+        }
+        return tile;
+    }
+};
+
 void loadTileData(items::ItemManager& itemManager, const TextureManager* textureManager) {
     using namespace TileTypes;
     TileTypeDataStruct* Data = TileTypeData;
     for (int i = 0; i < NUM_TILE_TYPES; i++) {
         Data[i] = defaultTileTypeData;
     }
+
+    TileMaker k;
+    k.itemManager = &itemManager;
 
     TileTypeDataStruct* tile = nullptr;
     
@@ -66,35 +86,35 @@ void loadTileData(items::ItemManager& itemManager, const TextureManager* texture
         Background(TextureIDs::Null)
         Flags()
 
-    NewTile(SpaceFloor)
-        Color({230, 230, 230, 255})
-        Background(TextureIDs::Tiles::SpaceFloor)
-        Flags(Walkable, Mineable)
-        tile->mineable.item = items::Items::tile(itemManager, TileTypes::SpaceFloor);
+    k.newTile(
+        SpaceFloor,
+        {230, 230, 230, 255},
+        TextureIDs::Tiles::SpaceFloor,
+        Walkable | Mineable);
 
      NewTile(Wall)
         Color({130, 130, 130, 255})
         Background(TextureIDs::Tiles::Wall)
         Flags(Mineable)
-        tile->mineable.item = items::Items::tile(itemManager, TileTypes::Wall);
+        tile->mineable.item = items::Prototypes::Tile::make(itemManager, TileTypes::Wall);
 
     NewTile(GreyFloor)
         Color({230, 230, 230, 255})
         Background(TextureIDs::Tiles::GreyFloor)
         Flags(Walkable, Mineable)
-        tile->mineable.item = items::Items::tile(itemManager, TileTypes::GreyFloor);
+        tile->mineable.item = items::Prototypes::Tile::make(itemManager, TileTypes::GreyFloor);
     
     NewTile(GreyFloorOverhang)
         Color({230, 230, 230, 255})
         Background(TextureIDs::Tiles::GreyFloorOverhang)
         Flags(Walkable, Mineable)
-        tile->mineable.item = items::Items::tile(itemManager, TileTypes::GreyFloor);
+        tile->mineable.item = items::Prototypes::Tile::make(itemManager, TileTypes::GreyFloor);
 
     NewTile(TransportBelt)
         Color({255, 255, 255, 255});
         Background(TextureIDs::Buildings::TransportBelt)
         Animation(TextureIDs::Buildings::TransportBeltAnimation)
         Flags(Walkable, Mineable)
-        tile->mineable.item = items::Items::tile(itemManager, TileTypes::TransportBelt);
+        tile->mineable.item = items::Prototypes::Tile::make(itemManager, TileTypes::TransportBelt);
 }
 

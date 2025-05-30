@@ -13,6 +13,8 @@
 #include "ECS/entities/entities.hpp"
 #include "ECS/systems/systems.hpp"
 #include "metadata/ecs/ecs.hpp"
+#include "items/manager.hpp"
+#include "items/prototypes/prototypes.hpp"
 
 template<class... Components>
 void addComponents(EntityWorld* ecs, Entity entity, Components... components) {
@@ -35,14 +37,13 @@ void makeItemPrototypes(ItemManager& im) {
     using namespace items;
     auto* pm = &im.prototypes;
 
-    auto tile = New<>(pm, ItemTypes::Tile);
-    tile.stackSize = 64;
-
-    auto grenade = items::Prototypes::Grenade(&im.prototypes);
+    auto tile = Prototypes::Tile(pm);
+    auto grenade = Prototypes::Grenade(pm);
+    auto sandGun = Prototypes::SandGun(pm);
 
 
     ItemPrototype prototypes[] = {
-        tile, grenade
+        tile, grenade, sandGun
     };
 
     for (int i = 0; i < sizeof(prototypes) / sizeof(ItemPrototype); i++) {
@@ -77,7 +78,7 @@ void GameState::init(const TextureManager* textureManager) {
         }
         auto* position = ecs->Get<EC::Position>(entity);
         if (!position) {
-            LogError("Entity position not found");
+            LogError("Entity position not found. Make sure to add position before viewbox.");
             return;
         }
 
@@ -131,13 +132,13 @@ void GameState::init(const TextureManager* textureManager) {
     });
 
     /* Init Items */
-    My::Vec<items::ComponentInfo> componentInfo; // TODO: Unimportant: This is leaked currently
+    My::Vec<GECS::ComponentInfo> componentInfo; // TODO: Unimportant: This is leaked currently
     {
         using namespace ITC;
         constexpr auto componentInfoArray = GECS::getComponentInfoList<ITEM_COMPONENTS_LIST>();
-        componentInfo = My::Vec<items::ComponentInfo>(&componentInfoArray[0], componentInfoArray.size());
+        componentInfo = My::Vec<GECS::ComponentInfo>(&componentInfoArray[0], componentInfoArray.size());
     }
-    itemManager = ItemManager(ArrayRef(componentInfo.data, componentInfo.size));
+    itemManager = ItemManager(ArrayRef(componentInfo.data, componentInfo.size), ItemTypes::Count);
 
     makeItemPrototypes(itemManager);
     loadTileData(itemManager, textureManager);
@@ -146,11 +147,11 @@ void GameState::init(const TextureManager* textureManager) {
     player = Player(&ecs, Vec2(0, 0), itemManager);
 
     ItemStack startInventory[] = {
-       // items::Items::sandGun(itemManager),
+        ItemStack(items::Prototypes::SandGun::make(itemManager)),
         ItemStack(items::Prototypes::Grenade::make(itemManager), 67),
-        ItemStack(items::Items::tile(itemManager, TileTypes::Grass), 64),
-        ItemStack(items::Items::tile(itemManager, TileTypes::Sand), 24),
-        ItemStack(items::Items::tile(itemManager, TileTypes::TransportBelt), 200),
+        ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::Grass), 64),
+        ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::Sand), 24),
+        ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::TransportBelt), 200),
        // ItemStack(items::Items::tile(itemManager, TileTypes::Grass), 2)
     };
 
@@ -159,20 +160,16 @@ void GameState::init(const TextureManager* textureManager) {
         playerInventory->addItemStack(startInventory[i]);
     }
 
-    auto* display = items::getComponent<ITC::Display>(startInventory[1].item, itemManager);
-    TextureID id = display->inventoryIcon;
-    LogInfo("tex id: %d", id);
-    TextureID grassId = TileTypeData[TileTypes::Grass].background;
-    LogInfo("grass tex: %d", id);
-
-    Entities::Tree(&ecs, {-2, -2}, {5, 5});
+    //Entities::Tree(&ecs, {-2, -2}, {5, 5});
     
-    auto tree = Entities::Tree(&ecs, {-20, -20}, {5, 5});
-    Entities::giveName(tree, "Holy tree", &ecs);
+    //auto tree = Entities::Tree(&ecs, {-20, -20}, {5, 5});
+    //Entities::giveName(tree, "Holy tree", &ecs);
 
-    Entities::scaleGuy(this, tree, 2.0f);
+    //Entities::scaleGuy(this, tree, 2.0f);
 
     auto enemy = Entities::Enemy(&ecs, {15, 15}, player.entity);
+    ecs.Remove<EC::Follow>(enemy);
+
     /*
     auto view = ecs.Get<EC::ViewBox>(enemy);
     view->size = {0.2, 0.2};

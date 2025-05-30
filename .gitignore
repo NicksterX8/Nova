@@ -3,6 +3,9 @@
 *.d
 Makefile
 Makefile-old
+CMakeCache.txt
+cmake_install.cmake
+CMakeFiles
 exe
 test
 a.out

@@ -107,13 +107,12 @@ void PlayerControls::handleClick(const SDL_MouseButtonEvent& event) {
                     } 
                     if (heldItemStack->item.has<ITC::Usable>()) {
                         auto usable = items::getComponent<ITC::Usable>(heldItemStack->item, game->state->itemManager);
-                        auto edible = items::getComponent<ITC::Edible>(heldItemStack->item, game->state->itemManager);
-                        float hg = edible->hungerValue;
                         auto onUse = usable->onUse;
                         if (onUse) {
                             bool success = onUse(game);
                             if (success) {
-                                heldItemStack->reduceQuantity(1);
+                                if (usable->oneTimeUse)
+                                    heldItemStack->reduceQuantity(1);
                             }
                         }
                     }
@@ -179,10 +178,10 @@ void PlayerControls::clickOnEntity(Entity clickedEntity) {
         auto e = *selectedEntity;
         const char* name = e.Get<EC::EntityTypeEC>(&game->state->ecs)->name;
         LogInfo("name: %s | id: %d", name, e.id);
-        auto* box = game->state->ecs.Get<EC::ViewBox>(e);
+        auto* box = game->state->ecs.Get<EC::CollisionBox>(e);
         auto* position = game->state->ecs.Get<EC::Position>(e);
         if (box && position) {
-            LogInfo("position: %.1f,%.1f", position->x + box->box.min.x, position->y + box->box.min.y);
+            LogInfo("position: %.1f,%.1f", position->x, position->y);
             LogInfo("size: %.1f,%.1f", box->box.size.x, box->box.size.y);
         }
     }
@@ -253,7 +252,7 @@ void PlayerControls::handleKeydown(const SDL_KeyboardEvent& event) {
             break;}
             case 'z': {
                 auto* heldItemStack = &game->state->player.heldItemStack;
-                if (heldItemStack) {
+                if (heldItemStack && heldItemStack->get()) {
                     ItemStack dropStack = ItemStack(heldItemStack->get()->item, 1);
                     heldItemStack->get()->reduceQuantity(1);
                     Entities::ItemStack(&game->state->ecs, mouseWorldPos, dropStack, game->state->itemManager);

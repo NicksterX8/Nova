@@ -6,8 +6,6 @@
 #include "Tiles.hpp"
 #include "manager.hpp"
 #include "Inventory.hpp"
-#include "Prototype.hpp"
-#include "prototypes/prototypes.hpp"
 
 namespace items {
 
@@ -71,15 +69,6 @@ namespace Items {
         addComponent<ITC::Display>(i, manager, ITC::Display{TextureIDs::Tiles::Sand});
         return i;
     }
-
-    Item tile(ItemManager& manager, TileType type);
-}
-
-inline float getFuelValue(ItemManager& manager, ItemStack stack) {
-    auto fuelComponent = getComponent<ITC::Fuel>(stack.item, manager);
-
-    float itemFuelValue = fuelComponent ? fuelComponent->value : NAN;
-    return stack.quantity * itemFuelValue;
 }
 
 PrototypeManager* makePrototypes(ComponentInfoRef componentInfo);

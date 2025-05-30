@@ -80,6 +80,7 @@ do new gui
 ----------
 
 ## Bugs:
+- player shadow is sometimes hidden by other transparent object, depending on location and zoom
 - Entities on chunk borders can be rendered multiple times
 - setComponent with garbage as the value gives garbage output
 - Destroying all entities leaves entity existence information and component information in a broken state (seg faults!!!!)

@@ -65,7 +65,7 @@ inline Uint32 getMouseButtons() {
 
 }
 
-SDLContext initSDL();
+SDLContext initSDL(const char* windowTitle, SDL_Rect windowRect);
 
 void quitSDL(SDLContext* ctx);
 

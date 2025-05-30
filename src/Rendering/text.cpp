@@ -30,14 +30,16 @@ const TextAlignment TextAlignment::BottomLeft   = {HoriAlignment::Left,   VertAl
 const TextAlignment TextAlignment::BottomCenter = {HoriAlignment::Center, VertAlignment::Bottom};
 const TextAlignment TextAlignment::BottomRight  = {HoriAlignment::Right,  VertAlignment::Bottom};
 
-Font::Font(const char* fontfile, FT_UInt baseHeight, bool useSDFs, char _firstChar, char _lastChar, float scale, FormattingSettings formatting, TextureUnit textureUnit) {
-    this->baseHeight = baseHeight;
+Font* newFont(const char* fontfile, FT_UInt baseHeight, bool useSDFs, char _firstChar, char _lastChar, float scale, Font::FormattingSettings formatting, TextureUnit textureUnit, Shader shader) {
+    Font* f = new Font();
+    
+    f->baseHeight = baseHeight;
 
     FT_UInt _height = baseHeight * scale;
-    this->currentScale = scale;
+    f->currentScale = scale;
 
-    this->formatting = formatting;
-    this->textureUnit = textureUnit;
+    f->formatting = formatting;
+    f->textureUnit = textureUnit;
 
     if (_lastChar > 127 || _lastChar < 0 || _firstChar > 127 || _firstChar < 0) {
         LogError("Can't load font characters higher than 127 or lower than 0!");
@@ -47,31 +49,33 @@ Font::Font(const char* fontfile, FT_UInt baseHeight, bool useSDFs, char _firstCh
         if (_firstChar < 0) _firstChar = 0;
     }
     
-    this->firstChar = _firstChar;
-    this->lastChar = _lastChar;
+    f->firstChar = _firstChar;
+    f->lastChar = _lastChar;
 
-    this->usingSDFs = useSDFs;
+    f->usingSDFs = useSDFs;
 
     FT_Error err = 0;
-    err = FT_New_Face(freetype, fontfile, 0, &this->face);
-    if (err || !this->face) {
+    err = FT_New_Face(freetype, fontfile, 0, &f->face);
+    if (err || !f->face) {
         LogError("Failed to load font face. Filepath: %s. Error: %s", fontfile, FT_Error_String(err));
-        this->firstChar = 0;
-        this->lastChar = -1;
-        return;
+        delete f;
+        return nullptr;
     }
 
-    char numChars = lastChar - firstChar;
+    char numChars = f->lastChar - f->firstChar;
     if (numChars > 0) {
-        this->characters = Alloc<AtlasCharacterData>();
-        load(_height, useSDFs);
+        f->characters = Alloc<Font::AtlasCharacterData>();
+        f->load(_height, shader, useSDFs);
     }
+
+    return f;
 }
 
-void Font::load(FT_UInt pixelHeight, bool useSDFs) {
+void Font::load(FT_UInt pixelHeight, Shader shader, bool useSDFs) {
     this->currentScale = (float)pixelHeight / (float)baseHeight;
 
-    usingSDFs = useSDFs;
+    this->usingSDFs = useSDFs;
+    this->shader = shader;
 
     FT_Error err = FT_Set_Pixel_Sizes(face, 0, pixelHeight);
 
@@ -135,7 +139,12 @@ void Font::load(FT_UInt pixelHeight, bool useSDFs) {
         constexpr GLint sdfMagFilter     = GL_LINEAR;
         GLint minFilter = usingSDFs ? sdfMinFilter : regularMinFilter;
         GLint magFilter = usingSDFs ? sdfMagFilter : regularMagFilter;
+        if (this->atlasTexture) {
+            glDeleteTextures(1, &this->atlasTexture);
+            this->atlasTexture = 0;
+        }
         this->atlasTexture = loadFontAtlasTexture(packedTexture, minFilter, magFilter);
+        freeTexture(packedTexture);
     }
     GL::logErrors();
     
@@ -147,7 +156,8 @@ void Font::load(FT_UInt pixelHeight, bool useSDFs) {
 }
 
 void Font::unload() {
-    if (!face) return;
+
+    if (!face || !face->family_name) return;
     LogInfo("Unloading font %s-%s", face->family_name, face->style_name);
     FT_Done_Face(face); face = nullptr;
     Free(characters);
@@ -295,9 +305,9 @@ CharacterLayoutData formatText(const Font* font, const char* text, int textLengt
     return layout;
 }
 
-TextRenderer TextRenderer::init(Font* font) {
+TextRenderer TextRenderer::init(Font* defaultFont) {
     TextRenderer self;
-    self.font = font;
+    self.defaultFont = defaultFont;
 
     self.model = GlGenModel();
     self.model.bindAll();
@@ -332,20 +342,25 @@ TextRenderer TextRenderer::init(Font* font) {
     self.defaultFormatting = FormattingSettings::Default();
     self.defaultRendering = RenderingSettings();
 
-    self.characterTexCoords = Alloc<std::array<TexCoord, 4>>(font->numChars()); 
-    self.calculateCharacterTexCoords();
+    /*
+    if (font) {
+        self.characterTexCoords = Alloc<std::array<TexCoord, 4>>(font->numChars()); 
+        self.calculateCharacterTexCoords();
+    } else {
+        LogError("No font provided for text renderer");
+    }
+    */
 
     return self;
 }
 
 TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength, glm::vec2 pos, const TextFormattingSettings& formatSettings, RenderingSettings renderSettings, glm::vec2* outCharPositions) {
-    if (!canDraw()) {
-        return RenderResult::BadRender(pos);
-    }
-
     if (textLength == 0) return RenderResult::BadRender(pos);
 
-    const Font* font = renderSettings.font ? renderSettings.font : this->font;
+    const Font* font = renderSettings.font ? renderSettings.font : this->defaultFont;
+    if (!font || !font->face) {
+        return RenderResult::BadRender(pos);
+    }
 
     glm::vec2 scale = renderSettings.scale;
     Vec2 minPos = {INFINITY, INFINITY};
@@ -385,19 +400,29 @@ TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength
             }
         }
 
-        // if there's nothing to render, dont even make a batch
-        if (layout.characters.size() > 0 || maxSize.x > 0 || maxSize.y > 0) {
+        // only make a batch if theres something to render
+        //if (layout.characters.size() > 0 || maxSize.x > 0 || maxSize.y > 0) { 
+        if (layout.characters.size() > 0) {
             TextRenderLayout batchLayout = {
                 .characterOffsets = std::move(layout.characterOffsets),
                 .characters = std::move(layout.characters),
                 .origin = layout.origin
             };
+            auto dimensions = My::Vec<TextRenderBatch::CharacterDimensions>::WithCapacity(batchLayout.characters.size());
+            for (int i = 0; i < batchLayout.characters.size(); i++) {
+                dimensions.push({
+                    .size = {font->size(batchLayout.characters[i])},
+                    .bearing = {font->bearing(batchLayout.characters[i])}
+                });
+            }
             TextRenderBatch batch = {
-                .layout = batchLayout,
                 .font = font,
-                .colors = {renderSettings.color},
-                .scales = {scale}
+                .dimensions = dimensions,
+                .layout = batchLayout,
+                .colors = My::Vec<SDL_Color>::Filled(1, renderSettings.color),
+                .scales = My::Vec<glm::vec2>::Filled(1, renderSettings.scale)
             };
+            
             buffer.push_back(batch);
         }
 
@@ -418,21 +443,36 @@ TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength
 }
 
 void TextRenderer::renderBatch(const TextRenderBatch* batch, Vertex* verticesOut) const {
+    const Font* font = batch->font;
+    if (!font) {
+        LogError("No font in batch!");
+    }
+    
     const auto& layout = batch->layout;
     const auto count = layout.characters.size();
     assert(count < maxBatchSize && "Batch too large!");
     for (size_t i = 0; i < count; i++) {
         char c = layout.characters[i];
         glm::vec2 offset = layout.characterOffsets[i];
-        auto bearing = batch->font->bearing(c);
-        auto size = batch->font->size(c);
+        auto bearing = batch->dimensions[i].bearing;
+        auto characterSize = batch->dimensions[i].size;
 
         GLfloat x  = layout.origin.x + (offset.x + bearing.x);
-        GLfloat y  = layout.origin.y + (offset.y - (size.y - bearing.y));
-        GLfloat x2 = x + size.x;
-        GLfloat y2 = y + size.y;
+        GLfloat y  = layout.origin.y + (offset.y - (characterSize.y - bearing.y));
+        GLfloat x2 = x + characterSize.x;
+        GLfloat y2 = y + characterSize.y;
 
-        auto* coords = getTexCoords(c)->data();
+        //auto* coords = getTexCoords(c)->data();
+
+        const glm::vec2 pos  = font->characters->positions[c];
+        const glm::vec2 size = font->characters->sizes[c];
+        const glm::vec2 texSize = font->atlasSize;
+
+        auto tx  = (pos.x) / texSize.x;
+        auto ty  = (pos.y) / texSize.y;
+        auto tx2 = (pos.x + size.x) / texSize.x;
+        auto ty2 = (pos.y + size.y) / texSize.y;
+
 
         SDL_Color color;
         if (batch->uniformColor()) {
@@ -448,18 +488,21 @@ void TextRenderer::renderBatch(const TextRenderBatch* batch, Vertex* verticesOut
             scale = batch->scales[i];
         }
 
+        // scale *= font->currentScale;
+
         const Vertex vertices[] = {
-            {{x,  y},  coords[0], color, scale},
-            {{x,  y2}, coords[1], color, scale},
-            {{x2, y2}, coords[2], color, scale},
-            {{x2, y},  coords[3], color, scale}
+            {{x,  y},  {tx, ty2}, color, scale},
+            {{x,  y2}, {tx, ty}, color, scale},
+            {{x2, y2}, {tx2, ty}, color, scale},
+            {{x2, y},  {tx2, ty2}, color, scale}
         };
         
         memcpy(verticesOut + i * 4, vertices, sizeof(vertices));
     }
 }
 
-void TextRenderer::flush(Shader textShader, glm::mat4 transform) {
+void TextRenderer::flush(glm::mat4 transform) {
+   /*
     if (!font) {
         buffer.clear();
         return;
@@ -468,14 +511,10 @@ void TextRenderer::flush(Shader textShader, glm::mat4 transform) {
     // check if the precalculated texture coords have been invalidated by a change of scale
     if (font->currentScale != this->texCoordScale) {
         calculateCharacterTexCoords();
-    }
+    }*/
 
     glBindVertexArray(model.vao);
     glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
-
-    textShader.use();
-    textShader.setInt("text", font->textureUnit);
-    textShader.setMat4("transform", transform);
 
     unsigned int maxCharacters = 0;
     for (auto& batch : buffer) {
@@ -501,19 +540,30 @@ void TextRenderer::flush(Shader textShader, glm::mat4 transform) {
         }
         */
 
+
+
     for (int i = 0; i < buffer.size(); i++) {
-        const auto* batch = &buffer[i];
+        auto* batch = &buffer[i];
+        Shader textShader = batch->font->shader;
+        textShader.use();
+        textShader.setMat4("transform", transform);
+        textShader.setInt("text", batch->font->textureUnit);
+        /*
         const auto* batchFont = batch->font;
         if (batchFont && batchFont != font) {
             setFont(batchFont);
             textShader.setInt("text", batchFont->textureUnit);
         }
+        */
 
         auto* vertexBuffer = (Vertex*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
         renderBatch(batch, vertexBuffer);
         glUnmapBuffer(GL_ARRAY_BUFFER);
 
         glDrawElements(GL_TRIANGLES, 6 * batch->layout.characters.size(), GL_UNSIGNED_SHORT, NULL);
+        batch->dimensions.destroy();
+        batch->colors.destroy();
+        batch->scales.destroy();
     }
     buffer.clear();
     GL::logErrors();

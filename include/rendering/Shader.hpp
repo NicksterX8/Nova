@@ -128,6 +128,6 @@ inline ShaderData loadShader(const char* name) {
     return {program, std::string(name)};
 }
 
-void reloadShaderProgram(ShaderProgram* program);
+int reloadShaderProgram(ShaderProgram* program);
 
 #endif

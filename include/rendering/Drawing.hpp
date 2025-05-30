@@ -11,6 +11,7 @@
 #include "GUI/Gui.hpp"
 #include "rendering/gui.hpp"
 #include "renderers.hpp"
+#include "GUI/elements.hpp"
 
 class PlayerControls;
 

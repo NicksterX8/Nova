@@ -126,21 +126,29 @@ ShaderProgram loadShaderProgram(const char* vertexPath, const char* fragmentPath
     if (!success) {
         glGetProgramInfoLog(id, 1024, NULL, infoLog);
         LogError("Failed to link shader program! Program info log: %s\n -------------------------------------------------", infoLog);
+        glDeleteShader(program.vertex.id);
+        glDeleteShader(program.fragment.id);
+        glDeleteShader(program.geometry.id);
+        glDeleteProgram(id);
+        program.programID = 0;
     }
 
     return program;
 }
 
-void reloadShaderProgram(ShaderProgram* program) {
-    if (!program) return;
-    glDetachShader(program->programID, program->vertex.id);
-    glDetachShader(program->programID, program->fragment.id);
-    if (program->geometry.id)
-        glDetachShader(program->programID, program->geometry.id);
+int reloadShaderProgram(ShaderProgram* program) {
+    if (!program) return -1;
 
     auto geometryFilename = program->geometry.filename;
-
-    *program = loadShaderProgram(program->vertex.filename.c_str(), program->fragment.filename.c_str(), !geometryFilename.empty() ? geometryFilename.c_str() : nullptr, program->programID);
+    ShaderProgram newProgram = loadShaderProgram(program->vertex.filename.c_str(), program->fragment.filename.c_str(), !geometryFilename.empty() ? geometryFilename.c_str() : nullptr);
+    if (newProgram.programID == 0) {
+        LogError("Failed to reload shader!");
+        return -1;
+    } else {
+        program->destroy();
+        *program = newProgram;
+        return 0;
+    }
 }
 
 GLint Shader::getUniformLocation(const char* name) const {

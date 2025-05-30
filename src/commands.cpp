@@ -280,20 +280,21 @@ namespace Commands {
 
         std::stringstream ss;
 
-        auto* shaderData = renderContext->shaders.shaderData;
-
-        for (int i = 0; i < Shaders::Count; i++) {
-            if (shaderData[i].name == shaderName) {
-                reloadShaderProgram(&shaderData[i].program);
-                setupShaders(renderContext);
-                ss << "Successfully reloaded shader program \"" << shaderName << "\"";
-                return RES_SUCCESS(ss.str());
-            }
+        auto shaderID = renderContext->shaders.get(shaderName);
+        if (shaderID == -1) {
+            ss << "Failed to find shader program with name \"" << shaderName << ".\"";
+            return RES_ERROR(ss.str());
         }
-
-        ss << "Failed to load shader program \"" << shaderName << "\"";
-        
-        return RES_ERROR(ss.str());
+        auto* program = &renderContext->shaders.shaderData[shaderID].program;
+        int err = reloadShaderProgram(program);
+        if (err) {
+            ss << "Failed to reload shader.";
+            return RES_ERROR(ss.str());
+        }
+        renderContext->shaders.shaders[shaderID] = Shader(program->programID);
+        setConstantShaderUniforms(*renderContext);
+        ss << "Successfully reloaded shader program \"" << shaderName << ".\"";
+        return RES_SUCCESS(ss.str());
     }
 
     Result setFontScale(Args args, RenderContext* ren) {
@@ -301,8 +302,7 @@ namespace Commands {
         if (!scaleStr.empty()) {
             double scale_d = strtod(scaleStr.c_str(), NULL);
             if (scale_d > 0.0) {
-                ren->debugFont.scale((float)scale_d);
-                ren->font.scale((float)scale_d);
+                scaleAllFonts(ren->fonts, (float)scale_d);
                 return RES_SUCCESS("Scaled fonts.");
             }
         }

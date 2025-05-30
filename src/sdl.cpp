@@ -5,15 +5,9 @@ namespace SDL {
     float pixelScale = 1.0f;
 }
 
-SDLContext initSDL() {
+SDLContext initSDL(const char* windowTitle, SDL_Rect windowRect) {
     bool vsync = true;
-    const char* windowTitle = WINDOW_TITLE;
     auto windowIconPath = FileSystem.assets.get("bad-factorio-logo.png");
-
-    SDL_Rect windowRect = {
-        0, 0,
-        800, 800
-    };
 
     bool allowHighDPI = false;
 #ifdef WINDOW_HIGH_DPI

@@ -10,50 +10,14 @@
 #include "global.hpp"
 #include "rendering/drawing.hpp"
 
-/*
-void highlightTargetedEntity(SDL_Renderer* ren, float scale, const GameViewport* gameViewport, const Gui* gui, const GameState* state, Vec2 playerTargetPos) {
-    Vec2 screenPos = gameViewport->worldToPixelPositionF(playerTargetPos.vfloor());
-    // only draw tile marker if mouse is actually on the world, not on the Gui
-    if (!gui->pointInArea({(int)screenPos.x, (int)screenPos.y})) {
-        OptionalEntity<> targetedEntity = state->player.selectedEntity;
-        if (targetedEntity.Exists(&state->ecs)) {
-            if (targetedEntity.Has<EC::Render>(&state->ecs)) {
-                SDL_FRect entityRect = targetedEntity.Get<EC::Render>(&state->ecs)->destination;
-                SDL_SetRenderDrawColor(ren, 0, 255, 255, 255);
-                Draw::thickRect(ren, &entityRect, round(scale * 2));
-            }
-        } else {
-            *
-            forEachEntityInRange(&state->ecs, &state->chunkmap, playerTargetPos, M_SQRT2, [&](EntityT<EC::Position> entity){
-                if (entity.Has<EC::Size, EC::Render>()) {
-                    Vec2 position = *state->ecs.Get<EC::Position>(entity);
-                    auto sizeComponent = state->ecs.Get<EC::Size>(entity);
-                    Vec2 size = {sizeComponent->width, sizeComponent->height};
-                    if (
-                        playerTargetPos.x > position.x && playerTargetPos.x < position.x + size.x &&
-                        playerTargetPos.y > position.y && playerTargetPos.y < position.y + size.y) {
-                        // player is targeting this entity
-                        Vec2 destPos = gameViewport->worldToPixelPositionF(position);
-                        SDL_FRect entityRect = entity.Get<EC::Render>()->destination;
-                        SDL_SetRenderDrawColor(ren, 0, 255, 255, 255);
-                        Draw::thickRect(ren, &entityRect, round(scale * 2));
-                        return 1;
-                    }
-                }
-                return 0;
-            });
-            *
-            auto focusedEntity = findPlayerFocusedEntity(&state->ecs, state->chunkmap, playerTargetPos);
-            if (focusedEntity != NullEntity) {
-                SDL_FRect* entityRect = &focusedEntity.Get<EC::Render>(&state->ecs)->destination;
-                SDL_SetRenderDrawColor(ren, 0, 255, 255, 255);
-                Draw::thickRect(ren, entityRect, round(scale * 2));
-            }
+void scaleAllFonts(FontManager& fontManager, float scale) {
+    for (auto font : fontManager.fonts) {
+        if (font.second) {
+            font.second->scale(font.second->currentScale * scale / fontManager.fontScale);
         }
-    }      
+    }
+    fontManager.fontScale = scale;
 }
-*/
-
 
 void renderWater(RenderContext& ren, const Camera& camera, Vec2 min, Vec2 max, float time) {
     auto shader = ren.shaders.use(Shaders::Water);
@@ -102,6 +66,8 @@ void renderWater(RenderContext& ren, const Camera& camera, Vec2 min, Vec2 max, f
 
 constexpr int numChunkVerts = CHUNKSIZE * CHUNKSIZE * 1;
 
+TextureAtlas::Space TileTextureSpaces[TileTypes::Count];
+
 static void renderChunk(RenderContext& ren, const Camera& camera, Chunk* chunk, ChunkCoord pos, glm::vec2* vertexPositions, GLushort* vertexTexCoords) {
     assert(vertexPositions && vertexTexCoords);
 
@@ -113,35 +79,6 @@ static void renderChunk(RenderContext& ren, const Camera& camera, Chunk* chunk, 
 
     constexpr float tileWidth = 1.0f;
     constexpr float tileHeight = 1.0f;
-
-    /*
-    for (int row = 0; row < CHUNKSIZE; row++) {
-        for (int col = 0; col < CHUNKSIZE; col++) {
-            int index = row * CHUNKSIZE + col;
-            TileType type = (*chunk)[row][col].type;
-            
-            float x = startPos.x + col * tileWidth;
-            float y = startPos.y + row * tileHeight;
-
-            TextureID texture = TileTypeData[type].background;
-            auto texSpace = getTextureAtlasSpace(atlas, texture);
-
-            const GLfloat positions[] = {
-                x,  y
-            };
-            const GLushort texCoords[] = {
-                texSpace.min.x, texSpace.min.y, texSpace.max.x, texSpace.max.y
-            };
-            
-            // just in case padding or anything happens
-            static_assert(sizeof(texCoords) == 4 * sizeof(GLushort), "incorrect number of floats in vertex data");
-            static_assert(sizeof(positions) == 2 * sizeof(GLfloat), "incorrect number of floats in vertex data");
-
-            memcpy(&vertexPositions[index], positions, sizeof(positions));
-            memcpy(&vertexTexCoords[index * 4], texCoords, sizeof(texCoords));
-        }
-    }
-    */
 
     // coords
     for (int row = 0; row < CHUNKSIZE; row++) {
@@ -158,8 +95,7 @@ static void renderChunk(RenderContext& ren, const Camera& camera, Chunk* chunk, 
         for (int col = 0; col < CHUNKSIZE; col++) {
             int index = (row * CHUNKSIZE + col) * 4;
             TileType type = (*chunk)[row][col].type;
-            TextureID texture = TileTypeData[type].background;
-            auto texSpace = getTextureAtlasSpace(atlas, texture);
+            auto texSpace = TileTextureSpaces[type];
 
             vertexTexCoords[index + 0] = texSpace.min.x;
             vertexTexCoords[index + 1] = texSpace.min.y;
@@ -242,6 +178,11 @@ int renderTilemap(RenderContext& ren, const Camera& camera, ChunkMap* chunkmap) 
         return a.chunk < b.chunk;
     });
 
+    for (int i = 0; i < TileTypes::Count; i++) {
+        TextureID texture = TileTypeData[i].background;
+        TileTextureSpaces[i] = getTextureAtlasSpace(&ren.textureAtlas, texture);
+    }
+
     int chunksBuffered = 0;
     for (auto chunkAndPos : chunks) {
         if (chunksBuffered >= ChunkBuffer::bufferChunkCapacity) {
@@ -322,54 +263,117 @@ static GlModelSOA makeScreenModel() {
     return model;
 }
 
-int setupShaders(RenderContext* ren) {
-    auto& mgr = ren->shaders;
+int setConstantShaderUniforms(RenderContext& ren) {
+    auto& mgr = ren.shaders;
 
-    auto entity = mgr.setup(Shaders::Entity, "entity");
+    auto entity = mgr.get(Shaders::Entity);
     entity.setInt("texAtlas", TextureUnit::MyTextureAtlas);
-    entity.setVec2("texAtlasSize", ren->textureAtlas.size);
+    entity.setVec2("texAtlasSize", ren.textureAtlas.size);
     glBindFragDataLocation(entity.id, 0, "FragColor");
     glBindFragDataLocation(entity.id, 1, "FragVelocity");
 
-    auto tilemap = mgr.setup(Shaders::Tilemap, "tilemap");
+    auto tilemap = mgr.get(Shaders::Tilemap);
     tilemap.setInt("tex", TextureUnit::MyTextureAtlas);
-    tilemap.setVec2("texSize", ren->textureAtlas.size);
+    tilemap.setVec2("texSize", ren.textureAtlas.size);
     tilemap.setFloat("height", getLayerHeight(RenderLayer::Tilemap));
+    
+    mgr.get(Shaders::Text).setInt("text", TextureUnit::Font0);
 
-    auto text = mgr.setup(Shaders::Text, "text");
-    text.setInt("text", TextureUnit::Font0);
-
-    auto sdf = mgr.setup(Shaders::SDF, "sdf");
+    auto sdf = mgr.get(Shaders::SDF);
     sdf.setInt("text", TextureUnit::Font1);
     sdf.setFloat("thickness", 0.1f);
     sdf.setFloat("soft", 0.45f);
 
-    auto texture = mgr.setup(Shaders::Texture, "texture");
-    texture.setInt("tex", TextureUnit::Random);
+    mgr.get(Shaders::Texture).setInt("tex", TextureUnit::Random);
 
-    auto quad = mgr.setup(Shaders::Quad, "quad");
+    auto quad = mgr.get(Shaders::Quad);
     quad.setInt("tex", TextureUnit::GuiAtlas);
-    quad.setVec2("texSize", glm::vec2(ren->guiRenderer.guiAtlas.size));
-    
+    quad.setVec2("texSize", glm::vec2(ren.guiRenderer.guiAtlas.size));
+
+    mgr.get(Shaders::Screen).setInt("tex", TextureUnit::Screen0);
+
+    return GL::logErrors();
+}
+
+// returns number of errors
+int createShaders(ShaderManager& mgr) {
+
+    auto entity = mgr.setup(Shaders::Entity, "entity");
+    auto tilemap = mgr.setup(Shaders::Tilemap, "tilemap");
+    auto text = mgr.setup(Shaders::Text, "text");
+    auto sdf = mgr.setup(Shaders::SDF, "sdf");
+    auto texture = mgr.setup(Shaders::Texture, "texture");
+    auto quad = mgr.setup(Shaders::Quad, "quad");
     auto point = mgr.setup(Shaders::Point, "point");
-
     auto screen = mgr.setup(Shaders::Screen, "screen");
-    screen.setInt("tex", TextureUnit::Screen0);
-    //screen.setInt("velocityBuffer", TextureUnit::Screen1);
-    //screen.setInt("numSamples", 5);
-
     auto water = mgr.setup(Shaders::Water, "water");
-    water.setFloat("wave_height", 15.0f);
-    water.setFloat("wave_length", 100.0f);
-    water.setFloat("wave_speed", 0.15f);
 
+    return GL::logErrors();
+}
 
-    GL::logErrors();
+void initFonts(FontManager& fonts, const ShaderManager& shaders) {
+    Font::FormattingSettings fontFormatting = {
+        .lineSpacing = 1.0f,
+        .tabSpaces = 5.0f
+    };
 
-    return 0;
+    constexpr char firstChar = ASCII_FIRST_STANDARD_CHAR;
+    constexpr char endChar = ASCII_LAST_STANDARD_CHAR+1;
+
+    Font* defaultFont = newFont(
+        FileSystem.assets.get("fonts/Ubuntu-Regular.ttf"),
+        24,
+        false,
+        firstChar, endChar,
+        1,
+        fontFormatting,
+        TextureUnit::Font0,
+        shaders.get(Shaders::Text)
+    );
+    Font* debugFont = newFont(
+        FileSystem.assets.get("fonts/Cascadia.ttf"),
+        24, // size
+        false, // use sdfs?
+        firstChar, endChar, // first char (space), last char
+        1, // scale
+        fontFormatting, // formatting settings
+        TextureUnit::Font1,
+        shaders.get(Shaders::Text)
+    );
+    Font* worldFont = newFont(
+        FileSystem.assets.get("fonts/Papyrus.ttf"),
+        48,
+        false,
+        32, 127,
+        1,
+        fontFormatting,
+        TextureUnit::Font2,
+        shaders.get(Shaders::Text)
+    );
+    Font* guiFont = newFont(
+        FileSystem.assets.get("fonts/factorio-fonts/TitilliumWeb-Bold.ttf"),
+        24,
+        false,
+        firstChar,
+        endChar,
+        1,
+        fontFormatting,
+        TextureUnit::Font3,
+        shaders.get(Shaders::Text)
+    );
+
+    fonts.add("Default", defaultFont);
+    fonts.add("Debug", debugFont);
+    fonts.add("World", worldFont);
+    fonts.add("Gui", guiFont);
+
+    float fontScale = 1.0f;
+    scaleAllFonts(fonts, SDL::pixelScale * fontScale);
 }
 
 void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
+    createShaders(ren.shaders);
+
     /* Init textures */
     ren.textures = TextureManager(TextureIDs::NumTextureSlots);
     setTextureMetadata(&ren.textures);
@@ -378,35 +382,11 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
     
     /* Init text stuff */
     initFreetype();
-    Font::FormattingSettings fontFormatting = {
-        .lineSpacing = 1.0f,
-        .tabSpaces = 5.0f
-    };
+    initFonts(ren.fonts, ren.shaders);
+    Fonts = &ren.fonts;
 
-    const char* fontPath = "fonts/Ubuntu-Regular.ttf";
-
-    ren.font = Font(
-        FileSystem.assets.get(fontPath),
-        48,
-        false,
-        32, 127,
-        SDL::pixelScale,
-        fontFormatting,
-        TextureUnit::Font0
-    );
-    ren.debugFont = Font(
-        FileSystem.assets.get("fonts/Ubuntu-Regular.ttf"),
-        24, // size
-        false, // use sdfs?
-        32, 127, // first char (space), last char
-        SDL::pixelScale, // scale
-        fontFormatting, // formatting settings
-        TextureUnit::Font1
-    );
-    ren.guiTextRenderer = TextRenderer::init(&ren.font);
-    ren.guiTextRenderer.setFont(&ren.debugFont);
-
-    ren.worldTextRenderer = TextRenderer::init(&ren.font);
+    ren.guiTextRenderer = TextRenderer::init(ren.fonts.get("Debug"));
+    ren.worldTextRenderer = TextRenderer::init(ren.fonts.get("World"));
     GL::logErrors();
 
     /* Init misc. renderers */
@@ -425,6 +405,7 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
         .scale = BASE_UNIT_SCALE
     };
     ren.worldGuiRenderer = GuiRenderer(&ren.worldQuadRenderer, &ren.worldTextRenderer, guiAtlas, worldGuiOptions);
+    ren.worldGuiRenderer.text->defaultRendering.scale = Vec2(1/32.0f);
     GL::logErrors();
 
     /* Tilemap rendering setup */
@@ -455,16 +436,11 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
 
     ren.renderSystem = new RenderSystem();
 
-    /* Init Shaders */
-    ren.shaders = {};
-    setupShaders(&ren);
+    setConstantShaderUniforms(ren);
 }
 
 void renderQuit(RenderContext& ren) {
     /* Text rendering systems quit */
-    ren.font.unload();
-    ren.debugFont.unload();
-
     ren.guiTextRenderer.destroy();
     ren.guiQuadRenderer.destroy();
     ren.guiRenderer.destroy();
@@ -473,6 +449,9 @@ void renderQuit(RenderContext& ren) {
     ren.worldGuiRenderer.destroy();
 
     quitFreetype();
+
+    /* Fonts quit */
+    ren.fonts.destroy();
 
     /* Shaders quit */
     ren.shaders.destroy();
@@ -565,15 +544,6 @@ static void renderWorld(RenderContext& ren, Camera& camera, GameState* state, Ve
     auto maxBoundingArea = camera.maxBoundingArea();
     float seconds = Metadata->frame.timestamp / 1000.0f;
     renderWater(ren, camera, maxBoundingArea[0], maxBoundingArea[1], seconds);
-
-    /*
-    renderWater(ren, camera, {0.0, 0.0}, {1.0, 1.0}, time);
-    renderWater(ren, camera, {1.0, 1.0}, {2.0, 2.0}, time);
-    renderWater(ren, camera, {1.0, 0.0}, {2.0, 1.0}, time);
-    renderWater(ren, camera, {0.0,-2.0}, {1.0, -1.0}, time);
-    renderWater(ren, camera, {-30.0,-30.0}, {-10.0, -20.0}, time);
-    renderWater(ren, camera, {-200.0,-200.0}, {-20.0, -20.0}, time);
-    */
 
     ren.renderSystem->Update(state->ecs, state->chunkmap, ren, camera);
 
@@ -769,10 +739,27 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
 
     auto holyTree = Entities::findNamedEntity("Holy tree", &state->ecs);
  
-    ren.worldGuiRenderer.text->render("HI", {5, 5});
+    //ren.worldGuiRenderer.text->render("HI", {5, 5});
+    float offset = 50.0f;
+    /*
+    for (int i = 0; i < 20; i++) {
+        ren.fonts.get("Debug")->scale(i * 0.2f);
+        auto renderResult = ren.guiRenderer.text->render("Testing !", {5, offset},
+            TextFormattingSettings(TextAlignment::TopLeft),
+            TextRenderingSettings({255, 0, 0, 255}, glm::vec2(0.5)));
+        offset+=renderResult.rect.h;
+    }
+    */
+
+    ren.guiRenderer.text->render("default font", {250, 250});
+    auto settings = TextRenderingSettings({255, 0, 0, 255});
+    settings.font = ren.fonts.get("World");
+    ren.guiRenderer.text->render("different font", {500, 250}, settings);
+    ren.guiRenderer.flush(ren.shaders, screenTransform);
+
+
     ren.worldGuiRenderer.flush(ren.shaders, worldTransform);
-    ren.worldTextRenderer.defaultRendering.scale = Vec2(0.01);
-    //ren.worldGuiRenderer.render("HI", {5, 5});
+    ren.worldGuiRenderer.text->render("HI", {5, 5});
     
     //ren.worldTextRenderer.flush(ren.shaders.get(Shaders::Text), worldTransform);
 

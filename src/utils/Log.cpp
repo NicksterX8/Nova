@@ -77,6 +77,11 @@ void Logger::logOutputFunction(void* arg, int category, SDL_LogPriority priority
 Logger gLogger;
 
 void logAt(const char* file, int line, LogCategory category, LogPriority priority, const char* fmt, ...) {
+    if (!gLogger.initialized) {
+        printf("Logger not initalized yet!");
+        return;
+    }
+    
     va_list ap;
     char message[MAX_LOG_MESSAGE_LENGTH];
 
@@ -87,6 +92,11 @@ void logAt(const char* file, int line, LogCategory category, LogPriority priorit
 }
 
 void logInternal(LogCategory category, LogPriority priority, const char* prefix, const char* fmt, ...) {
+    if (!gLogger.initialized) {
+        printf("Logger not initalized yet!");
+        return;
+    }
+    
     va_list ap;
     char message[MAX_LOG_MESSAGE_LENGTH];
 
@@ -97,6 +107,11 @@ void logInternal(LogCategory category, LogPriority priority, const char* prefix,
 }
 
 void logInternal2(LogCategory category, LogPriority priority, const char* prefix1, const char* prefix2, const char* fmt, ...) {
+    if (!gLogger.initialized) {
+        printf("Logger not initalized yet!");
+        return;
+    }
+    
     va_list ap;
     char message[MAX_LOG_MESSAGE_LENGTH];
 
@@ -107,6 +122,11 @@ void logInternal2(LogCategory category, LogPriority priority, const char* prefix
 }
 
 void logInternal3(LogCategory category, LogPriority priority, const char* file, const char* function, int line, const char* fmt, ...) {
+    if (!gLogger.initialized) {
+        printf("Logger not initalized yet!");
+        return;
+    }
+    
     va_list ap;
     char message[MAX_LOG_MESSAGE_LENGTH];
 

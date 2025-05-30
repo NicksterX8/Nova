@@ -6,7 +6,6 @@
 #include "rendering/textures.hpp"
 #include "ECS/EntityWorld.hpp"
 #include "utils/vectors.hpp"
-#include "items/Prototype.hpp"
 
 using ExplosionCreateFunction = Entity(EntityWorld*, Vec2);
 
@@ -149,16 +148,16 @@ namespace Entities {
             MARK_START_ENTITY_CREATION(ecs);
             Add(ecs, EC::Health(100.0f));
             Add(ecs, EC::Growth(0.0f));
+            Box texBox = Box{Vec2(-0.1), Vec2(1.2)};
             EC::Render::Texture textures[] = {
-                {TextureIDs::TreeBottom, RenderLayers::Tilemap},
-                {TextureIDs::TreeTop, RenderLayers::Trees, 0.8f}
+                {TextureIDs::TreeBottom, RenderLayers::Tilemap, texBox},
+                {TextureIDs::TreeTop, RenderLayers::Trees, texBox, 0.8f}
             };
             Add(ecs, EC::Render(textures, 2));
             Add(ecs, EC::Position(position));
-            Add(ecs, EC::ViewBox::BottomLeft(size));
-
-            Box box = {Vec2(0.2) * size, Vec2(0.6) * size};
-            Add(ecs, EC::CollisionBox(box));
+            
+            Add(ecs, EC::ViewBox(Box{Vec2(-0.5) * size, Vec2(size)}));
+            Add(ecs, EC::CollisionBox(Box{Vec2(-0.4) * size, Vec2(0.8) * size}));
             MARK_END_ENTITY_CREATION(ecs);
         }
     };

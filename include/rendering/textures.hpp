@@ -18,6 +18,9 @@ namespace TextureUnits {
         GuiAtlas,
         Font0,
         Font1,
+        Font2,
+        Font3,
+        Font4,
         Random,
         Screen0,
         Screen1,
@@ -68,7 +71,7 @@ inline unsigned char* accessTexture(Texture tx, glm::ivec2 pixel) {
 }
 
 void copyTexture(Texture dst, Texture src, glm::ivec2 dstOffset = {0, 0});
-Texture resizeTexture(Texture texture, glm::ivec2 newSize);
+void resizeTexture(Texture* texture, glm::ivec2 newSize);
 
 SDL_Surface* loadSurface(const char* filepath, bool flip = true);
 void flipSurface(SDL_Surface* surface);

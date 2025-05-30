@@ -15,6 +15,9 @@
 
 #include "global.hpp"
 
+#define ASCII_FIRST_STANDARD_CHAR ' '
+#define ASCII_LAST_STANDARD_CHAR '~'
+
 enum class HoriAlignment : Uint16 {
     Left=0,
     Center=1,
@@ -105,11 +108,13 @@ struct Font {
     };
 
     FT_Face face = nullptr;
-    AtlasCharacterData* characters = {};
+    AtlasCharacterData* characters = nullptr;
 
     FT_UInt _height = 0;
     GLuint atlasTexture = 0;
     glm::ivec2 atlasSize = {0, 0};
+
+    Shader shader = {};
 
     FormattingSettings formatting;
 
@@ -125,9 +130,7 @@ struct Font {
 
     Font() = default;
 
-    Font(const char* fontfile, FT_UInt baseHeight, bool useSDFs, char _firstChar, char _lastChar, float scale, FormattingSettings formatting, TextureUnit textureUnit);
-
-    void load(FT_UInt height, bool useSDFs = false);
+    void load(FT_UInt height, Shader shader, bool useSDFs = false);
 
     bool loaded() const {
         return face != nullptr;
@@ -180,7 +183,12 @@ struct Font {
 
     void scale(float scale) {
         if (scale == currentScale) return;
-        load(baseHeight * scale, usingSDFs);
+        load(baseHeight * scale, shader, usingSDFs);
+    }
+
+    void destroy() {
+
+        unload();
     }
 };
 
@@ -196,6 +204,8 @@ inline bool isWhitespace(char c) {
         return false;
     }
 }
+
+Font* newFont(const char* fontfile, FT_UInt baseHeight, bool useSDFs, char _firstChar, char _lastChar, float scale, Font::FormattingSettings formatting, TextureUnit textureUnit, Shader shader);
 
 struct TextFormattingSettings {
     TextAlignment align = TextAlignment::TopLeft;
@@ -250,12 +260,18 @@ inline void alignLineHorizontally(MutableArrayRef<glm::vec2> offsets, float orig
 /* RENDERING */
 
 struct TextRenderingSettings {
-    const Font* font = nullptr;;
+    const Font* font = nullptr;
     SDL_Color color = {0,0,0,255};
     glm::vec2 scale = glm::vec2(1.0f);
     bool orderMatters = false;
 
     TextRenderingSettings() = default;
+
+    TextRenderingSettings(const Font* font, SDL_Color color, glm::vec2 scale = glm::vec2{1.0f})
+    : font(font), color(color), scale(scale) {}
+
+    TextRenderingSettings(const Font* font, glm::vec2 scale)
+    : font(font), scale(scale) {}
 
     TextRenderingSettings(SDL_Color color, glm::vec2 scale = glm::vec2{1.0f})
     : color(color), scale(scale) {}
@@ -271,13 +287,18 @@ struct TextRenderLayout {
 
 struct TextRenderBatch {
     const Font* font;
-    llvm::SmallVector<SDL_Color> colors;
-    llvm::SmallVector<glm::vec2> scales;
+    struct CharacterDimensions {
+        glm::vec<2, uint16_t> size;
+        glm::vec<2,  int16_t> bearing;
+    };
+    My::Vec<CharacterDimensions> dimensions;
+    My::Vec<SDL_Color> colors;
+    My::Vec<glm::vec2> scales;
 
     // all characters use the same color
-    bool uniformColor() const { return colors.size() == 1; }
+    bool uniformColor() const { return colors.size == 1; }
     // characters use the same scale
-    bool uniformScale() const { return scales.size() == 1; }
+    bool uniformScale() const { return scales.size == 1; }
 
     TextRenderLayout layout;
 };
@@ -285,9 +306,9 @@ struct TextRenderBatch {
 struct TextRenderer {
     using FormattingSettings = TextFormattingSettings;
     using RenderingSettings = TextRenderingSettings;
-private:
-    const Font* font = nullptr;
-public:
+
+    const Font* defaultFont = nullptr;
+
     llvm::SmallVector<TextRenderBatch, 0> buffer;
     // index with character index found by subtracting font->firstChar from char,
     // like this: characterTexCoords['a' - font->firstChar]
@@ -309,7 +330,7 @@ public:
     };
     static_assert(sizeof(Vertex) == sizeof(glm::vec2) + sizeof(TexCoord) + sizeof(SDL_Color) + sizeof(glm::vec2), "no struct padding");
 
-    // Returns a pointer to the set of 4 vectors that make up the character's texture quad on the font atlas
+    /* Returns a pointer to the set of 4 vectors that make up the character's texture quad on the font atlas
     std::array<TexCoord, 4>* getTexCoords(char c) const {
         return &characterTexCoords[c - font->firstChar];
     }
@@ -344,9 +365,11 @@ public:
 
         texCoordScale = font->currentScale;
     }
+    */
 
-    static TextRenderer init(Font* font);
+    static TextRenderer init(Font* defaultFont);
 
+    /*
     const Font* getFont() const {
         return font;
     }
@@ -370,6 +393,7 @@ public:
     float lineHeight() const {
         return font ? font->height() : NAN;
     }
+    */
 
     struct RenderResult {
         FRect rect; // rect that text will be rendered to
@@ -406,11 +430,9 @@ private:
     void renderBatch(const TextRenderBatch* batch, Vertex* verticesOut) const;
 public:
 
-    void flush(Shader textShader, glm::mat4 transform);
+    void flush(glm::mat4 transform);
 
     FRect renderStringBufferAsLinesReverse(const My::StringBuffer& strings, int maxLines, glm::vec2 pos, My::Vec<SDL_Color> colors, glm::vec2 scale, FormattingSettings formatSettings) {
-        if (!canDraw()) return {pos.x,pos.y,0,0};
-        
         FRect maxRect = {pos.x,pos.y,0,0};
         glm::vec2 offset = {0, 0};
         int i = 0;
@@ -422,7 +444,7 @@ public:
             formatSettings.maxHeight -= outputHeight * scale.y;
             offset.y += outputHeight;
             // do line break
-            offset.y += font->linePixelSpacing() * scale.y;
+            offset.y += defaultFont->linePixelSpacing() * scale.y;
             i++;
             return false;
         });

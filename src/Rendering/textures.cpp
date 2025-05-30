@@ -20,12 +20,12 @@ void copyTexture(Texture dst, Texture src, glm::ivec2 dstOffset) {
     }
 }
 
-Texture resizeTexture(Texture texture, glm::ivec2 newSize) {
-    Texture newTexture = newUninitTexture(newSize, texture.pixelSize);
+void resizeTexture(Texture* texture, glm::ivec2 newSize) {
+    Texture newTexture = newUninitTexture(newSize, texture->pixelSize);
     fillTextureBlack(newTexture);
-    copyTexture(newTexture, texture);
-    freeTexture(texture);  
-    return newTexture;
+    copyTexture(newTexture, *texture);
+    Free(texture->buffer); 
+    *texture = newTexture;
 }
 
 void flipSurface(SDL_Surface* surface) {
@@ -183,6 +183,7 @@ TextureArray makeTextureArray(glm::ivec2 size, TextureManager* textures, Texture
 
     for (TextureID id = TextureIDs::First; id <= TextureIDs::Last; id++) {
         if ((metadata[id].type & typesIncluded) || true) {
+            if (textures->animations.lookup(id)) continue; // dont include animations
             auto image = loadTexture(id, textures, assetsPath);
             if (image) {
                 images.push_back(image);
@@ -257,6 +258,7 @@ GlSizedTexture GlLoadTextureAtlas(ArrayRef<SDL_Surface*> images, GLint minFilter
     for (int i = 0; i < images.size(); i++) {
         freeTexture(textures[i]);
     }
+    Free(textures);
 
     GLuint texture;
     glGenTextures(1, &texture);
@@ -313,6 +315,8 @@ TextureAtlas makeTextureAtlas(TextureManager* textures, TextureType typesInclude
             origin + size
         };
     }
+
+    Free(textureOrigins);
 
     // images can be freed after being loaded into texture array
     for (auto image : images) {

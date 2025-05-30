@@ -21,6 +21,7 @@ Atlas makeTexturePackingAtlas(int pixelSize, int reserveCapacity, int reserveSiz
 Texture doneTexturePackingAtlas(Atlas* atlas) {
     auto texture = atlas->atlas;
     atlas->nodes.destroy();
+    atlas->nodesEmpty.clear();
     return texture;
 }
 
@@ -116,7 +117,7 @@ glm::ivec2 packTexture(Atlas* atlas, Texture texture, glm::ivec2 padding) {
     while (nodeIndex == NullNode) {
         // always keep atlas texture square
         int newSize = MAX(MAX(atlas->atlas.size.x*2, texture.size.x*2), MAX(atlas->atlas.size.y*2, texture.size.y*2));
-        atlas->atlas = resizeTexture(atlas->atlas, glm::ivec2(newSize));
+        resizeTexture(&atlas->atlas, glm::ivec2(newSize));
         nodeIndex = packNode(atlas, Atlas::root, texture.size);
     }
 

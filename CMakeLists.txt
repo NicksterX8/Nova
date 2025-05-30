@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.23.3)
 
+set(CMAKE_BUILD_TYPE Debug)
 project(faketorio VERSION 1.0)
 
-add_compile_options(-Wall -std=c++17
+add_compile_options(-g -Wall -std=c++17
     -Wno-macro-redefined -Wno-unused-variable -Wno-char-subscripts -Wno-comment
     -Wliteral-conversion
     )
@@ -33,6 +34,7 @@ set(SRC_FILES
     ${SD}/PlayerControls.cpp
     ${SD}/commands.cpp
     ${SD}/GameState.cpp
+    ${SD}/rendering/context.cpp
     ${SD}/rendering/textures.cpp
     ${SD}/rendering/text.cpp
     ${SD}/rendering/drawing.cpp

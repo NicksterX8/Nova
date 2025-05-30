@@ -20,7 +20,9 @@ struct FileSystemT {
     struct Directory {
         char* path;
 
-        Directory() {}
+        Directory() {
+            path = nullptr;
+        }
 
         Directory(const char* unixPath) {
             path = My::strdup(unixPath);
@@ -47,11 +49,13 @@ struct FileSystemT {
 
     FileSystemT() {}
 
-    FileSystemT(const char* unixResourcesPath) {
+    FileSystemT(const char* buildPath) {
+        auto unixResourcesPath = My::str_add(buildPath, "resources/");
         resources = Directory(get(unixResourcesPath));
-        assets = Directory(get(resources, "assets/"));
-        shaders = Directory(get(resources, "shaders/"));
-        shaders = Directory(get("../src/rendering/shaders/"));
+        //assets = Directory(get(resources, "assets/"));
+        assets = Directory(get(buildPath, "../assets/"));
+        //shaders = Directory(get(resources, "shaders/"));
+        shaders = Directory(get(buildPath, "../src/rendering/shaders/"));
         save = Directory(get(resources, "save/"));
     }
 
@@ -64,10 +68,7 @@ struct FileSystemT {
     }
 
     void destroy() {
-        free(resources.path);
-        free(assets.path);
-        free(shaders.path);
-        free(save.path);
+
     }
 };
 

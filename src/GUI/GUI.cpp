@@ -19,6 +19,9 @@ void Draw::itemStack(SDL_Renderer* renderer, float scale, ItemStack item, SDL_Re
 */
 
 SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, const Player* player, const ItemManager& itemManager) {
+    #define HOTBAR_FONT "Gui"
+    auto font = Fonts->get(HOTBAR_FONT);
+    
     float scale = renderer.options.scale;
 
     slots.clear();
@@ -100,18 +103,19 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, const Player* player, const I
             if (!item.empty()) {
                 const ItemPrototype* prototype = items::getPrototype(item.item.type, itemManager);
                 const ITC::Display* displayComponent = items::getComponent<ITC::Display>(item.item, itemManager);
-                const ITC::TileC* tileComponent = items::getComponent<ITC::TileC>(item.item, itemManager);
                 if (displayComponent && prototype) {
                     // icon
                     renderer.sprite(displayComponent->inventoryIcon, innerSlot);
                     // quantity count
                     // dont draw item count over items that can only ever have one count,
                     // its pointless
-                    if (prototype->stackSize != 1 && item.quantity != items::ItemQuantityInfinity) {
+                    if (prototype->get<ITC::StackSize>()->quantity != 1 && item.quantity != items::ItemQuantityInfinity) {
                         char text[128];
                         snprintf(text, 128, "%d", item.quantity);
                         glm::vec2 pos = {hotbarSlot.x, hotbarSlot.y};
-                        renderer.text->render(text, pos, {TextAlignment::BottomLeft}, TextRenderingSettings(glm::vec2(scale/2.0f)));
+                        renderer.text->render(text, pos, {TextAlignment::BottomLeft},
+                            TextRenderingSettings(font, glm::vec2(scale/2.0f))
+                            );
                     }
                 }
             }

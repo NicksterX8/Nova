@@ -551,10 +551,8 @@ int Game::handleEvent(const SDL_Event* event) {
                 float oldPixelScale = SDL::pixelScale;
                 SDL::pixelScale = SDL::getPixelScale(sdlCtx.win);
                 camera.baseScale = BASE_UNIT_SCALE * SDL::pixelScale;
-                float newFontScale = renderContext->font.currentScale / oldPixelScale * SDL::pixelScale;
-                float newDebugFontScale = renderContext->debugFont.currentScale / oldPixelScale * SDL::pixelScale;
-                renderContext->font.scale(newFontScale);
-                renderContext->debugFont.scale(newDebugFontScale);
+                float pixelScaleChange = SDL::pixelScale / oldPixelScale;
+                scaleAllFonts(renderContext->fonts, pixelScaleChange);
                 displaySizeChanged(sdlCtx.win, *renderContext, &camera);
             }
             break;
@@ -734,6 +732,8 @@ int Game::init(int screenWidth, int screenHeight) {
         auto tree = Entities::Tree(&state->ecs, pos, {4, 4});
         (void)tree;
     }
+
+    Entities::Tree(&state->ecs, {10.5, 10.5}, {40, 40});
 
     for (int i = 0; i < 10; i++) {
         auto tree = Entities::Grenade(&state->ecs, Vec2(i*2));

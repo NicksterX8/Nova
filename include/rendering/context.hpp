@@ -1,6 +1,7 @@
 #ifndef RENDERING_CONTEXT_INCLUDED
 #define RENDERING_CONTEXT_INCLUDED
 
+#include <unordered_map>
 #include "../sdl_gl.hpp"
 #include "Shader.hpp"
 #include "shaders.hpp"
@@ -41,6 +42,42 @@ struct RenderBuffer {
 
 struct RenderSystem;
 
+struct FontManager {
+    std::unordered_map<std::string, Font*> fonts;
+    float fontScale = 1.0f;
+
+    void add(const char* name, Font* font) {
+        fonts.insert({std::string(name), font});
+    }
+
+    Font* get(const char* fontName) {
+        auto it = fonts.find(fontName);
+        if (it != fonts.end()) return it->second;
+        else { 
+            LogError("No font found with name '%s'", fontName);
+            return nullptr;
+        }
+    }
+
+    const Font* get(const char* fontName) const {
+        auto it = fonts.find(fontName);
+        if (it != fonts.end()) return it->second;
+        else return nullptr;
+    }
+
+    void destroy() {
+        for (auto font : fonts) {
+            if (font.second) { 
+                font.second->destroy();
+                delete font.second;
+            }
+        }
+        // idk if i need to delete fonts map
+    }
+};
+
+extern const FontManager* Fonts;
+
 struct RenderContext {
     SDL_Window* window = NULL;
     SDL_GLContext glCtx = NULL;
@@ -49,9 +86,8 @@ struct RenderContext {
     TextureArray textureArray;
     TextureManager textures{0};
     ShaderManager shaders;
-
-    Font font;
-    Font debugFont;
+    FontManager fonts;
+    
     QuadRenderer guiQuadRenderer;
     TextRenderer guiTextRenderer;
     GuiRenderer guiRenderer;
@@ -70,5 +106,7 @@ struct RenderContext {
     RenderContext(SDL_Window* window, SDL_GLContext glContext)
     : window(window), glCtx(glContext) {}
 };
+
+void scaleAllFonts(FontManager&, float scale);
 
 #endif

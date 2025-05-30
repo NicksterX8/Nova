@@ -10,6 +10,22 @@
 #include <string>
 #include "global.hpp"
 
+
+#define BEGIN_COMPONENT(name) struct name {\
+    constexpr static ComponentID ID = ComponentIDs::name;\
+    constexpr static bool PROTOTYPE = false;\
+    constexpr static const char* NAME = TOSTRING(name);
+
+#define END_COMPONENT(name) }; static_assert(true | ComponentIDs::name, "Checking for id");
+
+#define BEGIN_PROTO_COMPONENT(name) struct name {\
+    constexpr static ComponentID ID = ComponentIDs::name;\
+    constexpr static bool PROTOTYPE = true;\
+    constexpr static const char* NAME = TOSTRING(name);
+
+#define END_PROTO_COMPONENT(name) }; static_assert(true | ComponentIDs::name, "Checking for id");
+
+
 template <size_t I, typename Tuple>
 constexpr size_t element_offset() {
     using element_t = std::tuple_element_t<I, Tuple>;
@@ -457,47 +473,6 @@ public:
     }
 };
 
-/*
-struct ItemComponentManager {
-    //using ComponentIndex = Sint32;
-    //My::Vec< My::Vector::Generic::GenericVec > pools;
-    //My::DenseSparseSet<ItemInstanceID, ComponentIndex, 100000> set;
-
-    struct ArchetypePool {
-        void* components;
-        Archetype archetype;
-    };
-
-    My::Vec<ArchetypePool*> pools;
-    
-
-    void makeNewArchetype(Archetype archetype) {
-        ArchetypePool pool;
-        pool.archetype = archetype;
-        pool.components = nullptr;
-    }
-
-    template<class C>
-    void initComponentType() {
-        constexpr auto id = getItcID<C>();
-        if (validItcID(id)) {
-            if (pools.size < id) {
-                pools.resize(id);
-            }
-        }
-    }
-
-    
-
-    void* get(ItemInstanceID item, ItemComponentID component) {
-        auto& pool = pools[component];
-        auto* lookupResult = set.lookup(item);
-        if (lookupResult)
-            return pool.get(*lookupResult);
-        return nullptr;
-    }
-};
-*/
 /*
 struct SmallComponentList {
     using ComponentVec = My::VecTuple<ComponentID, ComponentPtr>;

@@ -4,11 +4,12 @@
 #include "Item.hpp"
 
 namespace items {
-
+/*
 struct ComponentManager : ItemECS::ArchetypalComponentManager {
     ComponentManager() = default;
     ComponentManager(ComponentInfoRef info) : ItemECS::ArchetypalComponentManager(info) {}
 };
+*/
 
 } // namespace items
 

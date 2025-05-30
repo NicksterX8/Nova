@@ -116,6 +116,8 @@ int Draw::chunkBorders(QuadRenderer& renderer, const Camera& camera, SDL_Color c
 }
 
 void Draw::drawFpsCounter(GuiRenderer& renderer, float fps, float tps, RenderOptions options) {
+    auto font = Fonts->get("Debug");
+    
     static char fpsCounter[128];
 
     // only update every 5 frames to not be annoying
@@ -140,7 +142,7 @@ void Draw::drawFpsCounter(GuiRenderer& renderer, float fps, float tps, RenderOpt
     
     auto fpsRenderInfo = renderer.text->render(fpsCounter, {0, options.size.y}, 
         TextFormattingSettings(TextAlignment::TopLeft), 
-        TextRenderingSettings(color, glm::vec2(2.0f)));
+        TextRenderingSettings(color, glm::vec2(1)));
 
     {
         static char tpsCounter[128];
@@ -164,15 +166,17 @@ void Draw::drawFpsCounter(GuiRenderer& renderer, float fps, float tps, RenderOpt
             color = {255, 0, 0, 255};
         }
         
-        float offset = fpsRenderInfo.rect.x + fpsRenderInfo.rect.w + 2 * renderer.text->getFont()->advance(' ');
+        float offset = fpsRenderInfo.rect.x + fpsRenderInfo.rect.w + 2 * font->advance(' ');
         renderer.text->render(tpsCounter, {offset, options.size.y}, 
             TextFormattingSettings(TextAlignment::TopLeft), 
-            TextRenderingSettings(color, glm::vec2(2.0f)));
+            TextRenderingSettings(color, glm::vec2(1.0f)));
     }
 }
 
 void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
     if (!console) return;
+
+    auto font = Fonts->get("Debug");
 
     // for everything
     float maxWidth = renderer.options.size.x;
@@ -187,10 +191,10 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
         glm::vec2 activeMsgBorder = renderer.pixels({20.0f, 10.0f});
     
         float activeMsgMinWidth = logMaxWidth;
-        float activeMsgMinHeight = renderer.text->lineHeight() * renderer.textScale() + activeMsgBorder.y*2; // always leave room for a line
+        float activeMsgMinHeight = font->height() * renderer.textScale() + activeMsgBorder.y*2; // always leave room for a line
 
         constexpr SDL_Color activeMessageBackground = {30, 30, 30, 205};
-        glm::vec2 selectedCharPos = {activeMsgBorder.x, activeMsgBorder.y - renderer.text->getFont()->descender()};
+        glm::vec2 selectedCharPos = {activeMsgBorder.x, activeMsgBorder.y - font->descender()};
         int selectedCharIndex = console->selectedCharIndex;
         FRect activeMessageRect = {0, 0, activeMsgMinWidth, activeMsgMinHeight};
         if (!console->activeMessage.empty()) {
@@ -204,11 +208,11 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
                 selectedCharPos = characterPositions[selectedCharIndex];
                 if (selectedCharIndex > 0 && selectedCharPos.x - activeMsgBorder.x == 0) {
                     selectedCharPos = characterPositions[selectedCharIndex-1];
-                    selectedCharPos.x += renderer.text->getFont()->advance(console->activeMessage.back());
+                    selectedCharPos.x += font->advance(console->activeMessage.back());
                 }
             } else if (characterPositions.size() > 0 && selectedCharIndex == characterPositions.size()) {
                 selectedCharPos = characterPositions.back();
-                selectedCharPos.x += renderer.text->getFont()->advance(console->activeMessage.back());
+                selectedCharPos.x += font->advance(console->activeMessage.back());
             }
             
             activeMessageRect = addBorder(textRect, activeMsgBorder);
@@ -230,9 +234,9 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
         if (timeTilFlash < 0.0) {
             FRect cursor = {
                 selectedCharPos.x,
-                selectedCharPos.y + renderer.text->getFont()->descender(),
+                selectedCharPos.y + font->descender(),
                 renderer.pixels(2.0f),
-                renderer.text->lineHeight()
+                (float)font->height()
             };
             renderer.colorRect(cursor, GUI::Console::activeTextColor, 0.9f);
             if (timeTilFlash < -flashDuration) {
@@ -253,12 +257,12 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
         }
         
         renderer.textBox(strBuffer, 10, colors, {0, logOffsetY}, TextAlignment::BottomLeft, logBackground, renderer.pixels({20, 20}), {logMaxWidth, maxHeight});
+        colors.destroy();
         strBuffer.destroy();
     }
 }
 
-void renderFontComponents(glm::vec2 p, GuiRenderer& renderer) {
-    auto* font = renderer.text->getFont();
+void renderFontComponents(const Font* font, glm::vec2 p, GuiRenderer& renderer) {
     if (!font) return;
     auto* face = font->face;
     if (!face) return;
@@ -328,7 +332,7 @@ static void testTextRendering(GuiRenderer& guiRenderer, TextRenderer& textRender
     guiRenderer.rectOutline(rect3.rect, {255, 0, 0, 255}, 1.0f, 2.0f);
     
 
-    renderFontComponents({100, 100}, guiRenderer);
+    renderFontComponents(guiRenderer.text->defaultFont, {100, 100}, guiRenderer);
 
     glm::vec3 points[4] = {
         {0, guiRenderer.options.size.y/2, 0},

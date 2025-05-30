@@ -35,6 +35,7 @@ using LogPriority = LogPriorities::LogPriority;
 struct Logger {
     void logOutputFunction(LogCategory category, LogPriority priority, const char *message) const;
 public:
+    bool initialized = false;
     LogCategory category = LogCategory::Main; // The log category to use when logging, default is main
     bool useEscapeCodes = false; // Use ansi escape codes for colors and bolding when logging to console
     bool logToConsole = true;
@@ -43,6 +44,7 @@ public:
     static void logOutputFunction(void* logger, int category, SDL_LogPriority priority, const char *message);
 
     int init(const char* outputFilepath) {
+        initialized = true;
         if (!outputFilepath)
             return -1;
         strcpy(logOutputFilepath, outputFilepath);

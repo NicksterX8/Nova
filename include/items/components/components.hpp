@@ -14,27 +14,10 @@ namespace items {
 
 namespace ComponentIDs {
     #define ITEM_REGULAR_COMPONENTS_LIST Durability, Wetness, TileC, Display, Placeable
-    #define ITEM_PROTO_COMPONENTS_LIST Edible, Fuel, Wettable, StartDurability, Usable
+    #define ITEM_PROTO_COMPONENTS_LIST StackSize, Edible, Fuel, Wettable, StartDurability, Usable
     #define ITEM_COMPONENTS_LIST ITEM_REGULAR_COMPONENTS_LIST, ITEM_PROTO_COMPONENTS_LIST
     GEN_IDS(ComponentIDs, ComponentID, ITEM_COMPONENTS_LIST, Count);
 }
-
-#define BEGIN_COMPONENT(name) struct name {\
-    constexpr static ComponentID ID = ComponentIDs::name;\
-    constexpr static bool PROTOTYPE = false;\
-    constexpr static const char* NAME = TOSTRING(name);
-
-#define END_COMPONENT(name) }; static_assert(true | ComponentIDs::name, "Checking for id");
-
-#define BEGIN_PROTO_COMPONENT(name) struct name {\
-    constexpr static ComponentID ID = ComponentIDs::name;\
-    constexpr static bool PROTOTYPE = true;\
-    constexpr static const char* NAME = TOSTRING(name);
-
-#define END_PROTO_COMPONENT(name) }; static_assert(true | ComponentIDs::name, "Checking for id");
-
-#define FLAG_COMPONENT(name) BEGIN_COMPONENT(name) END_COMPONENT(name)
-#define FLAG_PROTO_COMPONENT(name) BEGIN_PROTO_COMPONENT(name) END_PROTO_COMPONENT(name)
 
 namespace ITC {
     constexpr auto TotalNumComponents = ComponentIDs::Count;
@@ -47,6 +30,7 @@ namespace ITC {
         int h;
     END_COMPONENT(Wetness)
 
+    // unused
     BEGIN_COMPONENT(TileC)
         TileType type;
     END_COMPONENT(TileC)
@@ -60,6 +44,10 @@ namespace ITC {
     END_COMPONENT(Placeable)
 
     namespace Proto {
+        BEGIN_PROTO_COMPONENT(StackSize)
+            items::ItemQuantity quantity;
+        END_PROTO_COMPONENT(StackSize)
+
         BEGIN_PROTO_COMPONENT(Edible)
             float hungerValue;
             float saturation;
@@ -78,6 +66,7 @@ namespace ITC {
 
         BEGIN_PROTO_COMPONENT(Usable)
             bool (*onUse)(Game*); // return: if the item was used successfully
+            bool oneTimeUse; // if the item should be destroyed after being used
         END_PROTO_COMPONENT(Usable)
     }
 

@@ -156,11 +156,9 @@ void initPaths() {
     } else {
 
         char upperPath[512]; strcpy(upperPath, pathbuf);
-        upperPath[std::string(pathbuf).find_last_of('/')] = '\0';
+        upperPath[std::string(pathbuf).find_last_of('/')+1] = '\0';
 
-        auto filePrefix = str_add(upperPath, "/resources/");
-
-        FileSystem = FileSystemT(filePrefix);
+        FileSystem = FileSystemT(upperPath);
         LOG("resources path: %s", FileSystem.resources.get());
     }
 
@@ -173,10 +171,17 @@ void tests() {
 }
 
 int main(int argc, char** argv) { 
+    std::string windowTitle = "Faketorio";
+
     gLogger.useEscapeCodes = true;
+    
     for (int i = 1; i < argc; i++) {
+        printf("argv %d: %s\n", i, argv[i]);
         if (strcmp(argv[i], "--no-color-codes") == 0) {
             gLogger.useEscapeCodes = false;
+        }
+        if (strcmp(argv[i], "--vscode-lldb") == 0) {
+            windowTitle += " - Debugger on";
         }
     }
 
@@ -184,9 +189,15 @@ int main(int argc, char** argv) {
     initPaths();
     gLogger.init(FileSystem.save.get("log.txt"));
 
-    LogInfo("argv[0]: %s\n", argv[0]);
-
-    SDLContext sdlCtx = initSDL();
+    LogInfo("Argc: %d", argc);
+    
+    SDL_Rect windowRect = {
+        0,
+        0,
+        800,
+        800
+    };
+    SDLContext sdlCtx = initSDL(windowTitle.c_str(), windowRect);
 
     tests();
 

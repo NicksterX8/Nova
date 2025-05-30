@@ -9,6 +9,10 @@ namespace Entities {
 
 void scaleGuy(GameState* state, Entity guy, float scale);
 
+/* 
+ * Find an entity with a given name. If multiple entities have the same name,
+ * the entity will be chosen randomly
+ */
 Entity findNamedEntity(const char* name, const EntityWorld* ecs);
 
 inline Entity clone(EntityWorld* ecs, Entity entity) {

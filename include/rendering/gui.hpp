@@ -106,14 +106,17 @@ struct GuiRenderer {
         quad->render(_quad);
     }
 
-    void rectOutline(FRect rect, Color color, float strokeIn, float strokeOut) {
-        glm::vec2 min = {rect.x, rect.y};
-        glm::vec2 max = {rect.x + rect.w, rect.y + rect.h};
-
+    void rectOutline(glm::vec2 min, glm::vec2 max, Color color, float strokeIn, float strokeOut) {
         colorRect({min.x - strokeOut, min.y - strokeOut}, {max.x - strokeIn,  min.y + strokeIn},  color);
         colorRect({max.x - strokeIn,  min.y - strokeOut}, {max.x + strokeOut, max.y - strokeIn},  color);
         colorRect({max.x + strokeOut, max.y - strokeIn},  {min.x + strokeIn,  max.y + strokeOut}, color);
         colorRect({min.x - strokeOut, max.y + strokeOut}, {min.x + strokeIn,  min.y + strokeIn},  color);
+    }
+
+    void rectOutline(FRect rect, Color color, float strokeIn, float strokeOut) {
+        glm::vec2 min = {rect.x, rect.y};
+        glm::vec2 max = {rect.x + rect.w, rect.y + rect.h};
+        rectOutline(min, max, color, strokeIn, strokeOut);
     }
 
     float alignmentOffsetFraction(HoriAlignment alignment) const {
@@ -157,12 +160,11 @@ struct GuiRenderer {
 
     }
 
-    void flush(const ShaderManager& shaders, glm::mat4 transform) {
+    void flush(const ShaderManager& shaders, const glm::mat4& transform) {
         auto quadShader = shaders.use(Shaders::Quad);
         quadShader.setVec2("texSize", glm::vec2(guiAtlas.size));
         quad->flush(quadShader, transform, guiAtlas.unit);
-        auto textShaderID = text->getFont()->usingSDFs ? Shaders::SDF : Shaders::Text;
-        text->flush(shaders.get(textShaderID), transform);
+        text->flush(transform);
     }
 
     void destroy() {

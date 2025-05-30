@@ -25,6 +25,7 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight);
 void renderQuit(RenderContext& ren);
 void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* state, Camera& camera, const PlayerControls& playerControls, Mode mode, bool renderWorld);
 
-int setupShaders(RenderContext* ren);
+int setConstantShaderUniforms(RenderContext& ren);
+int createShaders(ShaderManager& shaderManager);
 
 #endif

@@ -37,6 +37,17 @@ struct ShaderManager {
         return shader;
     }
 
+    // warning: slow - O(n) where n = num of shaders in manager
+    // returns: -1 if unable to find
+    ShaderID get(std::string shaderName) const {
+        for (int i = 0; i < Shaders::Count; i++) {
+            if (shaderData[i].name == shaderName) {
+                return (ShaderID)i;
+            }
+        }
+        return (ShaderID)-1;
+    }
+
     Shader use(ShaderID shaderID) const {
         auto shader = get(shaderID);
         shader.use();

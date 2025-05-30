@@ -1,4 +1,5 @@
 #include "items/items.hpp"
+#include "items/prototypes/prototypes.hpp"
 
 using namespace items;
 
@@ -46,9 +47,10 @@ ItemQuantity Inventory::addItemStack(ItemStack stack) {
             // if it weren't for the possibility of a stack of items having a quantity higher
             // than the stack's stacksize it would work to just copy the stack straight into the inventory slot
             inventoryStack.item = stack.item;
-            ItemQuantity stackSize = getPrototype(stack.item.type, *manager)->stackSize;
-            ItemQuantity itemsToAdd = (stackSize < itemsLeft) ? 
-                                stackSize : itemsLeft;
+            auto* stackSize = getComponent<ITC::StackSize>(stack.item, *manager);
+            assert(stackSize);
+            ItemQuantity itemsToAdd = (stackSize->quantity < itemsLeft) ? 
+                                stackSize->quantity : itemsLeft;
             inventoryStack.quantity = itemsToAdd;
             itemsLeft -= itemsToAdd;
         }
@@ -128,7 +130,7 @@ ItemQuantity Inventory::itemCount(ItemType type) {
 PrototypeManager* items::makePrototypes(ComponentInfoRef componentInfo) {
     auto manager = new PrototypeManager(componentInfo, ItemTypes::Count);
     namespace ids = ItemTypes;
-    using namespace Prototypes;
+
     auto prototypeNone = Prototypes::None(manager);
     //manager->add(prototypeNone);
     //manager->add(Prototypes::Grenade(manager));
@@ -146,13 +148,4 @@ PrototypeManager* items::makePrototypes(ComponentInfoRef componentInfo) {
 void items::destroyItem(Item* item, ItemManager& manager) {
     freeItem(*item, manager);
     *item = Item::None();
-}
-
-
-Item Items::tile(ItemManager& manager, TileType type) {
-    auto i = makeItem(ItemTypes::Tile, manager);
-    addComponent<ITC::TileC>(i, manager, {type});
-    addComponent<ITC::Display>(i, manager, ITC::Display{TileTypeData[type].background});
-    addComponent<ITC::Placeable>(i, manager, ITC::Placeable{type});
-    return i;
 }

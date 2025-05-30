@@ -104,7 +104,7 @@ struct RenderSystem {
         *base = fg * alpha + *base * invAlpha;
     }
 
-    int renderBatch(ArrayRef<Entity> entities, ArrayRef<Uint16> texIndices, VertexDataArrays buffer, const ECS_t& ecs, const ChunkMap& chunkmap, RenderContext& ren) {
+    void renderBatch(ArrayRef<Entity> entities, ArrayRef<Uint16> texIndices, VertexDataArrays buffer, const ECS_t& ecs, const ChunkMap& chunkmap, RenderContext& ren) {
         int batchSize = entities.size();
     
         // position and size
@@ -115,7 +115,7 @@ struct RenderSystem {
             EC::Render* renderComponent = ecs.Get<EC::Render>(entity);
             auto& texture = renderComponent->textures[texIndices[e]];
             
-            Vec2 viewMin = viewbox->box.min + texture.box.min;
+            Vec2 viewMin = viewbox->box.min + texture.box.min * viewbox->box.size;
             Vec2 size = viewbox->box.size * texture.box.size * 0.5f;
             buffer.positions[e].x = pos.x + viewMin.x + size.x;
             buffer.positions[e].y = pos.y + viewMin.y + size.y;
@@ -133,8 +133,8 @@ struct RenderSystem {
                 Vec2 size = viewbox->box.size;
                 Vec2 min = pos + viewMin;
                 FRect entityRect = {
-                    pos.x,
-                    pos.y,
+                    min.x,
+                    min.y,
                     size.x,
                     size.y
                 };
@@ -233,7 +233,7 @@ struct RenderSystem {
 
             auto* selected = ecs.Get<EC::Selected>(entity);
             if (selected) {
-                blend(&colorShading, glm::vec4{0.0, 0.0, 1.0, 0.5});
+                blend(&colorShading, glm::vec4{0.5, 0.5, 1.0, 0.5});
             }
 
             auto* render = ecs.Get<EC::Render>(entity);
@@ -304,5 +304,8 @@ struct RenderSystem {
             // draw a batch of entities
             glDrawArrays(GL_POINTS, 0, entityList.size - entitiesRendered);
         }
+
+        textureIndexList.destroy();
+        entityList.destroy();
     }
 };

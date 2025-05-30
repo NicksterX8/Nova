@@ -10,17 +10,6 @@ namespace GUI {
 }
 
 struct DebugSettings {
-    /*
-    bool drawChunkBorders;
-    bool drawChunkCoordinates;
-    bool drawChunkEntityCount;
-
-    bool drawPlayerRect;
-    bool drawEntityIDs;
-    bool drawEntityViewBoxes;
-    bool drawEntityCollisionBoxes;
-    */
-
     std::unordered_map<std::string, bool> bools;
 
     void init() {
