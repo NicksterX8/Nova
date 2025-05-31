@@ -266,31 +266,32 @@ static GlModelSOA makeScreenModel() {
 int setConstantShaderUniforms(RenderContext& ren) {
     auto& mgr = ren.shaders;
 
-    auto entity = mgr.get(Shaders::Entity);
+    auto entity = mgr.use(Shaders::Entity);
     entity.setInt("texAtlas", TextureUnit::MyTextureAtlas);
     entity.setVec2("texAtlasSize", ren.textureAtlas.size);
     glBindFragDataLocation(entity.id, 0, "FragColor");
     glBindFragDataLocation(entity.id, 1, "FragVelocity");
 
-    auto tilemap = mgr.get(Shaders::Tilemap);
+    auto tilemap = mgr.use(Shaders::Tilemap);
     tilemap.setInt("tex", TextureUnit::MyTextureAtlas);
     tilemap.setVec2("texSize", ren.textureAtlas.size);
     tilemap.setFloat("height", getLayerHeight(RenderLayer::Tilemap));
     
-    mgr.get(Shaders::Text).setInt("text", TextureUnit::Font0);
+    mgr.use(Shaders::Text).setInt("text", TextureUnit::Font0);
 
-    auto sdf = mgr.get(Shaders::SDF);
+    auto sdf = mgr.use(Shaders::SDF);
     sdf.setInt("text", TextureUnit::Font1);
-    sdf.setFloat("thickness", 0.1f);
-    sdf.setFloat("soft", 0.45f);
+    sdf.setFloat("thickness", 1.0f);
+    sdf.setFloat("soft", 0.9f);
+    sdf.setFloat("smoothing", 0.001f);
 
-    mgr.get(Shaders::Texture).setInt("tex", TextureUnit::Random);
+    mgr.use(Shaders::Texture).setInt("tex", TextureUnit::Random);
 
-    auto quad = mgr.get(Shaders::Quad);
+    auto quad = mgr.use(Shaders::Quad);
     quad.setInt("tex", TextureUnit::GuiAtlas);
     quad.setVec2("texSize", glm::vec2(ren.guiRenderer.guiAtlas.size));
 
-    mgr.get(Shaders::Screen).setInt("tex", TextureUnit::Screen0);
+    mgr.use(Shaders::Screen).setInt("tex", TextureUnit::Screen0);
 
     return GL::logErrors();
 }
@@ -309,6 +310,20 @@ int createShaders(ShaderManager& mgr) {
     auto water = mgr.setup(Shaders::Water, "water");
 
     return GL::logErrors();
+}
+
+Font* makeFont(const char* name, const char* font_filename, FT_UInt height, bool sdf, TextureUnit texUnit, FontManager& fonts, const ShaderManager& shaders) {
+    Font::FormattingSettings fontFormatting = {
+        .lineSpacing = 1.0f,
+        .tabSpaces = 5.0f
+    };
+    auto font = newFont(
+        My::str_add(FileSystem.assets.get("fonts/"), font_filename), height, sdf, 
+        ASCII_FIRST_STANDARD_CHAR, ASCII_LAST_STANDARD_CHAR+1,
+        1.0f, fontFormatting,
+        texUnit, sdf ? shaders.get(Shaders::SDF) : shaders.get(Shaders::Text));
+    fonts.add(name, font);
+    return font;
 }
 
 void initFonts(FontManager& fonts, const ShaderManager& shaders) {
@@ -343,12 +358,12 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
     Font* worldFont = newFont(
         FileSystem.assets.get("fonts/Papyrus.ttf"),
         48,
-        false,
+        true,
         32, 127,
         1,
         fontFormatting,
         TextureUnit::Font2,
-        shaders.get(Shaders::Text)
+        shaders.get(Shaders::SDF)
     );
     Font* guiFont = newFont(
         FileSystem.assets.get("fonts/factorio-fonts/TitilliumWeb-Bold.ttf"),
@@ -361,6 +376,7 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
         TextureUnit::Font3,
         shaders.get(Shaders::Text)
     );
+    Font* screensdf = makeFont("tester", "Roboto-Regular.ttf", 24, true, TextureUnits::Font4, fonts, shaders);
 
     fonts.add("Default", defaultFont);
     fonts.add("Debug", debugFont);
@@ -387,6 +403,7 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
 
     ren.guiTextRenderer = TextRenderer::init(ren.fonts.get("Debug"));
     ren.worldTextRenderer = TextRenderer::init(ren.fonts.get("World"));
+    ren.worldTextRenderer.defaultRendering.scale = Vec2(1/32.0f);
     GL::logErrors();
 
     /* Init misc. renderers */
@@ -402,10 +419,9 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
     ren.guiRenderer = GuiRenderer(&ren.guiQuadRenderer, &ren.guiTextRenderer, guiAtlas, guiOptions);
     RenderOptions worldGuiOptions = {
         .size = {INFINITY, INFINITY},
-        .scale = BASE_UNIT_SCALE
+        .scale = 1
     };
     ren.worldGuiRenderer = GuiRenderer(&ren.worldQuadRenderer, &ren.worldTextRenderer, guiAtlas, worldGuiOptions);
-    ren.worldGuiRenderer.text->defaultRendering.scale = Vec2(1/32.0f);
     GL::logErrors();
 
     /* Tilemap rendering setup */
@@ -760,6 +776,8 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
 
     ren.worldGuiRenderer.flush(ren.shaders, worldTransform);
     ren.worldGuiRenderer.text->render("HI", {5, 5});
+    ren.worldGuiRenderer.text->render("This is roboto", {-5, -5},
+        TextRenderingSettings(Fonts->get("tester"), {255, 255, 0, 255}));
     
     //ren.worldTextRenderer.flush(ren.shaders.get(Shaders::Text), worldTransform);
 

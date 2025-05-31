@@ -75,6 +75,7 @@ struct ShaderManager {
 
     void update(glm::mat4 screenTransform, glm::mat4 worldTransform) {
         use(Shaders::Text).setMat4("transform", screenTransform);
+        use(Shaders::SDF).setMat4("transform", worldTransform);
     }
 
     void destroy() {

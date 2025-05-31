@@ -363,6 +363,12 @@ TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength
     }
 
     glm::vec2 scale = renderSettings.scale;
+    if (scale.x < 0.0f || scale.y < 0.0f) {
+        scale = this->defaultRendering.scale;
+        if (scale.x < 0.0f || scale.y < 0.0f) {
+            scale = {1.0f, 1.0f};
+        }
+    }
     Vec2 minPos = {INFINITY, INFINITY};
     Vec2 maxSize = {-INFINITY, -INFINITY};
     int textParsed = 0;
@@ -420,7 +426,7 @@ TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength
                 .dimensions = dimensions,
                 .layout = batchLayout,
                 .colors = My::Vec<SDL_Color>::Filled(1, renderSettings.color),
-                .scales = My::Vec<glm::vec2>::Filled(1, renderSettings.scale)
+                .scales = My::Vec<glm::vec2>::Filled(1, scale)
             };
             
             buffer.push_back(batch);

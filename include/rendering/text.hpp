@@ -6,6 +6,7 @@
 #include "../sdl_gl.hpp"
 
 #include <ft2build.h>
+#include <freetype/ftmodapi.h>
 #include FT_FREETYPE_H
 
 #include "Shader.hpp"
@@ -54,6 +55,13 @@ inline int initFreetype() {
     if (FT_Init_FreeType(&freetype)) {
         LogError("Failed to initialize FreeType library.");
         return -1;
+    }
+
+    #define FREETYPE_SDF_SPREAD 2
+    FT_Int spread = FREETYPE_SDF_SPREAD;
+    if (auto error = FT_Property_Set(freetype, "sdf", "spread", &spread)) {
+        auto str = FT_Error_String(error);
+        LogError("Failed to set freetype sdf spread property. Error: %s", str);
     }
 
     return 0;
@@ -262,18 +270,18 @@ inline void alignLineHorizontally(MutableArrayRef<glm::vec2> offsets, float orig
 struct TextRenderingSettings {
     const Font* font = nullptr;
     SDL_Color color = {0,0,0,255};
-    glm::vec2 scale = glm::vec2(1.0f);
+    glm::vec2 scale = glm::vec2(-1.0f);
     bool orderMatters = false;
 
     TextRenderingSettings() = default;
 
-    TextRenderingSettings(const Font* font, SDL_Color color, glm::vec2 scale = glm::vec2{1.0f})
+    TextRenderingSettings(const Font* font, SDL_Color color, glm::vec2 scale = glm::vec2{-1.0f})
     : font(font), color(color), scale(scale) {}
 
     TextRenderingSettings(const Font* font, glm::vec2 scale)
     : font(font), scale(scale) {}
 
-    TextRenderingSettings(SDL_Color color, glm::vec2 scale = glm::vec2{1.0f})
+    TextRenderingSettings(SDL_Color color, glm::vec2 scale = glm::vec2{-1.0f})
     : color(color), scale(scale) {}
 
     TextRenderingSettings(glm::vec2 scale) : scale(scale) {}
