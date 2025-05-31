@@ -299,7 +299,7 @@ void PlayerControls::handleCommandInput(CommandInput commandInput) {
         std::string message;
         bool foundCommand = false;
         for (auto& command : gCommands) {
-            if (My::streq(command.name, commandInput.name.c_str(), command.nameLength, commandInput.name.size())) {
+            if (My::streq_case(command.name, commandInput.name.c_str(), command.nameLength, commandInput.name.size())) {
                 auto result = executeCommand(&command, commandInput.arguments.c_str());
                 message = result.message;
                 foundCommand = true;

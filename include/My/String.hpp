@@ -58,6 +58,19 @@ inline bool streq(const char* a, const char* b, int lenA, int lenB) {
     return true;
 }
 
+// compare string equality ignoring case
+inline bool streq_case(const char* a, const char* b, int lenA, int lenB) {
+    if (a == b) return true;
+    if (lenA != lenB) return false; // not entirely necessary, but probably best for performance for a lot of cases
+    if (a == nullptr || b == nullptr) return false; 
+    
+    for (int i = 0; i < lenA; i++) { // lenA is already known to be equal to lenB
+        if (std::tolower(a[i]) != std::tolower(b[i])) return false;
+    }
+
+    return true;
+}
+
 struct CString {
     char* str;
 

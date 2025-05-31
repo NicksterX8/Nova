@@ -105,18 +105,22 @@ void Font::load(FT_UInt pixelHeight, Shader shader, bool useSDFs) {
         for (size_t i = 0; i < nChars; i++) {
             char c = firstChar + (char)i;
             // load character glyph 
-            if ((error = FT_Load_Char(face, c, FT_LOAD_RENDER))) {
+            if ((error = FT_Load_Char(face, c, FT_LOAD_DEFAULT))) {
                 LogError("Failed to load glyph charcter \'%c\'. Error: %s", c, FT_Error_String(error));
                 continue;
             }
 
             if (c != ' ') {
                 auto mode = useSDFs ? FT_RENDER_MODE_SDF : FT_RENDER_MODE_NORMAL;
-                if (usingSDFs) {
-                    if ((error = FT_Render_Glyph(slot, mode))) {
+                bool usingBSDFs = usingSDFs && 0;
+                if (usingBSDFs) {
+                    if ((error = FT_Render_Glyph(slot, FT_RENDER_MODE_NORMAL))) {
                         LogError("Failed to load sdf glyph charcter \'%c\'. Error: %s", c, FT_Error_String(error));
-                        continue;
                     }
+                }
+                if ((error = FT_Render_Glyph(slot, mode))) {
+                    LogError("Failed to load sdf glyph charcter \'%c\'. Error: %s", c, FT_Error_String(error));
+                    continue;
                 }
             }
 
@@ -509,11 +513,6 @@ void TextRenderer::renderBatch(const TextRenderBatch* batch, Vertex* verticesOut
 
 void TextRenderer::flush(glm::mat4 transform) {
    /*
-    if (!font) {
-        buffer.clear();
-        return;
-    }
-
     // check if the precalculated texture coords have been invalidated by a change of scale
     if (font->currentScale != this->texCoordScale) {
         calculateCharacterTexCoords();

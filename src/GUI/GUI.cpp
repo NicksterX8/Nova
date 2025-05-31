@@ -112,9 +112,10 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, const Player* player, const I
                     if (prototype->get<ITC::StackSize>()->quantity != 1 && item.quantity != items::ItemQuantityInfinity) {
                         char text[128];
                         snprintf(text, 128, "%d", item.quantity);
-                        glm::vec2 pos = {hotbarSlot.x, hotbarSlot.y};
+                        float textScale = scale/2.0f;
+                        glm::vec2 pos = Vec2{hotbarSlot.x, hotbarSlot.y + font->descender() * textScale} + renderer.pixels({2.5f, 5.0f});
                         renderer.text->render(text, pos, {TextAlignment::BottomLeft},
-                            TextRenderingSettings(font, glm::vec2(scale/2.0f))
+                            TextRenderingSettings(font, glm::vec2(textScale))
                             );
                     }
                 }
@@ -154,6 +155,8 @@ void GUI::Gui::drawHeldItemStack(GuiRenderer& renderer, const ItemManager& itemM
         size
     };
     Draw::drawItemStack(renderer, itemManager, itemStack, destination);
-    renderer.text->render(string_format("%d", itemStack.quantity).c_str(), bottomLeft,
-        TextFormattingSettings(TextAlignment::BottomLeft));
+    float textScale = renderer.options.scale/2.0f;
+    pos = Vec2{bottomLeft.x, bottomLeft.y + Fonts->get("Gui")->descender() * textScale} + renderer.pixels({2.5f, 5.0f});
+    renderer.text->render(string_format("%d", itemStack.quantity).c_str(), pos,
+        TextFormattingSettings(TextAlignment::BottomLeft), TextRenderingSettings(Fonts->get("Gui"), {0,0,0,255}, Vec2(textScale)));
 }

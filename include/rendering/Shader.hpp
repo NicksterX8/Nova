@@ -93,12 +93,16 @@ struct Shader {
         glUniform1f(getUniformLocation(name), value); 
     }
 
+    void setVec2(const char* name, glm::vec2 vec2) {
+        glUniform2f(getUniformLocation(name), vec2.x, vec2.y);
+    }
+    
     void setVec3(const char* name, glm::vec3 vec3) {
         glUniform3f(getUniformLocation(name), vec3.x, vec3.y, vec3.z);
     }
 
-    void setVec2(const char* name, glm::vec2 vec2) {
-        glUniform2f(getUniformLocation(name), vec2.x, vec2.y);
+    void setVec4(const char* name, glm::vec4 vec4) {
+        glUniform4f(getUniformLocation(name), vec4.x, vec4.y, vec4.z, vec4.w);
     }
 
     void setMat4(const char* name, const glm::mat4& mat4) {

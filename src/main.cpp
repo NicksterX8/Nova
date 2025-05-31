@@ -129,7 +129,7 @@ void logEntityComponentInfo() {
     int i = 0;
     FOR_MY_STRING_BUFFER(componentName, nameBuffer, {
         componentNames[i] = componentName;
-        LogInfo("Component Name: %s", componentName);
+        //LogInfo("Component Name: %s", componentName);
         i++;
     });
 }

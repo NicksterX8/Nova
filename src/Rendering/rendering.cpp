@@ -281,9 +281,12 @@ int setConstantShaderUniforms(RenderContext& ren) {
 
     auto sdf = mgr.use(Shaders::SDF);
     sdf.setInt("text", TextureUnit::Font1);
-    sdf.setFloat("thickness", 1.0f);
-    sdf.setFloat("soft", 0.9f);
-    sdf.setFloat("smoothing", 0.001f);
+    sdf.setFloat("smoothing", 0.01f);
+    sdf.setFloat("outlineDistance", 0.4f);
+    sdf.setVec4("outlineColor", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    sdf.setVec4("shadowColor", glm::vec4(0.0f, 0.0f, 0.0f, 0.5f));
+    sdf.setVec2("shadowOffset", glm::vec2(0.005f, 0.005f));
+    sdf.setFloat("shadowSmoothing", 0.1f);
 
     mgr.use(Shaders::Texture).setInt("tex", TextureUnit::Random);
 
@@ -366,7 +369,7 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
         shaders.get(Shaders::SDF)
     );
     Font* guiFont = newFont(
-        FileSystem.assets.get("fonts/factorio-fonts/TitilliumWeb-Bold.ttf"),
+        FileSystem.assets.get("fonts/factorio-fonts/TitilliumWeb-SemiBold.ttf"),
         24,
         false,
         firstChar,
@@ -770,7 +773,8 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     ren.guiRenderer.text->render("default font", {250, 250});
     auto settings = TextRenderingSettings({255, 0, 0, 255});
     settings.font = ren.fonts.get("World");
-    ren.guiRenderer.text->render("different font", {500, 250}, settings);
+    auto result = ren.guiRenderer.text->render("different font", {500, 250}, settings);
+    ren.guiRenderer.colorRect(result.rect, {0, 0, 255, 125});
     ren.guiRenderer.flush(ren.shaders, screenTransform);
 
 

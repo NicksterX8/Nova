@@ -131,27 +131,26 @@ struct GuiRenderer {
         return NAN;
     }
 
-    void textBox(const My::StringBuffer& textBuffer, int maxLines, My::Vec<SDL_Color> textColors,
-            glm::vec2 pos, TextAlignment alignment, Color backgroundColor, glm::vec2 padding,
-            glm::vec2 maxSize = {INFINITY, INFINITY}, glm::vec2 minSize = {0,0}) {
+    void textBox(const My::StringBuffer& textBuffer, int maxLines,
+            glm::vec2 pos, TextFormattingSettings formatting, TextRenderingSettings renderingSettings,
+            Color backgroundColor, glm::vec2 padding, glm::vec2 minSize = {0,0},
+            My::Vec<SDL_Color> textColors = My::Vec<SDL_Color>::Empty()
+        ) {
 
         if (textBuffer.empty()) return;
 
-        glm::vec2 maxTextSize = maxSize - (padding*2.0f); // some space is used by padding, take it from the text space
+        // some space is used by padding, take it from the text space
+        formatting.maxWidth -= padding.x*2.0f;
+        formatting.maxHeight -= padding.y*2.0f;
 
-        TextFormattingSettings formatting = {
-            alignment,
-            maxTextSize.x,
-            maxTextSize.y
-        };
         formatting.wrapOnWhitespace = true;
         FRect textRect = text->renderStringBufferAsLinesReverse(
             textBuffer, 
             maxLines, // max lines
             pos + padding, // position
-            textColors,
-            glm::vec2(textScale()), // scale
-            formatting
+            formatting,
+            renderingSettings, // scale
+            textColors
         );
 
 

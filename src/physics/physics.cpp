@@ -68,7 +68,7 @@ int physics_test() {
     
     Rectangle overlapRect = calculateOverlapRectangle(rect1, rect2);
     
-    std::cout << "Overlapping Rectangle: (" << overlapRect.x1 << ", " << overlapRect.y1 << ") to (" << overlapRect.x2 << ", " << overlapRect.y2 << ")" << std::endl;
+    //std::cout << "Overlapping Rectangle: (" << overlapRect.x1 << ", " << overlapRect.y1 << ") to (" << overlapRect.x2 << ", " << overlapRect.y2 << ")" << std::endl;
     
     return 0;
 }

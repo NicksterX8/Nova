@@ -26,7 +26,7 @@ vao_vbo_t Draw::makePointVertexAttribArray() {
     return {vao, vbo};
 }
 
-void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec3* points, const SDL_Color* colors, const GLfloat* lineWidths) {
+void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, float z, const SDL_Color* colors, const GLfloat* lineWidths) {
     QuadRenderer::Quad* quads = renderer.renderManual(numLines);
     for (GLuint i = 0; i < numLines; i++) {
         GLuint ind = i * 4;
@@ -40,14 +40,14 @@ void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec3* 
             quads[ind][j].texCoord = {0, 0};
         }
         
-        quads[ind][0].pos = {p1 + offset, points[i*2].z};
-        quads[ind][1].pos = {p1 - offset, points[i*2].z};
-        quads[ind][2].pos = {p2 - offset, points[i*2+1].z};
-        quads[ind][3].pos = {p2 + offset, points[i*2+1].z};
+        quads[ind][0].pos = {p1 + offset, z};
+        quads[ind][1].pos = {p1 - offset, z};
+        quads[ind][2].pos = {p2 - offset, z};
+        quads[ind][3].pos = {p2 + offset, z};
     }
 }
 
-void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec3* points, SDL_Color color, const GLfloat* lineWidths) {
+void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, float z, SDL_Color color, const GLfloat* lineWidths) {
     QuadRenderer::Quad* quads = renderer.renderManual(numLines);
     for (GLuint i = 0; i < numLines; i++) {
         GLuint ind = i * 4;
@@ -61,14 +61,14 @@ void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec3* 
             quads[ind][j].texCoord = {0, 0};
         }
         
-        quads[ind][0].pos = {p1 + offset, points[i*2].z};
-        quads[ind][1].pos = {p1 - offset, points[i*2].z};
-        quads[ind][2].pos = {p2 - offset, points[i*2+1].z};
-        quads[ind][3].pos = {p2 + offset, points[i*2+1].z};
+        quads[ind][0].pos = {p1 + offset, z};
+        quads[ind][1].pos = {p1 - offset, z};
+        quads[ind][2].pos = {p2 - offset, z};
+        quads[ind][3].pos = {p2 + offset, z};
     }
 }
 
-void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec3* points, SDL_Color color, GLfloat lineWidth) {
+void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, float z, SDL_Color color, GLfloat lineWidth) {
     QuadRenderer::Quad* quads = renderer.renderManual(numLines);
     for (GLuint i = 0; i < numLines; i++) {
         glm::vec2 p1 = points[i*2];
@@ -81,10 +81,10 @@ void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec3* 
             quads[i][j].texCoord = QuadRenderer::NullCoord;
         }
         
-        quads[i][0].pos = {p1 + offset, points[i*2].z};
-        quads[i][1].pos = {p1 - offset, points[i*2].z};
-        quads[i][2].pos = {p2 - offset, points[i*2+1].z};
-        quads[i][3].pos = {p2 + offset, points[i*2+1].z};
+        quads[i][0].pos = {p1 + offset, z};
+        quads[i][1].pos = {p1 - offset, z};
+        quads[i][2].pos = {p2 - offset, z};
+        quads[i][3].pos = {p2 + offset, z};
     }
 }
 
@@ -97,19 +97,19 @@ int Draw::chunkBorders(QuadRenderer& renderer, const Camera& camera, SDL_Color c
     int lineIndex = 0;
 
     assert(numLines >= 0);
-    glm::vec3* points = new glm::vec3[numLines*2];
+    glm::vec2* points = new glm::vec2[numLines*2];
     for (int y = minChunkPos.y; y <= maxChunkPos.y; y++) {
-        points[lineIndex*2] = glm::vec3(cameraBounds[0].x, y * CHUNKSIZE, z);
-        points[lineIndex*2+1] = glm::vec3(cameraBounds[1].x, y * CHUNKSIZE, z);
+        points[lineIndex*2] = {cameraBounds[0].x, y * CHUNKSIZE};
+        points[lineIndex*2+1] = {cameraBounds[1].x, y * CHUNKSIZE};
         lineIndex++;
     }
     for (int x = minChunkPos.x; x <= maxChunkPos.x; x++) {
-        points[lineIndex*2] = glm::vec3(x * CHUNKSIZE, cameraBounds[0].y, z);
-        points[lineIndex*2+1] = glm::vec3(x * CHUNKSIZE, cameraBounds[1].y, z);
+        points[lineIndex*2] = {x * CHUNKSIZE, cameraBounds[0].y};
+        points[lineIndex*2+1] = {x * CHUNKSIZE, cameraBounds[1].y};
         lineIndex++;
     }
 
-    Draw::thickLines(renderer, numLines, points, color, pixelLineWidth / camera.worldScale());
+    Draw::thickLines(renderer, numLines, points, z, color, pixelLineWidth / camera.worldScale());
     delete[] points;
 
     return numLines;
@@ -178,20 +178,23 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
 
     auto font = Fonts->get("Debug");
 
+    renderer.options.scale = SDL::pixelScale * 0.5f;
+    float scale = renderer.options.scale;
+
     // for everything
     float maxWidth = renderer.options.size.x;
     float maxHeight = renderer.options.size.y;
     // max width for log
-    float logMaxWidth = MIN(300 * renderer.options.scale, maxWidth);
+    float logMaxWidth = MIN(300 * scale, maxWidth);
 
     float logOffsetY = 0;
     
     if (console->promptOpen) {
         // Render active message being written
-        glm::vec2 activeMsgBorder = renderer.pixels({20.0f, 10.0f});
+        glm::vec2 activeMsgBorder = renderer.pixels({15.0f, 7.5f});
     
         float activeMsgMinWidth = logMaxWidth;
-        float activeMsgMinHeight = font->height() * renderer.textScale() + activeMsgBorder.y*2; // always leave room for a line
+        float activeMsgMinHeight = font->height() * scale + activeMsgBorder.y*2; // always leave room for a line
 
         constexpr SDL_Color activeMessageBackground = {30, 30, 30, 205};
         glm::vec2 selectedCharPos = {activeMsgBorder.x, activeMsgBorder.y - font->descender()};
@@ -200,19 +203,19 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
         if (!console->activeMessage.empty()) {
             TextFormattingSettings formatting(TextAlignment::BottomLeft, maxWidth - activeMsgBorder.x, maxHeight - activeMsgBorder.y); // active message max width is only the screen width
             formatting.wrapOnWhitespace = true;
-            TextRenderingSettings rendering(GUI::Console::activeTextColor, glm::vec2(renderer.textScale()));
+            TextRenderingSettings activeTextRendering(GUI::Console::activeTextColor, glm::vec2(scale));
             llvm::SmallVector<glm::vec2> characterPositions(console->activeMessage.size());
-            auto textInfo = renderer.text->render(console->activeMessage.c_str(), activeMsgBorder, formatting, rendering, characterPositions.data());
+            auto textInfo = renderer.text->render(console->activeMessage.c_str(), activeMsgBorder, formatting, activeTextRendering, characterPositions.data());
             FRect textRect = textInfo.rect;
             if (selectedCharIndex >= 0 && selectedCharIndex < characterPositions.size()) {
                 selectedCharPos = characterPositions[selectedCharIndex];
                 if (selectedCharIndex > 0 && selectedCharPos.x - activeMsgBorder.x == 0) {
                     selectedCharPos = characterPositions[selectedCharIndex-1];
-                    selectedCharPos.x += font->advance(console->activeMessage.back());
+                    selectedCharPos.x += font->advance(console->activeMessage.back()) * scale;
                 }
             } else if (characterPositions.size() > 0 && selectedCharIndex == characterPositions.size()) {
                 selectedCharPos = characterPositions.back();
-                selectedCharPos.x += font->advance(console->activeMessage.back());
+                selectedCharPos.x += font->advance(console->activeMessage.back()) * scale;
             }
             
             activeMessageRect = addBorder(textRect, activeMsgBorder);
@@ -236,7 +239,7 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
                 selectedCharPos.x,
                 selectedCharPos.y + font->descender(),
                 renderer.pixels(2.0f),
-                (float)font->height()
+                (float)font->height() * scale
             };
             renderer.colorRect(cursor, GUI::Console::activeTextColor, 0.9f);
             if (timeTilFlash < -flashDuration) {
@@ -256,7 +259,10 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
             colors.push(message.color);
         }
         
-        renderer.textBox(strBuffer, 10, colors, {0, logOffsetY}, TextAlignment::BottomLeft, logBackground, renderer.pixels({20, 20}), {logMaxWidth, maxHeight});
+        Vec2 padding = renderer.pixels({15, 15});
+        auto formatting = TextFormattingSettings(TextAlignment::BottomLeft, logMaxWidth, maxHeight);
+        auto renderSettings = TextRenderingSettings(font, Vec2(scale));
+        renderer.textBox(strBuffer, 10, {0, logOffsetY}, formatting, renderSettings, logBackground, padding, {0, 0}, colors);
         colors.destroy();
         strBuffer.destroy();
     }
@@ -267,22 +273,29 @@ void renderFontComponents(const Font* font, glm::vec2 p, GuiRenderer& renderer) 
     auto* face = font->face;
     if (!face) return;
 
-    auto height = face->height >> 6;
-    auto ascender = face->ascender >> 6;;
-    auto descender = face->descender >> 6;
+    //auto height = face->height >> 6;
+    //auto ascender = face->ascender >> 6;
+    //auto descender = face->descender >> 6;
+    auto height = font->height();
+    auto ascender = font->ascender();
+    auto descender = font->descender();
     auto bbox = face->bbox;
     bbox.xMin >>= 6;
     bbox.xMax >>= 6;
     bbox.yMin >>= 6;
     bbox.yMax >>= 6;
 
-    glm::vec3 points[] = {
-        {p.x, p.y, 0},
-        {p.x, p.y + descender, 0},
-        {p.x, p.y + descender, 0},
-        {p.x, p.y + descender + height, 0},
-        {p.x, p.y + descender + height, 0},
-        {p.x, p.y + descender + height + ascender, 0}
+    height *= renderer.options.scale;
+    ascender *= renderer.options.scale;
+    descender *= renderer.options.scale;
+
+    glm::vec2 points[] = {
+        {p.x, p.y},
+        {p.x, p.y + descender},
+        {p.x, p.y + descender},
+        {p.x, p.y + descender + height},
+        {p.x, p.y + descender + height},
+        {p.x, p.y + descender + height + ascender}
     };
 
     SDL_Color colors[] = {
@@ -303,12 +316,35 @@ void renderFontComponents(const Font* font, glm::vec2 p, GuiRenderer& renderer) 
         (float)bbox.xMax - bbox.xMin,
         (float)bbox.yMax - bbox.yMin
     };
-    //renderer.colorRect({addBorder(bounds, glm::vec2(0.0f)), {255, 0, 0, 100}});
+    //renderer.colorRect(addBorder(bounds, glm::vec2(0.0f)), {255, 0, 0, 100});
     
-    //Draw::thickLines(*renderer.quad, sizeof(points) / (2 * sizeof(glm::vec3)), points, colors, lineWidths);
+    //Draw::thickLines(*renderer.quad, sizeof(points) / (2 * sizeof(glm::vec3)), points, 0.0f, colors, lineWidths);
 
-    renderer.rectOutline(bounds, {0, 255, 0, 100}, 2.0f, 2.0f);
-    renderer.colorRect(addBorder(bounds, glm::vec2(0.0f)), {255, 0, 0, 100});
+    //renderer.rectOutline(bounds, {0, 255, 0, 100}, 2.0f, 2.0f);
+    //renderer.colorRect(addBorder(bounds, glm::vec2(0.0f)), {255, 0, 0, 100});
+
+    auto result = renderer.text->render("This is some words!", {100, 400}, TextFormattingSettings(TextAlignment::TopLeft), TextRenderingSettings(font));
+    renderer.colorRect(result.rect, {100, 0, 0, 105});
+    unsigned int advance = font->advance('T');
+    //auto ascender = font->ascender();
+    //auto descender = font->descender();
+    glm::vec2 advline[] = {
+        {result.rect.x, result.rect.y},
+        {result.rect.x + advance, result.rect.y}
+    };
+    //Draw::thickLines(*renderer.quad, 1, advline, 0.5f, SDL_Color{255, 0, 255, 255}, 5.0f);
+
+    glm::vec2 ascline[] = {
+        {result.rect.x, result.rect.y + result.rect.h},
+        {result.rect.x, result.rect.y + result.rect.h - ascender}
+    };
+    Draw::thickLines(*renderer.quad, 1, ascline, 0.5f, SDL_Color{155, 255, 255, 255}, 5.0f);
+
+    glm::vec2 descline[] = {
+        {result.rect.x, result.rect.y},
+        {result.rect.x, result.rect.y - descender}
+    };
+    Draw::thickLines(*renderer.quad, 1, descline, 0.5f, SDL_Color{255, 0, 155, 255}, 5.0f);
 }
 
 static void testTextRendering(GuiRenderer& guiRenderer, TextRenderer& textRenderer) {
@@ -334,13 +370,13 @@ static void testTextRendering(GuiRenderer& guiRenderer, TextRenderer& textRender
 
     renderFontComponents(guiRenderer.text->defaultFont, {100, 100}, guiRenderer);
 
-    glm::vec3 points[4] = {
-        {0, guiRenderer.options.size.y/2, 0},
-        {guiRenderer.options.size.x, guiRenderer.options.size.y/2, 0},
-        {guiRenderer.options.size.x/2, 0, 0},
-        {guiRenderer.options.size.x/2, guiRenderer.options.size.y, 0},
+    glm::vec2 points[4] = {
+        {0, guiRenderer.options.size.y/2},
+        {guiRenderer.options.size.x, guiRenderer.options.size.y/2},
+        {guiRenderer.options.size.x/2, 0},
+        {guiRenderer.options.size.x/2, guiRenderer.options.size.y},
     };
-    Draw::thickLines(*guiRenderer.quad, 2, points, SDL_Color{0, 255, 0, 255}, 2.0f);
+    Draw::thickLines(*guiRenderer.quad, 2, points, 0.0f, SDL_Color{0, 255, 0, 255}, 2.0f);
 }
 
 void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& screenTransform, GUI::Gui* gui, const GameState* state, const PlayerControls& playerControls) {

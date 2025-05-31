@@ -39,9 +39,9 @@ namespace Draw {
         glDrawArrays(GL_POINTS, 0, count);
     }
 
-    void thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec3* points, const SDL_Color* colors, const GLfloat* lineWidths);
-    void thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec3* points, SDL_Color color, const GLfloat* lineWidths);
-    void thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec3* points, SDL_Color color, GLfloat lineWidth);
+    void thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, float z, const SDL_Color* colors, const GLfloat* lineWidths);
+    void thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, float z, SDL_Color color, const GLfloat* lineWidths);
+    void thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, float z, SDL_Color color, GLfloat lineWidth);
 
     /* GUI */
 
