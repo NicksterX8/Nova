@@ -7,6 +7,7 @@
 #include "constants.hpp"
 #include "Player.hpp"
 #include "commands.hpp"
+#include "elements.hpp"
 
 struct GuiRenderer;
 
@@ -50,6 +51,7 @@ struct Console {
         SDL_Color color;
         MessageType type;
         bool playerEntered = false;
+        int copyNumber = 0;
     };
 
     std::vector<LogMessage> log;
@@ -88,7 +90,22 @@ struct Console {
             .type = type,
             .playerEntered = playerEntered
         };
-        log.push_back(message);
+        if (log.size() > 0) {
+        LogMessage& lastMessage = log.back();
+            if (lastMessage.text == message.text
+                && lastMessage.color.r == message.color.r
+                && lastMessage.color.g == message.color.g
+                && lastMessage.color.b == message.color.b
+                && lastMessage.color.a == message.color.a
+                && lastMessage.playerEntered == message.playerEntered)
+            {
+                lastMessage.copyNumber += 1;
+            } else {
+               log.push_back(message); 
+            }
+        } else {
+            log.push_back(message);
+        }
 
         timeLastMessageSent = Metadata->seconds();
     }
@@ -209,6 +226,9 @@ struct Console {
     My::StringBuffer newLogStringBuffer() const {
         auto buffer = My::StringBuffer::WithCapacity(64);
         for (int i = 0; i < log.size(); i++) {
+            if (log[i].copyNumber > 0) {
+                buffer += string_format("(%d)", + log[i].copyNumber);
+            }
             buffer += log[i].text.c_str();
         }
         return buffer;
@@ -224,6 +244,8 @@ struct Gui {
     My::Vec<SDL_FRect> area = My::Vec<SDL_FRect>(0);
     Hotbar hotbar;
     Console console = {};
+
+    GuiManager manager;
 
     Gui() {}
 

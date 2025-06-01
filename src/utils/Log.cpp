@@ -87,6 +87,11 @@ void logAt(const char* file, int line, LogCategory category, LogPriority priorit
 
     va_start(ap, fmt);
     vsnprintf(message, MAX_LOG_MESSAGE_LENGTH, fmt, ap);
+    if (gLogger.lastMessage == message) {
+        // do nothing?
+    } else {
+        gLogger.lastMessage = message;
+    }
     SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s:%d - %s", file, line, message);
     va_end(ap);
 }
@@ -132,9 +137,16 @@ void logInternal3(LogCategory category, LogPriority priority, const char* file, 
 
     va_start(ap, fmt);
     vsnprintf(message, MAX_LOG_MESSAGE_LENGTH, fmt, ap);
-    // Format: FILE:LINE:FUNCTION - MESSAGE
-    // The FILE:LINE format is useful because in VSCode you can command click on it to bring you to the file.
-    SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s:%d:%s - %s", file, line, function, message);
+    if (gLogger.lastMessage == message) {
+        // do nothing?
+        
+    }
+    {
+        gLogger.lastMessage = message;
+        // Format: FILE:LINE:FUNCTION - MESSAGE
+        // The FILE:LINE format is useful because in VSCode you can command click on it to bring you to the file.
+        SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s:%d:%s - %s", file, line, function, message);
+    }
     va_end(ap);
 }
 

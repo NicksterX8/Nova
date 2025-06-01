@@ -97,6 +97,8 @@ void Font::load(FT_UInt pixelHeight, Shader shader, bool useSDFs) {
     if (this->face) {
         FT_GlyphSlot slot = face->glyph;
 
+        bool kerning = FT_HAS_KERNING(face);
+        if (kerning) LogInfo("kerning possible on %s", face->family_name);
 
         FT_Error error;
 
@@ -187,8 +189,18 @@ CharacterLayoutData formatText(const Font* font, const char* text, int textLengt
 
     CharacterLayoutData layout = {};
 
+    char lastChar = 0;
+
     for (int i = 0; i < textLength; i++) {
         char c = text[i];
+        FT_Vector fractionalKerning = {0,0}; 
+        auto leftCharIndex = FT_Get_Char_Index(font->face, c);
+        auto rightCharIndex = FT_Get_Char_Index(font->face, lastChar);
+        FT_Get_Kerning(font->face, leftCharIndex, rightCharIndex, FT_KERNING_UNFITTED, &fractionalKerning);
+
+        glm::vec2 kerning = {fractionalKerning.x / 64.0f * scale.x, fractionalKerning.y / 64.0f * scale.y};
+        cx += kerning.x;
+
         bool whitespaceChar = isWhitespace(c); // current character is whitespace (nothing to render, does nothing but shift formatting)
         
         if (!whitespaceChar && (c < font->firstChar || c > font->lastChar)) {
@@ -260,6 +272,7 @@ CharacterLayoutData formatText(const Font* font, const char* text, int textLengt
         }
 
         cx += charPixelsAdvance;
+        lastChar = c;
     }
 
     mx = cx > mx ? cx : mx;

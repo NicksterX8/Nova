@@ -33,8 +33,8 @@ text
 */
 
 namespace ComponentIDs {
-    #define GUI_REGULAR_COMPONENTS_LIST Texture, Background, Border, ViewBox, Button, Text, Child
-    #define GUI_PROTO_COMPONENTS_LIST PlaceholderPr
+    #define GUI_REGULAR_COMPONENTS_LIST Texture, Background, Border, ViewBox, MaxSize, MinSize, Button, Text, Child, Hover
+    #define GUI_PROTO_COMPONENTS_LIST PlaceholderPr 
     #define GUI_COMPONENTS_LIST GUI_REGULAR_COMPONENTS_LIST, GUI_PROTO_COMPONENTS_LIST
     GEN_IDS(ComponentIDs, ComponentID, GUI_COMPONENTS_LIST, Count);
 }
@@ -54,16 +54,33 @@ namespace ComponentIDs {
 
 #define END_PROTO_COMPONENT(name) }; static_assert(true | ComponentIDs::name, "Checking for id");
 
+using Action = Uint32;
 
 BEGIN_COMPONENT(Button)
-    void(*onClick)(void);
+    Action onClick;
     bool clickedThisFrame;
     bool pressed; // if the button is down
 
-    Button(void(*onClick)(void)) : onClick(onClick), clickedThisFrame(false), pressed(false) {
+    Button(Action onClick) : onClick(onClick), clickedThisFrame(false), pressed(false) {
 
     }
 END_COMPONENT(Button)
+
+
+
+BEGIN_COMPONENT(MaxSize)
+    IVec2 maxSize;
+END_COMPONENT(MaxSize)
+
+BEGIN_COMPONENT(MinSize)
+    IVec2 minSize;
+END_COMPONENT(MinSize)
+
+BEGIN_COMPONENT(Hover)
+    bool changeColor;
+    SDL_Color newColor;
+    Action onHover;
+END_COMPONENT(Hover)
 
 BEGIN_COMPONENT(ViewBox)
     Box box;
@@ -89,7 +106,7 @@ END_COMPONENT(Child)
 
 BEGIN_COMPONENT(Text)
     const char* text;
-    TextFormattingSettings formatting;
+    TextFormattingSettings formatSettings;
     TextRenderingSettings renderSettings;
 END_COMPONENT(Text)
 

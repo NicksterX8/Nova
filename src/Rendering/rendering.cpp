@@ -339,7 +339,7 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
     constexpr char endChar = ASCII_LAST_STANDARD_CHAR+1;
 
     Font* defaultFont = newFont(
-        FileSystem.assets.get("fonts/Ubuntu-Regular.ttf"),
+        FileSystem.assets.get("fonts/HelloGraduationSans.ttf"),
         24,
         false,
         firstChar, endChar,
@@ -368,6 +368,7 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
         TextureUnit::Font2,
         shaders.get(Shaders::SDF)
     );
+
     Font* guiFont = newFont(
         FileSystem.assets.get("fonts/factorio-fonts/TitilliumWeb-SemiBold.ttf"),
         24,
@@ -773,7 +774,7 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     ren.guiRenderer.text->render("default font", {250, 250});
     auto settings = TextRenderingSettings({255, 0, 0, 255});
     settings.font = ren.fonts.get("World");
-    auto result = ren.guiRenderer.text->render("different font", {500, 250}, settings);
+    auto result = ren.guiRenderer.text->render("Times New Roman", {500, 250}, settings);
     ren.guiRenderer.colorRect(result.rect, {0, 0, 255, 125});
     ren.guiRenderer.flush(ren.shaders, screenTransform);
 

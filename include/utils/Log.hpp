@@ -2,6 +2,7 @@
 #define LOG_INCLUDED
 
 #include <SDL2/SDL_log.h>
+#include <string>
 #include <stdio.h>
 #include "common-macros.hpp"
 
@@ -41,6 +42,8 @@ public:
     bool logToConsole = true;
     char logOutputFilepath[512] = {'\0', };
     FILE* outputFile = NULL;
+    std::string lastMessage;
+
     static void logOutputFunction(void* logger, int category, SDL_LogPriority priority, const char *message);
 
     int init(const char* outputFilepath) {

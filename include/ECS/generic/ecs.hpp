@@ -3,7 +3,7 @@
 
 #include "My/Vec.hpp"
 #include "ECS/generic/components.hpp"
-
+#include "ECS/generic/ArchetypePool.hpp"
 
 #define FLAG_COMPONENT(name) BEGIN_COMPONENT(name) END_COMPONENT(name)
 #define FLAG_PROTO_COMPONENT(name) BEGIN_PROTO_COMPONENT(name) END_PROTO_COMPONENT(name)
@@ -35,8 +35,6 @@ struct IDGetter {
 
 #define GECS_MAX_COMPONENT 64
 using EcsClass = GECS::Class<GECS_MAX_COMPONENT, IDGetter>;
-
-using ComponentSignature = EcsClass::Signature;
 
 using ComponentSignature = EcsClass::Signature; // 64 components or flags is probably good
 
@@ -270,6 +268,27 @@ struct EntityManager {
 
     EntityManager(ComponentInfoRef componentInfo, int numPrototypes)
      : components(componentInfo), prototypes(componentInfo, numPrototypes) {} 
+
+    template<class... ReqComponents, class Func>
+    void forEachEntity(Func func) {
+        EcsClass::Signature reqSignature = EcsClass::getSignature<ReqComponents...>();
+        for (Uint32 i = 0; i < components.pools.size; i++) {
+            auto& pool = components.pools[i];
+            auto signature = pool.archetype.signature;
+            if ((signature & reqSignature) == reqSignature) {
+                for (Uint32 e = 0; e < pool.entities.size; e++) {
+                    void* elementData = pool.entities.getValue(e);
+                    auto* partial = (EcsClass::ElementArchetypeData*)elementData;
+                    ComponentsAddress address = {
+                        .archetype = i, .index = pool.entities.keys[e]
+                    };
+                    Entity entity = Entity(partial->type, partial->signature, address);
+                    
+                    func(&entity);
+                }
+            }
+        }
+    }
 };
 
 

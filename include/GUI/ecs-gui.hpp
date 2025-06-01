@@ -31,10 +31,14 @@ struct GuiManager : PECS::EntityManager {
      : PECS::EntityManager(componentInfo, numPrototypes) {
 
      }
+
+
 };
 
 inline Element makeElement(GuiManager& gui) {
-    return PECS::makeEntity(PrototypeIDs::Normal, gui);
+    Element element = PECS::makeEntity(PrototypeIDs::Normal, gui);
+    gui.elements.insert()
+    return element;
 }
 
 

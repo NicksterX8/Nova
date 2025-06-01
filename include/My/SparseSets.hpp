@@ -50,18 +50,22 @@ protected:
     static constexpr Index NullIndex = std::numeric_limits<Index>::max();
 
     SizeT valueSize; // the size of one element in the map
+public:
     SizeT size; // number of elements in the map
+protected:
     SizeT capacity; // number of elements allocated for in the map
 
     Index* set; // a set connecting keys to values | Index by key to get the index of the element corresponding to that key
     char* values; // a byte buffer for values
+
+    
 public:
     Key* keys; // keys corresponding to each value
-protected:
 
     void* getValue(Index index) const {
         return &values[index * valueSize];
     }
+protected:
 
     void assertValidKey(Key key) const {
         assert(key >= 0 && key <= MaxKeyValue && "DenseSparseSet key out of bounds!");

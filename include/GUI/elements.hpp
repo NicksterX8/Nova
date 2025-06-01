@@ -56,11 +56,22 @@ inline void renderElements(GuiManager& gui, RenderContext& ren) {
     }
 }
 
-inline Element funButton(GuiManager& gui, std::function<void()> function) {
+inline void doAction(GUI::EC::Action action) {
+
+}
+
+inline ElementID boxElement(GuiManager& gui, Box box) {
     auto e = makeElement(gui);
+    addComponent(e, gui, EC::ViewBox{box});
+    return e;
+}
+
+inline Element funButton(GuiManager& gui, GUI::EC::Action onClick) {
+    auto e = makeElement(gui);
+    addComponent(e, gui, EC::ViewBox{Box{{50.0f, 50.0f}, {100.0f, 100.0f}}});
     addComponent(e, gui, EC::Background({{0,0,0,255}}));
     addComponent(e, gui, EC::Border({{255,255,255,255}, 2.0f}));
-    addComponent(e, gui, EC::Button(doSomething));
+    addComponent(e, gui, EC::Button(onClick));
     addComponent(e, gui, EC::Text({
         "Do something!",
         TextFormattingSettings(TextAlignment::MiddleCenter),
@@ -68,6 +79,34 @@ inline Element funButton(GuiManager& gui, std::function<void()> function) {
     }));
 
     return e;
+}
+
+namespace Actions {
+enum ActionEnum {
+    KillEveryone,
+    MakeTheSkyBlue
+};
+}
+
+void init(GuiManager& gui) {
+    auto box = boxElement(gui, Box{{20.0f, 20.0f}, {500.0f, 500.0f}});
+    auto fun = funButton(gui, Actions::MakeTheSkyBlue);
+    addComponent(fun, gui, GUI::EC::Child{&box});
+}
+
+void update(GuiManager& gui) {
+    gui.forEachEntity<GUI::EC::ViewBox, GUI::EC::Texture>([&](Element element){
+        auto* viewBox = GUI::getComponent<GUI::EC::ViewBox>(element, gui);
+       
+    });
+
+    gui.forEachEntity<GUI::EC::Button>([&](Element element){
+        auto* button = GUI::getComponent<GUI::EC::Button>(element, gui);
+        if (button->clickedThisFrame) {
+            doAction(button->onClick);
+            button->clickedThisFrame = false;
+        }
+    });
 }
 
 }
