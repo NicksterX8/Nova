@@ -282,7 +282,7 @@ int setConstantShaderUniforms(RenderContext& ren) {
     auto sdf = mgr.use(Shaders::SDF);
     sdf.setInt("text", TextureUnit::Font1);
     sdf.setFloat("smoothing", 0.01f);
-    sdf.setFloat("outlineDistance", 0.4f);
+    sdf.setFloat("outlineDistance", 0.5f);
     sdf.setVec4("outlineColor", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
     sdf.setVec4("shadowColor", glm::vec4(0.0f, 0.0f, 0.0f, 0.5f));
     sdf.setVec2("shadowOffset", glm::vec2(0.005f, 0.005f));
@@ -340,7 +340,7 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
 
     Font* defaultFont = newFont(
         FileSystem.assets.get("fonts/HelloGraduationSans.ttf"),
-        24,
+        48,
         false,
         firstChar, endChar,
         1,
@@ -350,13 +350,13 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
     );
     Font* debugFont = newFont(
         FileSystem.assets.get("fonts/Cascadia.ttf"),
-        24, // size
-        false, // use sdfs?
+        48, // size
+        true, // use sdfs?
         firstChar, endChar, // first char (space), last char
         1, // scale
         fontFormatting, // formatting settings
         TextureUnit::Font1,
-        shaders.get(Shaders::Text)
+        shaders.get(Shaders::SDF)
     );
     Font* worldFont = newFont(
         FileSystem.assets.get("fonts/Papyrus.ttf"),

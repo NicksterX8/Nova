@@ -553,7 +553,7 @@ int Game::handleEvent(const SDL_Event* event) {
                 SDL::pixelScale = SDL::getPixelScale(sdlCtx.win);
                 camera.baseScale = BASE_UNIT_SCALE * SDL::pixelScale;
                 float pixelScaleChange = SDL::pixelScale / oldPixelScale;
-                scaleAllFonts(renderContext->fonts, pixelScaleChange);
+                //scaleAllFonts(renderContext->fonts, pixelScaleChange);
                 displaySizeChanged(sdlCtx.win, *renderContext, &camera);
             }
             break;

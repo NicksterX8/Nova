@@ -84,13 +84,17 @@ struct Shader {
     void setBool(const char* name, bool value) {         
         glUniform1i(getUniformLocation(name), (GLint)value); 
     }
-    // ------------------------------------------------------------------------
+
     void setInt(const char* name, int value) {
         glUniform1i(getUniformLocation(name), value); 
     }
-    // ------------------------------------------------------------------------
+
     void setFloat(const char* name, float value) { 
         glUniform1f(getUniformLocation(name), value); 
+    }
+
+    void setDouble(const char* name, double value) {
+        glUniform1d(getUniformLocation(name), value);
     }
 
     void setVec2(const char* name, glm::vec2 vec2) {

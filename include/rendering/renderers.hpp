@@ -5,6 +5,8 @@
 #include "gl.hpp"
 #include "Shader.hpp"
 #include "llvm/ArrayRef.h"
+#include "rendering/utils.hpp"
+#include "textures.hpp"
 
 struct ColorVertex {
     glm::vec3 position;

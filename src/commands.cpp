@@ -297,6 +297,129 @@ namespace Commands {
         return RES_SUCCESS(ss.str());
     }
 
+    Result setUniform(Args args, const ShaderManager& shaders) {
+        auto shaderName = args.get();
+        auto uniformName = args.get();
+        if (shaderName.empty()) {
+            return RES_ERROR("No shader name provided.");
+        }
+        if (uniformName.empty()) {
+            return RES_ERROR("No uniform name provided.");
+        }
+
+        std::vector<std::string> values;
+        while (1) {
+            auto value = args.get();
+            if (value.empty()) break;
+            values.push_back(value);
+        }
+
+        ShaderID shaderID = shaders.get(shaderName);
+        Shader shader = shaders.get(shaderID);
+
+        if (!shader) {
+            return RES_ERROR("Couldn't find shader with that name.");
+        }
+
+        GLint uniformCount = 0;
+        glGetProgramiv(shader.id, GL_ACTIVE_UNIFORMS, &uniformCount);
+
+        My::Vec<GLuint> uniformIndices(uniformCount);
+        for (int i = 0; i < uniformCount; i++) {
+            uniformIndices.push(i);
+        }
+        My::Vec<GLint> uniformTypes = My::Vec<GLint>::Empty();
+        glGetActiveUniformsiv(shader.id, uniformCount, uniformIndices.data, GL_UNIFORM_TYPE, uniformTypes.require(uniformCount));
+        uniformIndices.destroy();
+
+        GLint type = -1;
+        for (int i = 0; i < uniformCount; i++) {
+            char name[128];
+            GLsizei nameLength = 0;
+            glGetActiveUniformName(shader.id, i, 128, &nameLength, name);
+            LogInfo("name: %s, length: %d", name, nameLength);
+            if (uniformName == name) {
+                type = uniformTypes[i];
+            }
+        }
+
+        uniformTypes.destroy();
+
+        auto name = uniformName.c_str();
+        std::string typeName;
+        std::string errorMsg;
+        std::stringstream ss;
+
+        bool error = false;
+
+        #define TYPE_CASE(num_types, type_name) do { \
+                        if (values.size() != num_types) { \
+                            error = true; \
+                            ss << "Incorrect number of parameters provided! Needed " << num_types << " and got " << values.size() << "."; \
+                        } \
+                        typeName = type_name; \
+                    } while (0);
+
+        int i;
+        double d;
+        float f,f1,f2,f3;
+
+        switch (type) {
+            case GL_INT:
+                TYPE_CASE(1, "int");
+                i = std::stoi(values[0]);
+                shader.setInt(name, i);
+                break;
+            case GL_DOUBLE:
+                TYPE_CASE(1, "double");
+                d = strtod(values[0].c_str(), NULL);
+                shader.setDouble(name, d);
+                break;
+            case GL_FLOAT:
+                TYPE_CASE(1, "float");
+                f = strtod(values[0].c_str(), NULL);
+                shader.setFloat(name, f);
+                break;
+            case GL_FLOAT_VEC2:
+                TYPE_CASE(2, "vec2");
+                f = strtod(values[0].c_str(), NULL);
+                f1 = strtod(values[1].c_str(), NULL);
+                shader.setVec2(name, {f, f1});
+                break;
+            case GL_FLOAT_VEC3:
+                TYPE_CASE(3, "vec3");
+                f = strtod(values[0].c_str(), NULL);
+                f1 = strtod(values[1].c_str(), NULL);
+                f2 = strtod(values[2].c_str(), NULL);
+                shader.setVec3(name, {f, f1, f2});
+                break;
+            case GL_FLOAT_VEC4:
+                TYPE_CASE(4, "vec4");
+                f = strtod(values[0].c_str(), NULL);
+                f1 = strtod(values[1].c_str(), NULL);
+                f2 = strtod(values[2].c_str(), NULL);
+                f3 = strtod(values[3].c_str(), NULL);
+                shader.setVec4(name, {f, f1, f2, f3});
+                break;
+            case -1:
+                error = true;
+                ss << "Could not find uniform with the given name.";
+                break;
+            default:
+                error = true;
+                ss << "Type not supported by this command";
+                break;
+        }
+
+        if (error) {
+            return RES_ERROR(ss.str());
+        }
+
+        ss << "Updated uniform \"" << name << "\".";
+
+        return RES_SUCCESS(ss.str());
+    }
+
     Result setFontScale(Args args, RenderContext* ren) {
         auto scaleStr = args.get();
         if (!scaleStr.empty()) {
@@ -399,6 +522,7 @@ void setCommands(Game* game) {
     REG_COMMAND(commands, 0);
     REG_COMMAND(clear, &game->gui->console);
     REG_COMMAND(setDebugSetting, game);
+    REG_COMMAND(setUniform, ren->shaders);
 }
 
 CommandInput processMessage(std::string message, ArrayRef<Command> possibleCommands) {

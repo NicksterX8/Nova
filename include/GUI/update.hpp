@@ -122,6 +122,14 @@ inline void renderElements(GuiManager& gui, GuiRenderer& renderer, const PlayerC
         renderer.sprite(texture->texture, texBox.rect());
     });
 
+    // text
+    gui.forEachElement<EC::ViewBox, EC::Text>([&](Element e){
+        Box entityBox = gui.getComponent<EC::ViewBox>(e)->box;
+        auto* textComponent = gui.getComponent<EC::Text>(e);
+        
+        renderer.text->render(textComponent->text, entityBox.min, textComponent->formatSettings, textComponent->renderSettings);
+    });
+
     // borders
     gui.forEachElement<EC::ViewBox, EC::Border>([&](Element e){
         auto box = gui.getComponent<EC::ViewBox>(e)->absolute;
