@@ -46,12 +46,12 @@ ItemQuantity Inventory::addItemStack(ItemStack stack) {
             // add as many items as can fit based on the item's stack size and how many are in the stack
             // if it weren't for the possibility of a stack of items having a quantity higher
             // than the stack's stacksize it would work to just copy the stack straight into the inventory slot
-            inventoryStack.item = stack.item;
-            auto* stackSize = getComponent<ITC::StackSize>(stack.item, *manager);
-            assert(stackSize);
-            ItemQuantity itemsToAdd = (stackSize->quantity < itemsLeft) ? 
-                                stackSize->quantity : itemsLeft;
+
+
+            ItemQuantity itemsToAdd = (stackSize < itemsLeft) ? 
+                                stackSize : itemsLeft;
             inventoryStack.quantity = itemsToAdd;
+            inventoryStack.item = stack.item;
             itemsLeft -= itemsToAdd;
         }
         else if (isSame(inventoryStack.item, stack.item)) {
@@ -124,25 +124,6 @@ ItemQuantity Inventory::itemCount(ItemType type) {
         }
     }
     return count;
-}
-
-// unused
-PrototypeManager* items::makePrototypes(ComponentInfoRef componentInfo) {
-    auto manager = new PrototypeManager(componentInfo, ItemTypes::Count);
-    namespace ids = ItemTypes;
-
-    auto prototypeNone = Prototypes::None(manager);
-    //manager->add(prototypeNone);
-    //manager->add(Prototypes::Grenade(manager));
-
-    // check if we forgot any
-    for (ItemType type = ids::None+1; type < ItemTypes::Count; type++) {
-        if (manager->prototypes[type].id == ids::None) {
-            LogError("FAIL ON PROTOTYPE MAKING!");
-            assert(false);
-        }
-    }
-    return manager;
 }
 
 void items::destroyItem(Item* item, ItemManager& manager) {

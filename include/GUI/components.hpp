@@ -33,7 +33,7 @@ text
 */
 
 namespace ComponentIDs {
-    #define GUI_REGULAR_COMPONENTS_LIST Texture, Background, Border, ViewBox, MaxSize, MinSize, Button, Text, Child, Hover
+    #define GUI_REGULAR_COMPONENTS_LIST SimpleTexture, Background, Border, ViewBox, MaxSize, MinSize, Button, Text, ChildOf, Hover
     #define GUI_PROTO_COMPONENTS_LIST PlaceholderPr 
     #define GUI_COMPONENTS_LIST GUI_REGULAR_COMPONENTS_LIST, GUI_PROTO_COMPONENTS_LIST
     GEN_IDS(ComponentIDs, ComponentID, GUI_COMPONENTS_LIST, Count);
@@ -83,7 +83,9 @@ BEGIN_COMPONENT(Hover)
 END_COMPONENT(Hover)
 
 BEGIN_COMPONENT(ViewBox)
-    Box box;
+    Box box; // relative box
+    Box absolute; // where element was actually displayed
+    int depth;
 END_COMPONENT(ViewBox)
 
 BEGIN_COMPONENT(Background)
@@ -95,14 +97,14 @@ BEGIN_COMPONENT(Border)
     float thickness; // pixels
 END_COMPONENT(Border);
 
-BEGIN_COMPONENT(Texture)
+BEGIN_COMPONENT(SimpleTexture)
     TextureID texture;
     Box texBox;
-END_COMPONENT(Texture)
+END_COMPONENT(SimpleTexture)
 
-BEGIN_COMPONENT(Child)
-    ElementID parent;
-END_COMPONENT(Child)
+BEGIN_COMPONENT(ChildOf)
+    Element parent;
+END_COMPONENT(ChildOf)
 
 BEGIN_COMPONENT(Text)
     const char* text;

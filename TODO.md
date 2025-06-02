@@ -1,5 +1,14 @@
 # TODO
 
+stuff:
+Items need to be stored canonically so there is only one ecs element per unique item type + variations. Item elements aren't just made willy nilly
+
+merge branches and push
+
+do gui height rework
+
+
+
 actual (new):
 fix scrolling up/down with keys on console
 more text features (copying & pasting??)

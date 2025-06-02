@@ -102,7 +102,7 @@ namespace Entities {
             Add<EC::ViewBox>(ecs, {Box{Vec2(0), Vec2(1)}});
             Add<EC::ItemStack>(ecs, {item});
             Add<EC::Grabable>(ecs, {item});
-            Add<EC::Render>(ecs, EC::Render(items::getComponent<ITC::Display>(item.item, itemManager)->inventoryIcon, RenderLayers::Items));
+            Add<EC::Render>(ecs, EC::Render(itemManager.getComponent<ITC::Display>(item.item)->inventoryIcon, RenderLayers::Items));
             
             MARK_END_ENTITY_CREATION(ecs);
         }

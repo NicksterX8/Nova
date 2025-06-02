@@ -15,6 +15,15 @@ namespace RenderModes {
 
 using RenderModes::RenderMode;
 
+using GuiHeight = int;
+constexpr GuiHeight GuiDefaultHeight = 0;
+
+namespace GuiHeights {
+    enum {
+        
+    };
+}
+
 struct GuiRenderer {
     QuadRenderer* quad;
     TextRenderer* text;
@@ -72,23 +81,23 @@ struct GuiRenderer {
         Color color;
     };
 
-    void colorRect(FRect rect, Color color, float z = 0.0f) {
+    void colorRect(FRect rect, Color color) {
         auto _quad = QuadRenderer::Quad{{
-            {glm::vec3{rect.x, rect.y, z}, color, QuadRenderer::NullCoord},
-            {glm::vec3{rect.x, rect.y + rect.h, z}, color, QuadRenderer::NullCoord},
-            {glm::vec3{rect.x + rect.w, rect.y + rect.h, z}, color, QuadRenderer::NullCoord},
-            {glm::vec3{rect.x + rect.w, rect.y, z}, color, QuadRenderer::NullCoord}
+            {glm::vec3{rect.x, rect.y, 0}, color, QuadRenderer::NullCoord},
+            {glm::vec3{rect.x, rect.y + rect.h, 0}, color, QuadRenderer::NullCoord},
+            {glm::vec3{rect.x + rect.w, rect.y + rect.h, 0}, color, QuadRenderer::NullCoord},
+            {glm::vec3{rect.x + rect.w, rect.y, 0}, color, QuadRenderer::NullCoord}
         }};
 
         quad->render(_quad);
     }
 
-    void colorRect(glm::vec2 min, glm::vec2 max, SDL_Color color) {
+    void colorRect(glm::vec2 min, glm::vec2 max, SDL_Color color, int depth = 0) {
         auto _quad = QuadRenderer::Quad{{
-            {glm::vec3{min.x, min.y, 0.0}, color, QuadRenderer::NullCoord},
-            {glm::vec3{min.x, max.y, 0.0}, color, QuadRenderer::NullCoord},
-            {glm::vec3{max.x, max.y, 0.0}, color, QuadRenderer::NullCoord},
-            {glm::vec3{max.x, min.y, 0.0}, color, QuadRenderer::NullCoord}
+            {glm::vec3{min.x, min.y, 0}, color, QuadRenderer::NullCoord},
+            {glm::vec3{min.x, max.y, 0}, color, QuadRenderer::NullCoord},
+            {glm::vec3{max.x, max.y, 0}, color, QuadRenderer::NullCoord},
+            {glm::vec3{max.x, min.y, 0}, color, QuadRenderer::NullCoord}
         }};
 
         quad->render(_quad);
@@ -97,10 +106,10 @@ struct GuiRenderer {
     void texRect(glm::vec2 min, glm::vec2 max, QuadRenderer::TexCoord texCoord) {
         constexpr SDL_Color color = {255, 255, 255, 255};
         auto _quad = QuadRenderer::Quad{{
-            {glm::vec3{min.x, min.y, 0.0}, color, texCoord},
-            {glm::vec3{min.x, max.y, 0.0}, color, texCoord},
-            {glm::vec3{max.x, max.y, 0.0}, color, texCoord},
-            {glm::vec3{max.x, min.y, 0.0}, color, texCoord}
+            {glm::vec3{min.x, min.y, 0}, color, texCoord},
+            {glm::vec3{min.x, max.y, 0}, color, texCoord},
+            {glm::vec3{max.x, max.y, 0}, color, texCoord},
+            {glm::vec3{max.x, min.y, 0}, color, texCoord}
         }};
 
         quad->render(_quad);

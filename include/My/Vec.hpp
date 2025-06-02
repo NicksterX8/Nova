@@ -195,8 +195,13 @@ public:
     }
 
     void pop() {
-        assert(size > 0 && "can't pop back element of empty vector");
+        assert(size > 0 && "can't pop element of empty vector");
         size--;
+    }
+
+    T popBack() {
+        assert(size > 0 && "can't pop back element of empty vector");
+        return data[--size];
     }
 
     bool empty() const {

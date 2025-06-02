@@ -1,9 +1,11 @@
 #ifndef ECS_ARCHETYPE_POOL_INCLUDED
 #define ECS_ARCHETYPE_POOL_INCLUDED
 
+#include <array>
 #include "llvm/ArrayRef.h"
 #include "My/Bitset.hpp"
 #include "utils/ints.hpp"
+#include "ECS/Entity.hpp"
 
 template <size_t I, typename Tuple>
 constexpr size_t element_offset() {
@@ -39,7 +41,12 @@ constexpr size_t element_offset() {
 
 namespace GECS {
 
-using ComponentID = Sint16;
+using Element = ECS::Entity;
+using ElementID = ECS::EntityID;
+using ElementVersion = ECS::EntityVersion;
+
+constexpr Element NullElement = ECS::NullEntity;
+
 constexpr ComponentID NullComponentID = INT16_MIN;
 using ComponentPtr = void*;
 
@@ -48,6 +55,16 @@ struct ComponentInfo {
     size_t alignment = 0;
     const char* name = "null";
 };
+
+template<class Component>
+static constexpr ComponentInfo getComponentInfo() {
+    return {sizeof(Component), alignof(Component), Component::NAME};
+}
+
+template<class... Components>
+static constexpr std::array<ComponentInfo, sizeof...(Components)> getComponentInfoList() {
+    return {getComponentInfo<Components>() ...};
+}
 
 class ComponentInfoRef {
     ArrayRef<ComponentInfo> components;
@@ -75,107 +92,10 @@ public:
     }
 };
 
-template<class Component>
-static constexpr ComponentInfo getComponentInfo() {
-    return {sizeof(Component), alignof(Component), Component::NAME};
-}
-
-template<class... Components>
-static constexpr std::array<ComponentInfo, sizeof...(Components)> getComponentInfoList() {
-    return {getComponentInfo<Components>() ...};
-}
-
-struct DefaultIDGetter {
-    template<class C>
-    static constexpr ComponentID get() {
-        return C::ID;
-    }
-};
-
-template<size_t maxComponentID, class IDGetter = DefaultIDGetter>
-struct Signature : My::Bitset<maxComponentID> {
-    private: using Base = My::Bitset<maxComponentID>; public:
-    using Self = Signature<maxComponentID>;
-
-    constexpr Signature() {}
-
-    /*
-    constexpr Signature(const Self& self) : Base(self) {
-
-    }
-    */
-
-    constexpr Signature(typename Base::IntegerType startValue) : Base(startValue) {
-
-    }
-    
-    /*
-    constexpr Signature(Base bitset) : My::Bitset<maxComponentID>(bitset) {
-        
-    }
-    */
-
-    template<class C>
-    constexpr bool getComponent() const {
-        constexpr ComponentID id = IDGetter::template get<C>();
-        return this->operator[](id);
-    }
-
-    template<class C>
-    constexpr void setComponent(bool val) {
-        constexpr ComponentID id = IDGetter::template get<C>();
-        My::Bitset<maxComponentID>::set(id, val);
-    }
-
-    struct Hash {
-        size_t operator()(Self self) const {
-            //TODO: OMPTIMIZE improve hash
-            // intsPerHash will always be 1 or greater as IntegerT cannot be larger than size_t
-            constexpr size_t intsPerHash = sizeof(size_t) / Self::IntegerSize;
-            size_t hash = 0;
-            for (int i = 0; i < self.nInts; i++) {
-                for (int j = 0; j < intsPerHash; j++) {
-                    hash ^= (size_t)self.bits[i] << j * Self::IntegerSize * CHAR_BIT;
-                }
-            }
-            return hash;
-        }
-    };
-};
-
-
-/*
-Example id getter:
-struct IDGetter {
-    template<class C>
-    static constexpr ComponentID get() {
-        return X;
-    }
-};
-*/
-
-#define GECS_ARCHETYPE_ELEMENT_ARCHETYPE_BITS 10
-#define GECS_ARCHETYPE_ELEMENT_INDEX_BITS 22
-using ArchetypeElementIndexType = uint32_t;
-#define GECS_MAX_ARCHETYPE_POOL_SIZE ((size_t)1 << (size_t)MIN(sizeof(ArchetypeElementIndexType) * CHAR_BIT, GECS_ARCHETYPE_ELEMENT_INDEX_BITS))
-
-struct ArchetypeElementAddress {
-    uint32_t archetype:GECS_ARCHETYPE_ELEMENT_ARCHETYPE_BITS;
-    uint32_t index:GECS_ARCHETYPE_ELEMENT_INDEX_BITS;
-};
-static_assert(sizeof(ArchetypeElementAddress) == 4, "Oversized element address struct. Check bits used.");
-
-constexpr static ArchetypeElementAddress NullElementAddress = { .archetype = 0, .index = 0 };
-
 template<size_t maxComponentID, class IDGetter>
 struct Class {
 
 using Signature = Signature<maxComponentID>;
-
-struct ElementArchetypeData {
-    Signature signature;
-    Uint32 type;
-};
 
 template<class C>
 constexpr static ComponentID getRawID() {
@@ -212,9 +132,15 @@ constexpr static Signature getSignature() {
     return result;
 }
 
+template<class ...RegCs>
+static Signature getNonProtoSignature(Signature signature) {
+    constexpr Signature allRegularComponents = getSignature<RegCs...>();
+    return signature & allRegularComponents;
+}
+
 struct ArchetypalComponentManager {
     struct Archetype {
-        using ComponentOffsetSet = My::DenseSparseSet<ComponentID, uint16_t, maxComponentID>;
+        using ComponentOffsetSet = My::DenseSparseSet<ComponentID, uint16_t, uint16_t, maxComponentID>;
         ComponentOffsetSet componentOffsets;
         uint32_t totalSize;
         int32_t numComponents;
@@ -227,7 +153,7 @@ struct ArchetypalComponentManager {
 
         // returns pointer to offset value on success,
         // returns nullptr on error - if component isn't in the archetype
-        uint16_t* getOffset(ComponentID component) const {
+        const uint16_t* getOffset(ComponentID component) const {
             return componentOffsets.lookup(component);
         }
     };
@@ -242,7 +168,7 @@ struct ArchetypalComponentManager {
         archetype.numComponents = count;
         archetype.totalSize = sizeof(Tuple);
         archetype.sizes = Alloc<uint16_t>(count);
-        archetype.componentOffsets = My::DenseSparseSet<ComponentID, uint16_t, maxComponentID>::Empty();
+        archetype.componentOffsets = My::DenseSparseSet<ComponentID, uint16_t, uint16_t, maxComponentID>::Empty();
         constexpr auto sizes   = {sizeof(Components) ...};
         constexpr auto ids     = {getID<Components>() ...};
         constexpr auto offsets = {element_offset<Components, Tuple>() ...};
@@ -257,11 +183,10 @@ struct ArchetypalComponentManager {
         const auto count = signature.count();
         archetype.signature = signature;
         archetype.numComponents = count;
-        uint16_t elementDataSize = sizeof(ElementArchetypeData);
-        archetype.totalSize = elementDataSize;
+        archetype.totalSize = 0;
         archetype.sizes = Alloc<uint16_t>(count);
-        archetype.componentOffsets = My::DenseSparseSet<ComponentID, uint16_t, maxComponentID>::Empty();
-        uint16_t offset = elementDataSize;
+        archetype.componentOffsets = My::DenseSparseSet<ComponentID, uint16_t, uint16_t, maxComponentID>::Empty();
+        uint16_t offset = 0;
         int index = 0;
         signature.forEachSet([&](auto componentID){
             auto componentSize = (uint16_t)componentTypeInfo.size(componentID);
@@ -273,62 +198,70 @@ struct ArchetypalComponentManager {
         return archetype;
     }
 
-    static constexpr size_t MaxElementIndex = (1 << 12) - 1;
+    static constexpr size_t MaxElementID = (1 << 14) - 1;
 
     struct ArchetypePool {
-        My::GenericDenseSparseSet<ArchetypeElementIndexType, MaxElementIndex> entities;
-        My::Vec<ArchetypeElementIndexType> freeIndices;
+        My::Vec<Element> elements; // contained elements
+        My::Vec<char> buffer;
         Archetype archetype;
-
+        
         ArchetypePool(const Archetype& archetype) : archetype(archetype) {
-            entities = decltype(entities)::New(archetype.totalSize);
-            freeIndices = My::Vec<ArchetypeElementIndexType>::WithCapacity(100);
-            for (int i = 0; i < 100; i++) {
-                freeIndices.push(i);
-            }
+            elements = My::Vec<Element>::Empty();
+            buffer = My::Vec<char>::WithCapacity(archetype.totalSize);
         }
 
         // index must be in bounds
-        void* get(ArchetypeElementIndexType index) const {
+        void* getComponents(int index) const {
             //assert(index < elementCount);
             //return (char*)data + index * (uint32_t)archetype.totalSize;
-            return entities.lookup(index);
+            return buffer.data + index * archetype.totalSize;
         }
 
-        ArchetypeElementIndexType getNew() {
-            auto index = freeIndices.back();
-            freeIndices.pop();
-
-            entities.insert(index);
-            return index;
+        // returns index where element is stored
+        int addNew(Element element) {
+            elements.push(element);
+            buffer.require(archetype.totalSize);
+            return elements.size-1;
         }
 
-        void remove(ArchetypeElementIndexType index) {
-            entities.remove(index);
-            freeIndices.push(index);
+        void remove(int index) {
+            // if last element
+            if (index == elements.size-1) {
+                elements.size--;
+                return;
+            }
+            elements[index] = elements[elements.size-1];
+
+            void* newSpace = getComponents(index);
+            void* oldSpace = getComponents(elements.size-1);
+            memcpy(newSpace, oldSpace, archetype.totalSize);
+
+            elements.size--;
         }
 
         void destroy() {
-            entities.destroy();
+            elements.destroy();
         }
     };
 
-    using ArchetypeID = uint16_t;
-    static constexpr ArchetypeID NullArchetypeID = (1 << GECS_ARCHETYPE_ELEMENT_ARCHETYPE_BITS) - 1;
-
-    static constexpr uint32_t MaxNumArchetypes = (1 << GECS_ARCHETYPE_ELEMENT_ARCHETYPE_BITS) - 1; // 10 bits address space - 1 for null archetype
-
-    using ElementAddress = ArchetypeElementAddress;
-    static constexpr auto NullAddress = NullElementAddress;
-
-    struct ElementList {
-        ElementAddress elements;
-        uint32_t count;
-    };
+    using ArchetypeID = Sint16;
+    static constexpr ArchetypeID NullArchetypeID = -1;
 
     My::Vec<ArchetypePool> pools;
+    My::Vec<Element> unusedElements;
     My::HashMap<Signature, ArchetypeID, typename Signature::Hash> archetypes;
     ComponentInfoRef componentInfo;
+
+    struct ElementData {
+        Sint32 prototype;
+        Signature signature;
+        Uint32 version;
+        Sint16 poolIndex;
+        ArchetypeID archetype;
+    };
+
+    My::DenseSparseSet<ElementID, ElementData, 
+        Uint16, MaxElementID> elementData;
 
     ArchetypalComponentManager() {}
 
@@ -336,64 +269,140 @@ struct ArchetypalComponentManager {
         auto nullPool = ArchetypePool(Archetype::Null());
         pools = My::Vec<ArchetypePool>(&nullPool, 1);
         archetypes = decltype(archetypes)::Empty();
+        elementData = My::DenseSparseSet<ElementID, ElementData, 
+            Uint16, MaxElementID>::WithCapacity(64);
+        unusedElements = My::Vec<Element>::WithCapacity(1000);
+        unusedElements.require(1000);
+        for (int i = 0; i < 1000; i++) {
+            unusedElements[i].id = i + 1;
+            unusedElements[i].version = 0;
+        }
     }
 private:
-    void* getElement(ElementAddress element) const {
-        if (element.archetype >= MaxNumArchetypes) return nullptr;
-        auto& archetype = pools[element.archetype];
-        return archetype.get(element.index);
+    void* getElement(Element element) const {
+        ElementData& data = elementData.lookup(element.id);
+        if (element.version != data.version) {
+            return nullptr;
+        }
+
+        if (data.archetype >= pools.size) {
+            LogError("Invalid archetype %u", data.archetype);
+            return nullptr;
+        } 
+
+        auto& archetype = pools[data.archetype];
+        return archetype.get(data.index);
     }
+
+
 public:
 
-    void* getComponent(ElementAddress element, ComponentID component) const {
-        assert(element.archetype < MaxNumArchetypes && "Invalid element archetype!");
-        const auto& pool = pools[element.archetype];
-        if (pool.archetype.signature[component]) {
-            void* elementPtr = pool.get(element.index);
-            uint16_t* componentOffset = pool.archetype.getOffset(component);
-            if (componentOffset) {
-                return (char*)elementPtr + *componentOffset;
-            }
-        }
-        return nullptr;
+    Element newElement(Uint32 prototype) {
+        Element element = unusedElements.popBack();
+        ElementData* data = elementData.insert(element.id);
+        data->version = ++element.version;
+        data->archetype = 0;
+        data->poolIndex = -1;
+        data->signature = {0};
+        data->prototype = prototype;
+        return element;
     }
 
-    bool addComponent(ElementAddress* element, ComponentID component) {
-        assert(element->archetype < MaxNumArchetypes && "Invalid element archetype!");
+    void destroyElement(Element element) {
+        const ElementData* data = elementData.lookup(element.id);
+        if (!data || (element.version != data->version)) {
+            // element isn't around anyway
+            return;
+        }
 
-        if (element->archetype >= pools.size) {
-            LogError("Element archetype %d out of range!", element->archetype);
+        elementData.remove(element.id);
+        unusedElements.push(element);
+    }
+
+    const ElementData* getElementData(ElementID elementID) const {
+        if (elementID == NullElement.id) {
+            return nullptr;
+        }
+        return elementData.lookup(elementID);
+    }
+
+    Signature getElementSignature(Element element) const {
+        if (element.id == NullElement.id) {
+            return {0};
+        }
+        const ElementData* data = elementData.lookup(element.id);
+        if (!data || (element.version != data->version)) {
+            return {0};
+        }
+
+        return data->signature;
+    }
+
+    bool hasComponent(Element element, ComponentID component) const {
+       if (element.id == NullElement.id) {
+            return 0;
+        }
+        const ElementData* data = elementData.lookup(element.id);
+        if (!data || (!element.version != data->version)) {
             return false;
         }
-        auto& pool = pools[element->archetype];
 
-        Signature oldSignature = pool.archetype.signature;
-        Signature newSignature = oldSignature; newSignature.set(component);
+        return data->signature[component];
+    }
 
-        auto oldArchetypeID = getArchetypeID(oldSignature);
-        auto newArchetypeID = getArchetypeID(newSignature);
+    void* getComponent(Element element, ComponentID component) const {
+        if (element.id == NullElement.id) {
+            return nullptr;
+        }
+        const ElementData* data = elementData.lookup(element.id);
+        if (!data || (element.version != data->version)) {
+            return nullptr;
+        }
+
+        const auto& pool = pools[data->archetype];
+        const Uint16* offset = pool.archetype.getOffset(component);
+        if (!offset) return nullptr;
+        return (char*)pool.getComponents(data->poolIndex) + *offset;
+    }
+
+    void* addComponent(Element element, ComponentID component) {
+        if (element.id == NullElement.id) {
+            return nullptr;
+        }
+        ElementData* data = elementData.lookup(element.id);
+        if (!data || (element.version != data->version)) {
+            return nullptr;
+        }
+
+        if (data->archetype >= pools.size) {
+            LogError("Element archetype %d out of range!", data->archetype);
+            return nullptr;
+        }
+
+        Signature oldSignature = data->signature;
+        data->signature.set(component);
+
+        auto newArchetypeID = getArchetypeID(data->signature);
         if (newArchetypeID == NullArchetypeID) {
-            newArchetypeID = initArchetype(newSignature);
+            newArchetypeID = initArchetype(data->signature);
         }
 
         ArchetypePool* newArchetype = getArchetypePool(newArchetypeID);
-        ElementAddress newElement = {
-            newArchetypeID,
-            newArchetype->getNew()
-        };
-        if (oldArchetypeID != NullArchetypeID) {
-            auto oldArchetype = getArchetypePool(oldArchetypeID);
-            void* oldElementValue = oldArchetype->get(element->index);
-            void* newElementValue = newArchetype->get(newElement.index);
-            assert(newElementValue && "couldn't make new element index!");
+        int newElementIndex = newArchetype->addNew(element);
+        void* newElementValue = newArchetype->getComponents(newElementIndex);
+        assert(newElementValue && "couldn't make new element index!");
+        
+        if (data->archetype > 0) {
+            auto oldArchetype = getArchetypePool(data->archetype);
+            void* oldElementValue = oldArchetype->getComponents(data->poolIndex);
             if (oldElementValue) {
-                // copy element archetype data
-                memcpy(newElementValue, oldElementValue, sizeof(ElementArchetypeData));
+                // copy element archetype data - if entity data is stored adjacent to component data
+                //memcpy(newElementValue, oldElementValue, sizeof(ElementArchetypeData));
                 oldSignature.forEachSet([&](ComponentID componentId){
-                    uint16_t* oldComponentOffset = oldArchetype->archetype.getOffset(componentId);
+                    const uint16_t* oldComponentOffset = oldArchetype->archetype.getOffset(componentId);
                     assert(oldComponentOffset);
                     void* oldComponentValue = (char*)oldElementValue + *oldComponentOffset;
-                    uint16_t* newComponentOffset = newArchetype->archetype.getOffset(componentId);
+                    const uint16_t* newComponentOffset = newArchetype->archetype.getOffset(componentId);
                     assert(newComponentOffset);
                     void* newComponentValue = (char*)newElementValue + *newComponentOffset;
 
@@ -401,12 +410,17 @@ public:
                     memcpy(newComponentValue, oldComponentValue, componentSize);
                 });
             }
-            oldArchetype->remove(element->index);
+            oldArchetype->remove(data->poolIndex);
         }
 
-        *element = newElement;
+        data->archetype = newArchetypeID;
+        data->poolIndex = newElementIndex;
 
-        return true;
+        const Uint16* addedComponentOffset = newArchetype->archetype.getOffset(component);
+        assert(addedComponentOffset);
+        void* addedComponent = (char*)newElementValue + *addedComponentOffset;
+
+        return addedComponent;
     }
 
 private:
@@ -428,30 +442,17 @@ public:
     ArchetypeID initArchetype(Signature signature) {
         assert(!archetypes.contains(signature));
         Archetype archetype = makeArchetype(signature, componentInfo);
-        if (pools.size >= MaxNumArchetypes) {
-            return NullArchetypeID;
-        }
+ 
         pools.push(archetype);
         archetypes.insert(signature, pools.size-1);
         return pools.size-1;
     }
 
-    ElementList newElements(Signature signature, int count) {
-        auto archetypeID = getArchetypeID(signature);
-        if (archetypeID == NullArchetypeID) {
-            archetypeID = initArchetype(signature);
-        }
-        auto& pool = pools[archetypeID];
-        uint32_t backIndex = pool.size;
-        pool.reserve(pool.elementCount + count);
-        pool.elementCount += count;
-        return ElementList{
-            .elements = ElementAddress{
-                .archetype = archetypeID,
-                .index = backIndex
-            },
-            .count = count
-        };
+    void destroy() {
+        pools.destroy();
+        unusedElements.destroy();
+        archetypes.destroy();
+        elementData.destroy();
     }
 };
 
@@ -526,7 +527,7 @@ struct SmallComponentList {
 };
 */
 class LargeComponentList {
-    using Set = My::DenseSparseSet<ComponentID, ComponentPtr, maxComponentID>;
+    using Set = My::DenseSparseSet<ComponentID, ComponentPtr, Uint16, maxComponentID>;
     Set components;
 public:
 

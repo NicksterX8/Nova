@@ -4,81 +4,43 @@
 #include "components.hpp"
 #include "ecs-gui.hpp"
 #include "rendering/text.hpp"
+#include "rendering/context.hpp"
+#include "PlayerControls.hpp"
 
 namespace GUI {
 
-struct GuiElementProto : Prototype {
-    GuiElementProto(PECS::PrototypeManager* manager) : Prototype(PECS::New(manager, PrototypeIDs::Normal)) {
-
-    }
-};
-
-inline void doSomething() {
-    LogInfo("This is a button press!");
+namespace ElementTypes {
+    enum {
+        Normal,
+        Epic,
+        Count
+    };
 }
 
-inline void renderElements(GuiManager& gui, RenderContext& ren) {
-    Element elements[10];
-    for (int i = 0; i < 10; i++) {
-        Element& e = elements[i];
-        auto boxEc = getComponent<EC::ViewBox>(e, gui);
-        if (!boxEc) continue;
-        auto box = boxEc->box;
-        auto child = getComponent<EC::Child>(e, gui);
-        Vec2 pos = box.min;
+namespace Prototypes {
 
-        // go up parent chain all the way till the top
-        while (1) {
-            Element* parent = gui.elements.lookup(child->parent);
-            if (parent == nullptr) break;
+    struct Normal : Prototype {
+        Normal(GECS::PrototypeManager& manager) : Prototype(manager.New(ElementTypes::Normal)) {
 
-            auto pBoxEc = getComponent<EC::ViewBox>(e, gui);
-            if (pBoxEc) {
-                auto pBox = pBoxEc->box;
-                pos += pBox.min;
-            }
-
-            auto child = getComponent<EC::Child>(*parent, gui);
-            if (child == nullptr) break;
         }
+    };
 
-        box.min = pos;
-
-        if (e.has<EC::Background>()) {
-            ren.guiRenderer.colorRect(box.min, box.max(), getComponent<EC::Background>(e, gui)->color);
+    struct Epic : Prototype {
+        Epic(GECS::PrototypeManager& manager) : Prototype(manager.New(ElementTypes::Normal)) {
+            
         }
-
-        if (e.has<EC::Border>()) {
-            auto border = *getComponent<EC::Border>(e, gui);
-            ren.guiRenderer.rectOutline(box.min, box.max(), border.color, border.thickness, 0.0f);
-        }
-        
-    }
-}
-
-inline void doAction(GUI::EC::Action action) {
+    };
 
 }
 
-inline ElementID boxElement(GuiManager& gui, Box box) {
-    auto e = makeElement(gui);
-    addComponent(e, gui, EC::ViewBox{box});
-    return e;
-}
+inline void makeGuiPrototypes(GuiManager& gui) {
+    auto& pm = gui.prototypes;
 
-inline Element funButton(GuiManager& gui, GUI::EC::Action onClick) {
-    auto e = makeElement(gui);
-    addComponent(e, gui, EC::ViewBox{Box{{50.0f, 50.0f}, {100.0f, 100.0f}}});
-    addComponent(e, gui, EC::Background({{0,0,0,255}}));
-    addComponent(e, gui, EC::Border({{255,255,255,255}, 2.0f}));
-    addComponent(e, gui, EC::Button(onClick));
-    addComponent(e, gui, EC::Text({
-        "Do something!",
-        TextFormattingSettings(TextAlignment::MiddleCenter),
-        TextRenderingSettings({255,255,255,255})
-    }));
+    auto normal = Prototypes::Normal(pm);
+    auto epic = Prototypes::Epic(pm);
 
-    return e;
+    pm.add(normal);
+    pm.add(epic);
 }
 
 namespace Actions {
@@ -88,25 +50,41 @@ enum ActionEnum {
 };
 }
 
-void init(GuiManager& gui) {
-    auto box = boxElement(gui, Box{{20.0f, 20.0f}, {500.0f, 500.0f}});
-    auto fun = funButton(gui, Actions::MakeTheSkyBlue);
-    addComponent(fun, gui, GUI::EC::Child{&box});
+inline void doAction(EC::Action action) {
+    switch (action) {
+    case Actions::MakeTheSkyBlue:
+        LogInfo("The sky is blue noe1!");
+        break;
+    default:
+        break;
+    }
 }
 
-void update(GuiManager& gui) {
-    gui.forEachEntity<GUI::EC::ViewBox, GUI::EC::Texture>([&](Element element){
-        auto* viewBox = GUI::getComponent<GUI::EC::ViewBox>(element, gui);
-       
-    });
+inline Element boxElement(GuiManager& gui, Box box) {
+    auto e = gui.newElement(ElementTypes::Normal);
+    gui.addComponent(e, EC::ViewBox{box});
+    gui.addComponent(e, EC::Background({{150,150,150,255}}));
+    gui.addComponent(e, EC::Border({{155,255,255,255}, 2.0f}));
+    return e;
+}
 
-    gui.forEachEntity<GUI::EC::Button>([&](Element element){
-        auto* button = GUI::getComponent<GUI::EC::Button>(element, gui);
-        if (button->clickedThisFrame) {
-            doAction(button->onClick);
-            button->clickedThisFrame = false;
-        }
-    });
+inline Element funButton(GuiManager& gui, EC::Action onClick) {
+    auto e = gui.newElement(ElementTypes::Normal);
+    gui.addComponent(e, EC::ViewBox{Box{{110.0f, 50.0f}, {300.0f, 100.0f}}});
+    gui.addComponent(e, EC::Background({{0,0,0,255}}));
+    gui.addComponent(e, EC::Border({{255,255,255,255}, 2.0f}));
+    gui.addComponent(e, EC::Button(onClick));
+    gui.addComponent(e, EC::Text({
+        "Do something!",
+        TextFormattingSettings(TextAlignment::MiddleCenter),
+        TextRenderingSettings({255,255,255,255})
+    }));
+    gui.addComponent(e, EC::Hover({
+        true, {50, 50, 250, 255},
+        0
+    }));
+
+    return e;
 }
 
 }

@@ -101,8 +101,8 @@ SDL_FRect GUI::Hotbar::draw(GuiRenderer& renderer, const Player* player, const I
             };
 
             if (!item.empty()) {
-                const ItemPrototype* prototype = items::getPrototype(item.item.type, itemManager);
-                const ITC::Display* displayComponent = items::getComponent<ITC::Display>(item.item, itemManager);
+                const ItemPrototype* prototype = itemManager.getPrototype(item.item.type);
+                const ITC::Display* displayComponent = itemManager.getComponent<ITC::Display>(item.item);
                 if (displayComponent && prototype) {
                     // icon
                     renderer.sprite(displayComponent->inventoryIcon, innerSlot);

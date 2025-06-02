@@ -1,9 +1,11 @@
 #ifndef ECS_GENERIC_ECS_INCLUDED
 #define ECS_GENERIC_ECS_INCLUDED
 
+#include <vector>
 #include "My/Vec.hpp"
 #include "ECS/generic/components.hpp"
 #include "ECS/generic/ArchetypePool.hpp"
+#include "ECS/Entity.hpp"
 
 #define FLAG_COMPONENT(name) BEGIN_COMPONENT(name) END_COMPONENT(name)
 #define FLAG_PROTO_COMPONENT(name) BEGIN_PROTO_COMPONENT(name) END_PROTO_COMPONENT(name)
@@ -24,7 +26,7 @@ struct AllocListRef {
     }
 };
 
-namespace PECS {
+namespace GECS {
 
 struct IDGetter {
     template<class C>
@@ -44,10 +46,10 @@ constexpr ComponentSignature getComponentSignature() {
     return EcsClass::getSignature<Cs...>();
 }
 
-using TypeID = Uint32;
+using PrototypeID = Sint32;
 
 struct Prototype {
-    TypeID id = 0;
+    PrototypeID id = 0;
     ComponentSignature signature = 0;
     EcsClass::LargeComponentList components = EcsClass::LargeComponentList::New();
 
@@ -61,7 +63,7 @@ struct Prototype {
 
     Prototype() {}
 
-    Prototype(AllocListRef componentsStorage, GECS::ComponentInfoRef componentInfo, TypeID id, ComponentSignature signature = 0)
+    Prototype(AllocListRef componentsStorage, ComponentInfoRef componentInfo, PrototypeID id, ComponentSignature signature = 0)
     : id(id), signature(signature), componentInfo(componentInfo) {
         int i = 0;
         signature.forEachSet([&](auto componentID){
@@ -154,8 +156,18 @@ struct PrototypeManager {
         prototypes.resize(numPrototypes, Prototype());
     }
 
-    const Prototype& get(TypeID id) const {
-        return prototypes[id];
+    template<class... Components>
+    Prototype New(PrototypeID id, Components... components) {
+        constexpr auto signature = getComponentSignature<Components...>();
+        auto componentsStorage = allocateComponents(signature);
+        auto prototype = Prototype(componentsStorage, componentInfo, id, signature);
+        FOR_EACH_VAR_TYPE(prototype.set<Components...>(components));
+        return prototype;
+    }
+
+    const Prototype* get(PrototypeID id) const {
+        if (id >= prototypes.size() || id < 0) return nullptr;
+        return &prototypes[id];
     }
 
     int numPrototypes() const {
@@ -195,17 +207,6 @@ struct PrototypeManager {
     }
 };
 
-template<class... Components>
-Prototype New(PrototypeManager* manager, TypeID id, Components... components) {
-    constexpr auto signature = getComponentSignature<Components...>();
-    auto componentsStorage = manager->allocateComponents(signature);
-    auto prototype = Prototype(componentsStorage, manager->componentInfo, id, signature);
-    FOR_EACH_VAR_TYPE(prototype.set<Components>(components...));
-    return prototype;
-}
-
-
-
 #define BEGIN_COMPONENT(name) struct name {\
     constexpr static ComponentID ID = ComponentIDs::name;\
     constexpr static bool PROTOTYPE = false;\
@@ -223,137 +224,130 @@ Prototype New(PrototypeManager* manager, TypeID id, Components... components) {
 #define FLAG_COMPONENT(name) BEGIN_COMPONENT(name) END_COMPONENT(name)
 #define FLAG_PROTO_COMPONENT(name) BEGIN_PROTO_COMPONENT(name) END_PROTO_COMPONENT(name)
 
-using ComponentID = GECS::ComponentID;
-using ComponentsAddress = GECS::ArchetypeElementAddress;
-constexpr auto NullComponentsAddress = GECS::NullElementAddress;
 using GECS::ComponentInfoRef;
-
-struct Entity {
-    ComponentSignature signature;
-    ComponentsAddress componentsLoc;
-    TypeID type;
- 
-    Entity() : signature(0), componentsLoc(NullComponentsAddress), type(0) {};
-
-    Entity(TypeID type, ComponentSignature signature = 0, ComponentsAddress components = NullComponentsAddress) : signature(signature), componentsLoc(components), type(type) {}
-
-    static Entity None() {
-        return {0, ComponentSignature{0}, NullComponentsAddress};
-    }
-
-    template<class ...Cs>
-    bool has() const {
-        return has(getComponentSignature<Cs...>());
-    }
-
-    bool has(ComponentSignature components) const {
-        return signature.hasAll(components);
-    }
-
-    bool has(ComponentID component) const {
-        return signature[component];
-    }
-};
 
 struct ComponentManager : EcsClass::ArchetypalComponentManager {
     ComponentManager() = default;
     ComponentManager(ComponentInfoRef info) : EcsClass::ArchetypalComponentManager(info) {}
 };
 
-struct EntityManager {
+struct ElementManager {
     ComponentManager    components;
     PrototypeManager    prototypes;
 
-    EntityManager() = default;
+    ElementManager() = default;
 
-    EntityManager(ComponentInfoRef componentInfo, int numPrototypes)
+    ElementManager(ComponentInfoRef componentInfo, int numPrototypes)
      : components(componentInfo), prototypes(componentInfo, numPrototypes) {} 
 
     template<class... ReqComponents, class Func>
-    void forEachEntity(Func func) {
+    void forEachElement(Func func) const {
         EcsClass::Signature reqSignature = EcsClass::getSignature<ReqComponents...>();
         for (Uint32 i = 0; i < components.pools.size; i++) {
             auto& pool = components.pools[i];
             auto signature = pool.archetype.signature;
             if ((signature & reqSignature) == reqSignature) {
-                for (Uint32 e = 0; e < pool.entities.size; e++) {
-                    void* elementData = pool.entities.getValue(e);
-                    auto* partial = (EcsClass::ElementArchetypeData*)elementData;
-                    ComponentsAddress address = {
-                        .archetype = i, .index = pool.entities.keys[e]
-                    };
-                    Entity entity = Entity(partial->type, partial->signature, address);
-                    
-                    func(&entity);
+                for (Uint32 e = 0; e < pool.elements.size; e++) {
+                    Element element = pool.elements[e];
+                    func(element);
                 }
             }
         }
     }
-};
 
-
-inline const Prototype* getPrototype(TypeID type, const EntityManager& manager) {
-    //TODO: check for null
-    if (type >= manager.prototypes.prototypes.size()) return nullptr;
-    return &manager.prototypes.prototypes[type];
-}
-
-template<class C>
-const C* getProtoComponent(const Entity& entity, const EntityManager& manager) {
-    // TODO: check for null
-    return getPrototype(entity.type, manager)->get<C>();
-}
-
-template<class C>
-C* getRegularComponent(const Entity& entity, const EntityManager& manager) {
-    return static_cast<C*>(manager.components.getComponent(entity.componentsLoc, C::ID));
-}
-
-template<class C>
-typename std::conditional<C::PROTOTYPE, const C*, C*>::type getComponent(const Entity& entity, const EntityManager& manager) {
-    if constexpr (C::PROTOTYPE) {
-        return getProtoComponent<C>(entity, manager);
-    } else {
-        return getRegularComponent<C>(entity, manager);
+    template<class C, class Func>
+    void forEachComponent(Func func) const {
+        for (Uint32 i = 0; i < components.pools.size; i++) {
+            auto& pool = components.pools[i];
+            auto signature = pool.archetype.signature;
+            if (signature[C::ID]) {
+                for (Uint32 e = 0; e < pool.elements.size; e++) {
+                    void* components = pool.getComponents(e);
+                    auto* offset = pool.archetype.getOffset(C::ID);
+                    assert(offset);
+                    C* component = (C*)((char*)components + *offset);
+                    func(component);
+                }
+            }
+        }
     }
-}
 
-template<class C>
-void setComponent(const Entity& entity, const EntityManager& manager, const C& value) {
-    static_assert(C::PROTOTYPE == false);
-    C* component = getComponent<C>(entity, manager);
-    if (component) {
-        *component = value;
-    } else {
-        LogError("Component %s does not exist for entity!", manager.components.componentInfo.name(C::ID));
+    Element newElement(PrototypeID prototype) {
+        return components.newElement(prototype);
     }
-}
 
-template<class C>
-bool addComponent(Entity& entity, EntityManager& manager, const C& startValue) {
-    static_assert(C::PROTOTYPE == false);
-    manager.components.addComponent(&entity.componentsLoc, C::ID);
-    C* component = (C*)manager.components.getComponent(entity.componentsLoc, C::ID);
-    if (component) {
-        *component = startValue;
-        entity.signature.set(C::ID);
+    inline const Prototype* getPrototype(PrototypeID type) const {
+        return prototypes.get(type);
+    }
+
+    inline const Prototype* getPrototype(Element element) const {
+        auto* elementData = components.getElementData(element.id);
+        if (!elementData || (elementData->version != element.version)) {
+            return nullptr;
+        }
+        return getPrototype(elementData->prototype);
+    }
+
+protected:
+    template<class C>
+    const C* getProtoComponent(Element element) const {
+        auto* prototype = getPrototype(element);
+        return prototype ? prototype->get<C>() : nullptr;
+    }
+
+    template<class C>
+    C* getRegularComponent(Element element) const {
+        return (C*)components.getComponent(element, C::ID);
+    }
+public:
+
+    template<class C>
+    typename std::conditional<C::PROTOTYPE, const C*, C*>::type getComponent(Element element) const {
+        if constexpr (C::PROTOTYPE) {
+            return getProtoComponent<C>(element);
+        } else {
+            return getRegularComponent<C>(element);
+        }
+    }
+
+    template<class C>
+    void setComponent(Element element, const C& value) {
+        static_assert(C::PROTOTYPE == false);
+        C* component = getComponent<C>(element);
+        if (component) {
+            *component = value;
+        } else {
+            LogError("Component %s does not exist for element!", components.componentInfo.name(C::ID));
+        }
+    }
+
+    template<class C>
+    bool addComponent(Element element, const C& startValue) {
+        C* component = (C*)components.addComponent(element, C::ID);
+        if (!component) return false;
+        memcpy(component, &startValue, sizeof(C));
         return true;
     }
-    return false;
-}
 
-inline Entity makeEntity(TypeID type, EntityManager& manager) {
-    auto* prototype = getPrototype(type, manager);
-    if (!prototype) {
-        LogError("NO prototype found for entity type %d!", type);
-        return Entity::None();
+    template<class... Components>
+    bool elementHas(Element element) const {
+        if (element.Null()) return false;
+
+        const Prototype* prototype = getPrototype(element);
+
+        Signature signature = components.getElementSignature(element);
+        if (prototype) {
+            signature |= prototype->signature;
+        }
+        constexpr Signature componentSignature = getComponentSignature<Components...>();
+        return (signature & componentSignature) == componentSignature;
     }
-    ComponentSignature prototypeSignature = 0;
-    if (prototype) {
-        prototypeSignature = prototype->signature;
+
+    void destroy() {
+        components.destroy();
+        prototypes.destroy();
     }
-    return Entity(type, prototypeSignature, NullComponentsAddress);
-}
+};
 
 }
 

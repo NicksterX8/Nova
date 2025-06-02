@@ -8,6 +8,7 @@
 #include "Player.hpp"
 #include "commands.hpp"
 #include "elements.hpp"
+#include "update.hpp"
 
 struct GuiRenderer;
 
@@ -249,16 +250,22 @@ struct Gui {
 
     Gui() {}
 
-    void draw(GuiRenderer& renderer, const FRect& viewport, glm::vec2 mousePosition, const Player* player, const ItemManager& itemManager) {
+    void updateGuiState(const PlayerControls& playerControls) {
+        GUI::update(manager, playerControls);
+    }
+
+    void draw(GuiRenderer& renderer, const FRect& viewport, const Player* player, const ItemManager& itemManager, const PlayerControls& playerControls) {
         area.size = 0;
         SDL_FRect hotbarArea = hotbar.draw(renderer, player, itemManager);
         const auto* heldItemStack = &player->heldItemStack;
         if (heldItemStack) {
             const ItemStack* item = heldItemStack->get();
             if (item && !item->empty())
-                drawHeldItemStack(renderer, itemManager, *item, mousePosition);
+                drawHeldItemStack(renderer, itemManager, *item, playerControls.mousePixelPos());
         }
         area.push(hotbarArea);
+
+        GUI::renderElements(manager, renderer, playerControls);
     }
 
     void drawHeldItemStack(GuiRenderer& renderer, const ItemManager& itemManager, const ItemStack& itemStack, glm::vec2 pos);
@@ -277,6 +284,7 @@ struct Gui {
         area.destroy();
         hotbar.destroy();
         console.destroy();
+        manager.destroy();
     }
 };
 

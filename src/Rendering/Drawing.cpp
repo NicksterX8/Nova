@@ -241,7 +241,7 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
                 renderer.pixels(2.0f),
                 (float)font->height() * scale
             };
-            renderer.colorRect(cursor, GUI::Console::activeTextColor, 0.9f);
+            renderer.colorRect(cursor, GUI::Console::activeTextColor);
             if (timeTilFlash < -flashDuration) {
                 timeTilFlash = flashDelay;
             }
@@ -392,7 +392,8 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
     textShader.use();
     textShader.setMat4("transform", screenTransform);
 
-    gui->draw(guiRenderer, {0, 0, guiRenderer.options.size.x, guiRenderer.options.size.y}, playerControls.mousePixelPos(), &state->player, state->itemManager);
+    gui->updateGuiState(playerControls);
+    gui->draw(guiRenderer, {0, 0, guiRenderer.options.size.x, guiRenderer.options.size.y}, &state->player, state->itemManager, playerControls);
 
     //textRenderer.setFont(&ren.font);
     Draw::drawFpsCounter(guiRenderer, (float)Metadata->fps(), (float)Metadata->tps(), guiRenderer.options);

@@ -33,6 +33,7 @@ bool Controller::connect(int joystick_index) {
 
 PlayerControls::PlayerControls(Game* game) : camera(game->camera), game(game) {
     mouse = getMouseState();
+    mouseClicked = false;
     mouseWorldPos = camera.pixelToWorld(glm::vec2(mouse.x, mouse.y));
 
     connectController();
@@ -48,6 +49,8 @@ bool PlayerControls::pixelInWorld(glm::vec2 pixel) {
 }
 
 void PlayerControls::handleClick(const SDL_MouseButtonEvent& event) {
+    mouseClicked = true;
+
     // mouse event coordinates are reported in pixel points, which are not representative of actual pixels
     // on high DPI displays, so we scale it by the pixel scale to get actual pixels.
     //SDL_Point mousePos = {(int)(event.x * SDL::pixelScale), (int)(event.y * SDL::pixelScale)};
@@ -101,12 +104,14 @@ void PlayerControls::handleClick(const SDL_MouseButtonEvent& event) {
                 // World click
                 ItemStack* heldItemStack = game->state->player.heldItemStack.get();
 
+                auto& itemMgr = game->state->itemManager;
+
                 if (game->state->player.isHoldingItem()) {
-                    if (heldItemStack->item.has<ITC::Placeable>()) {
+                    if (itemMgr.elementHas<ITC::Placeable>(heldItemStack->item)) {
                         placeItem(heldItemStack, mouseWorldPos);
                     } 
-                    if (heldItemStack->item.has<ITC::Usable>()) {
-                        auto usable = items::getComponent<ITC::Usable>(heldItemStack->item, game->state->itemManager);
+                    if (itemMgr.elementHas<ITC::Usable>(heldItemStack->item)) {
+                        auto usable = itemMgr.getComponent<ITC::Usable>(heldItemStack->item);
                         auto onUse = usable->onUse;
                         if (onUse) {
                             bool success = onUse(game);
@@ -205,7 +210,7 @@ void PlayerControls::playerMouseTargetMoved(const MouseState& mouseState, const 
             ItemStack* heldItemStack = game->state->player.heldItemStack.get();
             
             if (!justGrabbedItem) {
-                if (heldItemStack && game->state->player.canPlaceItemStack(*heldItemStack)) {
+                if (heldItemStack && game->state->player.canPlaceItemStack(*heldItemStack, game->state->itemManager)) {
                     for (int i = 0; i < line.size(); i++) {
                         Tile* tile = getTileAtPosition(game->state->chunkmap, line[i]);
                         if (tile) {

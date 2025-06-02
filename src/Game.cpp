@@ -15,6 +15,7 @@
 #include "ECS/systems/systems.hpp"
 #include "ECS/entities/entities.hpp"
 #include "ECS/components/components.hpp"
+#include "ECS/generic/ArchetypePool.hpp"
 
 #include "llvm/SmallVector.h"
 #include "llvm/ArrayRef.h"
@@ -717,6 +718,17 @@ int Game::init(int screenWidth, int screenHeight) {
     LogInfo("Starting game init");
 
     this->gui = new Gui();
+    /* Init Items */
+    My::Vec<GECS::ComponentInfo> componentInfo; // TODO: Unimportant: This is leaked currently
+    {
+        using namespace GUI::EC;
+        constexpr auto componentInfoArray = GECS::getComponentInfoList<GUI_COMPONENTS_LIST>();
+        componentInfo = My::Vec<GECS::ComponentInfo>(&componentInfoArray[0], componentInfoArray.size());
+    }
+    this->gui->manager = GUI::GuiManager(ArrayRef(componentInfo.data, componentInfo.size), GUI::ElementTypes::Count);
+    GUI::makeGuiPrototypes(this->gui->manager);
+    GUI::init(this->gui->manager);
+
     this->debug->console = &this->gui->console;
 
     this->renderContext = new RenderContext(sdlCtx.win, sdlCtx.gl);

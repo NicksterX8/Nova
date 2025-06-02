@@ -24,13 +24,8 @@ struct IDGetter {
 
 #define MAX_ITEM_COMPONENTS 64
 
-using ItemECS = PECS::EcsClass;
+using ItemECS = GECS::EcsClass;
 using ComponentID = GECS::ComponentID;
-
-using ComponentPtr = GECS::ComponentPtr;
-
-using ComponentsAddress = GECS::ArchetypeElementAddress;
-constexpr auto NullComponentsAddress = GECS::NullElementAddress;
 
 using GECS::ComponentInfoRef;
 using ComponentSignature = ItemECS::Signature;
@@ -43,16 +38,16 @@ namespace ItemTypes {
     GEN_IDS(ItemTypes, Uint16, ITEM_TYPE_LIST, Count);  // 65k types should be way more than enough
 }
 
-struct Item : PECS::Entity {
- 
-    Item() : PECS::Entity(ItemTypes::None, 0, NullComponentsAddress) {};
+using GECS::Element;
+constexpr Element NullElement = GECS::NullElement;
 
-    Item(PECS::Entity entity) : PECS::Entity(entity) {}
+struct Item : Element {
+    ItemType type;
 
-    Item(ItemType type, ComponentSignature signature = 0, ComponentsAddress components = NullComponentsAddress) : PECS::Entity(type, signature, components) {}
+    Item(ItemType type = ItemTypes::None, Element element = NullElement) : Element(element), type(type) {}
 
     static Item None() {
-        return {ItemTypes::None, ComponentSignature{0}, NullComponentsAddress};
+        return Item();
     }
 };
 

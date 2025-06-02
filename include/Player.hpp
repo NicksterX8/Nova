@@ -7,6 +7,7 @@
 #include "ECS/entities/entities.hpp"
 #include "ECS/entities/methods.hpp"
 #include "items/items.hpp"
+#include"items/manager.hpp"
 #include "items/Item.hpp"
 
 enum Direction {
@@ -120,38 +121,6 @@ struct Player {
         return NULL;
     }
 
-    /*
-    bool tryShootSandGun(EntityWorld* ecs, Vec2 aimingPosition) {
-        if (heldItemStack && heldItemStack.get()->item.type == ItemTypes::SandGun) {
-            Entity sand = ecs->New("sand");
-            MARK_START_ENTITY_CREATION(ecs);
-            ecs->Add<
-                EC::Position,
-                EC::ViewBox,
-                EC::Motion,
-                EC::Render
-            >(sand);
-
-            // adjust position by half a tile to make the tile's center spawn on top of the player,
-            // instead of the top left corner 
-            Vec2 position = get<EC::Position>()->vec2() - Vec2{0.5f, 0.5f};
-
-            constexpr Vec2 size = {1.0f, 1.0f};
-            *ecs->Get<EC::ViewBox>(sand) = EC::ViewBottomLeft1x1;
-
-            // adjust position by half a tile to make center of the sand go towards the aiming point,
-            // instead of the top left corner
-            aimingPosition -= Vec2{0.5f, 0.5f};
-            constexpr float speed = 2.0f;
-            *ecs->Get<EC::Motion>(sand) = EC::Motion(aimingPosition, speed);
-            *ecs->Get<EC::Render>(sand) = EC::Render(TextureIDs::Tiles::Sand, RenderLayers::Particles);
-            MARK_END_ENTITY_CREATION(ecs);
-            return true;
-        }
-        return false;
-    }
-    */
-
     void selectHotbarSlot(int index) {
         if (!entity.Has<EC::Inventory>(ecs)) return;
 
@@ -180,19 +149,17 @@ struct Player {
         heldItemStack = ItemHold();
     }
 
-    bool canPlaceItemStack(ItemStack stack) {
-        if (stack.item.has<ITC::Placeable>()) {
-            if (stack.quantity > 0) {
-                return true;
-            }
+    bool canPlaceItemStack(ItemStack stack, const ItemManager& itemManager) {
+        if (stack.quantity > 0 && itemManager.elementHas<ITC::Placeable>(stack.item)) {
+            return true;
         }
         return false;
     }
 
     bool tryPlaceItemStack(ItemStack* stack, Tile* targetTile, ItemManager& itemManager) {
         if (!stack || !targetTile) return false;
-        if (canPlaceItemStack(*stack)) {
-            auto placeable = items::getComponent<ITC::Placeable>(stack->item, itemManager);
+        if (canPlaceItemStack(*stack, itemManager)) {
+            auto placeable = itemManager.getComponent<ITC::Placeable>(stack->item);
             TileType newTileType = placeable->tile;
             if (targetTile->type != newTileType) {
                 // place it

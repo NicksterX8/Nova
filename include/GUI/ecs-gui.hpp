@@ -8,38 +8,25 @@ namespace GUI {
 using ComponentID = GECS::ComponentID;
 
 
-using Element = PECS::Entity;
-using Prototype = PECS::Prototype;
+using Element = GECS::Element;
+using Prototype = GECS::Prototype;
 
-using PECS::getComponent;
-using PECS::getPrototype;
-using PECS::addComponent;
+using ElementID = GECS::ElementID;
 
-namespace PrototypeIDs {
-    #define GUI_ELEMENT_PROTOTYPE_LIST Normal
-    GEN_IDS(ItemTypes, Uint16, GUI_ELEMENT_PROTOTYPE_LIST, Count);  // 65k types should be way more than enough
-}
-
-using ElementID = Uint32;
-
-struct GuiManager : PECS::EntityManager {
-    My::HashMap<ElementID, Element> elements;
+struct GuiManager : GECS::ElementManager {
 
     GuiManager() {}
 
     GuiManager(GECS::ComponentInfoRef componentInfo, int numPrototypes)
-     : PECS::EntityManager(componentInfo, numPrototypes) {
+     : GECS::ElementManager(componentInfo, numPrototypes) {
 
      }
 
+    void destroy() {
+        GECS::ElementManager::destroy();
+    }
 
 };
-
-inline Element makeElement(GuiManager& gui) {
-    Element element = PECS::makeEntity(PrototypeIDs::Normal, gui);
-    gui.elements.insert()
-    return element;
-}
 
 
 }

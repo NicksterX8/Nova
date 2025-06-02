@@ -35,19 +35,18 @@ Box getEntityViewBoxBounds(const EntityWorld* ecs, Entity entity) {
 
 void makeItemPrototypes(ItemManager& im) {
     using namespace items;
-    auto* pm = &im.prototypes;
+    auto& pm = im.prototypes;
 
     auto tile = Prototypes::Tile(pm);
     auto grenade = Prototypes::Grenade(pm);
     auto sandGun = Prototypes::SandGun(pm);
-
 
     ItemPrototype prototypes[] = {
         tile, grenade, sandGun
     };
 
     for (int i = 0; i < sizeof(prototypes) / sizeof(ItemPrototype); i++) {
-        pm->add(prototypes[i]);
+        pm.add(prototypes[i]);
     }
 }
 

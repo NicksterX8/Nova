@@ -29,29 +29,26 @@ struct InventoryAllocator {
     }
 };
 
-struct ItemManager : PECS::EntityManager {
+struct ItemManager : GECS::ElementManager {
     InventoryAllocator inventoryAllocator;
 
     ItemManager() {}
 
     ItemManager(ComponentInfoRef componentInfo, int numPrototypes)
-     : PECS::EntityManager(componentInfo, numPrototypes),
+     : GECS::ElementManager(componentInfo, numPrototypes),
        inventoryAllocator() {
 
     }
+
+    Item newItem(ItemType type) {
+        Element element = this->newElement(type);
+        return Item(type, element);
+    }
 };
 
-using PrototypeManager = PECS::PrototypeManager;
+using PrototypeManager = GECS::PrototypeManager;
 
-using ItemPrototype = PECS::Prototype;
-
-using PECS::getComponent;
-using PECS::getPrototype;
-using PECS::addComponent;
-using PECS::New;
-inline Item makeItem(ItemType type, ItemManager& manager) {
-    return Item(PECS::makeEntity(type, manager));
-}
+using ItemPrototype = GECS::Prototype;
 
 inline void freeItem(Item item, ItemManager& manager) {
     // TODO:
@@ -65,13 +62,14 @@ inline void destroyItemStack(ItemStack* stack, ItemManager& manager) {
 }
 
 inline ItemQuantity getStackSize(Item item, const ItemManager& manager) {
-    auto stackSizeComponent = getComponent<ITC::StackSize>(item, manager);
+    auto stackSizeComponent = manager.getComponent<ITC::StackSize>(item);
     return stackSizeComponent ? stackSizeComponent->quantity : 0;
 }
 
 inline bool isSame(const Item& lhs, const Item& rhs) {
-    return (lhs.componentsLoc.archetype == rhs.componentsLoc.archetype)
-        && (lhs.componentsLoc.index     == rhs.componentsLoc.index);
+    return (lhs.type == rhs.type)
+        && (lhs.id == rhs.id)
+        && (lhs.version == rhs.version);
 }
 
 /* Combine the two item stacks into one

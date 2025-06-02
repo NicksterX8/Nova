@@ -75,12 +75,8 @@ struct Inventory {
         return items[slot].quantity;
     }
 
-    ComponentsAddress& componentsLoc(int slot) const {
-        return items[slot].item.componentsLoc;
-    }
-
-    ComponentSignature& signature(int slot) const {
-        return items[slot].item.signature;
+    Element& element(int slot) const {
+        return items[slot].item;
     }
 
     inline ItemStack& get(Sint32 itemIndex) {

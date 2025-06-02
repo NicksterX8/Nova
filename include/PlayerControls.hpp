@@ -7,7 +7,6 @@
 #include "GameState.hpp"
 #include "utils/Debug.hpp"
 #include "utils/Metadata.hpp"
-#include "GUI/Gui.hpp"
 #include "ECS/entities/entities.hpp"
 #include "ECS/entities/methods.hpp"
 #include "utils/Log.hpp"
@@ -213,6 +212,7 @@ struct Controller {
 class PlayerControls {
 public:
     MouseState mouse;
+    bool mouseClicked; // mouse was clicked this update
     Vec2 mouseWorldPos;
     Keyboard keyboard = {};
     Controller controller = {};
@@ -277,6 +277,7 @@ public:
     */
     void updateState() {
         mouse = getMouseState();
+        mouseClicked = false;
         mouseWorldPos = camera.pixelToWorld(glm::vec2(mouse.x, mouse.y));
     }
 

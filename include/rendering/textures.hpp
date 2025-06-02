@@ -207,7 +207,8 @@ namespace TextureTypes {
 }
 
 struct TextureArray {
-    My::DenseSparseSet<TextureID, int, TextureIDs::NumTextures> textureDepths;
+    using Set = My::DenseSparseSet<TextureID, int, Uint16, TextureIDs::NumTextures>;
+    Set textureDepths;
     glm::ivec2 size; // width and height of each texture
     int depth; // z number of textures
     GLuint texture; // opengl texture id
@@ -217,7 +218,7 @@ struct TextureArray {
 
     TextureArray(glm::ivec2 size, int depth, GLuint texture, TextureUnit unit)
     : size(size), depth(depth), texture(texture), unit(unit) {
-        textureDepths = My::DenseSparseSet<TextureID, int, TextureIDs::NumTextures>::WithCapacity(depth);
+        textureDepths = Set::WithCapacity(depth);
     }
 
     void destroy() {
@@ -247,7 +248,7 @@ struct TextureAtlas {
             return !(min == NullCoord || max == NullCoord); // not gonna bother checking every single other one
         }
     };
-    My::DenseSparseSet<TextureID, Space, TextureIDs::NumTextures> textureSpaces;
+    My::DenseSparseSet<TextureID, Space, Uint16, TextureIDs::NumTextures> textureSpaces;
     GLuint texture;
     TextureUnit unit;
 
@@ -255,7 +256,7 @@ struct TextureAtlas {
 
     TextureAtlas(glm::ivec2 size, GLuint texture, TextureUnit unit)
     : size(size), texture(texture), unit(unit) {
-        textureSpaces = My::DenseSparseSet<TextureID, Space, TextureIDs::NumTextures>::Empty();
+        textureSpaces = decltype(textureSpaces)::Empty();
     }
 
     void destroy() {

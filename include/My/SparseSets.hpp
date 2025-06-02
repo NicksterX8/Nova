@@ -232,14 +232,14 @@ public:
     }
 };
 
-template<typename Key, typename Value, Key MaxKeyValue>
+template<typename Key, typename Value, typename Index, Key MaxKeyValue>
 struct DenseSparseSet {
     static_assert(std::is_integral<Key>::value, "Key must be usable as index!");
     static_assert(MaxKeyValue > 0, "Max key value cannot be 0 or negative!");
-    using Self = DenseSparseSet<Key, Value, MaxKeyValue>;
+    using Self = DenseSparseSet<Key, Value, Index, MaxKeyValue>;
 protected:
     using SizeT = int32_t;
-    using Index = SmallestUintToHoldNum<(size_t)MaxKeyValue+1>;
+    static constexpr size_t MaximumCapacity = std::numeric_limits<Index>::max();
     static constexpr Index NullIndex = std::numeric_limits<Index>::max();
 
     SizeT size; // number of elements in the map
@@ -310,7 +310,7 @@ public:
         size++;
     }
 
-    void insert(Key key) {
+    Value* insert(Key key) {
         assertValidKey(key);
         if (UNLIKELY(size > capacity)) {
             reallocate(MAX(size+1, capacity*2));
@@ -321,6 +321,7 @@ public:
         assert(set[key] == NullIndex && "Attempted to insert key already present in sparse set");
         set[key] = index;
         size++;
+        return &values[index];
     }
 
     // returns the beginning of the range of values for the keys
@@ -398,87 +399,6 @@ public:
         Free(keys);
     }
 };
-
-/*
-template<typename Key, typename Value>
-struct DenseSparseSet {
-    using Size_T = int;
-    static_assert(std::is_integral<Key>::value, "Sparse map key must integral type to be used as an index");
-    //using Key = int;
-    //using Value = T;
-    using Index = int;
-    static constexpr Index NullIndex = -1;
-
-    Index *indices; // sparse
-    Value *values;  // dense | access by Index found using sparse set
-    Key   *keys;    // dense
-    Size_T denseSize;
-    Size_T denseCapacity;
-    Size_T maxKeyValue;
-    
-    DenseSparseSet() = default;
-
-    DenseSparseSet(int sparseSize) : sparseSize(sparseSize) {
-        for (int i = 0; i < sparseSize; i++) {
-            sparse[i] = NullIndex;
-        }
-        // alloc dense and sparse and stuff
-    }
-
-    Index getIndex(Key key) {
-        if (key < 0 || key >= sparseSize)
-            return NullIndex;
-        return sparse[key];
-    }
-
-    Value* getValue(Index index) {
-        if (index != NullIndex)
-            return &dense[index];
-        return nullptr;
-    }
-
-    Value* lookup(Key key) {
-        return getValue(getIndex(index));
-    }
-
-    Index insert(Key key, Value value) {
-        if (denseSize >= denseCapacity) {
-            // resize
-        }
-
-        // maybe check if it already exists
-
-        Index index = denseSize;
-        dense[index] = value;
-        keys[index] = key;
-        sparse[key] = index;
-        return index;
-    }
-
-    // @return Whether the entry corresponding to the key was actually removed
-    bool remove(Key key) {
-        auto index = getIndex(key);
-        if (index == NullIndex) return false; // no entry existed for the key
-        auto* removedValue = getValue(index);
-        auto lastIndex = denseSize-1;
-        auto* lastValue = getValue(lastIndex);
-        auto lastKey = keys[lastIndex];
-
-        if (removedValue && lastValue)
-            memcpy(removedValue, lastValue, sizeof(Value));
-        denseSize--;
-
-        sparse[key] = NullIndex;
-        sparse[lastKey] = index;
-
-        return true;
-    }
-
-    void reallocate(int size) {
-        
-    }
-};
-*/
 
 MY_CLASS_END
 

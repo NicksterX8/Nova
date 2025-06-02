@@ -136,11 +136,14 @@ public:
 
     constexpr size_t count() const {
         size_t c = 0;
-        for (size_t i = 0; i < N; i++) {
-            if (bits[i/IntegerBits] & (1 << (i%IntegerBits))) {
+        for (size_t i = 0; i < nInts; i++) {
+            IntegerT n = bits[i];
+            while (n != 0) {
+                n = n & (n - 1);
                 c++;
             }
         }
+        
         return c;
     }
 
@@ -156,6 +159,15 @@ public:
         Self result;
         for (size_t i = 0; i < nInts; i++) {
             result.bits[i] = bits[i] & rhs.bits[i];
+        }
+        return result;
+    }
+
+    constexpr Self operator&(IntegerT rhs) const {
+        Self result;
+        result.bits[0] = bits[0] & rhs;
+        for (size_t i = 1; i < nInts; i++) {
+            result.bits[i] = 0;
         }
         return result;
     }
