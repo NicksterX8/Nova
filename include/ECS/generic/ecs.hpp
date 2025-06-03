@@ -255,6 +255,20 @@ struct ElementManager {
         }
     }
 
+    template<class Query, class Func>
+    void forEachElement(Query query, Func func) const {
+        for (Uint32 i = 0; i < components.pools.size; i++) {
+            auto& pool = components.pools[i];
+            auto signature = pool.archetype.signature;
+            if (query(signature)) {
+                for (Uint32 e = 0; e < pool.elements.size; e++) {
+                    Element element = pool.elements[e];
+                    func(element);
+                }
+            }
+        }
+    }
+
     template<class C, class Func>
     void forEachComponent(Func func) const {
         for (Uint32 i = 0; i < components.pools.size; i++) {
@@ -273,7 +287,8 @@ struct ElementManager {
     }
 
     Element newElement(PrototypeID prototype) {
-        return components.newElement(prototype);
+        Element element = components.newElement(prototype);
+        return element;
     }
 
     inline const Prototype* getPrototype(PrototypeID type) const {

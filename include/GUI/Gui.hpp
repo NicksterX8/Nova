@@ -14,23 +14,6 @@ struct GuiRenderer;
 
 namespace GUI {
 
-class Hotbar {
-public:
-    SDL_FRect rect; // the rectangle outline of the hotbar, updated every time draw() is called
-    My::Vec<SDL_FRect> slots; // the rectangle outlines of the hotbar slots, updated every time draw() is called
-
-    Hotbar() {
-        rect = {0, 0, 0, 0};
-        slots = My::Vec<SDL_FRect>::Empty();
-    }
-
-    SDL_FRect draw(GuiRenderer& renderer, const Player* player, const ItemManager& itemManager);
-
-    void destroy() {
-        slots.destroy();
-    }
-};
-
 struct Console {
     enum class MessageType {
         Default,
@@ -243,27 +226,58 @@ struct Console {
 
 struct Gui {
     My::Vec<SDL_FRect> area = My::Vec<SDL_FRect>(0);
-    Hotbar hotbar;
     Console console = {};
 
     GuiManager manager;
 
     Gui() {}
 
-    void updateGuiState(const PlayerControls& playerControls) {
-        GUI::update(manager, playerControls);
+    void updateHotbar(const Player& player, const ItemManager& itemManager) {
+        auto hotbarElement = manager.getNamedElement("hotbar");
+
+        auto* inventory = player.inventory();
+
+        // my hotbar
+        for (int i = 0; i < player.numHotbarSlots; i++) {
+            char slotName[64];
+            snprintf(slotName, 64, "hotbar-slot-%d", i);
+            Element slot = manager.getNamedElement(slotName);
+
+            ItemStack stack = inventory->get(i);
+
+            auto textureEc = manager.getComponent<EC::SimpleTexture>(slot);
+            auto textEc = manager.getComponent<EC::Text>(slot);
+
+            auto* displayIec = itemManager.getComponent<ITC::Display>(stack.item);
+            ItemQuantity stackSize = items::getStackSize(stack.item, itemManager);
+
+            if (textureEc) {
+                textureEc->texture = displayIec ? displayIec->inventoryIcon : TextureIDs::Null;
+            }
+
+            if (textEc && stack.quantity != 0 && stackSize != 1) {
+                auto str = string_format("%d", stack.quantity);
+                strcpy(textEc->text, str.c_str());
+            } else {
+                strcpy(textEc->text, "");
+            }
+        }
+    }
+
+    std::vector<GameAction> updateGuiState(const GameState* gameState, const PlayerControls& playerControls) {
+        updateHotbar(gameState->player, gameState->itemManager);
+        return GUI::update(manager, playerControls);
     }
 
     void draw(GuiRenderer& renderer, const FRect& viewport, const Player* player, const ItemManager& itemManager, const PlayerControls& playerControls) {
-        area.size = 0;
-        SDL_FRect hotbarArea = hotbar.draw(renderer, player, itemManager);
+       
         const auto* heldItemStack = &player->heldItemStack;
         if (heldItemStack) {
             const ItemStack* item = heldItemStack->get();
-            if (item && !item->empty())
+            if (item && !item->empty()) {
                 drawHeldItemStack(renderer, itemManager, *item, playerControls.mousePixelPos());
+            }
         }
-        area.push(hotbarArea);
 
         GUI::renderElements(manager, renderer, playerControls);
     }
@@ -282,11 +296,20 @@ struct Gui {
 
     void destroy() {
         area.destroy();
-        hotbar.destroy();
         console.destroy();
         manager.destroy();
     }
 };
+
+inline void makeGuiPrototypes(GuiManager& gui) {
+    auto& pm = gui.prototypes;
+
+    auto normal = Prototypes::Normal(pm);
+    auto epic = Prototypes::Epic(pm);
+
+    pm.add(normal);
+    pm.add(epic);
+}
 
 }
 

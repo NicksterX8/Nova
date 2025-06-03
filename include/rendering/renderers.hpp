@@ -7,6 +7,7 @@
 #include "llvm/ArrayRef.h"
 #include "rendering/utils.hpp"
 #include "textures.hpp"
+#include "text.hpp"
 
 struct ColorVertex {
     glm::vec3 position;
@@ -30,7 +31,7 @@ struct QuadRenderer {
 
     /* member variables */
     GlModel model;
-    My::Vec<Quad> buffer;
+    My::Vec<Quad>* buffer;
 
     /* Consts */
     static const GLuint maxQuadsPerBatch = 2048;
@@ -51,9 +52,15 @@ struct QuadRenderer {
     /* Constructors */
     QuadRenderer() {}
 
-    // TODO: change this to static init() maybe
-    QuadRenderer(int nothing) {
-        this->buffer = My::Vec<Quad>::WithCapacity(512);
+    QuadRenderer(My::Vec<Quad>* buffer) {
+        /*
+        if (!buffer) {
+            this->buffer = Alloc<My::Vec<Quad>>(1);
+            *this->buffer = My::Vec<Quad>::WithCapacity(512);
+        } else {
+            this->buffer = buffer;
+        }
+        */
 
         auto vertexFormat = GlMakeVertexFormat(0, {
             {3, GL_FLOAT, sizeof(GLfloat)}, // pos
@@ -75,7 +82,7 @@ struct QuadRenderer {
 
     // fastest
     void render(ArrayRef<Quad> quads) {
-        buffer.push(quads);
+        buffer->push(quads);
     }
 
     void render(ArrayRef<ColorVertex> vertices) {
@@ -90,16 +97,16 @@ struct QuadRenderer {
                 quad[p].color = vertices[vertex].color;
                 quad[p].texCoord = NullCoord;
             }
-            buffer.push(quad);
+            buffer->push(quad);
         }
     }
     
     Quad* renderManual(GLuint quadCount) {
-        return buffer.require(quadCount);
+        return buffer->require(quadCount);
     }
 
     void flush(Shader shader, const glm::mat4& transform, TextureUnit texture) {
-        if (buffer.empty()) return;
+        if (buffer->empty()) return;
 
         shader.use();
         shader.setInt("tex", texture);
@@ -109,20 +116,20 @@ struct QuadRenderer {
         glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
 
         // buffer all the data now
-        glBufferData(GL_ARRAY_BUFFER, buffer.size * sizeof(Quad), buffer.data, GL_STREAM_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, buffer->size * sizeof(Quad), buffer->data, GL_STREAM_DRAW);
         // batch size is limited by the index buffer size
         int quadsFlushed = 0;
-        while (quadsFlushed < buffer.size) {
-            int batchSize = MIN(maxQuadsPerBatch, buffer.size);
+        while (quadsFlushed < buffer->size) {
+            int batchSize = MIN(maxQuadsPerBatch, buffer->size);
             glDrawElements(GL_TRIANGLES, 6 * batchSize, GL_UNSIGNED_INT, (void*)(6UL * quadsFlushed));
             quadsFlushed += batchSize;
         }
-        buffer.clear();
+        buffer->clear();
     }
 
     void destroy() {
         model.destroy();
-        buffer.destroy();
+        buffer->destroy();
     }
 };
 

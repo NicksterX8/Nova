@@ -1,4 +1,4 @@
-#ifndef RENDERING_UTILS_INCLUDED
+ #ifndef RENDERING_UTILS_INCLUDED
 #define RENDERING_UTILS_INCLUDED
 
 #include "../sdl.hpp"

@@ -322,8 +322,9 @@ CharacterLayoutData formatText(const Font* font, const char* text, int textLengt
     return layout;
 }
 
-TextRenderer TextRenderer::init(Font* defaultFont) {
+TextRenderer TextRenderer::init(Font* defaultFont, My::Vec<TextRenderBatch>* buffer) {
     TextRenderer self;
+    self.buffer = buffer;
     self.defaultFont = defaultFont;
 
     self.model = GlGenModel();
@@ -336,13 +337,13 @@ TextRenderer TextRenderer::init(Font* defaultFont) {
         {2, GL_FLOAT, sizeof(GLfloat)} // scale
     });
 
-    assert(vertexFormat.totalSize() == sizeof(Vertex));
+    assert(vertexFormat.totalSize() == sizeof(GlyphVertex));
 
     vertexFormat.enable();
     
     GlBufferData(
         GL_ARRAY_BUFFER, 
-        {maxBatchSize * 4 * sizeof(Vertex), 
+        {maxBatchSize * 4 * sizeof(GlyphVertex), 
         nullptr, 
         GL_STREAM_DRAW});
     GlBufferData(
@@ -358,15 +359,6 @@ TextRenderer TextRenderer::init(Font* defaultFont) {
     self.defaultColor = {0,0,0,0};
     self.defaultFormatting = FormattingSettings::Default();
     self.defaultRendering = RenderingSettings();
-
-    /*
-    if (font) {
-        self.characterTexCoords = Alloc<std::array<TexCoord, 4>>(font->numChars()); 
-        self.calculateCharacterTexCoords();
-    } else {
-        LogError("No font provided for text renderer");
-    }
-    */
 
     return self;
 }
@@ -423,16 +415,14 @@ TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength
             }
         }
 
-        // only make a batch if theres something to render
-        //if (layout.characters.size() > 0 || maxSize.x > 0 || maxSize.y > 0) { 
         if (layout.characters.size() > 0) {
             TextRenderLayout batchLayout = {
-                .characterOffsets = std::move(layout.characterOffsets),
-                .characters = std::move(layout.characters),
+                .characterOffsets =  My::Vec<glm::vec2>(layout.characterOffsets.data(), layout.characterOffsets.size()),
+                .characters = My::Vec<char>(layout.characters.data(), layout.characters.size()),
                 .origin = layout.origin
             };
-            auto dimensions = My::Vec<TextRenderBatch::CharacterDimensions>::WithCapacity(batchLayout.characters.size());
-            for (int i = 0; i < batchLayout.characters.size(); i++) {
+            auto dimensions = My::Vec<TextRenderBatch::CharacterDimensions>::WithCapacity(layout.characters.size());
+            for (int i = 0; i < batchLayout.characters.size; i++) {
                 dimensions.push({
                     .size = {font->size(batchLayout.characters[i])},
                     .bearing = {font->bearing(batchLayout.characters[i])}
@@ -446,7 +436,7 @@ TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength
                 .scales = My::Vec<glm::vec2>::Filled(1, scale)
             };
             
-            buffer.push_back(batch);
+            buffer->push(batch);
         }
 
         textParsed += batchSize;
@@ -465,15 +455,15 @@ TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength
     return RenderResult(outputSize);
 }
 
-void TextRenderer::renderBatch(const TextRenderBatch* batch, Vertex* verticesOut) const {
+void renderBatch(const TextRenderBatch* batch, GlyphVertex* verticesOut, int bufferSize) {
     const Font* font = batch->font;
     if (!font) {
         LogError("No font in batch!");
     }
     
     const auto& layout = batch->layout;
-    const auto count = layout.characters.size();
-    assert(count < maxBatchSize && "Batch too large!");
+    const auto count = layout.characters.size;
+    assert(count * 4 <= bufferSize && "Batch too large!");
     for (size_t i = 0; i < count; i++) {
         char c = layout.characters[i];
         glm::vec2 offset = layout.characterOffsets[i];
@@ -513,7 +503,7 @@ void TextRenderer::renderBatch(const TextRenderBatch* batch, Vertex* verticesOut
 
         // scale *= font->currentScale;
 
-        const Vertex vertices[] = {
+        const GlyphVertex vertices[] = {
             {{x,  y},  {tx, ty2}, color, scale},
             {{x,  y2}, {tx, ty}, color, scale},
             {{x2, y2}, {tx2, ty}, color, scale},
@@ -524,24 +514,18 @@ void TextRenderer::renderBatch(const TextRenderBatch* batch, Vertex* verticesOut
     }
 }
 
-void TextRenderer::flush(glm::mat4 transform) {
-   /*
-    // check if the precalculated texture coords have been invalidated by a change of scale
-    if (font->currentScale != this->texCoordScale) {
-        calculateCharacterTexCoords();
-    }*/
-
+void flushTextBatches(MutableArrayRef<TextRenderBatch> buffer, GlModel model, const glm::mat4& transform, int maxBatchSize) {
     glBindVertexArray(model.vao);
     glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
 
     unsigned int maxCharacters = 0;
     for (auto& batch : buffer) {
-        int batchCharacters = batch.layout.characters.size();
+        int batchCharacters = batch.layout.characters.size;
         assert(batchCharacters < maxBatchSize && "Character batch too large!");
         maxCharacters = MAX(batchCharacters, maxCharacters);
     }
     const GLuint maxVertices = maxCharacters * 4;
-    glBufferData(GL_ARRAY_BUFFER, maxVertices * sizeof(Vertex), NULL, GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, maxVertices * sizeof(GlyphVertex), NULL, GL_STREAM_DRAW);
 
     // TODO: For merging batches to help performance
         /*
@@ -558,31 +542,23 @@ void TextRenderer::flush(glm::mat4 transform) {
         }
         */
 
-
-
     for (int i = 0; i < buffer.size(); i++) {
         auto* batch = &buffer[i];
         Shader textShader = batch->font->shader;
         textShader.use();
         textShader.setMat4("transform", transform);
         textShader.setInt("text", batch->font->textureUnit);
-        /*
-        const auto* batchFont = batch->font;
-        if (batchFont && batchFont != font) {
-            setFont(batchFont);
-            textShader.setInt("text", batchFont->textureUnit);
-        }
-        */
 
-        auto* vertexBuffer = (Vertex*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-        renderBatch(batch, vertexBuffer);
+        auto* vertexBuffer = (GlyphVertex*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+        renderBatch(batch, vertexBuffer, maxBatchSize);
         glUnmapBuffer(GL_ARRAY_BUFFER);
 
-        glDrawElements(GL_TRIANGLES, 6 * batch->layout.characters.size(), GL_UNSIGNED_SHORT, NULL);
+        glDrawElements(GL_TRIANGLES, 6 * batch->layout.characters.size, GL_UNSIGNED_SHORT, NULL);
         batch->dimensions.destroy();
         batch->colors.destroy();
         batch->scales.destroy();
+        batch->layout.characters.destroy();
+        batch->layout.characterOffsets.destroy();
     }
-    buffer.clear();
     GL::logErrors();
 }

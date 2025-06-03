@@ -15,27 +15,40 @@ namespace RenderModes {
 
 using RenderModes::RenderMode;
 
-using GuiHeight = int;
-constexpr GuiHeight GuiDefaultHeight = 0;
+using GuiRenderLevel = int;
+constexpr GuiRenderLevel GuiNumLevels = 16;
 
-namespace GuiHeights {
-    enum {
-        
-    };
-}
+struct RenderBufferLevel {
+    My::Vec<QuadRenderer::Quad> quads;
+    My::Vec<TextRenderBatch> text;
+};
+
+constexpr int GuiNullRenderLevel = -1;
 
 struct GuiRenderer {
     QuadRenderer* quad;
     TextRenderer* text;
+    GuiRenderLevel defLevel;
     TextureAtlas guiAtlas;
     RenderOptions options;
+
+    My::Vec<RenderBufferLevel> levels;
 
     using Color = SDL_Color;
 
     GuiRenderer() {}
 
     GuiRenderer(QuadRenderer* quadRenderer, TextRenderer* textRenderer, TextureAtlas guiAtlas, RenderOptions options)
-    : quad(quadRenderer), text(textRenderer), guiAtlas(guiAtlas), options(options) {}
+    : quad(quadRenderer), text(textRenderer), defLevel(0), guiAtlas(guiAtlas), options(options) {
+        levels = My::Vec<RenderBufferLevel>::WithCapacity(GuiNumLevels);
+        for (int i = 0; i < GuiNumLevels; i++) {
+            RenderBufferLevel level = {
+                My::Vec<QuadRenderer::Quad>::Empty(),
+                My::Vec<TextRenderBatch>::Empty()
+            };
+            levels.push(level);
+        }
+    }
 
     float textScale() const {
         return 1.0f; // scale is already factored into font sizes
@@ -61,8 +74,58 @@ struct GuiRenderer {
         return q;
     }
 
+    RenderBufferLevel& getLevel(int level) {
+        if (level == GuiNullRenderLevel) {
+            level = defLevel;
+        } else if (level >= GuiNumLevels) {
+            LogError("Level too high!");
+            level = GuiNumLevels-1;
+        } else if (level < 0) {
+            LogError("Invalid level!");
+            level = 0;
+        }
+        return levels[level];
+    }
+
+    void setQuadLevel(GuiRenderLevel level) {
+        quad->buffer = &getLevel(level).quads;
+    }
+
+    void setTextLevel(GuiRenderLevel level) {
+        text->buffer = &getLevel(level).text;
+    }
+
+    void setLevel(GuiRenderLevel level) {
+        setQuadLevel(level);
+        setTextLevel(level);
+    }
+
+    void renderQuad(const QuadRenderer::Quad& q, int level = GuiNullRenderLevel) {
+        setQuadLevel(level);
+        quad->render(q);
+    }
+
+    struct TextRenderCommand {
+        const char* text;
+        int textLength;
+        glm::vec2 pos;
+        TextFormattingSettings formatSettings;
+        TextRenderingSettings renderSettings;
+    };
+
+    /*
+    void renderText(const TextRenderCommand& command, int level) {
+        text->buffer = &getLevel(level).text;
+        text->render(command);
+    }
+    */
+    void renderText(const char* message, glm::vec2 pos, const TextFormattingSettings& formatSettings, const TextRenderingSettings& renderSettings, GuiRenderLevel level = GuiNullRenderLevel) {
+        setTextLevel(level);
+        text->render(message, pos, formatSettings, renderSettings);
+    }
+
     // texture will only be rendered if it's a gui type texture
-    void sprite(TextureID texture, const FRect& rect) {
+    void sprite(TextureID texture, const FRect& rect, GuiRenderLevel level = GuiNullRenderLevel) {
         auto space = getTextureAtlasSpace(&guiAtlas, texture);
         if (!space.valid()) return;
         auto min = space.min;
@@ -73,7 +136,7 @@ struct GuiRenderer {
             {max.x, max.y},
             {max.x, min.y}
         }});
-        quad->render(q);
+        renderQuad(q, level);
     }
 
     struct ColorRect {
@@ -81,7 +144,7 @@ struct GuiRenderer {
         Color color;
     };
 
-    void colorRect(FRect rect, Color color) {
+    void colorRect(FRect rect, Color color, GuiRenderLevel level = GuiNullRenderLevel) {
         auto _quad = QuadRenderer::Quad{{
             {glm::vec3{rect.x, rect.y, 0}, color, QuadRenderer::NullCoord},
             {glm::vec3{rect.x, rect.y + rect.h, 0}, color, QuadRenderer::NullCoord},
@@ -89,10 +152,10 @@ struct GuiRenderer {
             {glm::vec3{rect.x + rect.w, rect.y, 0}, color, QuadRenderer::NullCoord}
         }};
 
-        quad->render(_quad);
+        renderQuad(_quad, level);
     }
 
-    void colorRect(glm::vec2 min, glm::vec2 max, SDL_Color color, int depth = 0) {
+    void colorRect(glm::vec2 min, glm::vec2 max, SDL_Color color, GuiRenderLevel level = GuiNullRenderLevel) {
         auto _quad = QuadRenderer::Quad{{
             {glm::vec3{min.x, min.y, 0}, color, QuadRenderer::NullCoord},
             {glm::vec3{min.x, max.y, 0}, color, QuadRenderer::NullCoord},
@@ -100,10 +163,10 @@ struct GuiRenderer {
             {glm::vec3{max.x, min.y, 0}, color, QuadRenderer::NullCoord}
         }};
 
-        quad->render(_quad);
+        renderQuad(_quad, level);
     }
 
-    void texRect(glm::vec2 min, glm::vec2 max, QuadRenderer::TexCoord texCoord) {
+    void texRect(glm::vec2 min, glm::vec2 max, QuadRenderer::TexCoord texCoord, GuiRenderLevel level = GuiNullRenderLevel) {
         constexpr SDL_Color color = {255, 255, 255, 255};
         auto _quad = QuadRenderer::Quad{{
             {glm::vec3{min.x, min.y, 0}, color, texCoord},
@@ -112,20 +175,20 @@ struct GuiRenderer {
             {glm::vec3{max.x, min.y, 0}, color, texCoord}
         }};
 
-        quad->render(_quad);
+        renderQuad(_quad, level);
     }
 
-    void rectOutline(glm::vec2 min, glm::vec2 max, Color color, float strokeIn, float strokeOut) {
-        colorRect({min.x - strokeOut, min.y - strokeOut}, {max.x - strokeIn,  min.y + strokeIn},  color);
-        colorRect({max.x - strokeIn,  min.y - strokeOut}, {max.x + strokeOut, max.y - strokeIn},  color);
-        colorRect({max.x + strokeOut, max.y - strokeIn},  {min.x + strokeIn,  max.y + strokeOut}, color);
-        colorRect({min.x - strokeOut, max.y + strokeOut}, {min.x + strokeIn,  min.y + strokeIn},  color);
+    void rectOutline(glm::vec2 min, glm::vec2 max, Color color, float strokeIn, float strokeOut, GuiRenderLevel level = GuiNullRenderLevel) {
+        colorRect({min.x - strokeOut, min.y - strokeOut}, {max.x - strokeIn,  min.y + strokeIn},  color, level);
+        colorRect({max.x - strokeIn,  min.y - strokeOut}, {max.x + strokeOut, max.y - strokeIn},  color, level);
+        colorRect({max.x + strokeOut, max.y - strokeIn},  {min.x + strokeIn,  max.y + strokeOut}, color, level);
+        colorRect({min.x - strokeOut, max.y + strokeOut}, {min.x + strokeIn,  min.y + strokeIn},  color, level);
     }
 
-    void rectOutline(FRect rect, Color color, float strokeIn, float strokeOut) {
+    void rectOutline(FRect rect, Color color, float strokeIn, float strokeOut, GuiRenderLevel level = GuiNullRenderLevel) {
         glm::vec2 min = {rect.x, rect.y};
         glm::vec2 max = {rect.x + rect.w, rect.y + rect.h};
-        rectOutline(min, max, color, strokeIn, strokeOut);
+        rectOutline(min, max, color, strokeIn, strokeOut, level);
     }
 
     float alignmentOffsetFraction(HoriAlignment alignment) const {
@@ -165,14 +228,18 @@ struct GuiRenderer {
 
         auto rect = addBorder(textRect, padding);
         colorRect(rect, backgroundColor);
-
     }
 
     void flush(const ShaderManager& shaders, const glm::mat4& transform) {
         auto quadShader = shaders.use(Shaders::Quad);
         quadShader.setVec2("texSize", glm::vec2(guiAtlas.size));
-        quad->flush(quadShader, transform, guiAtlas.unit);
-        text->flush(transform);
+
+        for (int i = 0; i < GuiNumLevels; i++) {
+            setQuadLevel(i);
+            quad->flush(quadShader, transform, guiAtlas.unit);
+            setTextLevel(i);
+            text->flush(transform);
+        }
     }
 
     void destroy() {

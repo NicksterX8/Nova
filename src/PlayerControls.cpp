@@ -48,16 +48,31 @@ bool PlayerControls::pixelInWorld(glm::vec2 pixel) {
     return clickInDisplay && !clickOnGui;
 }
 
-void PlayerControls::handleClick(const SDL_MouseButtonEvent& event) {
+std::vector<GameAction> PlayerControls::handleClick(const SDL_MouseButtonEvent& event) {
+    LogInfo("click");
+
     mouseClicked = true;
+
+    std::vector<GameAction> actions;
+
+    glm::vec2 mousePos = mousePixelPos();
+
+    bool mouseClickedOnNewGui = false;
+
+    GUI::Element hoveredGuiElement = game->gui->manager.hoveredElement;
+    if (hoveredGuiElement != GUI::NullElement) {
+        mouseClickedOnNewGui = true;
+        if (auto* button = game->gui->manager.getComponent<GUI::EC::Button>(hoveredGuiElement)) {
+            actions.push_back(guiActionToGameAction(button->onClick, hoveredGuiElement));
+        }
+    }
 
     // mouse event coordinates are reported in pixel points, which are not representative of actual pixels
     // on high DPI displays, so we scale it by the pixel scale to get actual pixels.
     //SDL_Point mousePos = {(int)(event.x * SDL::pixelScale), (int)(event.y * SDL::pixelScale)};
     //Vec2 worldPos = camera.pixelToWorld(mousePos.x, mousePos.y);
-    glm::vec2 mousePos = mousePixelPos();
     bool clickInDisplay = pointInRect(mousePos, camera.displayViewport);
-    bool clickOnGui = game->gui->pointInArea(mousePos);
+    bool clickOnGui = game->gui->pointInArea(mousePos) || mouseClickedOnNewGui;
     bool clickInWorld = clickInDisplay && !clickOnGui;
     Tile* selectedTile = getTileAtPosition(game->state->chunkmap, mouseWorldPos);
     if (event.button == SDL_BUTTON_LEFT) {
@@ -68,38 +83,7 @@ void PlayerControls::handleClick(const SDL_MouseButtonEvent& event) {
             if (clickOnGui) {
                 // click counted as on gui, not world.
                 // trigger gui stuff
-                // find clicked hotbar slot (if it was a click on a hotbar slot)
-                for (int slot = 0; slot < game->state->player.numHotbarSlots; slot++) {
-                    SDL_FRect slotRect = game->gui->hotbar.slots[slot];
-                    if (pointInRect(mousePos, slotRect)) {
-                        // click was on slot
-                        ItemStack* stack = &game->state->player.inventory()->get(slot);
-                        if (game->state->player.heldItemStack) {
-                            // set held stack down in slot only if actually holding stack and if slot is empty
-                            if (stack->empty()) {
-                                *stack = *game->state->player.heldItemStack.get();
-                                *game->state->player.heldItemStack.get() = ItemStack::None();
-                                game->state->player.heldItemStack = ItemHold();
-                                game->state->player.selectedHotbarStack = -1;
-                            } else {
-                                bool combined = items::combineStacks(stack, game->state->player.heldItemStack.get(),game->state->itemManager);
-                                if (combined) {
-                                    
-                                } else {
-                                    // stop holding item but dont move anything
-                                }
-
-                                
-                            }
-                        } else {
-                            game->state->player.pickupItem(*stack);
-                            game->state->player.selectHotbarSlot(slot);
-                            *stack = ItemStack::None();
-                            this->justGrabbedItem = true;
-                        }
-                        break;
-                    }
-                }
+               
             } else {
                 // World click
                 ItemStack* heldItemStack = game->state->player.heldItemStack.get();
@@ -107,9 +91,10 @@ void PlayerControls::handleClick(const SDL_MouseButtonEvent& event) {
                 auto& itemMgr = game->state->itemManager;
 
                 if (game->state->player.isHoldingItem()) {
+
                     if (itemMgr.elementHas<ITC::Placeable>(heldItemStack->item)) {
                         placeItem(heldItemStack, mouseWorldPos);
-                    } 
+                    }
                     if (itemMgr.elementHas<ITC::Usable>(heldItemStack->item)) {
                         auto usable = itemMgr.getComponent<ITC::Usable>(heldItemStack->item);
                         auto onUse = usable->onUse;
@@ -146,6 +131,8 @@ void PlayerControls::handleClick(const SDL_MouseButtonEvent& event) {
             }
         }
     }
+
+    return actions;
 }
 
 void PlayerControls::leftMouseHeld(const MouseState& mouse) {
@@ -351,13 +338,14 @@ void PlayerControls::update() {
     }
 }
 
-void PlayerControls::handleEvent(const SDL_Event* event) {
+std::vector<GameAction> PlayerControls::handleEvent(const SDL_Event* event) {
+    std::vector<GameAction> actions;
     switch (event->type) {
     case SDL_KEYDOWN:
         handleKeydown(event->key);
         break;
     case SDL_MOUSEBUTTONDOWN:
-        handleClick(event->button);
+        actions = handleClick(event->button);
         break;
     case SDL_MOUSEBUTTONUP:
         this->justGrabbedItem = false;
@@ -375,6 +363,8 @@ void PlayerControls::handleEvent(const SDL_Event* event) {
     default:
         break;
     }
+
+    return actions;
 }
 
 void PlayerControls::doPlayerMovementTick() {

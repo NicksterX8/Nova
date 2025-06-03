@@ -99,6 +99,7 @@ namespace Entities {
         //using EntityT<ENTITY_ITEMSTACK_COMPONENTS>::EntityT;
         ItemStack(EntityWorld* ecs, Vec2 position, ::ItemStack item, const ItemManager& itemManager) : EntityT<ENTITY_ITEMSTACK_COMPONENTS>(ecs, "itemstack") {
             MARK_START_ENTITY_CREATION(ecs);
+            Add<EC::Position>(ecs, {position});
             Add<EC::ViewBox>(ecs, {Box{Vec2(0), Vec2(1)}});
             Add<EC::ItemStack>(ecs, {item});
             Add<EC::Grabable>(ecs, {item});

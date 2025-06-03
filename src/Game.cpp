@@ -609,7 +609,10 @@ int Game::handleEvent(const SDL_Event* event) {
         break;
     }
 
-    playerControls->handleEvent(event);
+    auto actions = playerControls->handleEvent(event);
+    for (auto& action : actions) {
+        action.function(this);
+    }
     return code;
 }
 
@@ -701,6 +704,11 @@ int Game::update() {
         {camera.pixelWidth, camera.pixelHeight},
         scale
     };
+
+    std::vector<GameAction> guiActions = gui->updateGuiState(state, *playerControls);
+    for (auto& action : guiActions) {
+        action.function(this);
+    }
 
     render(*renderContext, options, gui, state, camera, *playerControls, mode, true); 
 

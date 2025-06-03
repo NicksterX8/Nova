@@ -320,8 +320,8 @@ struct TextRenderingSettings {
 
 struct TextRenderLayout {
     glm::vec2 origin;
-    llvm::SmallVector<char> characters;
-    llvm::SmallVector<glm::vec2> characterOffsets;
+    My::Vec<char> characters;
+    My::Vec<glm::vec2> characterOffsets;
 };
 
 struct TextRenderBatch {
@@ -342,17 +342,29 @@ struct TextRenderBatch {
     TextRenderLayout layout;
 };
 
+struct GlyphVertex {
+    glm::vec2 pos;
+    glm::vec2 texCoord;
+    SDL_Color color;
+    glm::vec2 scale;
+};
+
+// param bufferSize: size of verticesOut buffer in number of glyph vertices
+void renderBatch(const TextRenderBatch* batch, GlyphVertex* verticesOut, int bufferSize);
+// maxBatchSize: in number of characters
+void flushTextBatches(MutableArrayRef<TextRenderBatch> buffer, GlModel model, const glm::mat4& transform, int maxBatchSize);
+
 struct TextRenderer {
     using FormattingSettings = TextFormattingSettings;
     using RenderingSettings = TextRenderingSettings;
 
     const Font* defaultFont = nullptr;
 
-    llvm::SmallVector<TextRenderBatch, 0> buffer;
+    My::Vec<TextRenderBatch>* buffer;
     // index with character index found by subtracting font->firstChar from char,
     // like this: characterTexCoords['a' - font->firstChar]
     using TexCoord = glm::vec2;
-    std::array<TexCoord, 4>* characterTexCoords = nullptr; // atlas 
+
     float texCoordScale = NAN;
     FormattingSettings defaultFormatting;
     RenderingSettings defaultRendering;
@@ -361,15 +373,9 @@ struct TextRenderer {
 
     constexpr static int maxBatchSize = 5000;
 
-    struct Vertex {
-        glm::vec2 pos;
-        TexCoord texCoord;
-        SDL_Color color;
-        glm::vec2 scale;
-    };
-    static_assert(sizeof(Vertex) == sizeof(glm::vec2) + sizeof(TexCoord) + sizeof(SDL_Color) + sizeof(glm::vec2), "no struct padding");
+    static_assert(sizeof(GlyphVertex) == sizeof(glm::vec2) + sizeof(TexCoord) + sizeof(SDL_Color) + sizeof(glm::vec2), "no struct padding");
 
-    static TextRenderer init(Font* defaultFont);
+    static TextRenderer init(Font* defaultFont, My::Vec<TextRenderBatch>* buffer);
 
     struct RenderResult {
         FRect rect; // rect that text will be rendered to
@@ -397,16 +403,15 @@ struct TextRenderer {
     }
 
     inline RenderResult render(const char* text, glm::vec2 pos, const TextFormattingSettings& formatSettings, const TextRenderingSettings& renderSettings, glm::vec2* outCharPositions = nullptr) {
-        return render(text, strlen(text), pos, formatSettings, renderSettings, outCharPositions);
+        return render(text, text ? strlen(text) : 0, pos, formatSettings, renderSettings, outCharPositions);
     }
 
     RenderResult render(const char* text, int textLength, glm::vec2 pos, const TextFormattingSettings& formatSettings, RenderingSettings renderSettings, glm::vec2* outCharPositions = nullptr);
 
-private:
-    void renderBatch(const TextRenderBatch* batch, Vertex* verticesOut) const;
-public:
-
-    void flush(glm::mat4 transform);
+    void flush(const glm::mat4& transform) {
+        flushTextBatches(MutableArrayRef<TextRenderBatch>(buffer->data, buffer->size), model, transform, maxBatchSize);
+        buffer->clear();
+    }
 
     FRect renderStringBufferAsLinesReverse(const My::StringBuffer& strings, int maxLines, glm::vec2 pos,
         FormattingSettings formatSettings, RenderingSettings renderSettings,
@@ -439,7 +444,6 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER, this->model.vbo);
         glUnmapBuffer(GL_ARRAY_BUFFER);
         this->model.destroy();
-        Free(characterTexCoords);
     }
 };
 

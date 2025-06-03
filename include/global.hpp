@@ -9,6 +9,7 @@
 struct Globals {
     unsigned int debugTexture = 0;
     glm::vec2 playerMovement = {NAN, NAN};
+    bool mouseClickedOnGui = false;
 };
 
 extern Globals g;

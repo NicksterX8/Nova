@@ -1,11 +1,13 @@
 # TODO
 
+Need to know when mouse is on gui and not.
+Make function for it
+
+elements may need component for being click-through (like a container that isn't actually visible)
+or maybe just an 'non-visible' component so we know
+
 stuff:
 Items need to be stored canonically so there is only one ecs element per unique item type + variations. Item elements aren't just made willy nilly
-
-merge branches and push
-
-do gui height rework
 
 
 

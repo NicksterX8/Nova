@@ -126,13 +126,15 @@ struct Player {
 
         selectedHotbarStack = index;
         auto* slot = &inventory()->get(index);
-        if (!slot->empty()) {
-            heldItemStack = ItemHold(*slot);
+        if (!slot->empty()) { 
+            if (heldItemStack.type != ItemHold::Value) {
+                heldItemStack = ItemHold(ItemHold::Inventory, ItemHold::DataType(slot));
+            }
         }
     }
 
     bool isHoldingItem() {
-        return heldItemStack.type != ItemHold::Null;
+        return (bool)heldItemStack;
     }
 
     bool pickupItem(const ItemStack& stack) {

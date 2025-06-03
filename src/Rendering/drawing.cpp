@@ -392,7 +392,6 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
     textShader.use();
     textShader.setMat4("transform", screenTransform);
 
-    gui->updateGuiState(playerControls);
     gui->draw(guiRenderer, {0, 0, guiRenderer.options.size.x, guiRenderer.options.size.y}, &state->player, state->itemManager, playerControls);
 
     //textRenderer.setFont(&ren.font);

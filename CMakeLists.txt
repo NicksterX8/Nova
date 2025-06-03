@@ -19,6 +19,7 @@ set(SRC_FILES
     ${SD}/global.cpp
     ${SD}/sdl.cpp
     ${SD}/memory.cpp
+    ${SD}/actions.cpp
     ${SD}/utils/Log.cpp
     ${SD}/utils/Metadata.cpp
     ${SD}/utils/Debug.cpp

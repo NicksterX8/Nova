@@ -13,6 +13,7 @@
 #include "My/String.hpp"
 #include "Camera.hpp"
 #include "commands.hpp"
+#include "actions.hpp"
 
 struct Game;
 /* Mouse Stuff */
@@ -237,7 +238,7 @@ public:
         return {mouse.x, camera.pixelHeight - mouse.y};
     }
 
-    void handleClick(const SDL_MouseButtonEvent& event);
+    std::vector<GameAction> handleClick(const SDL_MouseButtonEvent& event);
 
     void leftMouseHeld(const MouseState& mouse);
 
@@ -283,7 +284,7 @@ public:
 
     void update();
 
-    void handleEvent(const SDL_Event* event);
+    std::vector<GameAction> handleEvent(const SDL_Event* event);
 
     void destroy() {
         keyboard.destroy();

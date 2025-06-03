@@ -3,15 +3,16 @@
 
 #include "rendering/textures.hpp"
 #include "utils/vectors.hpp"
-#include "ecs-gui.hpp"
 #include "rendering/text.hpp"
 #include "ECS/generic/components.hpp"
+#include "actions.hpp"
 
 namespace GUI {
 
 namespace EC {
 
 using ComponentID = GECS::ComponentID;
+
 
 /*
 Types of elements:
@@ -33,7 +34,7 @@ text
 */
 
 namespace ComponentIDs {
-    #define GUI_REGULAR_COMPONENTS_LIST SimpleTexture, Background, Border, ViewBox, MaxSize, MinSize, Button, Text, ChildOf, Hover
+    #define GUI_REGULAR_COMPONENTS_LIST Name, SimpleTexture, Numbered, Background, Border, ViewBox, Hidden, MaxSize, MinSize, Button, Text, ChildOf, Hover, SizeConstraint, AlignmentConstraint
     #define GUI_PROTO_COMPONENTS_LIST PlaceholderPr 
     #define GUI_COMPONENTS_LIST GUI_REGULAR_COMPONENTS_LIST, GUI_PROTO_COMPONENTS_LIST
     GEN_IDS(ComponentIDs, ComponentID, GUI_COMPONENTS_LIST, Count);
@@ -54,19 +55,19 @@ namespace ComponentIDs {
 
 #define END_PROTO_COMPONENT(name) }; static_assert(true | ComponentIDs::name, "Checking for id");
 
-using Action = Uint32;
-
 BEGIN_COMPONENT(Button)
-    Action onClick;
+    GuiAction onClick;
     bool clickedThisFrame;
     bool pressed; // if the button is down
 
-    Button(Action onClick) : onClick(onClick), clickedThisFrame(false), pressed(false) {
+    Button(GuiAction onClick) : onClick(onClick), clickedThisFrame(false), pressed(false) {
 
     }
 END_COMPONENT(Button)
 
-
+BEGIN_COMPONENT(Name)
+    char name[64];
+END_COMPONENT(Name)
 
 BEGIN_COMPONENT(MaxSize)
     IVec2 maxSize;
@@ -79,14 +80,17 @@ END_COMPONENT(MinSize)
 BEGIN_COMPONENT(Hover)
     bool changeColor;
     SDL_Color newColor;
-    Action onHover;
+    GuiAction onHover; // when an element is first hovered on (first frame its on it)
 END_COMPONENT(Hover)
 
 BEGIN_COMPONENT(ViewBox)
     Box box; // relative box
     Box absolute; // where element was actually displayed
-    int depth;
+    int level;
 END_COMPONENT(ViewBox)
+
+BEGIN_COMPONENT(Hidden)
+END_COMPONENT(Hidden)
 
 BEGIN_COMPONENT(Background)
     SDL_Color color;
@@ -103,14 +107,28 @@ BEGIN_COMPONENT(SimpleTexture)
 END_COMPONENT(SimpleTexture)
 
 BEGIN_COMPONENT(ChildOf)
-    Element parent;
+    GECS::Element parent;
 END_COMPONENT(ChildOf)
 
 BEGIN_COMPONENT(Text)
-    const char* text;
+    char text[512];
     TextFormattingSettings formatSettings;
     TextRenderingSettings renderSettings;
 END_COMPONENT(Text)
+
+BEGIN_COMPONENT(Numbered)
+    int number;
+END_COMPONENT(Numbered)
+
+BEGIN_COMPONENT(SizeConstraint)
+    Vec2 maxSize = Vec2(INFINITY);
+    Vec2 minSize = Vec2(0.0f);
+    Vec2 relativeSize = Vec2(INFINITY); // 0 to 1
+END_COMPONENT(SizeConstraint)
+
+BEGIN_COMPONENT(AlignmentConstraint)
+    TextAlignment alignment;
+END_COMPONENT(AlignmentConstraint)
 
 BEGIN_PROTO_COMPONENT(PlaceholderPr)
     int hi;

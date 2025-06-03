@@ -405,8 +405,8 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
     initFonts(ren.fonts, ren.shaders);
     Fonts = &ren.fonts;
 
-    ren.guiTextRenderer = TextRenderer::init(ren.fonts.get("Debug"));
-    ren.worldTextRenderer = TextRenderer::init(ren.fonts.get("World"));
+    ren.guiTextRenderer = TextRenderer::init(ren.fonts.get("Debug"), nullptr);
+    ren.worldTextRenderer = TextRenderer::init(ren.fonts.get("World"), nullptr);
     ren.worldTextRenderer.defaultRendering.scale = Vec2(1/32.0f);
     GL::logErrors();
 
@@ -421,11 +421,14 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
         .scale = 1.0f
     };
     ren.guiRenderer = GuiRenderer(&ren.guiQuadRenderer, &ren.guiTextRenderer, guiAtlas, guiOptions);
+    ren.guiRenderer.setLevel(0);
+
     RenderOptions worldGuiOptions = {
         .size = {INFINITY, INFINITY},
         .scale = 1
     };
     ren.worldGuiRenderer = GuiRenderer(&ren.worldQuadRenderer, &ren.worldTextRenderer, guiAtlas, worldGuiOptions);
+    ren.worldGuiRenderer.setLevel(0);
     GL::logErrors();
 
     /* Tilemap rendering setup */
@@ -484,23 +487,6 @@ void renderQuit(RenderContext& ren) {
     ren.screenModel.destroy();
 
     destroyRenderBuffer(ren.framebuffer);
-}
-
-static llvm::SmallVector<ColorVertex, 0> makeDemoQuads() {
-    auto quadPoints = llvm::SmallVector<ColorVertex, 0>();
-    quadPoints.reserve(500 * 4);
- 
-    for (int i = 0; i < 500; i++) {
-        Vec2 min = {randomInt(-100, 100), randomInt(-100, 100)};
-        Vec2 max = min + Vec2{randomInt(1, 3), randomInt(1, 3)};
-        
-        quadPoints.push_back({glm::vec3(min.x, min.y, 0.0f), randomColor()});
-        quadPoints.push_back({glm::vec3(min.x, max.y, 0.0f), randomColor()});
-        quadPoints.push_back({glm::vec3(max.x, max.y, 0.0f), randomColor()});
-        quadPoints.push_back({glm::vec3(max.x, min.y, 0.0f), randomColor()});
-    }
-
-    return quadPoints;
 }
 
 static void renderTexture(Shader textureShader, GLuint texture) {
@@ -771,12 +757,8 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     }
     */
 
-    ren.guiRenderer.text->render("default font", {250, 250});
     auto settings = TextRenderingSettings({255, 0, 0, 255});
     settings.font = ren.fonts.get("World");
-    auto result = ren.guiRenderer.text->render("Times New Roman", {500, 250}, settings);
-    ren.guiRenderer.colorRect(result.rect, {0, 0, 255, 125});
-    ren.guiRenderer.flush(ren.shaders, screenTransform);
 
 
     ren.worldGuiRenderer.flush(ren.shaders, worldTransform);
@@ -799,6 +781,7 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     ren.guiRenderer.options = options;
 
     Draw::drawGui(ren, camera, screenTransform, gui, state, controls);
+
     GL::logErrors();
 
     //renderTexture(ren.shaders.get(Shaders::Texture), ren.font.atlasTexture);

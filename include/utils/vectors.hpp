@@ -94,4 +94,8 @@ inline IVec2 vecFloori(Vec2 vec) {
     return {(int)floor(vec.x), (int)floor(vec.y)};
 }
 
+inline Box* rectAsBox(FRect* box) {
+    return (Box*)box;
+}
+
 #endif

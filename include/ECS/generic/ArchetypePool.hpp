@@ -3,6 +3,8 @@
 
 #include <array>
 #include "llvm/ArrayRef.h"
+#include "My/SparseSets.hpp"
+#include "My/HashMap.hpp"
 #include "My/Bitset.hpp"
 #include "utils/ints.hpp"
 #include "ECS/Entity.hpp"

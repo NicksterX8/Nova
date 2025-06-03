@@ -54,7 +54,7 @@ struct None : ItemPrototype {
 
 struct SandGun : ItemPrototype {
     SandGun(PrototypeManager& manager) : ItemPrototype(manager.New(IDs::SandGun)) {
-        add<ITC::StackSize>({64});
+        add<ITC::StackSize>({1});
         add<ITC::Usable>({onUse, false});
     }
 

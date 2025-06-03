@@ -6,78 +6,32 @@
 #include "rendering/text.hpp"
 #include "rendering/context.hpp"
 #include "PlayerControls.hpp"
+#include "actions.hpp"
 
 namespace GUI {
 
-namespace ElementTypes {
-    enum {
-        Normal,
-        Epic,
-        Count
-    };
-}
-
-namespace Prototypes {
-
-    struct Normal : Prototype {
-        Normal(GECS::PrototypeManager& manager) : Prototype(manager.New(ElementTypes::Normal)) {
-
-        }
-    };
-
-    struct Epic : Prototype {
-        Epic(GECS::PrototypeManager& manager) : Prototype(manager.New(ElementTypes::Normal)) {
-            
-        }
-    };
-
-}
-
-inline void makeGuiPrototypes(GuiManager& gui) {
-    auto& pm = gui.prototypes;
-
-    auto normal = Prototypes::Normal(pm);
-    auto epic = Prototypes::Epic(pm);
-
-    pm.add(normal);
-    pm.add(epic);
-}
-
-namespace Actions {
-enum ActionEnum {
-    KillEveryone,
-    MakeTheSkyBlue
-};
-}
-
-inline void doAction(EC::Action action) {
-    switch (action) {
-    case Actions::MakeTheSkyBlue:
-        LogInfo("The sky is blue noe1!");
-        break;
-    default:
-        break;
-    }
-}
-
-inline Element boxElement(GuiManager& gui, Box box) {
-    auto e = gui.newElement(ElementTypes::Normal);
+inline Element boxElement(GuiManager& gui, Box box, SDL_Color backgroundColor) {
+    auto e = gui.newElement(ElementTypes::Normal, gui.screen);
     gui.addComponent(e, EC::ViewBox{box});
-    gui.addComponent(e, EC::Background({{150,150,150,255}}));
+    gui.addComponent(e, EC::Background({backgroundColor}));
     gui.addComponent(e, EC::Border({{155,255,255,255}, 2.0f}));
+    gui.addComponent(e, EC::Hover({
+        true, {200, 50, 50, 255},
+        0
+    }));
     return e;
 }
 
-inline Element funButton(GuiManager& gui, EC::Action onClick) {
-    auto e = gui.newElement(ElementTypes::Normal);
-    gui.addComponent(e, EC::ViewBox{Box{{110.0f, 50.0f}, {300.0f, 100.0f}}});
-    gui.addComponent(e, EC::Background({{0,0,0,255}}));
+inline Element funButton(GuiManager& gui, Vec2 pos, Vec2 size, SDL_Color backgroundColor, TextAlignment textAlign, GuiAction onClick) {
+    auto e = gui.newElement(ElementTypes::Normal, gui.screen);
+    gui.addComponent(e, EC::ViewBox{Box{pos, size}});
+    gui.addComponent(e, EC::Background({backgroundColor}));
     gui.addComponent(e, EC::Border({{255,255,255,255}, 2.0f}));
     gui.addComponent(e, EC::Button(onClick));
     gui.addComponent(e, EC::Text({
         "Do something!",
-        TextFormattingSettings(TextAlignment::MiddleCenter),
-        TextRenderingSettings({255,255,255,255})
+        TextFormattingSettings(textAlign),
+        TextRenderingSettings({255,255,255,255}, Vec2(0.3f))
     }));
     gui.addComponent(e, EC::Hover({
         true, {50, 50, 250, 255},
