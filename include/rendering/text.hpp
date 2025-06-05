@@ -160,6 +160,7 @@ struct Font {
         return face->size->metrics.ascender >> 6;
     }
 
+    // negative value
     FT_Int descender() const {
         assert(face);
         return face->size->metrics.descender >> 6;
@@ -250,14 +251,14 @@ struct TextFormattingSettings {
     TextAlignment align = TextAlignment::TopLeft;
     float maxWidth = INFINITY;
     float maxHeight = INFINITY;
-    float sizeOffsetScale = 0.0f;
+    float sizeOffsetScale = 0.0f; // never actually used currently. maybe remove??
     bool wrapOnWhitespace = true;
 
     TextFormattingSettings() = default;
 
-    TextFormattingSettings(
-        TextAlignment alignment, float maxWidth = INFINITY, float maxHeight = INFINITY)
-        : align(alignment), maxWidth(maxWidth), maxHeight(maxHeight) {}
+    // TextFormattingSettings(
+    //     TextAlignment alignment, float maxWidth = INFINITY, float maxHeight = INFINITY)
+    //     : align(alignment), maxWidth(maxWidth), maxHeight(maxHeight) {}
 
 private:
     using Self = TextFormattingSettings;
@@ -281,14 +282,15 @@ struct CharacterLayoutData {
 CharacterLayoutData formatText(const Font* font, const char* text, int textLength, TextFormattingSettings settings, glm::vec2 scale);
 
 // handle horizontal alignment by shifting line to correct position on the x axis
-inline void alignLineHorizontally(MutableArrayRef<glm::vec2> offsets, float originOffset, HoriAlignment align) {
+inline void alignLineHorizontally(MutableArrayRef<glm::vec2> offsets, float originOffset, float paragraphWidth, HoriAlignment align) {
     if (align != HoriAlignment::Left) {
+        float width = originOffset;
         // shift whole line over to correct alignment location (center or right)
         float lineMovement = 0.0f;
         if (align == HoriAlignment::Right) {
-            lineMovement = 1.0f * originOffset;
+            lineMovement = 1.0f * width;
         } else if (align == HoriAlignment::Center) {
-            lineMovement = 0.5f * originOffset;
+            lineMovement = 0.5f * width;
         }
         for (int j = 0; j < offsets.size(); j++) {
             offsets[j].x -= lineMovement;
@@ -304,6 +306,7 @@ struct TextRenderingSettings {
     glm::vec2 scale = glm::vec2(-1.0f);
     bool orderMatters = false;
 
+    /*
     TextRenderingSettings() = default;
 
     TextRenderingSettings(const Font* font, SDL_Color color, glm::vec2 scale = glm::vec2(-1.0f))
@@ -316,6 +319,7 @@ struct TextRenderingSettings {
     : color(color), scale(scale) {}
 
     TextRenderingSettings(glm::vec2 scale) : scale(scale) {}
+    */
 };
 
 struct TextRenderLayout {
@@ -385,7 +389,7 @@ struct TextRenderer {
         RenderResult(FRect outputRect)
          : rect(outputRect) {}
 
-        static RenderResult BadRender(glm::vec2 pos) {
+        static RenderResult BadRender(glm::vec2 pos = {0, 0}) {
             return RenderResult(FRect{pos.x, pos.y, 0, 0});
         }
     };
@@ -409,6 +413,7 @@ struct TextRenderer {
     RenderResult render(const char* text, int textLength, glm::vec2 pos, const TextFormattingSettings& formatSettings, RenderingSettings renderSettings, glm::vec2* outCharPositions = nullptr);
 
     void flush(const glm::mat4& transform) {
+        if (!buffer) return;
         flushTextBatches(MutableArrayRef<TextRenderBatch>(buffer->data, buffer->size), model, transform, maxBatchSize);
         buffer->clear();
     }
@@ -417,6 +422,8 @@ struct TextRenderer {
         FormattingSettings formatSettings, RenderingSettings renderSettings,
         My::Vec<SDL_Color> colors = My::Vec<SDL_Color>::Empty()
     ) {
+        if (!buffer) return {0,0,0,0};
+
         glm::vec2 scale = renderSettings.scale;
         FRect maxRect = {pos.x,pos.y,0,0};
         glm::vec2 offset = {0, 0};

@@ -15,7 +15,7 @@ namespace IDs = ItemTypes;
 using namespace ITC::Proto;
 
 struct Tile : public ItemPrototype {
-    Tile(PrototypeManager& manager) : ItemPrototype(manager.New<>(ItemTypes::Tile)) {
+    Tile(PrototypeManager& manager) : ItemPrototype(manager.New(ItemTypes::Tile)) {
         add<ITC::StackSize>({64});
     }
 
@@ -29,7 +29,7 @@ struct Tile : public ItemPrototype {
 };
 
 struct Grenade : public items::ItemPrototype {
-    Grenade(PrototypeManager& manager) : ItemPrototype(manager.New<>(ItemTypes::Grenade)) {
+    Grenade(PrototypeManager& manager) : ItemPrototype(manager.New(ItemTypes::Grenade)) {
         add<ITC::StackSize>({64});
         add<ITC::Fuel>({100.0f, 20.0f});
         add<ITC::Edible>({.hungerValue = 1.0f, .saturation = 2.0f});

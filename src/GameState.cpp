@@ -420,7 +420,6 @@ bool placeEntityOnTile(EntityWorld* ecs, Tile* tile, Entity entity) {
 }
 
 void forEachEntityInRange(const ComponentManager<EC::ViewBox>& ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, const std::function<int(EntityT<EC::ViewBox>)>& callback) {
-    int nCheckedEntities = 0;
     radius = abs(radius);
     float radiusSqrd = radius * radius;
 
@@ -458,7 +457,6 @@ void forEachEntityInRange(const ComponentManager<EC::ViewBox>& ecs, const ChunkM
                 float distSqrd = delta.x * delta.x + delta.y * delta.y;
                 if (distSqrd < radiusSqrd) {
                     // entity is within radius
-                    nCheckedEntities++;
                     if (callback(closeEntity)) {
                         return;
                     }

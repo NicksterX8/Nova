@@ -36,6 +36,9 @@ void GUI::Gui::drawHeldItemStack(GuiRenderer& renderer, const ItemManager& itemM
     pos = Vec2{bottomLeft.x, bottomLeft.y + Fonts->get("Gui")->descender() * textScale} + renderer.pixels({2.5f, 5.0f});
     if (items::getStackSize(itemStack.item, itemManager) != 1) {
     renderer.text->render(string_format("%d", itemStack.quantity).c_str(), pos,
-        TextFormattingSettings(TextAlignment::BottomLeft), TextRenderingSettings(Fonts->get("Gui"), {0,0,0,255}, Vec2(textScale)));
+        TextFormattingSettings{
+            .align = TextAlignment::BottomLeft}, 
+        TextRenderingSettings{
+            .font = Fonts->get("Gui"), .color = {0,0,0,255}, .scale = Vec2(textScale)});
     }
 }

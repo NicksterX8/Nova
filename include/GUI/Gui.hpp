@@ -237,6 +237,8 @@ struct Gui {
 
         auto* inventory = player.inventory();
 
+        static char slotText[64][9];
+
         // my hotbar
         for (int i = 0; i < player.numHotbarSlots; i++) {
             char slotName[64];
@@ -257,16 +259,126 @@ struct Gui {
 
             if (textEc && stack.quantity != 0 && stackSize != 1) {
                 auto str = string_format("%d", stack.quantity);
-                strcpy(textEc->text, str.c_str());
+                strcpy(slotText[i], str.c_str());
             } else {
-                strcpy(textEc->text, "");
+                strcpy(slotText[i], "");
             }
+
+            textEc->text = slotText[i];
         }
     }
 
     std::vector<GameAction> updateGuiState(const GameState* gameState, const PlayerControls& playerControls) {
         updateHotbar(gameState->player, gameState->itemManager);
         return GUI::update(manager, playerControls);
+    }
+
+    void drawConsole(GuiRenderer& renderer) {
+
+        auto* consoleView = manager.getComponent<EC::ViewBox>(manager.getNamedElement("console"));
+
+        float scale = renderer.options.scale;
+        bool showLog = console.promptOpen || Metadata->seconds() - console.timeLastMessageSent < CONSOLE_LOG_NEW_MESSAGE_OPEN_DURATION;
+        if (!showLog && console.activeMessage.empty()) {
+            consoleView->hide = true;
+            return;
+        } else {
+            consoleView->hide = false;
+        }
+        
+        auto* logViewEc = manager.getComponent<EC::ViewBox>(manager.getNamedElement("console-log"));
+        if (showLog && logViewEc) {
+            logViewEc->hide = false;
+            
+            TextFormattingSettings logFormatting{
+                .align = TextAlignment::BottomLeft,
+                .maxWidth = 300,
+                .wrapOnWhitespace = false
+            };
+            TextRenderingSettings logRenderingSettings {
+                .font = Fonts->get("Debug"),
+                .scale = Vec2(0.5f)
+            };
+            float messageSpacing = logRenderingSettings.font->height() * 0.25f;
+            Vec2 pos = logViewEc->absolute.min;
+            for (int i = console.log.size()-1; i >= 0; i--) {
+                const Console::LogMessage& message = console.log[i];
+                logRenderingSettings.color = message.color;
+                auto result = renderer.renderText(message.text.c_str(), pos, logFormatting, logRenderingSettings, logViewEc->level);
+                pos.y += result.rect.h + messageSpacing;
+            }
+        } else {
+            logViewEc->hide = true;
+        }
+        
+        SDL_Color terminalTextColor = {255,255,255,255};
+
+        Element consoleTerminal = manager.getNamedElement("console-terminal");
+        EC::ViewBox* terminalViewEc = manager.getComponent<EC::ViewBox>(consoleTerminal);
+        const std::string& activeMessage = console.activeMessage;
+
+        TextFormattingSettings terminalTextFormatting{
+            .align = TextAlignment::BottomLeft,
+            .maxWidth = renderer.options.size.x,
+            .wrapOnWhitespace = false
+        };
+        const Font* terminalFont = Fonts->get("Debug");
+        float terminalFontScale = 0.75;
+        TextRenderingSettings terminalTextRenderSettings{
+            .color = terminalTextColor,
+            .scale = Vec2(terminalFontScale),
+            .font = terminalFont
+        };
+
+        bool showTerminal = console.promptOpen;
+        if (showTerminal) {
+            terminalViewEc->hide = false;
+
+            Vec2* characterPositions = Alloc<Vec2>(activeMessage.size());
+            auto textRect = renderer.renderText(activeMessage.c_str(), terminalViewEc->absolute.min, terminalTextFormatting, terminalTextRenderSettings, terminalViewEc->level, characterPositions).rect;
+            terminalViewEc->box = *rectAsBox(&textRect);
+            if (terminalViewEc->box.size.y < terminalFont->height() * terminalFontScale) {
+                terminalViewEc->box.size.y = terminalFont->height() * terminalFontScale;
+            }
+
+            Vec2 selectedCharPos = terminalViewEc->absolute.min;
+            int selectedCharIndex = console.selectedCharIndex;
+            
+            // in the middle case
+            if (selectedCharIndex >= 0 && selectedCharIndex < activeMessage.size()) {
+                selectedCharPos = characterPositions[selectedCharIndex];
+                if (selectedCharIndex > 0) {
+                    selectedCharPos = characterPositions[selectedCharIndex-1];
+                    selectedCharPos.x += terminalFont->advance(activeMessage.back()) * terminalFontScale;
+                }
+            // end case
+            } else if (activeMessage.size() > 0 && selectedCharIndex == activeMessage.size()) {
+                selectedCharPos = characterPositions[activeMessage.size()-1];
+                selectedCharPos.x += terminalFont->advance(activeMessage.back()) * terminalFontScale;
+            }
+            // for case where message is empty
+            if (activeMessage.size() > 0) {
+                selectedCharPos.y += terminalFont->descender() * terminalFontScale;
+            }
+
+            Box cursor = {
+                selectedCharPos,
+                {renderer.pixels(2.0f), terminalFont->height() * terminalFontScale}
+            };
+            
+            // render cursor
+            constexpr double flashDelay = 0.5;
+            static double timeTilFlash = flashDelay;
+            constexpr double flashDuration = 0.5;
+            timeTilFlash -= Metadata->frame.deltaTime / 1000.0; // subtract time in seconds from time
+            double secondsSinceCursorMove = Metadata->seconds() - console.timeLastCursorMove;
+            if (secondsSinceCursorMove < flashDuration) timeTilFlash = -secondsSinceCursorMove;
+            if (timeTilFlash < 0.0) {
+                renderer.colorRect(cursor, terminalTextColor, terminalViewEc->level);
+            }
+        } else {
+            terminalViewEc->hide = true;
+        }
     }
 
     void draw(GuiRenderer& renderer, const FRect& viewport, const Player* player, const ItemManager& itemManager, const PlayerControls& playerControls) {
@@ -280,6 +392,9 @@ struct Gui {
         }
 
         GUI::renderElements(manager, renderer, playerControls);
+
+        drawConsole(renderer);
+        
     }
 
     void drawHeldItemStack(GuiRenderer& renderer, const ItemManager& itemManager, const ItemStack& itemStack, glm::vec2 pos);

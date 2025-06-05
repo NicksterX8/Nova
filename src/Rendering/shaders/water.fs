@@ -84,11 +84,11 @@ void main() {
     //
     // Liquid glass, wax or ice, with sun glow?
     
-    vec3 col = vec3(n*n)*(vec3(.25, .5, 1.)*bump*.2 + vec3(1., .4, .2)*bump2*.2 + .5);
+    //vec3 col = vec3(n*n)*(vec3(.25, .5, 1.)*bump*.2 + vec3(1., .4, .2)*bump2*.2 + .5);
     // Fake jade.
     //vec3 col = vec3(n*n*0.7, n, n*n*0.4)*n*n*(vec3(0.25, 0.5, 1.)*bump*.2 + vec3(1)*bump2*.2 + .75);
     // Cheap fire palette.
-    //vec3 col = pow(vec3(1.5, 1, 1)*n, vec3(2, 5, 24))*.8 + vec3(0.25, 0.5, 1.)*(bump + bump2)*.05;
+    vec3 col = pow(vec3(1.5, 1, 1)*n, vec3(2, 5, 24))*.8 + vec3(0.25, 0.5, 1.)*(bump + bump2)*.05;
     // Not sure. :)
     //vec3 col = n*n*(vec3(1, .7, .6)*vec3(bump, (bump + bump2)*.4, bump2)*.2 + .7);
     // etc.

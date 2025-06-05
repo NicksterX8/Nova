@@ -34,7 +34,9 @@ text
 */
 
 namespace ComponentIDs {
-    #define GUI_REGULAR_COMPONENTS_LIST Name, SimpleTexture, Numbered, Background, Border, ViewBox, Hidden, MaxSize, MinSize, Button, Text, ChildOf, Hover, SizeConstraint, AlignmentConstraint
+    #define GUI_REGULAR_COMPONENTS_LIST Name, SimpleTexture, Numbered, Background, \
+        Border, ViewBox, Hidden, MaxSize, MinSize, Button, Text, ChildOf, Hover, \
+        SizeConstraint, AlignmentConstraint, StackConstraint
     #define GUI_PROTO_COMPONENTS_LIST PlaceholderPr 
     #define GUI_COMPONENTS_LIST GUI_REGULAR_COMPONENTS_LIST, GUI_PROTO_COMPONENTS_LIST
     GEN_IDS(ComponentIDs, ComponentID, GUI_COMPONENTS_LIST, Count);
@@ -56,17 +58,14 @@ namespace ComponentIDs {
 #define END_PROTO_COMPONENT(name) }; static_assert(true | ComponentIDs::name, "Checking for id");
 
 BEGIN_COMPONENT(Button)
-    GuiAction onClick;
-    bool clickedThisFrame;
-    bool pressed; // if the button is down
-
-    Button(GuiAction onClick) : onClick(onClick), clickedThisFrame(false), pressed(false) {
-
-    }
+    GuiAction onClick = nullptr;
+    bool pressed = false; // if the button is down
 END_COMPONENT(Button)
 
+#define GUI_ELEMENT_MAX_NAME_SIZE 64
+
 BEGIN_COMPONENT(Name)
-    char name[64];
+    char name[GUI_ELEMENT_MAX_NAME_SIZE];
 END_COMPONENT(Name)
 
 BEGIN_COMPONENT(MaxSize)
@@ -78,15 +77,16 @@ BEGIN_COMPONENT(MinSize)
 END_COMPONENT(MinSize)
 
 BEGIN_COMPONENT(Hover)
-    bool changeColor;
-    SDL_Color newColor;
-    GuiAction onHover; // when an element is first hovered on (first frame its on it)
+    bool changeColor = false;
+    SDL_Color newColor = {0,0,0,0};
+    GuiAction onHover = nullptr; // when an element is first hovered on (first frame its on it)
 END_COMPONENT(Hover)
 
 BEGIN_COMPONENT(ViewBox)
-    Box box; // relative box
-    Box absolute; // where element was actually displayed
-    int level;
+    Box box = {{0,0},{0,0}}; // relative box
+    Box absolute = {{0,0},{0,0}}; // where element was actually displayed
+    int level = 0;
+    bool hide = false;
 END_COMPONENT(ViewBox)
 
 BEGIN_COMPONENT(Hidden)
@@ -97,27 +97,28 @@ BEGIN_COMPONENT(Background)
 END_COMPONENT(Background)
 
 BEGIN_COMPONENT(Border)
-    SDL_Color color;
-    float thickness; // pixels
+    SDL_Color color = {0,0,0,0};
+    Vec2 strokeIn = {0,0};
+    Vec2 strokeOut = {0,0};
 END_COMPONENT(Border);
 
 BEGIN_COMPONENT(SimpleTexture)
-    TextureID texture;
-    Box texBox;
+    TextureID texture = TextureIDs::Null;
+    Box texBox = {{0,0},{0,0}};
 END_COMPONENT(SimpleTexture)
 
 BEGIN_COMPONENT(ChildOf)
-    GECS::Element parent;
+    GECS::Element parent = GECS::NullElement;
 END_COMPONENT(ChildOf)
 
 BEGIN_COMPONENT(Text)
-    char text[512];
+    const char* text = nullptr;
     TextFormattingSettings formatSettings;
     TextRenderingSettings renderSettings;
 END_COMPONENT(Text)
 
 BEGIN_COMPONENT(Numbered)
-    int number;
+    int number = -1;
 END_COMPONENT(Numbered)
 
 BEGIN_COMPONENT(SizeConstraint)
@@ -129,6 +130,12 @@ END_COMPONENT(SizeConstraint)
 BEGIN_COMPONENT(AlignmentConstraint)
     TextAlignment alignment;
 END_COMPONENT(AlignmentConstraint)
+
+BEGIN_COMPONENT(StackConstraint)
+    bool horizontal = false;
+    bool vertical = false;
+END_COMPONENT(StackConstraint)
+
 
 BEGIN_PROTO_COMPONENT(PlaceholderPr)
     int hi;

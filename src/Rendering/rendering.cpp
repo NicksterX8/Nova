@@ -142,7 +142,6 @@ int renderTilemap(RenderContext& ren, const Camera& camera, ChunkMap* chunkmap) 
     ren.shaders.use(Shaders::Tilemap);
 
     int numRenderedChunks = 0;
-    int drawCalls = 0;
 
     auto& chunkModel = ren.chunkModel;
     glBindVertexArray(chunkModel.vao);
@@ -200,7 +199,6 @@ int renderTilemap(RenderContext& ren, const Camera& camera, ChunkMap* chunkmap) 
             vertexTexCoords = (GLushort*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
             chunksBuffered = 0;
-            drawCalls++;
         }
 
         size_t index = chunksBuffered;
@@ -222,7 +220,6 @@ int renderTilemap(RenderContext& ren, const Camera& camera, ChunkMap* chunkmap) 
     if (chunksBuffered > 0) {
         glDrawArrays(GL_POINTS, 0, chunksBuffered * numChunkVerts);
         chunksBuffered = 0;
-        drawCalls++;
     }
     
 
@@ -340,7 +337,7 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
 
     Font* defaultFont = newFont(
         FileSystem.assets.get("fonts/HelloGraduationSans.ttf"),
-        48,
+        32,
         false,
         firstChar, endChar,
         1,
@@ -350,7 +347,7 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
     );
     Font* debugFont = newFont(
         FileSystem.assets.get("fonts/Cascadia.ttf"),
-        48, // size
+        32, // size
         true, // use sdfs?
         firstChar, endChar, // first char (space), last char
         1, // scale
@@ -360,7 +357,7 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
     );
     Font* worldFont = newFont(
         FileSystem.assets.get("fonts/Papyrus.ttf"),
-        48,
+        32,
         true,
         32, 127,
         1,
@@ -371,7 +368,7 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
 
     Font* guiFont = newFont(
         FileSystem.assets.get("fonts/factorio-fonts/TitilliumWeb-SemiBold.ttf"),
-        24,
+        12,
         false,
         firstChar,
         endChar,
@@ -757,14 +754,14 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     }
     */
 
-    auto settings = TextRenderingSettings({255, 0, 0, 255});
+    auto settings = TextRenderingSettings{.color = {255, 0, 0, 255}};
     settings.font = ren.fonts.get("World");
 
 
     ren.worldGuiRenderer.flush(ren.shaders, worldTransform);
     ren.worldGuiRenderer.text->render("HI", {5, 5});
     ren.worldGuiRenderer.text->render("This is roboto", {-5, -5},
-        TextRenderingSettings(Fonts->get("tester"), {255, 255, 0, 255}));
+        TextRenderingSettings{.font = Fonts->get("tester"), .color = {255, 255, 0, 255}});
     
     //ren.worldTextRenderer.flush(ren.shaders.get(Shaders::Text), worldTransform);
 

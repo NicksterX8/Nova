@@ -139,7 +139,7 @@ struct RenderSystem {
                     size.y
                 };
                 constexpr SDL_Color rectColor = {255, 0, 255, 180};
-                ren.worldGuiRenderer.rectOutline(entityRect, rectColor, 0.05f, 0.05f);
+                ren.worldGuiRenderer.rectOutline(entityRect, rectColor, Vec2(0.05f), Vec2(0.05f));
             }
         }
 
@@ -160,7 +160,7 @@ struct RenderSystem {
                     size.y
                 };
                 constexpr SDL_Color rectColor = {0, 255, 255, 180};
-                ren.worldGuiRenderer.rectOutline(entityRect, rectColor, 0.05f, 0.05f);
+                ren.worldGuiRenderer.rectOutline(entityRect, rectColor, Vec2(0.05f), Vec2(0.05f));
             }
         }
 
@@ -177,7 +177,7 @@ struct RenderSystem {
                 snprintf(message, 256, "%d", entity.id);
                 ren.worldGuiRenderer.text->render(message,
                     {min.x, max.y},
-                    TextFormattingSettings(TextAlignment::TopLeft), {}
+                    TextFormattingSettings{.align = TextAlignment::TopLeft}, {}
                 );
             }
         }

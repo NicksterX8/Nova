@@ -67,10 +67,7 @@ target_link_directories(${PROJECT_NAME} PUBLIC
     ${HLB}/sdl2_image/2.6.0/lib
     ${HLB}/freetype/2.13.3/lib
 
-    #${VLB}/glog_arm64-osx/lib
 )
-
-#${VLB}/glog_arm64-osx/include
 
 target_link_libraries(${PROJECT_NAME} sdl2 freetype sdl2_image)
 target_include_directories(${PROJECT_NAME} PUBLIC

@@ -189,13 +189,11 @@ struct ArchetypalComponentManager {
         archetype.sizes = Alloc<uint16_t>(count);
         archetype.componentOffsets = My::DenseSparseSet<ComponentID, uint16_t, uint16_t, maxComponentID>::Empty();
         uint16_t offset = 0;
-        int index = 0;
         signature.forEachSet([&](auto componentID){
             auto componentSize = (uint16_t)componentTypeInfo.size(componentID);
             archetype.componentOffsets.insert(componentID, offset);
             offset += componentSize;
             archetype.totalSize += componentSize;
-            index++;
         });
         return archetype;
     }
@@ -381,6 +379,8 @@ public:
             return nullptr;
         }
 
+        auto oldArchetypeID = data->archetype;
+
         Signature oldSignature = data->signature;
         data->signature.set(component);
 
@@ -390,12 +390,19 @@ public:
         }
 
         ArchetypePool* newArchetype = getArchetypePool(newArchetypeID);
+        if (newArchetypeID == oldArchetypeID) {
+            // tried to add component that the element already has
+            // just return the pointer to the component
+            const Uint16* offset = newArchetype->archetype.getOffset(component);
+            assert(offset && "An archetype is lying. Something went very wrong");
+            return (char*)newArchetype->getComponents(data->poolIndex) + *offset;
+        }
         int newElementIndex = newArchetype->addNew(element);
         void* newElementValue = newArchetype->getComponents(newElementIndex);
         assert(newElementValue && "couldn't make new element index!");
         
         if (data->archetype > 0) {
-            auto oldArchetype = getArchetypePool(data->archetype);
+            auto oldArchetype = getArchetypePool(oldArchetypeID);
             void* oldElementValue = oldArchetype->getComponents(data->poolIndex);
             if (oldElementValue) {
                 // copy element archetype data - if entity data is stored adjacent to component data
@@ -458,76 +465,6 @@ public:
     }
 };
 
-/*
-struct SmallComponentList {
-    using ComponentVec = My::VecTuple<ComponentID, ComponentPtr>;
-
-    ComponentVec* components;
-    Signature signature;
-
-    SmallComponentList() = default;
-
-    SmallComponentList(Signature sig) : components(nullptr), signature(sig) {
-        
-    }
-
-    SmallComponentList(Signature sig, int componentCount, const ComponentID* componentIDs, const ComponentPtr* componentPtrs) : signature(sig) {
-        if (componentCount == 0) return;
-        components = new ComponentVec(componentCount);
-        components->push(componentCount, componentIDs, componentPtrs);
-    }
-
-    int getComponentCount() const {
-        return (int)signature.count();
-    }
-
-    void makeVec(int capacity) {
-        components = new ComponentVec(capacity);
-    }
-
-    void* get(ComponentID id) const {
-        if (components) {
-            for (int c = 0; c < components->size; c++) {
-                if (components->get<ComponentID>(c) == id) {
-                    return components->get<ComponentPtr>(c);
-                }
-            }
-        }
-        return nullptr;
-    }
-
-    bool has(ComponentID id) const {
-        return signature[id];
-    }
-
-    void add(ComponentID id, void* storage) {
-        if (storage) {
-            if (!components)
-                makeVec(1);
-        }
-    }
-
-    void add(Signature componentSignature) {
-        //signature |= componentSignature;
-    }
-
-    ComponentID* ids() const {
-        if (components)
-            return components->getPointer<ComponentID>();
-        return nullptr;
-    }
-
-    ComponentPtr* ptrs() const {
-        if (components)
-            return components->getPointer<ComponentPtr>();
-        return nullptr;
-    }
-
-    void destroy() {
-
-    }
-};
-*/
 class LargeComponentList {
     using Set = My::DenseSparseSet<ComponentID, ComponentPtr, Uint16, maxComponentID>;
     Set components;

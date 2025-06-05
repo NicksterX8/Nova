@@ -52,16 +52,6 @@ Boxf overlap(const Boxf& a, const Boxf& b) {
     */
 }
 
-// return new moving box position
-Boxf collide(const Boxf* staticBox, const Boxf* movingBox, Vec2 velocity) {
-    Boxf movedBox = {movingBox[0][0] + velocity, movingBox[0][1] + velocity};
-    if (!boxesOverlap(staticBox, &movedBox)) return movedBox;
-    Boxf overlapping = {
-        
-    };
-
-}
-
 int physics_test() {
     Rectangle rect1 = {16, -5, 40, 20};
     Rectangle rect2 = {3, 7, 7, 3};

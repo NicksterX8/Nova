@@ -14,6 +14,11 @@ struct AllocListRef {
     void* buffer;
     void** allocations;
 
+    AllocListRef() {
+        buffer = nullptr;
+        allocations = nullptr;
+    }
+
     AllocListRef(void* buffer, ArrayRef<size_t> offsets) : buffer(buffer) {
         allocations = Alloc<void*>(offsets.size());
         for (int i = 0; i < offsets.size(); i++) {
@@ -156,12 +161,10 @@ struct PrototypeManager {
         prototypes.resize(numPrototypes, Prototype());
     }
 
-    template<class... Components>
-    Prototype New(PrototypeID id, Components... components) {
-        constexpr auto signature = getComponentSignature<Components...>();
-        auto componentsStorage = allocateComponents(signature);
-        auto prototype = Prototype(componentsStorage, componentInfo, id, signature);
-        FOR_EACH_VAR_TYPE(prototype.set<Components...>(components));
+    Prototype New(PrototypeID id) {
+        //constexpr auto signature = getComponentSignature<Components...>();
+        auto prototype = Prototype(AllocListRef(), componentInfo, id, {0});
+        //FOR_EACH_VAR_TYPE(prototype.set<Components>(components, ...));
         return prototype;
     }
 

@@ -82,10 +82,13 @@ struct QuadRenderer {
 
     // fastest
     void render(ArrayRef<Quad> quads) {
-        buffer->push(quads);
+        if (buffer)
+            buffer->push(quads);
     }
 
     void render(ArrayRef<ColorVertex> vertices) {
+        if (!buffer) return;
+
         int numQuads = vertices.size() / 4;
         int numVertices = numQuads * 4;
         
@@ -102,11 +105,14 @@ struct QuadRenderer {
     }
     
     Quad* renderManual(GLuint quadCount) {
-        return buffer->require(quadCount);
+        if (buffer)
+            return buffer->require(quadCount);
+        else
+            return nullptr;
     }
 
     void flush(Shader shader, const glm::mat4& transform, TextureUnit texture) {
-        if (buffer->empty()) return;
+        if (!buffer || buffer->empty()) return;
 
         shader.use();
         shader.setInt("tex", texture);
@@ -129,7 +135,8 @@ struct QuadRenderer {
 
     void destroy() {
         model.destroy();
-        buffer->destroy();
+        if (buffer)
+            buffer->destroy();
     }
 };
 

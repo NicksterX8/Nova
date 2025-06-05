@@ -34,14 +34,14 @@ void Logger::logOutputFunction(LogCategory category, LogPriority priority, const
 
     int messageLength = strlen(message);
 
-    char text[messageLength + 128];
-    sprintf(text, "%s%s", prefix, message);
+    char* text = Alloc<char>(messageLength + 128);
+    snprintf(text, messageLength+128, "%s%s", prefix, message);
 
-    char consoleMessage[messageLength + 128];
+    char* consoleMessage = Alloc<char>(messageLength + 128);
     if (useEscapeCodes)
-        sprintf(consoleMessage, "\033[%s;0;%sm%s\033[0m%c", effect, fg, text, end);
+        snprintf(consoleMessage, messageLength + 128, "\033[%s;0;%sm%s\033[0m%c", effect, fg, text, end);
     else
-        sprintf(consoleMessage, "%s%c", text, end);
+        snprintf(consoleMessage, messageLength + 128, "%s%c", text, end);
 
     switch (category) {
     using namespace LogCategories;
@@ -57,7 +57,7 @@ void Logger::logOutputFunction(LogCategory category, LogPriority priority, const
     }
 
     if (outputFile) {
-        char fileMessage[messageLength+1];
+        char* fileMessage = Alloc<char>(messageLength+1);
         strncpy(fileMessage, message, messageLength);
         fileMessage[messageLength] = '\n';
         fwrite(fileMessage, messageLength+1, 1, outputFile);

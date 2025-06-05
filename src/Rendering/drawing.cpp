@@ -141,8 +141,8 @@ void Draw::drawFpsCounter(GuiRenderer& renderer, float fps, float tps, RenderOpt
     }
     
     auto fpsRenderInfo = renderer.text->render(fpsCounter, {0, options.size.y}, 
-        TextFormattingSettings(TextAlignment::TopLeft), 
-        TextRenderingSettings(color, glm::vec2(1)));
+        TextFormattingSettings{.align = TextAlignment::TopLeft}, 
+        TextRenderingSettings{.color = color, .scale = glm::vec2(1)});
 
     {
         static char tpsCounter[128];
@@ -168,8 +168,8 @@ void Draw::drawFpsCounter(GuiRenderer& renderer, float fps, float tps, RenderOpt
         
         float offset = fpsRenderInfo.rect.x + fpsRenderInfo.rect.w + 2 * font->advance(' ');
         renderer.text->render(tpsCounter, {offset, options.size.y}, 
-            TextFormattingSettings(TextAlignment::TopLeft), 
-            TextRenderingSettings(color, glm::vec2(1.0f)));
+            TextFormattingSettings{.align = TextAlignment::TopLeft}, 
+            TextRenderingSettings{.color = color, .scale = glm::vec2(1.0f)});
     }
 }
 
@@ -201,9 +201,9 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
         int selectedCharIndex = console->selectedCharIndex;
         FRect activeMessageRect = {0, 0, activeMsgMinWidth, activeMsgMinHeight};
         if (!console->activeMessage.empty()) {
-            TextFormattingSettings formatting(TextAlignment::BottomLeft, maxWidth - activeMsgBorder.x, maxHeight - activeMsgBorder.y); // active message max width is only the screen width
+            TextFormattingSettings formatting{.align = TextAlignment::BottomLeft, .maxWidth = maxWidth - activeMsgBorder.x, .maxHeight = maxHeight - activeMsgBorder.y}; // active message max width is only the screen width
             formatting.wrapOnWhitespace = true;
-            TextRenderingSettings activeTextRendering(GUI::Console::activeTextColor, glm::vec2(scale));
+            TextRenderingSettings activeTextRendering{.color = GUI::Console::activeTextColor, .scale = glm::vec2(scale)};
             llvm::SmallVector<glm::vec2> characterPositions(console->activeMessage.size());
             auto textInfo = renderer.text->render(console->activeMessage.c_str(), activeMsgBorder, formatting, activeTextRendering, characterPositions.data());
             FRect textRect = textInfo.rect;
@@ -260,8 +260,8 @@ void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
         }
         
         Vec2 padding = renderer.pixels({15, 15});
-        auto formatting = TextFormattingSettings(TextAlignment::BottomLeft, logMaxWidth, maxHeight);
-        auto renderSettings = TextRenderingSettings(font, Vec2(scale));
+        auto formatting = TextFormattingSettings{.align = TextAlignment::BottomLeft, .maxWidth = logMaxWidth, .maxHeight = maxHeight, .wrapOnWhitespace = false};
+        auto renderSettings = TextRenderingSettings{.font = font, .scale = Vec2(scale)};
         renderer.textBox(strBuffer, 10, {0, logOffsetY}, formatting, renderSettings, logBackground, padding, {0, 0}, colors);
         colors.destroy();
         strBuffer.destroy();
@@ -323,7 +323,7 @@ void renderFontComponents(const Font* font, glm::vec2 p, GuiRenderer& renderer) 
     //renderer.rectOutline(bounds, {0, 255, 0, 100}, 2.0f, 2.0f);
     //renderer.colorRect(addBorder(bounds, glm::vec2(0.0f)), {255, 0, 0, 100});
 
-    auto result = renderer.text->render("This is some words!", {100, 400}, TextFormattingSettings(TextAlignment::TopLeft), TextRenderingSettings(font));
+    auto result = renderer.text->render("This is some words!", {100, 400}, TextFormattingSettings{.align = TextAlignment::TopLeft}, TextRenderingSettings{.font = font});
     renderer.colorRect(result.rect, {100, 0, 0, 105});
     unsigned int advance = font->advance('T');
     //auto ascender = font->ascender();
@@ -349,23 +349,10 @@ void renderFontComponents(const Font* font, glm::vec2 p, GuiRenderer& renderer) 
 
 static void testTextRendering(GuiRenderer& guiRenderer, TextRenderer& textRenderer) {
     
-    auto rect3 = textRenderer.render("This should be centered\n right in the middle", guiRenderer.options.size / 2.0f,
-        TextFormattingSettings(TextAlignment::MiddleCenter), TextRenderingSettings(glm::vec2{guiRenderer.textScale()}));
-    
-    auto rect = textRenderer.render("Bottom Right\nCorner!!p", {guiRenderer.options.size.x,0},
-        TextFormattingSettings(TextAlignment::BottomRight), TextRenderingSettings(glm::vec2{guiRenderer.textScale() * 2}));
-    //textRenderer.font->scale(3.0f);
-   auto rect1 =  textRenderer.render("Top Right\nCorner!!\n mag font, min render scale", guiRenderer.options.size,
-        TextFormattingSettings(TextAlignment::TopRight), TextRenderingSettings(glm::vec2{guiRenderer.textScale() / 3}));
-    //textRenderer.font->scale(0.5f);
-    auto rect2 = textRenderer.render("Top Left\nCorner!!\nmin font, mag render scale", {0,guiRenderer.options.size.y},
-        TextFormattingSettings(TextAlignment::TopLeft), TextRenderingSettings(glm::vec2{guiRenderer.textScale() * 2}));
+   
+    // auto rect2 = textRenderer.render("CENTERING!\n\nthis\n is moreFKDSJLFIKJSDLF\n MANNN \n THis STINKKKKKS\nmin font, mag render scale 435543 gf\nd rer df", {guiRenderer.options.size.x / 2, guiRenderer.options.size.y / 2},
+    //     TextFormattingSettings{.align = TextAlignment::MiddleCenter, .maxWidth = 400}, TextRenderingSettings{.scale = glm::vec2{guiRenderer.textScale() * 2}});
     //textRenderer.font->scale(1.0f);
-
-    guiRenderer.rectOutline(rect.rect , {255, 0, 0, 255}, 1.0f, 2.0f);
-    guiRenderer.rectOutline(rect1.rect, {255, 0, 0, 255}, 1.0f, 2.0f);
-    guiRenderer.rectOutline(rect2.rect, {255, 0, 0, 255}, 1.0f, 2.0f);
-    guiRenderer.rectOutline(rect3.rect, {255, 0, 0, 255}, 1.0f, 2.0f);
     
 
     renderFontComponents(guiRenderer.text->defaultFont, {100, 100}, guiRenderer);
@@ -398,7 +385,7 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
     Draw::drawFpsCounter(guiRenderer, (float)Metadata->fps(), (float)Metadata->tps(), guiRenderer.options);
 
     //textRenderer.setFont(&ren.debugFont);
-    Draw::drawConsole(guiRenderer, &gui->console);
+    //Draw::drawConsole(guiRenderer, &gui->console);
     //textRenderer.setFont(&ren.font);
 
     //testTextRendering(guiRenderer, textRenderer);

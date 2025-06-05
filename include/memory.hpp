@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <functional>
+#include <cassert>
 
 namespace Mem {
 

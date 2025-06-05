@@ -310,7 +310,7 @@ public:
         if (size + count > capacity) {
             // reallocate. Fortunately this makes the algorithm a lot simpler. just copy the new values in, then the old values
             int newCapacity = MAX(size + count, capacity*2);
-            T* newData = (T*)allocator.template Alloc(newCapacity * sizeof(T));
+            T* newData = (T*)allocator.Alloc(newCapacity * sizeof(T));
             // copy old data before index to range 0 - index
             memcpy(&newData[0], &data[0], index * sizeof(T));
             // copy values to range index - index + count

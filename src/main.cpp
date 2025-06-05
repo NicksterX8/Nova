@@ -24,7 +24,7 @@ void logEntitySystemInfo() {
     LogInfo("Number of systems: %d", NUM_SYSTEMS);
     const char* systemsStr = TOSTRING((SYSTEMS));
     int length = strlen(systemsStr);
-    char systemsStr2[length];
+    char *systemsStr2 = (char*)malloc(length);
     strcpy(systemsStr2, systemsStr+1);
     systemsStr2[length-2] = '\0';
 
