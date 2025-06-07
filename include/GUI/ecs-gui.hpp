@@ -4,6 +4,7 @@
 #include "ECS/generic/ecs.hpp"
 #include "components.hpp"
 #include "prototypes.hpp"
+#include "systems/basic.hpp"
 
 namespace GUI {
 
@@ -60,6 +61,19 @@ inline void addChildNode(GuiTreeNode* node, GuiTreeNode* child) {
     memcpy(&node->children[node->childCount++], child, sizeof(GuiTreeNode));
 }
 
+// if element is not in the tree, returns null
+inline GuiTreeNode* findTreeNode(GuiTreeNode* tree, Element element) {
+    if (tree->e == element) {
+        return tree;
+    }
+    for (int i = 0; i < tree->childCount; i++) {
+        if (GuiTreeNode* node = findTreeNode(&tree->children[i], element)) {
+            return node;
+        }
+    }
+    return nullptr;
+}
+
 struct GuiManager : GECS::ElementManager {
 
     Element screen = NullElement;
@@ -67,6 +81,8 @@ struct GuiManager : GECS::ElementManager {
     GuiTreeNode root = NullElement;
 
     Element hoveredElement = NullElement;
+
+    Systems::SystemManager systemManager;
 
     GuiManager() {}
 
@@ -136,6 +152,32 @@ struct GuiManager : GECS::ElementManager {
         return element;
     }
 
+    void hideElement(Element element) {
+        GuiTreeNode* node = findTreeNode(&root, element);
+        hideElement(node);
+    }
+
+    void hideElement(GuiTreeNode* node) {
+        addComponent<EC::Hidden>(node->e, {});
+        for (int i = 0; i < node->childCount; i++) {
+            hideElement(&node->children[i]);
+        }
+    }
+
+    void unhideElement(Element element) {
+        GuiTreeNode* node = findTreeNode(&root, element);
+        unhideElement(node);
+    }
+
+    void unhideElement(GuiTreeNode* node) {
+        if (elementHas<EC::Hidden>(node->e)) {
+            removeComponent<EC::Hidden>(node->e);
+            for (int i = 0; i < node->childCount; i++) {
+                unhideElement(&node->children[i]);
+            }
+        }
+    }
+
     bool addName(Element element, const char* name) {
         if (!name) {
             LogError("No name given to add");
@@ -147,12 +189,6 @@ struct GuiManager : GECS::ElementManager {
         EC::Name nameEc;
         strncpy(nameEc.name, name, GUI_ELEMENT_MAX_NAME_SIZE);
         return addComponent<EC::Name>(element, nameEc);
-    }
-
-    void destroy() {
-        destroyTree(&root);
-
-        GECS::ElementManager::destroy();
     }
 
     Element getNamedElement(const char* name) const {
@@ -170,6 +206,11 @@ struct GuiManager : GECS::ElementManager {
         return getNamedElement(name.c_str());
     }
 
+    void destroy() {
+        destroyTree(&root);
+
+        GECS::ElementManager::destroy();
+    }
 };
 
 

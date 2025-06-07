@@ -234,6 +234,59 @@ struct ComponentManager : EcsClass::ArchetypalComponentManager {
     ComponentManager(ComponentInfoRef info) : EcsClass::ArchetypalComponentManager(info) {}
 };
 
+struct ElementCommandBuffer {
+    struct Command {
+
+        struct Add {
+            Element target;
+            ComponentID component;
+            void* componentValue;
+        };
+
+        struct Remove {
+            Element target;
+            ComponentID component;
+        };
+
+        union {
+            Add add;
+            Remove remove;
+        } value;
+
+        enum CommandType {
+            CommandAdd,
+            CommandRemove
+        } type;
+    };
+
+    std::vector<Command> commands;
+
+    template<class C>
+    void addComponent(Element element, const C& value) {
+        // TODO: use better allocation method
+        C* componentStorage = new C(value);
+        commands.push_back(Command{
+            .type = Command::CommandAdd,
+            .value.add = {
+                .target = element,
+                .component = C::ID,
+                .componentValue = componentStorage
+            }
+        });
+    }
+
+    template<class C>
+    void removeComponent(Element element) {
+        commands.push_back(Command{
+            .type = Command::CommandRemove,
+            .value.remove = {
+                .target = element,
+                .component = C::ID
+            }
+        });
+    }
+};
+
 struct ElementManager {
     ComponentManager    components;
     PrototypeManager    prototypes;
@@ -243,6 +296,23 @@ struct ElementManager {
     ElementManager(ComponentInfoRef componentInfo, int numPrototypes)
      : components(componentInfo), prototypes(componentInfo, numPrototypes) {} 
 
+    void executeCommandBuffer(ElementCommandBuffer& commandBuffer) {
+        for (auto& command : commandBuffer.commands) {
+            switch (command.type) {
+            case ElementCommandBuffer::Command::CommandAdd:
+                addComponent(command.value.add.target, command.value.add.component, command.value.add.componentValue);
+                break;
+            case ElementCommandBuffer::Command::CommandRemove:
+                removeComponent(command.value.remove.target, command.value.remove.component);
+                break;
+            default:
+                LogError("Invalid command type!");
+            }
+        }
+
+        commandBuffer.commands.clear();
+    }
+
     template<class... ReqComponents, class Func>
     void forEachElement(Func func) const {
         EcsClass::Signature reqSignature = EcsClass::getSignature<ReqComponents...>();
@@ -250,7 +320,7 @@ struct ElementManager {
             auto& pool = components.pools[i];
             auto signature = pool.archetype.signature;
             if ((signature & reqSignature) == reqSignature) {
-                for (Uint32 e = 0; e < pool.elements.size; e++) {
+                for (Uint32 e = 0; e < pool.size; e++) {
                     Element element = pool.elements[e];
                     func(element);
                 }
@@ -264,7 +334,7 @@ struct ElementManager {
             auto& pool = components.pools[i];
             auto signature = pool.archetype.signature;
             if (query(signature)) {
-                for (Uint32 e = 0; e < pool.elements.size; e++) {
+                for (Uint32 e = 0; e < pool.size; e++) {
                     Element element = pool.elements[e];
                     func(element);
                 }
@@ -278,12 +348,8 @@ struct ElementManager {
             auto& pool = components.pools[i];
             auto signature = pool.archetype.signature;
             if (signature[C::ID]) {
-                for (Uint32 e = 0; e < pool.elements.size; e++) {
-                    void* components = pool.getComponents(e);
-                    auto* offset = pool.archetype.getOffset(C::ID);
-                    assert(offset);
-                    C* component = (C*)((char*)components + *offset);
-                    func(component);
+                for (Uint32 e = 0; e < pool.size; e++) {
+                    // TODO:
                 }
             }
         }
@@ -345,6 +411,20 @@ public:
         if (!component) return false;
         memcpy(component, &startValue, sizeof(C));
         return true;
+    }
+
+    // generic add
+    bool addComponent(Element element, ComponentID component, const void* value = nullptr) {
+        return (bool)components.addComponent(element, component, value);
+    }
+
+    template<class C>
+    void removeComponent(Element element) {
+        components.removeComponent(element, C::ID);
+    }
+
+    void removeComponent(Element element, ComponentID component) {
+        components.removeComponent(element, component);
     }
 
     template<class... Components>

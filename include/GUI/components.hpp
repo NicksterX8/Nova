@@ -86,7 +86,6 @@ BEGIN_COMPONENT(ViewBox)
     Box box = {{0,0},{0,0}}; // relative box
     Box absolute = {{0,0},{0,0}}; // where element was actually displayed
     int level = 0;
-    bool hide = false;
 END_COMPONENT(ViewBox)
 
 BEGIN_COMPONENT(Hidden)

@@ -1,10 +1,12 @@
 # TODO
 
-Need to know when mouse is on gui and not.
-Make function for it
+shared components? do i need? do more research - prolly not
+systems need ordering!!
 
 elements may need component for being click-through (like a container that isn't actually visible)
 or maybe just an 'non-visible' component so we know
+
+fix text formatting
 
 stuff:
 Items need to be stored canonically so there is only one ecs element per unique item type + variations. Item elements aren't just made willy nilly

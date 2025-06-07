@@ -41,17 +41,6 @@ namespace Entities {
         return chest;
     }
 
-    Entity Particle(EntityWorld* ecs, Vec2 position, Vec2 size, EC::Render render, EC::Motion motion) {
-        Entity particle = ecs->New("particle");
-        ecs->Add<EC::Position>(particle, position);
-       //TODO: ecs->Add<EC::Size>(particle, {size.x, size.y});
-        ecs->Add<EC::Motion>(particle, motion);
-        ecs->Add<EC::Render>(particle, render);
-        float distance = (motion.target - position).length();
-        ecs->Add<EC::Dying>(particle, (EC::Dying){(int)ceil(distance / motion.speed)});
-        return particle;
-    }
-
     Entity Inserter(EntityWorld* ecs, Vec2 position, int reach, IVec2 inputTile, IVec2 outputTile) {
         Entity inserter = ecs->New("inserter");
         ecs->Add<EC::Position>(inserter, position);

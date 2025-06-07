@@ -486,7 +486,7 @@ void renderQuit(RenderContext& ren) {
     destroyRenderBuffer(ren.framebuffer);
 }
 
-static void renderTexture(Shader textureShader, GLuint texture) {
+void renderTexture(Shader textureShader, GLuint texture) {
     if (!texture) return;
 
     glActiveTexture(GL_TEXTURE0 + TextureUnit::Random);
@@ -617,24 +617,13 @@ RenderBuffer makeRenderBuffer(glm::ivec2 size) {
     return RenderBuffer{fbo, rbo, texture, 0};
 }
 
-void resizeRenderBuffer(RenderBuffer renderBuffer, glm::ivec2 newSize) {
+void resizeRenderBuffer(RenderBuffer renderBuffer, IVec2 newSize) {
     glActiveTexture(GL_TEXTURE0 + TextureUnit::Screen0);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, newSize.x, newSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-    /*
-    glActiveTexture(GL_TEXTURE0 + TextureUnit::Screen1);
-    glBindTexture(GL_TEXTURE_2D, renderBuffer.velocityTexture);
-    char* zeroes = (char*)malloc(newSize.x * newSize.y * 24);
-    //memset(zeroes, 0, newSize.x * newSize.y * 24);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, newSize.x, newSize.y, 0, GL_RGBA, GL_UNSIGNED_SHORT, NULL);
-    free(zeroes);
-    */
-
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, newSize.x, newSize.y);
     glActiveTexture(GL_TEXTURE0);
 
     GL::logErrors();
-
-    LogInfo("Resized render buffer!");
 }
 
 void destroyRenderBuffer(RenderBuffer renderBuffer) {

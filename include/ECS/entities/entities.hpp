@@ -59,8 +59,6 @@ namespace Entities {
 
     Entity Chest(EntityWorld* ecs, Vec2 position, int inventorySize, int width, int height, ItemManager& allocator);
 
-    Entity Particle(EntityWorld* ecs, Vec2 position, Vec2 size, EC::Render render, EC::Motion motion);
-
     Entity Inserter(EntityWorld* ecs, Vec2 position, int reach, IVec2 inputTile, IVec2 outputTile);
 
     Entity Enemy(EntityWorld* ecs, Vec2 position, Entity following);

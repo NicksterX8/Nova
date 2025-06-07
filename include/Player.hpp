@@ -66,7 +66,7 @@ struct Player {
 
     unsigned int numHotbarSlots = 9;
     ItemHold heldItemStack;
-    int selectedHotbarStack = -1; // -1 means no slot is selected. TODO: rename this to slot
+    int selectedHotbarSlot = -1; // -1 means no slot is selected. TODO: rename this to slot
 
     OptionalEntity<> selectedEntity;
 
@@ -124,7 +124,7 @@ struct Player {
     void selectHotbarSlot(int index) {
         if (!entity.Has<EC::Inventory>(ecs)) return;
 
-        selectedHotbarStack = index;
+        selectedHotbarSlot = index;
         auto* slot = &inventory()->get(index);
         if (!slot->empty()) { 
             if (heldItemStack.type != ItemHold::Value) {

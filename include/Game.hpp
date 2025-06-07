@@ -15,6 +15,7 @@
 #include "sdl.hpp"
 #include "Camera.hpp"
 #include "rendering/rendering.hpp"
+#include "ECS/generic/system.hpp"
 
 struct Game;
 

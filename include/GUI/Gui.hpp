@@ -9,6 +9,7 @@
 #include "commands.hpp"
 #include "elements.hpp"
 #include "update.hpp"
+#include "GUI/ecs-gui.hpp"
 
 struct GuiRenderer;
 
@@ -224,13 +225,58 @@ struct Console {
 };
 
 
+inline void makeGuiPrototypes(GuiManager& gui) {
+    auto& pm = gui.prototypes;
+
+    auto normal = Prototypes::Normal(pm);
+    auto epic = Prototypes::Epic(pm);
+
+    pm.add(normal);
+    pm.add(epic);
+}
+
 struct Gui {
     My::Vec<SDL_FRect> area = My::Vec<SDL_FRect>(0);
     Console console = {};
 
     GuiManager manager;
 
+    struct MySystems {
+        Systems::RenderBackgroundSystem* renderBackgroundSys;
+        Systems::SizeConstraintSystem* sizeConstraintSystem;
+
+        void init(Systems::SystemManager& manager, GuiRenderer& renderer) {
+            renderBackgroundSys = new Systems::RenderBackgroundSystem(manager, &renderer);
+            sizeConstraintSystem = new Systems::SizeConstraintSystem(manager);
+        }
+
+        void update(GuiRenderer& renderer) {
+           
+        }
+
+        void destroy() {
+            delete sizeConstraintSystem;
+            delete renderBackgroundSys;
+        }
+    } systems;
+
     Gui() {}
+
+    void init(GuiRenderer& renderer) {
+        My::Vec<GECS::ComponentInfo> componentInfo; // TODO: Unimportant: This is leaked currently
+        {
+            using namespace GUI::EC;
+            constexpr auto componentInfoArray = GECS::getComponentInfoList<GUI_COMPONENTS_LIST>();
+            componentInfo = My::Vec<GECS::ComponentInfo>(&componentInfoArray[0], componentInfoArray.size());
+        }
+        manager = GUI::GuiManager(ArrayRef(componentInfo.data, componentInfo.size), GUI::ElementTypes::Count);
+        makeGuiPrototypes(manager);
+        initGui(manager);
+
+        systems.init(manager.systemManager, renderer);
+    }
+
+    void renderElements(GuiRenderer& renderer, const PlayerControls& playerControls);
 
     void updateHotbar(const Player& player, const ItemManager& itemManager) {
         auto hotbarElement = manager.getNamedElement("hotbar");
@@ -257,14 +303,15 @@ struct Gui {
                 textureEc->texture = displayIec ? displayIec->inventoryIcon : TextureIDs::Null;
             }
 
-            if (textEc && stack.quantity != 0 && stackSize != 1) {
-                auto str = string_format("%d", stack.quantity);
-                strcpy(slotText[i], str.c_str());
-            } else {
-                strcpy(slotText[i], "");
+            if (textEc) {
+                if (stack.quantity != 0 && stackSize != 1) {
+                    auto str = string_format("%d", stack.quantity);
+                    strcpy(slotText[i], str.c_str());
+                } else {
+                    strcpy(slotText[i], "");
+                }
+                textEc->text = slotText[i];
             }
-
-            textEc->text = slotText[i];
         }
     }
 
@@ -275,20 +322,22 @@ struct Gui {
 
     void drawConsole(GuiRenderer& renderer) {
 
-        auto* consoleView = manager.getComponent<EC::ViewBox>(manager.getNamedElement("console"));
+        Element consoleElement = manager.getNamedElement("console");
+        auto* consoleView = manager.getComponent<EC::ViewBox>(consoleElement);
 
         float scale = renderer.options.scale;
         bool showLog = console.promptOpen || Metadata->seconds() - console.timeLastMessageSent < CONSOLE_LOG_NEW_MESSAGE_OPEN_DURATION;
         if (!showLog && console.activeMessage.empty()) {
-            consoleView->hide = true;
+            manager.hideElement(consoleElement);
             return;
         } else {
-            consoleView->hide = false;
+            manager.unhideElement(consoleElement);
         }
         
-        auto* logViewEc = manager.getComponent<EC::ViewBox>(manager.getNamedElement("console-log"));
+        Element consoleLogElement = manager.getNamedElement("console-log");
+        auto* logViewEc = manager.getComponent<EC::ViewBox>(consoleLogElement);
         if (showLog && logViewEc) {
-            logViewEc->hide = false;
+            manager.unhideElement(consoleElement);
             
             TextFormattingSettings logFormatting{
                 .align = TextAlignment::BottomLeft,
@@ -308,7 +357,7 @@ struct Gui {
                 pos.y += result.rect.h + messageSpacing;
             }
         } else {
-            logViewEc->hide = true;
+            manager.hideElement(consoleLogElement);
         }
         
         SDL_Color terminalTextColor = {255,255,255,255};
@@ -332,7 +381,7 @@ struct Gui {
 
         bool showTerminal = console.promptOpen;
         if (showTerminal) {
-            terminalViewEc->hide = false;
+            manager.unhideElement(consoleTerminal);
 
             Vec2* characterPositions = Alloc<Vec2>(activeMessage.size());
             auto textRect = renderer.renderText(activeMessage.c_str(), terminalViewEc->absolute.min, terminalTextFormatting, terminalTextRenderSettings, terminalViewEc->level, characterPositions).rect;
@@ -377,7 +426,7 @@ struct Gui {
                 renderer.colorRect(cursor, terminalTextColor, terminalViewEc->level);
             }
         } else {
-            terminalViewEc->hide = true;
+            manager.hideElement(consoleTerminal);
         }
     }
 
@@ -391,7 +440,7 @@ struct Gui {
             }
         }
 
-        GUI::renderElements(manager, renderer, playerControls);
+        renderElements(renderer, playerControls);
 
         drawConsole(renderer);
         
@@ -413,18 +462,9 @@ struct Gui {
         area.destroy();
         console.destroy();
         manager.destroy();
+        systems.destroy();
     }
 };
-
-inline void makeGuiPrototypes(GuiManager& gui) {
-    auto& pm = gui.prototypes;
-
-    auto normal = Prototypes::Normal(pm);
-    auto epic = Prototypes::Epic(pm);
-
-    pm.add(normal);
-    pm.add(epic);
-}
 
 }
 

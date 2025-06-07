@@ -51,6 +51,7 @@ set(SRC_FILES
     ${SD}/ECS/components/components.cpp
     ${SD}/ECS/entities/entities.cpp
     ${SD}/ECS/entities/methods.cpp
+    ${SD}/ECS/generic/system.cpp
     ${SD}/physics/physics.cpp
 )
 

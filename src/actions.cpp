@@ -14,7 +14,7 @@ void selectHotbarSlot(Game* g, Element e) {
             *stack = *g->state->player.heldItemStack.get();
             *g->state->player.heldItemStack.get() = ItemStack::None();
             g->state->player.heldItemStack = ItemHold();
-            g->state->player.selectedHotbarStack = -1;
+            g->state->player.selectedHotbarSlot = -1;
         } else {
             bool combined = items::combineStacks(stack, g->state->player.heldItemStack.get(), g->state->itemManager);
             if (combined) {

@@ -5,6 +5,10 @@
 #include "PlayerControls.hpp"
 #include "elements.hpp"
 
+#include "ECS/generic/system.hpp"
+
+#include "GUI/Gui.hpp"
+
 namespace GUI {
 
 #define ADDC(element, componentName, value)
@@ -185,7 +189,7 @@ inline Element buildHotbar(GuiManager& gui) {
     return bar;
 }
 
-inline void init(GuiManager& gui) {
+inline void initGui(GuiManager& gui) {
     /*
     auto box = boxElement(gui, Box{{120.0f, 20.0f}, {300.0f, 300.0f}}, {0, 0, 255, 255});
     auto box2 = boxElement(gui, Box{{20.0f, 20.0f}, {250.0f, 250.0f}}, {0, 255, 0, 255});
@@ -246,241 +250,9 @@ inline std::vector<GameAction> update(GuiManager& gui, const PlayerControls& pla
     return actions;
 }
 
-inline void buildFromTree(GuiTreeNode* node, GuiManager& gui, int level) {
-    Element parent = node->e;
-    if (parent.Null()) return;
-    auto* parentViewEc = gui.getComponent<EC::ViewBox>(parent);
-    if (!parentViewEc) return;
-    if (parentViewEc->hide) return;
-    Box parentBox = parentViewEc->absolute;
-    auto* fitConstraint = gui.getComponent<EC::StackConstraint>(parent);
-    Box fitBox = parentBox;
     
-    for (int i = 0; i < node->childCount; i++) {
-        Element e = node->children[i].e;
-        auto* viewEc = gui.getComponent<EC::ViewBox>(e);
-        if (viewEc) {
-            if (viewEc->hide) {
-                viewEc->absolute = Box{{0,0},{0,0}};
-                //viewEc->level = level = -99;
-            }
-            
-            Box childBox = viewEc->box;
-            
-            // size
-            auto* sizeConstraint = gui.getComponent<EC::SizeConstraint>(e);
-            if (sizeConstraint) {
-                if (sizeConstraint->relativeSize.x != INFINITY) {
-                    childBox.size.x = MIN(sizeConstraint->relativeSize.x * parentBox.size.x, fitBox.size.x);
-                }
-                if (sizeConstraint->relativeSize.y != INFINITY) {
-                    childBox.size.y = MIN(sizeConstraint->relativeSize.y * parentBox.size.y, fitBox.size.y);
-                }
-                childBox.size.x = MIN(childBox.size.x, sizeConstraint->maxSize.x);
-                childBox.size.y = MIN(childBox.size.y, sizeConstraint->maxSize.y);
-
-                childBox.size.x = MAX(childBox.size.x, sizeConstraint->minSize.x);
-                childBox.size.y = MAX(childBox.size.y, sizeConstraint->minSize.y);
-            }
-            childBox.size.x = MIN(childBox.size.x, parentBox.size.x);
-            childBox.size.y = MIN(childBox.size.y, parentBox.size.y);
-            if (fitConstraint)
-                fitBox.size -= childBox.size * Vec2(fitConstraint->horizontal, fitConstraint->vertical);
-
-            auto* alignmentConstraint = gui.getComponent<EC::AlignmentConstraint>(e);
-            Vec2 offset = {0, 0};
-            if (alignmentConstraint && !fitConstraint) {
-                Vec2 margin = parentBox.size - childBox.size;
-                offset.x = (int)alignmentConstraint->alignment.horizontal * 0.5f * margin.x;
-                offset.y = (2 - (int)alignmentConstraint->alignment.vertical) * 0.5f * margin.y;
-                childBox.min = offset;
-            }
-            childBox.min += fitBox.min;
-            if (fitConstraint)
-                fitBox.min += childBox.size * Vec2(fitConstraint->horizontal, fitConstraint->vertical);
-            
-            viewEc->level = level;
-            viewEc->absolute = childBox;
-        }
-
-        buildFromTree(&node->children[i], gui, ++level);
-    }
-}
-
-inline void renderElements(GuiManager& gui, GuiRenderer& renderer, const PlayerControls& playerControls) {
-    Vec2 mousePos = playerControls.mousePixelPos();
-    bool mouseLeftDown = playerControls.mouse.leftButtonDown();
-    bool mouseClicked = playerControls.mouseClicked;
-
-    /*
-    gui.forEachElement([&](auto signature){
-        return signature[EC::ViewBox::ID] && !signature[EC::ChildOf];
-    }, [&](Element e){
-        auto boxEc = gui.getComponent<EC::ViewBox>(e);
-
-        boxEc->absolute = boxEc->box;
-        boxEc->level = 0;
-    });
-    */
-
-    auto screenBox = Box{Vec2(0), renderer.options.size};
-    gui.setComponent(gui.screen, EC::ViewBox{screenBox, screenBox});
-
-    int level = 1;
-    buildFromTree(&gui.root, gui, level);
-
-    Element slot = gui.getNamedElement("hotbar-slot-0");
-    auto* slotView = gui.getComponent<EC::ViewBox>(slot);
-
-    // calculate aboslute positions
-    /*
-    gui.forEachElement<EC::ViewBox, EC::ChildOf>([&](Element e){
-        auto boxEc = gui.getComponent<EC::ViewBox>(e);
-        auto box = boxEc->box;
-        auto child = gui.getComponent<EC::ChildOf>(e);
-
-        Vec2 pos = box.min;
-        Vec2 size = box.size;
-
-        int parentCounter = 0;
-
-        // go up parent chain all the way till the top
-        while (child != nullptr) {
-            Element parent = child->parent;
-            if (parent.Null()) break;
-
-            auto pBoxEc = gui.getComponent<EC::ViewBox>(parent);
-            if (pBoxEc) {
-                auto pBox = pBoxEc->box;
-                pos += pBox.min;
-                auto* sizeConstraint = gui.getComponent<EC::SizeConstraint>(e);
-                if (sizeConstraint) {
-                   size = sizeConstraint->relativeSize * pBoxEc->box.size;
-                }
-
-                parentCounter++;
-            }
-
-            child = gui.getComponent<EC::ChildOf>(parent);
-        }
-
-        boxEc->absolute = Box{
-            pos,
-            size
-        };
-        boxEc->level = parentCounter;
-        if (boxEc->level >= GuiNumLevels) {
-            boxEc->level = GuiNumLevels-1;
-        }
-    });
-    
-
-    gui.forEachElement<EC::ViewBox, EC::SizeConstraint>([&](Element e){
-        auto* viewbox = gui.getComponent<EC::ViewBox>(e);
-        auto* sizeConstraint = gui.getComponent<EC::SizeConstraint>(e);
-        Element parent = gui.getComponent<EC::ChildOf>(e)->parent;
-        auto* parentBox = gui.getComponent<EC::ViewBox>(parent);
-
-        viewbox->box.size = sizeConstraint->relativeSize * parentBox->box.size;
-    });
-    */
-
-
-    int hoveredLevel = -1;
-    Element hoveredElement = GECS::NullElement;
-
-    gui.forEachElement([&](auto signature){ 
-        return signature[EC::ViewBox::ID] && !signature[EC::Hidden::ID];
-    }, [&](Element e){
-        auto* viewbox = gui.getComponent<EC::ViewBox>(e);
-
-        bool mouseOnButton = pointInRect(mousePos, viewbox->absolute.rect());
-        if (mouseOnButton) {
-            if (viewbox->level > hoveredLevel) {
-                hoveredLevel = viewbox->level;
-                hoveredElement = e;
-            }
-        }
-    });
-
-    gui.hoveredElement = hoveredElement;
-
-    /* Elements are rendered based on their level
-     * Parts of elements are rendered according to the order the forEach calls are made here
-     */
-
-    // backgrounds
-    gui.forEachElement<EC::ViewBox, EC::Background>([&](Element e){
-        auto* view = gui.getComponent<EC::ViewBox>(e);
-        SDL_Color color = gui.getComponent<EC::Background>(e)->color;
-
-        if (e == hoveredElement) {
-            auto* hover = gui.getComponent<EC::Hover>(e);
-            if (hover && hover->changeColor) {
-                color = hover->newColor;
-            }
-        }
-        renderer.colorRect(view->absolute.min, view->absolute.max(), color, view->level);
-    });
-
-    // textures
-    gui.forEachElement<EC::ViewBox, EC::SimpleTexture>([&](Element e){
-        auto* view = gui.getComponent<EC::ViewBox>(e);
-        Box entityBox = view->absolute;
-        auto* texture = gui.getComponent<EC::SimpleTexture>(e);
-
-        Box texBox = {
-            entityBox.min + texture->texBox.min,
-            texture->texBox.size
-        };
-
-        renderer.sprite(texture->texture, texBox.rect(), view->level);
-    });
-
-    // borders
-    gui.forEachElement<EC::ViewBox, EC::Border>([&](Element e){
-        auto view = gui.getComponent<EC::ViewBox>(e);
-        auto box = view->absolute;
-        auto* border = gui.getComponent<EC::Border>(e);
-        renderer.rectOutline(box.min, box.max(), border->color, border->strokeIn, border->strokeOut, view->level);
-    });
-
-    // text
-    gui.forEachElement<EC::ViewBox, EC::Text>([&](Element e){
-        auto* view = gui.getComponent<EC::ViewBox>(e);
-        Box entityBox = view->absolute;
-        auto* textComponent = gui.getComponent<EC::Text>(e);
-        Vec2 pos;
-        switch (textComponent->formatSettings.align.vertical) {
-        case VertAlignment::Bottom:
-            pos.y = entityBox.min.y;
-            break;
-        case VertAlignment::Middle:
-            pos.y = entityBox.min.y + entityBox.size.y / 2.0f;
-            break;
-        case VertAlignment::Top:
-            pos.y = entityBox.min.y + entityBox.size.y;
-            break;
-        }
-        switch (textComponent->formatSettings.align.horizontal) {
-        case HoriAlignment::Left:
-            pos.x = entityBox.min.x;
-            break;
-        case HoriAlignment::Center:
-            pos.x = entityBox.min.x + entityBox.size.x / 2.0f;
-            break;
-        case HoriAlignment::Right:
-            pos.x = entityBox.min.x + entityBox.size.x;
-            break;
-        }
-
-        entityBox.min = pos;
-        
-        renderer.boxedText(textComponent->text, entityBox, textComponent->formatSettings, textComponent->renderSettings, view->level);
-    });
     
 }
 
-}
 
 #endif

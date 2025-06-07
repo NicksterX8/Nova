@@ -190,10 +190,10 @@ struct GuiRenderer {
     }
 
     void rectOutline(glm::vec2 min, glm::vec2 max, Color color, glm::vec2 strokeIn, glm::vec2 strokeOut, GuiRenderLevel level = UseDefaultLevel) {
-        colorRect({min.x - strokeOut.x, min.y - strokeOut.y}, {max.x - strokeIn.x,  min.y + strokeIn.y},  color, level);
-        colorRect({max.x - strokeIn.x,  min.y - strokeOut.y}, {max.x + strokeOut.x, max.y - strokeIn.y},  color, level);
-        colorRect({max.x + strokeOut.x, max.y - strokeIn.y},  {min.x + strokeIn.x,  max.y + strokeOut.y}, color, level);
-        colorRect({min.x - strokeOut.x, max.y + strokeOut.y}, {min.x + strokeIn.x,  min.y + strokeIn.y},  color, level);
+        colorRect({min.x - strokeOut.x, min.y - strokeOut.y}, {max.x -  strokeIn.x, min.y +  strokeIn.y}, color, level);
+        colorRect({max.x -  strokeIn.x, min.y - strokeOut.y}, {max.x + strokeOut.x, max.y -  strokeIn.y}, color, level);
+        colorRect({max.x + strokeOut.x, max.y -  strokeIn.y}, {min.x +  strokeIn.x, max.y + strokeOut.y}, color, level);
+        colorRect({min.x - strokeOut.x, max.y + strokeOut.y}, {min.x +  strokeIn.x, min.y +  strokeIn.y}, color, level);
     }
 
     void rectOutline(FRect rect, Color color, glm::vec2 strokeIn, glm::vec2 strokeOut, GuiRenderLevel level = UseDefaultLevel) {

@@ -347,24 +347,24 @@ void renderFontComponents(const Font* font, glm::vec2 p, GuiRenderer& renderer) 
     Draw::thickLines(*renderer.quad, 1, descline, 0.5f, SDL_Color{255, 0, 155, 255}, 5.0f);
 }
 
-static void testTextRendering(GuiRenderer& guiRenderer, TextRenderer& textRenderer) {
+// static void testTextRendering(GuiRenderer& guiRenderer, TextRenderer& textRenderer) {
     
    
-    // auto rect2 = textRenderer.render("CENTERING!\n\nthis\n is moreFKDSJLFIKJSDLF\n MANNN \n THis STINKKKKKS\nmin font, mag render scale 435543 gf\nd rer df", {guiRenderer.options.size.x / 2, guiRenderer.options.size.y / 2},
-    //     TextFormattingSettings{.align = TextAlignment::MiddleCenter, .maxWidth = 400}, TextRenderingSettings{.scale = glm::vec2{guiRenderer.textScale() * 2}});
-    //textRenderer.font->scale(1.0f);
+//     // auto rect2 = textRenderer.render("CENTERING!\n\nthis\n is moreFKDSJLFIKJSDLF\n MANNN \n THis STINKKKKKS\nmin font, mag render scale 435543 gf\nd rer df", {guiRenderer.options.size.x / 2, guiRenderer.options.size.y / 2},
+//     //     TextFormattingSettings{.align = TextAlignment::MiddleCenter, .maxWidth = 400}, TextRenderingSettings{.scale = glm::vec2{guiRenderer.textScale() * 2}});
+//     //textRenderer.font->scale(1.0f);
     
 
-    renderFontComponents(guiRenderer.text->defaultFont, {100, 100}, guiRenderer);
+//     renderFontComponents(guiRenderer.text->defaultFont, {100, 100}, guiRenderer);
 
-    glm::vec2 points[4] = {
-        {0, guiRenderer.options.size.y/2},
-        {guiRenderer.options.size.x, guiRenderer.options.size.y/2},
-        {guiRenderer.options.size.x/2, 0},
-        {guiRenderer.options.size.x/2, guiRenderer.options.size.y},
-    };
-    Draw::thickLines(*guiRenderer.quad, 2, points, 0.0f, SDL_Color{0, 255, 0, 255}, 2.0f);
-}
+//     glm::vec2 points[4] = {
+//         {0, guiRenderer.options.size.y/2},
+//         {guiRenderer.options.size.x, guiRenderer.options.size.y/2},
+//         {guiRenderer.options.size.x/2, 0},
+//         {guiRenderer.options.size.x/2, guiRenderer.options.size.y},
+//     };
+//     Draw::thickLines(*guiRenderer.quad, 2, points, 0.0f, SDL_Color{0, 255, 0, 255}, 2.0f);
+// }
 
 void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& screenTransform, GUI::Gui* gui, const GameState* state, const PlayerControls& playerControls) {
     auto& textRenderer = ren.guiTextRenderer;

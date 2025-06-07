@@ -142,58 +142,66 @@ static Signature getNonProtoSignature(Signature signature) {
 
 struct ArchetypalComponentManager {
     struct Archetype {
-        using ComponentOffsetSet = My::DenseSparseSet<ComponentID, uint16_t, uint16_t, maxComponentID>;
-        ComponentOffsetSet componentOffsets;
-        uint32_t totalSize;
+        //using ComponentIndexSet = My::DenseSparseSet<ComponentID, Sint32, Sint8, maxComponentID>;
+        Sint8 componentIndices[maxComponentID];
         int32_t numComponents;
         Signature signature;
         uint16_t* sizes;
+        ComponentID* componentIDs;
 
         static Archetype Null() {
-            return {ComponentOffsetSet::Empty(), 0, 0, 0, nullptr};
+            return {{-1}, 0, 0, 0, nullptr};
         }
 
-        // returns pointer to offset value on success,
-        // returns nullptr on error - if component isn't in the archetype
-        const uint16_t* getOffset(ComponentID component) const {
-            return componentOffsets.lookup(component);
+        Sint8 getIndex(ComponentID component) const {
+            if (component < 0 || component >= maxComponentID) return -1;
+            return componentIndices[component];
+        }
+
+        Uint16 getSize(ComponentID component) const {
+            return sizes[componentIndices[component]];
         }
     };
 
-    template<class... Components>
-    static Archetype makeArchetype() {
-        using Tuple = std::tuple<Components...>();
+    // template<class... Components>
+    // static Archetype makeArchetype() {
+    //     using Tuple = std::tuple<Components...>();
 
-        Archetype archetype;
-        constexpr auto count = sizeof...(Components);
-        archetype.signature = getSignature<Components...>();
-        archetype.numComponents = count;
-        archetype.totalSize = sizeof(Tuple);
-        archetype.sizes = Alloc<uint16_t>(count);
-        archetype.componentOffsets = My::DenseSparseSet<ComponentID, uint16_t, uint16_t, maxComponentID>::Empty();
-        constexpr auto sizes   = {sizeof(Components) ...};
-        constexpr auto ids     = {getID<Components>() ...};
-        constexpr auto offsets = {element_offset<Components, Tuple>() ...};
-        for (int i = 0; i < count; i++) {
-            archetype.sizes[i] = sizes[i];
-            archetype.componentOffsets.insert(ids[i], offsets[i]);
-        }
-    }
+    //     Archetype archetype;
+    //     constexpr auto count = sizeof...(Components);
+    //     archetype.signature = getSignature<Components...>();
+    //     archetype.numComponents = count;
+    //     archetype.sizes = Alloc<uint16_t>(count);
+    //     archetype.componentIDs = Alloc<ComponentID>(count);
+    //     archetype.componentIndices = {0};
+    //     constexpr auto sizes   = {sizeof(Components) ...};
+    //     constexpr auto ids     = {getID<Components>() ...};
+    //     for (int i = 0; i < count; i++) {
+    //         archetype.sizes[i] = sizes[i];
+    //         archetype.componentIDs[i] = ids[i];
+    //         archetype.componentIndices[ids[i]] = i;
+    //     }
+    // }
 
     static Archetype makeArchetype(Signature signature, ComponentInfoRef componentTypeInfo) {
-        Archetype archetype;
-        const auto count = signature.count();
-        archetype.signature = signature;
-        archetype.numComponents = count;
-        archetype.totalSize = 0;
-        archetype.sizes = Alloc<uint16_t>(count);
-        archetype.componentOffsets = My::DenseSparseSet<ComponentID, uint16_t, uint16_t, maxComponentID>::Empty();
-        uint16_t offset = 0;
+        auto count = signature.count();
+        Archetype archetype{
+            .signature = signature,
+            .componentIndices = {-1},
+            .sizes = Alloc<uint16_t>(count),
+            .componentIDs = Alloc<ComponentID>(count),
+            .numComponents = (int)count
+        };
+        for (int i = 0; i < maxComponentID; i++) {
+            archetype.componentIndices[i] = -1;
+        }
+
+        int index = 0;
         signature.forEachSet([&](auto componentID){
             auto componentSize = (uint16_t)componentTypeInfo.size(componentID);
-            archetype.componentOffsets.insert(componentID, offset);
-            offset += componentSize;
-            archetype.totalSize += componentSize;
+            archetype.sizes[index] = componentSize;
+            archetype.componentIDs[index] = componentID;
+            archetype.componentIndices[componentID] = index++;
         });
         return archetype;
     }
@@ -201,46 +209,77 @@ struct ArchetypalComponentManager {
     static constexpr size_t MaxElementID = (1 << 14) - 1;
 
     struct ArchetypePool {
-        My::Vec<Element> elements; // contained elements
-        My::Vec<char> buffer;
+        int size;
+        int capacity;
+        Element* elements; // contained elements
+        My::Vec<char*> buffers;
         Archetype archetype;
         
         ArchetypePool(const Archetype& archetype) : archetype(archetype) {
-            elements = My::Vec<Element>::Empty();
-            buffer = My::Vec<char>::WithCapacity(archetype.totalSize);
+            elements = nullptr;
+            buffers = My::Vec<char*>::Filled(archetype.numComponents, nullptr);
+            size = 0;
+            capacity = 0;
         }
 
         // index must be in bounds
-        void* getComponents(int index) const {
-            //assert(index < elementCount);
-            //return (char*)data + index * (uint32_t)archetype.totalSize;
-            return buffer.data + index * archetype.totalSize;
+        void* getComponent(ComponentID component, int index) const {
+            assert(index < size);
+
+            auto componentIndex = archetype.getIndex(component);
+            if (componentIndex == -1) return nullptr;
+            return buffers[componentIndex] + index * archetype.sizes[componentIndex];
         }
 
         // returns index where element is stored
         int addNew(Element element) {
-            elements.push(element);
-            buffer.require(archetype.totalSize);
-            return elements.size-1;
+            if (size + 1 > capacity) {
+                int newCapacity = (capacity * 2 > size) ? capacity * 2 : size + 1;
+                for (int i = 0; i < buffers.size; i++) {
+                    char* newBuffer = Realloc(buffers[i], newCapacity * archetype.sizes[i]);
+                    if (newBuffer) {  
+                        buffers[i] = newBuffer;
+                    }
+                }
+                Element* newElements = Realloc(elements, newCapacity);
+                if (newElements) {
+                    elements = newElements;
+                }
+                capacity = newCapacity;
+            }
+
+            elements[size] = element;
+            
+            return size++;
         }
 
-        void remove(int index) {
+        // returns element that had to be moved to adjust
+        Element remove(int index) {
+            assert(index < size);
+
             // if last element
-            if (index == elements.size-1) {
-                elements.size--;
-                return;
+            if (index == size-1) {
+                size--;
+                return NullElement;
             }
-            elements[index] = elements[elements.size-1];
+            Element elementToMove = elements[size-1];
+            elements[index] = elementToMove;
 
-            void* newSpace = getComponents(index);
-            void* oldSpace = getComponents(elements.size-1);
-            memcpy(newSpace, oldSpace, archetype.totalSize);
+            for (int i = 0; i < buffers.size; i++) {
+                auto componentSize = archetype.sizes[i];
+                memcpy(buffers[i] + index * componentSize, buffers[i] + (size-1) * componentSize, componentSize);
+            }
 
-            elements.size--;
+            size--;
+            return elementToMove;
         }
 
         void destroy() {
-            elements.destroy();
+            for (int i = 0; i < buffers.size; i++) {
+                Free(buffers[i]);
+                buffers.destroy();
+            }
+            Free(elements);
         }
     };
 
@@ -315,6 +354,9 @@ public:
             return;
         }
 
+        ArchetypePool* pool = pools[data->archetype];
+        pool->remove(element);
+
         elementData.remove(element.id);
         unusedElements.push(element);
     }
@@ -360,12 +402,10 @@ public:
         }
 
         const auto& pool = pools[data->archetype];
-        const Uint16* offset = pool.archetype.getOffset(component);
-        if (!offset) return nullptr;
-        return (char*)pool.getComponents(data->poolIndex) + *offset;
+        return pool.getComponent(component, data->poolIndex);
     }
 
-    void* addComponent(Element element, ComponentID component) {
+    void* addComponent(Element element, ComponentID component, const void* initializationValue = nullptr) {
         if (element.id == NullElement.id) {
             return nullptr;
         }
@@ -373,13 +413,6 @@ public:
         if (!data || (element.version != data->version)) {
             return nullptr;
         }
-
-        if (data->archetype >= pools.size) {
-            LogError("Element archetype %d out of range!", data->archetype);
-            return nullptr;
-        }
-
-        auto oldArchetypeID = data->archetype;
 
         Signature oldSignature = data->signature;
         data->signature.set(component);
@@ -390,47 +423,98 @@ public:
         }
 
         ArchetypePool* newArchetype = getArchetypePool(newArchetypeID);
+        auto oldArchetypeID = data->archetype;
         if (newArchetypeID == oldArchetypeID) {
             // tried to add component that the element already has
             // just return the pointer to the component
-            const Uint16* offset = newArchetype->archetype.getOffset(component);
-            assert(offset && "An archetype is lying. Something went very wrong");
-            return (char*)newArchetype->getComponents(data->poolIndex) + *offset;
+            return newArchetype->getComponent(component, data->poolIndex);
         }
-        int newElementIndex = newArchetype->addNew(element);
-        void* newElementValue = newArchetype->getComponents(newElementIndex);
-        assert(newElementValue && "couldn't make new element index!");
-        
-        if (data->archetype > 0) {
-            auto oldArchetype = getArchetypePool(oldArchetypeID);
-            void* oldElementValue = oldArchetype->getComponents(data->poolIndex);
-            if (oldElementValue) {
-                // copy element archetype data - if entity data is stored adjacent to component data
-                //memcpy(newElementValue, oldElementValue, sizeof(ElementArchetypeData));
-                oldSignature.forEachSet([&](ComponentID componentId){
-                    const uint16_t* oldComponentOffset = oldArchetype->archetype.getOffset(componentId);
-                    assert(oldComponentOffset);
-                    void* oldComponentValue = (char*)oldElementValue + *oldComponentOffset;
-                    const uint16_t* newComponentOffset = newArchetype->archetype.getOffset(componentId);
-                    assert(newComponentOffset);
-                    void* newComponentValue = (char*)newElementValue + *newComponentOffset;
 
-                    size_t componentSize = componentInfo.size(componentId);
-                    memcpy(newComponentValue, oldComponentValue, componentSize);
-                });
+        int newElementIndex = newArchetype->addNew(element);
+        
+        if (oldArchetypeID > 0) {
+            int oldElementIndex = data->poolIndex;
+            ArchetypePool* oldArchetype = getArchetypePool(oldArchetypeID);
+            for (int i = 0; i < oldArchetype->buffers.size; i++) {
+                auto componentSize = oldArchetype->archetype.sizes[i];
+                ComponentID transferComponent = oldArchetype->archetype.componentIDs[i];
+                int newArchetypeIndex = newArchetype->archetype.getIndex(transferComponent);
+                assert(newArchetypeIndex != -1);
+                char* newComponentAddress = newArchetype->buffers[newArchetypeIndex] + componentSize * newElementIndex;
+                char* oldComponentAddress = oldArchetype->buffers[i] + componentSize * oldElementIndex;
+                memcpy(newComponentAddress, oldComponentAddress, componentSize);
             }
-            oldArchetype->remove(data->poolIndex);
+
+            Element movedElement = oldArchetype->remove(oldElementIndex);
+            if (!movedElement.Null()) {
+                ElementData* movedElementData = elementData.lookup(movedElement.id);
+                assert(movedElementData);
+                movedElementData->poolIndex = oldElementIndex;
+            }
         }
 
         data->archetype = newArchetypeID;
         data->poolIndex = newElementIndex;
 
-        const Uint16* addedComponentOffset = newArchetype->archetype.getOffset(component);
-        assert(addedComponentOffset);
-        void* addedComponent = (char*)newElementValue + *addedComponentOffset;
+        void* newComponentValue = newArchetype->getComponent(component, newElementIndex);
+        if (initializationValue) {
+            assert(newComponentValue);
+            memcpy(newComponentValue, initializationValue, componentInfo.size(component));
+        }
 
-        return addedComponent;
+        return newComponentValue;
     }
+
+    void removeComponent(Element element, ComponentID component) {
+        if (element.id == NullElement.id) {
+            return;
+        }
+        ElementData* data = elementData.lookup(element.id);
+        if (!data || (element.version != data->version)) {
+            return;
+        }
+
+        Signature oldSignature = data->signature;
+        if (!oldSignature[component]) {
+            // element didn't have the component. just do nothing
+            return;
+        }
+
+        data->signature.set(component, 0);
+
+        auto newArchetypeID = getArchetypeID(data->signature);
+        if (newArchetypeID == NullArchetypeID) {
+            newArchetypeID = initArchetype(data->signature);
+        }
+
+        ArchetypePool* newArchetype = getArchetypePool(newArchetypeID);
+        int newElementIndex = newArchetype->addNew(element);
+
+        auto oldArchetypeID = data->archetype;
+        if (oldArchetypeID > 0) {
+            int oldElementIndex = data->poolIndex;
+            ArchetypePool* oldArchetype = getArchetypePool(oldArchetypeID);
+            for (int i = 0; i < newArchetype->buffers.size; i++) {
+                auto componentSize = newArchetype->archetype.sizes[i];
+                ComponentID transferComponent = newArchetype->archetype.componentIDs[i];
+                int oldArchetypeIndex = oldArchetype->archetype.getIndex(transferComponent);
+                assert(oldArchetypeIndex != -1);
+                char* oldComponentAddress = oldArchetype->buffers[oldArchetypeIndex] + componentSize * oldElementIndex;
+                char* newComponentAddress = newArchetype->buffers[i] + componentSize * newElementIndex;
+                memcpy(newComponentAddress, oldComponentAddress, componentSize);
+            }
+
+            Element movedElement = oldArchetype->remove(oldElementIndex);
+            if (!movedElement.Null()) {
+                ElementData* movedElementData = elementData.lookup(movedElement.id);
+                assert(movedElementData);
+                movedElementData->poolIndex = oldElementIndex;
+            }
+        }
+
+        data->archetype = newArchetypeID;
+        data->poolIndex = newElementIndex;
+    } 
 
 private:
     // returns -1 if the archetype doesn't exist
