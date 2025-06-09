@@ -56,19 +56,24 @@ inline Mode modeID(const char* mode) {
 enum class CrashReason {
     SDL_Initialization,
     MemoryFail,
-    GameInitialization
+    GameInitialization,
+    UnrecoverableError
 };
 
 inline void crash(CrashReason reason, const char* message) {
-    LogCritical("CRASHING: %s", message);
     switch (reason) {
     case CrashReason::MemoryFail:
-        LogCritical("Memory Error");
+        LogCritical("Memory Error - %s", message);
         break;
     case CrashReason::GameInitialization:
-        LogCritical("Failed to initialize game!");
+        LogCritical("Failed to initialize game - %s", message);
+        break;
     case CrashReason::SDL_Initialization:
-        LogCritical("Failed to initalize SDL");
+        LogCritical("Failed to initalize SDL - %s", message);
+        break;
+    case CrashReason::UnrecoverableError:
+        LogCritical("Unrecoverable Error - %s", message);
+        break;
     }
     exit(EXIT_FAILURE);
 }

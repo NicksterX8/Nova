@@ -17,131 +17,130 @@ constexpr Element NullElement = GECS::NullElement;
 using ElementID = GECS::ElementID;
 
 struct GuiTreeNode {
-    Element e;
-    GuiTreeNode* children;
-    int childCount;
-    int capacity;
+    Element e = NullElement;
+    ElementID parent = NullElement.id;
+    ElementID* children = nullptr;
+    int childCount = 0;
+    int capacity = 0;
 
     GuiTreeNode() {}
 
-    GuiTreeNode(Element e) : e(e), children(nullptr), childCount(0), capacity(0) {}
+    GuiTreeNode(Element e, ElementID parent) : e(e), parent(parent) {}
 };
 
-inline void destroyTree(GuiTreeNode* node) {
-    for (int c = 0; c < node->childCount; c++) {
-        destroyTree(&node->children[c]);
-    }
-    Free(node->children);
-}
-
-inline void traverseTree(GuiTreeNode* node, const std::function<bool(GuiTreeNode*)>& nodeOperation) {
-    if (nodeOperation(node)) {
-        return;
-    }
-    for (int c = 0; c < node->childCount; c++) {
-        traverseTree(&node->children[c], nodeOperation);
-    }
-}
-
-inline void traverseTree(GuiTreeNode* node, const std::function<bool(GuiTreeNode* child, GuiTreeNode* parent)>& nodeOperation) {
-    for (int c = 0; c < node->childCount; c++) {
-        nodeOperation(&node->children[c], node);
-        traverseTree(&node->children[c], nodeOperation);
-    }
-}
-
-inline void addChildNode(GuiTreeNode* node, GuiTreeNode* child) {
+inline void addChildNode(GuiTreeNode* node, ElementID child) {
     const int newSize = node->childCount + 1;
     if (newSize > node->capacity) {
         int newCapacity = (node->capacity * 2 > newSize) ? node->capacity * 2 : newSize;
-        GuiTreeNode* newChildren = Realloc<GuiTreeNode>(node->children, newCapacity);
+        ElementID* newChildren = Realloc<ElementID>(node->children, newCapacity);
         node->children = newChildren;
         node->capacity = newCapacity;
     }
-    memcpy(&node->children[node->childCount++], child, sizeof(GuiTreeNode));
-}
-
-// if element is not in the tree, returns null
-inline GuiTreeNode* findTreeNode(GuiTreeNode* tree, Element element) {
-    if (tree->e == element) {
-        return tree;
-    }
-    for (int i = 0; i < tree->childCount; i++) {
-        if (GuiTreeNode* node = findTreeNode(&tree->children[i], element)) {
-            return node;
-        }
-    }
-    return nullptr;
+    std::copy(&child, &child + 1, &node->children[node->childCount++]);
 }
 
 struct GuiManager : GECS::ElementManager {
 
     Element screen = NullElement;
 
-    GuiTreeNode root = NullElement;
+    My::HashMap<ElementID, GuiTreeNode> treeMap;
 
     Element hoveredElement = NullElement;
 
     Systems::SystemManager systemManager;
 
+    GuiTreeNode* getTreeNode(ElementID elementID) const {
+        return treeMap.lookup(elementID);
+    }
+
+    void destroyTree(GuiTreeNode* node) {
+        for (int c = 0; c < node->childCount; c++) {
+            destroyTreeElement(node->children[c]);
+        }
+        Free(node->children);
+    }
+
+    inline void destroyTreeElement(ElementID element) {
+        GuiTreeNode* node = treeMap.lookup(element);
+        for (int c = 0; c < node->childCount; c++) {
+            destroyTreeElement(node->children[c]);
+        }
+        Free(node->children);
+    }
+
     GuiManager() {}
 
     GuiManager(GECS::ComponentInfoRef componentInfo, int numPrototypes)
-     : GECS::ElementManager(componentInfo, numPrototypes) {
+     : GECS::ElementManager(componentInfo, numPrototypes), treeMap(32) {
+        EcsSystem::setupSystems(systemManager);
+
         screen = GECS::ElementManager::newElement(ElementTypes::Normal);
+        treeMap.insert(screen.id, GuiTreeNode(screen, NullElement.id));
 
         addComponent(screen, EC::ViewBox{Box{Vec2(0), Vec2(INFINITY)}});
         addComponent(screen, EC::Hidden{});
-
-        root.e = screen;
     }
 
-    // void changeParents(Element parent, Element child) {
-    //     if (parent == child) {
-    //         LogError("Element cannot adopt itself!");
-    //         return;
-    //     }
+    void removeFromTree(Element element) {
+        GuiTreeNode* node = treeMap.lookup(element.id);
 
-    //     GuiTreeNode* oldParent = nullptr;
-    //     GuiTreeNode* newParent = nullptr;
-    //     GuiTreeNode* childNode = nullptr;
-    //     traverseTree(&root, [&](GuiTreeNode* node, GuiTreeNode* parentNode){
-    //         if (node->e == child) {
-    //             oldParent = parentNode;
-    //             childNode = node;
-    //         }
-    //         else if (node->e == parent) {
-    //             newParent = node;
+        GuiTreeNode* oldParent = treeMap.lookup(node->parent);
+        // when parent is null, we don't need to remove element from parent
+        if (oldParent) {
+            for (int c = 0; c < oldParent->childCount; c++) {
+                if (oldParent->children[c] == element.id) {
+                    if (c != oldParent->childCount-1)
+                        oldParent->children[c] = oldParent->children[oldParent->childCount-1];
+                    oldParent->childCount--;
+                    break;
+                }
+            }
+            LogError("Tree node parent doesnt have node in children list!");
+        }
 
-    //             GuiTreeNode childNode(child);
-                
-    //         }
+        treeMap.remove(element.id);
+    }
 
-    //         if (oldParent && newParent) {
-    //             addChildNode(newParent, childNode);
-    //             oldParent->children.erase
-
-    //             return true;
-    //         }
-
-    //         return false;
-    //     });
-    // }
-
+    // make the child element a sub element of the parent. If the child already had a parent prior to this, the parent will be replaced
     void adopt(Element parent, Element child) {
         if (parent == child) {
             LogError("Element cannot adopt itself!");
             return;
         }
 
-        traverseTree(&root, [&](GuiTreeNode* node){
-            if (node->e == parent) {
-                GuiTreeNode childNode(child);
-                addChildNode(node, &childNode);
-                return true;
+        GuiTreeNode* parentNode = treeMap.lookup(parent.id);
+        if (!parentNode) {
+            LogError("Failed to adopt: parent is not in tree!");
+            return;
+        }
+        // for testing
+        GuiTreeNode* childNode = treeMap.lookup(child.id);
+        if (childNode) {
+            GuiTreeNode* oldParent = treeMap.lookup(childNode->parent);
+            if (oldParent->e == parent) {
+                // already has correct parent, nothing needs to be done.
+                // waste of time though...
+                LogWarn("Tried to adopt an element that was already a child.");
+                assert(childNode->parent == parent.id);
+                return;
+            } else {
+                // remove child from old parent
+                for (int c = 0; c < oldParent->childCount; c++) {
+                    if (oldParent->children[c] == child.id) {
+                        if (c != oldParent->childCount-1)
+                            oldParent->children[c] = oldParent->children[oldParent->childCount-1];
+                        oldParent->childCount--;
+                        break;
+                    }
+                }
+                // swap parent
+                childNode->parent = parent.id;
             }
-            return false;
-        });
+        } else {
+            treeMap.insert(child.id, GuiTreeNode(child, parent.id));
+        }
+
+        addChildNode(parentNode, child.id);
     }
 
     Element newElement(GECS::PrototypeID prototype, Element parent = NullElement) {
@@ -153,30 +152,44 @@ struct GuiManager : GECS::ElementManager {
     }
 
     void hideElement(Element element) {
-        GuiTreeNode* node = findTreeNode(&root, element);
-        hideElement(node);
-    }
-
-    void hideElement(GuiTreeNode* node) {
-        addComponent<EC::Hidden>(node->e, {});
-        for (int i = 0; i < node->childCount; i++) {
-            hideElement(&node->children[i]);
+        if (!elementExists(element)) {
+            LogError("Element does not exist!");
+            return;
         }
+
+        hideElement(element.id);
     }
 
-    void unhideElement(Element element) {
-        GuiTreeNode* node = findTreeNode(&root, element);
-        unhideElement(node);
-    }
-
-    void unhideElement(GuiTreeNode* node) {
-        if (elementHas<EC::Hidden>(node->e)) {
-            removeComponent<EC::Hidden>(node->e);
+private:
+    void hideElement(ElementID elementID) {
+        GuiTreeNode* node = treeMap.lookup(elementID);
+        if (node && !elementHas<EC::Hidden>(node->e)) {
+            addComponent<EC::Hidden>(node->e, {});
             for (int i = 0; i < node->childCount; i++) {
-                unhideElement(&node->children[i]);
+                hideElement(node->children[i]);
             }
         }
     }
+public:
+    void unhideElement(Element element) {
+        if (!elementExists(element)) {
+            LogError("Element does not exist!");
+            return;
+        }
+
+        unhideElement(element.id);
+    }
+private:
+    void unhideElement(ElementID elementID) {
+        GuiTreeNode* node = treeMap.lookup(elementID);
+        if (node && elementHas<EC::Hidden>(node->e)) {
+            removeComponent<EC::Hidden>(node->e);
+            for (int i = 0; i < node->childCount; i++) {
+                unhideElement(node->children[i]);
+            }
+        }
+    }
+public:
 
     bool addName(Element element, const char* name) {
         if (!name) {
@@ -207,9 +220,11 @@ struct GuiManager : GECS::ElementManager {
     }
 
     void destroy() {
-        destroyTree(&root);
+        destroyTree(getTreeNode(screen.id));
 
         GECS::ElementManager::destroy();
+
+        EcsSystem::cleanupSystems(systemManager);
     }
 };
 

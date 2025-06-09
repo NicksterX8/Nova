@@ -12,6 +12,10 @@ stuff:
 Items need to be stored canonically so there is only one ecs element per unique item type + variations. Item elements aren't just made willy nilly
 
 
+fix terminal making empty spot for console
+
+hidden elements shouldnt affect formatting
+
 
 actual (new):
 fix scrolling up/down with keys on console
@@ -75,7 +79,6 @@ do new gui
 √ Move to openGL rendering
 √ Just rethink centered rendering and stuff completely. Should position always mean the center of an entity?
 √ Fix save folder path in debug
-√ Start saving games
 √ Make a SYSTEM system, instead of just using lambdas for everything
 √ make a limited time life component for the sand gun sand
 √ figure out a way to have more than 32 components

@@ -50,17 +50,16 @@ void buildFromTree(GuiTreeNode* node, GUI::GuiManager& gui, int level) {
     if (parent.Null()) return;
     auto* parentViewEc = gui.getComponent<EC::ViewBox>(parent);
     if (!parentViewEc) return;
-    if (gui.elementHas<EC::Hidden>(parent)) {
-        return;
-    }
+    
     Box parentBox = parentViewEc->absolute;
     auto* fitConstraint = gui.getComponent<EC::StackConstraint>(parent);
     Box fitBox = parentBox;
     
     for (int i = 0; i < node->childCount; i++) {
-        Element e = node->children[i].e;
+        GuiTreeNode* childNode = gui.getTreeNode(node->children[i]);
+        Element e = childNode->e;
         auto* viewEc = gui.getComponent<EC::ViewBox>(e);
-        if (viewEc) {
+        if (viewEc && !gui.elementHas<EC::Hidden>(e)) {
             Box childBox = viewEc->box;
             
             // size
@@ -99,7 +98,7 @@ void buildFromTree(GuiTreeNode* node, GUI::GuiManager& gui, int level) {
             viewEc->absolute = childBox;
         }
 
-        buildFromTree(&node->children[i], gui, ++level);
+        buildFromTree(childNode, gui, ++level);
     }
 }
 
@@ -125,7 +124,7 @@ void Gui::renderElements(GuiRenderer& renderer, const PlayerControls& playerCont
     gui.setComponent(gui.screen, EC::ViewBox{screenBox, screenBox});
 
     int level = 1;
-    buildFromTree(&gui.root, gui, level);
+    buildFromTree(gui.getTreeNode(gui.screen.id), gui, level);
 
     /*
     gui.forEachElement<EC::ViewBox, EC::SizeConstraint>([&](Element e){
@@ -146,12 +145,13 @@ void Gui::renderElements(GuiRenderer& renderer, const PlayerControls& playerCont
         return signature[EC::ViewBox::ID] && !signature[EC::Hidden::ID];
     }, [&](Element e){
         auto* viewbox = gui.getComponent<EC::ViewBox>(e);
-
-        bool mouseOnButton = pointInRect(mousePos, viewbox->absolute.rect());
-        if (mouseOnButton) {
-            if (viewbox->level > hoveredLevel) {
-                hoveredLevel = viewbox->level;
-                hoveredElement = e;
+        if (viewbox->visible) {
+            bool mouseOnButton = pointInRect(mousePos, viewbox->absolute.rect());
+            if (mouseOnButton) {
+                if (viewbox->level > hoveredLevel) {
+                    hoveredLevel = viewbox->level;
+                    hoveredElement = e;
+                }
             }
         }
     });
@@ -168,18 +168,10 @@ void Gui::renderElements(GuiRenderer& renderer, const PlayerControls& playerCont
      * Parts of elements are rendered according to the order the forEach calls are made here
      */
 
-    // borders
-    /*
-    gui.forEachElement<EC::ViewBox, EC::Border>([&](Element e){
-        auto view = gui.getComponent<EC::ViewBox>(e);
-        auto box = view->absolute;
-        auto* border = gui.getComponent<EC::Border>(e);
-        renderer.rectOutline(box.min, box.max(), border->color, border->strokeIn, border->strokeOut, view->level);
-    });
-    */
-
     // text
     gui.forEachElement<EC::ViewBox, EC::Text>([&](Element e){
+        if (gui.elementHas<EC::Hidden>(e)) return;
+
         auto* view = gui.getComponent<EC::ViewBox>(e);
         Box entityBox = view->absolute;
         auto* textComponent = gui.getComponent<EC::Text>(e);

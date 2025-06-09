@@ -244,10 +244,22 @@ struct Gui {
     struct MySystems {
         Systems::RenderBackgroundSystem* renderBackgroundSys;
         Systems::SizeConstraintSystem* sizeConstraintSystem;
+        Systems::RenderTexturesSystem* textureSys;
 
         void init(Systems::SystemManager& manager, GuiRenderer& renderer) {
+            auto* treeTraversal = new Systems::IBarrier(manager);
+            auto* startRendering = new Systems::IBarrier(manager);
+            auto* elementsComplete = new Systems::IBarrier(manager);
+
             renderBackgroundSys = new Systems::RenderBackgroundSystem(manager, &renderer);
             sizeConstraintSystem = new Systems::SizeConstraintSystem(manager);
+            textureSys = new Systems::RenderTexturesSystem(manager, &renderer);
+
+            sizeConstraintSystem->orderAfter(treeTraversal);
+            elementsComplete->orderAfter(sizeConstraintSystem);
+            startRendering->orderAfter(elementsComplete);
+            renderBackgroundSys->orderAfter(startRendering);
+            textureSys->orderAfter(renderBackgroundSys);
         }
 
         void update(GuiRenderer& renderer) {
@@ -257,6 +269,7 @@ struct Gui {
         void destroy() {
             delete sizeConstraintSystem;
             delete renderBackgroundSys;
+            delete textureSys;
         }
     } systems;
 
@@ -270,6 +283,7 @@ struct Gui {
             componentInfo = My::Vec<GECS::ComponentInfo>(&componentInfoArray[0], componentInfoArray.size());
         }
         manager = GUI::GuiManager(ArrayRef(componentInfo.data, componentInfo.size), GUI::ElementTypes::Count);
+        manager.systemManager.elementManager = &manager;
         makeGuiPrototypes(manager);
         initGui(manager);
 
@@ -321,7 +335,6 @@ struct Gui {
     }
 
     void drawConsole(GuiRenderer& renderer) {
-
         Element consoleElement = manager.getNamedElement("console");
         auto* consoleView = manager.getComponent<EC::ViewBox>(consoleElement);
 

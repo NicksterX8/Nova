@@ -2,100 +2,133 @@
 
 using namespace EcsSystem;
 
-void ensureArrayCapacity(AbstractGroupArray* array, int arraySize) {
-    int reservedSize = arraySize * array->typeSize;
-    if (!array->memory) {
-        array->memory = new My::Vec<char>(reservedSize);
-    } else {
-        array->memory->reserve(reservedSize);
+
+int EcsSystem::findEligiblePools(const IComponentGroup* group, const GECS::ElementManager& elementManager, std::vector<ArchetypePool*>* eligiblePools) {
+    int eligibleElements = 0;
+    for (int p = 0; p < elementManager.components.pools.size; p++) {
+        auto& pool = elementManager.components.pools[p];
+        if (pool.size == 0) continue;
+        auto poolSignature = pool.archetype.signature;
+        if ((poolSignature & group->signature) == group->signature
+         && (poolSignature & group->subtract) == 0) {
+            if (eligiblePools)
+                eligiblePools->push_back(&pool);
+            eligibleElements += pool.size;
+        }
     }
-    array->memory->size = reservedSize;
+    return eligibleElements;
 }
 
-using ArchetypePool = GECS::EcsClass::ArchetypalComponentManager::ArchetypePool;
+int calculateJobStages(IJob* source, int stage, int* highestOfALL) {
+    int highestStage = stage;
+    for (IJob* dependentOnSource : source->thisDependentOn.jobDependencies) {
+        if (highestStage < dependentOnSource->stage) {
+            highestStage = dependentOnSource->stage;
+        }
+        if (dependentOnSource->stage <= stage) {
+            calculateJobStages(dependentOnSource, stage + 1, highestOfALL);
+            *highestOfALL = MAX(*highestOfALL, dependentOnSource->stage);
+        }
+    }
+    source->stage = highestStage;
+    return highestStage;
+}
 
-void executeCommands(const std::vector<ElementCommandBuffer::Command>& commands) {
+int calculateSystemStages(ISystem* source, int stage) {
+    int highestStage = stage;
+    for (ISystem* dependentOnSource : source->systemDependencies) {
+        if (highestStage < dependentOnSource->systemOrder) {
+            highestStage = dependentOnSource->systemOrder;
+        }
+        if (dependentOnSource->systemOrder <= stage) {
+            calculateSystemStages(dependentOnSource, stage + 1);
+        }
+    }
+    source->systemOrder = highestStage;
+    return highestStage;
+}
 
+void EcsSystem::setupSystems(SystemManager& sysManager) {
+    for (ISystem* system : sysManager.systems) {
+        if (system->systemOrder == ISystem::NullSystemOrder) {
+            calculateSystemStages(system, 0);
+        }
+    }
+    
+    std::sort(sysManager.systems.begin(), sysManager.systems.end(),
+    [](ISystem* lhs, ISystem* rhs){
+        return lhs->systemOrder >= rhs->systemOrder;
+    });
+}
+
+void EcsSystem::cleanupSystems(SystemManager& sysManager) {
+    for (ISystem* system : sysManager.systems) {
+        for (IJob* job : system->jobs) {
+            delete job;
+        }
+    }
 }
 
 void EcsSystem::executeSystems(SystemManager& sysManager, GECS::ElementManager& elementManager) {
 
-    std::vector<TaskGroup> tasks;
+    int systemCount = sysManager.systems.size();
+    
+    
+    std::vector<ElementCommandBuffer> unexecutedCommands;
 
-    // sort by system order
-    std::sort(sysManager.systems.begin(), sysManager.systems.end(),
-        [](const ISystem* a, const ISystem* b){
-            return a->order < b->order;
-        });
+    for (int i = 0; i < systemCount; i++) {
+        ISystem* system = sysManager.systems[i];
 
-    for (ISystem* system : sysManager.systems) {
-        if (!system->enabled) {
-            continue;
+        if (system->flushCommandBuffers) {
+            for (auto& commandBuffer : unexecutedCommands) {
+                elementManager.executeCommandBuffer(commandBuffer);
+            }
         }
+        // systems still flush command buffers (if value is set) when disabled
+        if (!system->enabled) continue;
 
         system->ScheduleJobs();
+
+        std::vector<IJob*> jobs;
+
+        if (system->jobs.empty()) continue;
         
-        // sort system jobs by job order
-        std::sort(system->schedule.begin(), system->schedule.end(),
-            [](const ScheduledJob& a, const ScheduledJob& b){
-                return a.order < b.order;
-            });
-        for (auto& job : system->schedule) {
-            TaskGroup taskGroup{
-                .jobs = {job.job},
-                .group = *job.group,
-                .system = system,
-                .flushCommandBuffers = true
-            };
-            tasks.push_back(taskGroup);
-        }
-        system->schedule.clear();
-    }
+        int highestStage = 0;
 
-    std::vector<ElementCommandBuffer::Command> unexecutedCommands;
-
-    for (TaskGroup& taskGroup : tasks) {
-        if (taskGroup.flushCommandBuffers) {
-            executeCommands(unexecutedCommands);
-            unexecutedCommands.clear();
+        for (IJob* job : system->jobs) {
+            if (job->stage == IJob::NullStage) {
+                calculateJobStages(job, 0, &highestStage);
+            }
         }
+
+        std::sort(system->jobs.begin(), system->jobs.end(), [](IJob* lhs, IJob* rhs){
+            return lhs->stage >= rhs->stage;
+        });
 
         int elementsInTask = 0;
         std::vector<ArchetypePool*> eligiblePools;
-        for (int p = 0; p < elementManager.components.pools.size; p++) {
-            auto& pool = elementManager.components.pools[p];
-            if (pool.size == 0) continue;
-            auto poolSignature = pool.archetype.signature;
-            if ((poolSignature & taskGroup.group.signature) == taskGroup.group.signature
-        && (poolSignature & taskGroup.group.subtract) == 0) {
-                eligiblePools.push_back(&pool);
-                elementsInTask += pool.size;
-            }
-        }
 
-        for (IJob* job : taskGroup.jobs) {
-            for (AbstractGroupArray* array : job->arrays) {
-                if (array->memory) {
-                    ensureArrayCapacity(array, elementsInTask);
-                }
-            }
+        for (IJob* job : system->jobs) {
+            JobGroup group = job->group;
+
+            std::vector<ArchetypePool*> eligiblePools;
+            findEligiblePools(group, elementManager, &eligiblePools);
+
             int elementsProcessed = 0;
             for (ArchetypePool* pool : eligiblePools) {
                 // make sure job arrays are referencing the correct data
                 for (AbstractGroupArray* array : job->arrays) {
                     ComponentID neededComponent = array->componentType;
                     if (neededComponent != -1) {
-                        if (!array->readonly && !taskGroup.group.write[neededComponent]) {
+                        if (!array->readonly && !group->write[neededComponent]) {
                             LogError("Component array without write permissions not marked read only. Review group permissions");
                         }
                         int neededComponentIndex = pool->archetype.getIndex(neededComponent);
                         assert(neededComponentIndex != -1);
                         char* poolComponentArray = pool->buffers[neededComponentIndex];
-                        array->data = poolComponentArray;
-                    } else if (array->memory) {
-                        array->data = array->memory->data + elementsProcessed * array->typeSize;
+                        array->data = poolComponentArray - elementsProcessed * pool->archetype.sizes[neededComponentIndex];
                     } else if (array->elementArray) {
-                        array->data = pool->elements;
+                        array->data = pool->elements - elementsProcessed;
                     } else {
                         LogError("Array doesn't seem to have any type. what up?");
                     }
@@ -103,19 +136,24 @@ void EcsSystem::executeSystems(SystemManager& sysManager, GECS::ElementManager& 
 
                 // execute job per pool of elements
                 for (int e = 0; e < pool->size; e++) {
-                    job->Execute(e);
+                    job->Execute(elementsProcessed + e);
                 }
 
                 elementsProcessed += pool->size;
             }
 
-            ElementCommandBuffer& commandBuffer = job->commands;
-            unexecutedCommands.insert(unexecutedCommands.end(), commandBuffer.commands.begin(), commandBuffer.commands.end());
+            unexecutedCommands.push_back(job->commands);
         } // for each job end
-    } // for each task group end
+        system->jobs.clear();
+        for (void* allocation : system->tempAllocations) {
+            Free(allocation);
+        }
+        system->tempAllocations.clear();
+    } // for each system end
 
-    executeCommands(unexecutedCommands);
-    unexecutedCommands.clear();
+    for (auto& commandBuffer : unexecutedCommands) {
+        elementManager.executeCommandBuffer(commandBuffer);
+    }
 
     // free arrays at some point
 }

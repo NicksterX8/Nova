@@ -294,8 +294,6 @@ static const unsigned char BitReverseTable256[256] = {
 #undef R6
 };
 
-/*
-Removed by Nick Wilson because it uses C++17 features and the function is not useful to me
 /// Reverse the bits in \p Val.
 template <typename T> T reverseBits(T Val) {
 #if __has_builtin(__builtin_bitreverse8)
@@ -323,7 +321,6 @@ template <typename T> T reverseBits(T Val) {
   std::memcpy(&Val, out, sizeof(Val));
   return Val;
 }
-*/
 
 // NOTE: The following support functions use the _32/_64 extensions instead of
 // type overloading so that signed and unsigned integers can be used without

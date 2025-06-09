@@ -47,7 +47,6 @@ namespace Draw {
 
     int chunkBorders(QuadRenderer& renderer, const Camera& camera, SDL_Color color, float pixelLineWidth, float z);
     void drawFpsCounter(GuiRenderer& renderer, float fps, float tps, RenderOptions options);
-    void drawConsole(GuiRenderer& renderer, const GUI::Console* console);
     void drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& screenTransform, GUI::Gui* gui, const GameState* state, const PlayerControls& playerControls);
     inline void drawItemStack(GuiRenderer& renderer, const ItemManager& itemManager, const ItemStack& itemStack, const FRect& destination) {
         auto displayEc = itemManager.getComponent<ITC::Display>(itemStack.item);

@@ -115,18 +115,23 @@ void func(int arr[5]) {
 
 }
 
+struct Charlie {
+    int* intPtr;
+    int y;
+
+    Charlie(int x) {
+        intPtr = &this->y;
+    }
+};
+
 int main() {
 
-    using std::cout;
-
-    #define LIST "1", "2", "3", "4"
-    #define FIRST(first, ...) first
-    #define ALL_AFTER_FIRST(first, ...) __VA_ARGS__
-    #define STRINGIFY(x) #x
-    #define TOSTRING(x) STRINGIFY(x)
-
-    int tex[] = {
-        0,1,2,3
-    };
-    func(tex);
+    Charlie charlie = Charlie(0);
+    int* charliePtr = charlie.intPtr;
+    int* truePtr = &charlie.y;
+    if (charliePtr == truePtr)
+        printf("we ogood");
+    else 
+        printf("NOO");
+    return 0;
 }

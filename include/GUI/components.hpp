@@ -86,6 +86,7 @@ BEGIN_COMPONENT(ViewBox)
     Box box = {{0,0},{0,0}}; // relative box
     Box absolute = {{0,0},{0,0}}; // where element was actually displayed
     int level = 0;
+    bool visible = true; // set to false for an invisible 'container' type element. necessary to know if the user is trying use a gui element or click through to something else
 END_COMPONENT(ViewBox)
 
 BEGIN_COMPONENT(Hidden)

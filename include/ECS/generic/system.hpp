@@ -11,24 +11,26 @@ namespace EcsSystem {
 using Element = ECS::Entity;
 using ElementCommandBuffer = GECS::ElementCommandBuffer;
 
-struct AbstractComponentGroup {
-    GECS::EcsClass::Signature read;
-    GECS::EcsClass::Signature write;
-    GECS::EcsClass::Signature signature;
-    GECS::EcsClass::Signature subtract;
+using Signature = GECS::EcsClass::Signature;
+
+struct IComponentGroup {
+    Signature read;
+    Signature write;
+    Signature signature;
+    Signature subtract;
 };
 
 struct IJob;
 
 struct Task {
-    AbstractComponentGroup group;
+    IComponentGroup* group;
     IJob* job;
 };
 
 struct ISystem;
 
 struct TaskGroup {
-    AbstractComponentGroup group;
+    IComponentGroup* group;
     std::vector<IJob*> jobs;
     ISystem* system;
     bool flushCommandBuffers;
@@ -40,134 +42,202 @@ struct AbstractGroupArray {
     // for component array
     ComponentID componentType = -1;
     // for plain array
-    My::Vec<char>* memory = nullptr;
-    int typeSize = -1;
+
+    //AbstractGroupArray* group = nullptr;
     // for element array
     bool elementArray = false;
 };
 
+using JobGroup = const IComponentGroup*;
+
+struct Dependency {
+    std::vector<IJob*> jobDependencies;
+
+    Dependency() {}
+
+    Dependency(IJob* job) {
+        jobDependencies.push_back(job);
+    }
+
+    Dependency(std::initializer_list<IJob*> jobs) : jobDependencies(jobs) {
+
+    }
+
+    // no dependencies
+    bool none() const {
+        return jobDependencies.empty();
+    }
+};
+
 struct IJob {
-    // metadata stuff all jobs might need
-    // int time;
-    ElementCommandBuffer commands;
-
-    std::vector<AbstractGroupArray*> arrays;
-
     enum Type {
         Parallel,
         MainThread
     } type;
 
-    IJob(Type type) : type(type) {
+    ElementCommandBuffer commands;
+
+    std::vector<AbstractGroupArray*> arrays;
+
+    JobGroup group;
+
+    Dependency thisDependentOn;
+
+    static constexpr int NullStage = -1;
+    int stage = NullStage;
+
+    IJob(Type type, JobGroup group) : type(type), group(group) {
 
     }
 
     virtual void Execute(int N) = 0;
+
+    virtual ~IJob() {}
 };
+
+using ArchetypePool = GECS::EcsClass::ArchetypalComponentManager::ArchetypePool;
+
+// returns number of eligible elements
+int findEligiblePools(const IComponentGroup* group, const GECS::ElementManager& elementManager, std::vector<ArchetypePool*>* eligiblePools);
 
 struct SystemManager {
-    std::vector<ISystem*> systems;  
-};
+    std::vector<ISystem*> systems;
+    const GECS::ElementManager* elementManager = nullptr;
+    //std::vector<void*> tempSystemAllocations;
+public:
+    SystemManager() {}
 
-struct ScheduledJob {
-    AbstractComponentGroup* group;
-    IJob* job;
-    int order;
-};
+    SystemManager(const GECS::ElementManager* elementManager) : elementManager(elementManager) {}
 
-struct Scheduler {
-    ISystem* system;
-    IJob* job;
+    void addSystem(ISystem* system) {
+        systems.push_back(system);
+    }
 
-    Scheduler& DependentOn(IJob& jobs) {
-        return *this;
+    int getSizeOf(const IComponentGroup& group) const {
+        return findEligiblePools(&group, *elementManager, nullptr);
     }
 };
 
 struct ISystem {
     bool enabled;
-    int order;
+    bool flushCommandBuffers = false; // flush command buffers prior to execution
 
     ElementCommandBuffer commands;
 
-    // job schedule
-    std::vector<ScheduledJob> schedule;
+    std::vector<void*> tempAllocations;
 
-    ISystem(SystemManager& manager, int order = 0) : enabled(true), order(order) {
-        manager.systems.push_back(this);
+    // job schedule
+    std::vector<IJob*> jobs;
+
+    SystemManager* systemManager;
+
+    std::vector<ISystem*> systemDependencies;
+    static constexpr int NullSystemOrder = -1;
+    int systemOrder = NullSystemOrder;
+
+    struct Trigger {
+        enum class Type {
+            EveryUpdate,
+            Init,
+            ElementEvent
+        } type;
+
+        struct ElementEvent {
+            enum Type {
+                ElementAdded,
+                ElementRemoved
+            } type;
+
+            IComponentGroup* group;
+        };
+
+        ElementEvent elementEvent;
+    } trigger = {
+        .type = Trigger::Type::EveryUpdate
+    };
+
+    ISystem(SystemManager& manager) : enabled(true), systemManager(&manager) {
+        manager.addSystem(this);
     }
 
     virtual void ScheduleJobs() = 0;
 
     virtual void BeforeExecution() {}
 
-    Scheduler Schedule(AbstractComponentGroup& group, IJob& job) {
-        schedule.push_back({&group, &job, 0});
-        return Scheduler{.system = this, .job = &job};
+    IJob* Schedule(IJob* job, const Dependency& dependency) {
+        for (IJob* jobDependency : dependency.jobDependencies) {
+            AddDependency(job, jobDependency);
+        }
+        jobs.push_back(job);
+        return job;
     }
 
-    void AddDependency(IJob& dependent, IJob* dependency) {
+    IJob* Schedule(IJob* job, IJob* dependency = nullptr) {
+        AddDependency(job, dependency);
+        jobs.push_back(job);
+        return job;
+    }
 
+    void AddDependency(IJob* dependent, IJob* dependency) {
+        if (dependent && dependency) {
+            dependent->thisDependentOn.jobDependencies.push_back(dependency);
+            //dependency->dependentOnThis.jobDependencies.push_back(dependency);
+        }
     }
 
     virtual ~ISystem() {
 
     }
+
+    int getGroupSize(const IComponentGroup& group) {
+        return systemManager->getSizeOf(group);
+    }
+
+    template<class T>
+    T* makeTempGroupArray(const IComponentGroup& group) {
+        T* allocation = new T[getGroupSize(group)];
+        tempAllocations.push_back(allocation);
+        return allocation;
+    }
+
+    // ordering
+    void orderAfter(ISystem* otherSystem) {
+        this->systemDependencies.push_back(otherSystem);
+    }
+
+    void orderBefore(ISystem* otherSystem) {
+        otherSystem->systemDependencies.push_back(this);
+    }
 };
 
-template<typename T>
-struct GroupArray : AbstractGroupArray {
-    GroupArray(const GroupArray<T>& other) = delete;
-
-    GroupArray(IJob* job, const GroupArray<std::remove_const_t<T>>& other) {
-        this->data = other.data;
-        this->componentType = other.componentType;
-        this->memory = other.memory;
-        this->typeSize = other.typeSize;
-        this->readonly = std::is_const_v<T>;
-        this->elementArray = false;
-
-        if (job)
-            job->arrays.push_back(this);
+struct IBarrier : ISystem {
+    IBarrier(SystemManager& manager) : ISystem(manager) {
+        flushCommandBuffers = true;
+        enabled = false;
     }
 
-protected:
-    GroupArray(IJob* job) {
-        if (job)
-            job->arrays.push_back(this);
-    }
-public:
-
-    typename std::conditional<std::is_const_v<T>, const T&, T&>::type& operator[](int index) {
-        return ((T*)data)[index];
-    }
+    void ScheduleJobs() {}
 };
 
 template<class C>
-struct ComponentArray : GroupArray<C> {
-    ComponentArray(IJob* job) : GroupArray<C>(job) {
+struct ComponentArray : AbstractGroupArray {
+    ComponentArray(const ComponentArray<C>& other) = delete;
+
+    ComponentArray(IJob* job) {
         this->componentType = C::ID;
         this->readonly = std::is_const_v<C>;
+        if (job)
+            job->arrays.push_back(this);
     }
-};
 
-template<typename T>
-struct PlainArray : GroupArray<T> {
-
-    //PlainArray(IJob* job, const PlainArray<T>& other) : GroupArray<T>(job, other) {}
-    PlainArray(IJob* job, const PlainArray<std::remove_const_t<T>>& other) : GroupArray<T>(job, other) {}
-
-    // owned by job
-    PlainArray(IJob* job) : GroupArray<T>(job) {
-        this->memory = new My::Vec<char>(0);
-        this->typeSize = sizeof(T);
-        this->readonly = std::is_const_v<T>;
+    typename std::conditional<std::is_const_v<C>, const C&, C&>::type& operator[](int index) {
+        return ((C*)data)[index];
     }
 };
 
 struct ElementArray : AbstractGroupArray {
     ElementArray(IJob* job) {
-        elementArray = true;
+        this->elementArray = true;
         if (job)
             job->arrays.push_back(this);
     }
@@ -210,10 +280,11 @@ struct Subtract {
 };
 
 template<class ...Cs>
-struct ComponentGroup : AbstractComponentGroup {
+struct ComponentGroup : IComponentGroup {
     template<class C>
-    void setComponentUses() {
-        signature.set(C::Type::ID);
+    constexpr void setComponentUses() {
+        if (C::read || C::write)
+            signature.set(C::Type::ID);
         if (C::read) {
             read.set(C::Type::ID);
         }
@@ -225,13 +296,26 @@ struct ComponentGroup : AbstractComponentGroup {
         }
     }
 
-    ComponentGroup() {
+    constexpr ComponentGroup() {
         int dummy[] = {0, (setComponentUses<Cs>(), 0) ...};
         (void)dummy;
     }
 };
 
+void setupSystems(SystemManager&);
+
+void cleanupSystems(SystemManager&);
+
 void executeSystems(SystemManager&, GECS::ElementManager&);
+
+inline bool jobsAreConflicting(IJob* jobA, IJob* jobB) {
+    const IComponentGroup& groupA = *jobA->group;
+    const IComponentGroup& groupB = *jobB->group;
+    auto componentWriteConflicts = (groupA.write & groupB.signature) | (groupB.write & groupA.signature);
+    if (componentWriteConflicts.any()) return true;
+    
+    return false;
+}   
 
 }
 

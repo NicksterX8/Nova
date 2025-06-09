@@ -13,41 +13,35 @@ using namespace EcsSystem;
 using GECS::ElementCommandBuffer;
 
 struct IJobParallelFor : IJob {
-    IJobParallelFor() : IJob(IJob::Parallel) {}
+    IJobParallelFor(JobGroup group) : IJob(IJob::Parallel, group) {}
 };
 
 struct IJobSingleThreaded : IJob {
-    IJobSingleThreaded() : IJob(IJob::MainThread) {}
+    IJobSingleThreaded(JobGroup group) : IJob(IJob::MainThread, group) {}
 };
 
-template<class T>
-struct CopyGroupArrayJob : IJob {
-    GroupArray<T> dst;
-    GroupArray<const T> src;
+template<typename T>
+using GroupArray = T*;
 
-    CopyGroupArrayJob(const GroupArray<T>& dst, const GroupArray<const T>& src) : dst(this), src(this) {
-        this->dst = dst;
-        this->src = src;
-    }
+template <class C>
+struct CopyComponentArrayJob : IJobParallelFor {
+    C* dst;
+    ComponentArray<C> src;
+
+    CopyComponentArrayJob(JobGroup group, Element* dst)
+    : IJobParallelFor(group), dst(dst), src(this) {}
 
     void Execute(int N) {
         dst[N] = src[N];
     }
 };
 
-template<class Component>
-struct CopyComponentArrayJob : CopyGroupArrayJob<Component> {
-    CopyComponentArrayJob(const PlainArray<Component>& dst)
-    : CopyGroupArrayJob<Component>(dst, ComponentArray<const Component>(nullptr)) {}
-};
-
 struct CopyElementArrayJob : IJobParallelFor {
-    GroupArray<Element> dst;
+    Element* dst;
     ElementArray src;
 
-    CopyElementArrayJob(const GroupArray<Element>& dst) : dst(this, dst), src(this) {
- 
-    }
+    CopyElementArrayJob(JobGroup group, Element* dst)
+    : IJobParallelFor(group), dst(dst), src(this) {}
 
     void Execute(int N) {
         dst[N] = src[N];
@@ -56,12 +50,10 @@ struct CopyElementArrayJob : IJobParallelFor {
 
 template<class Component>
 struct FillComponentsFromArrayJob : IJob {
-    PlainArray<Component> src;
+    Component* src;
     ComponentArray<const Component> dst;
 
-    FillComponentsFromArrayJob(PlainArray<Component>& src) : src(this), dst(this) {
-        this->src = src;
-    }
+    FillComponentsFromArrayJob(Component* src) : src(src), dst(this) {}
 
     void Execute(int N) {
         dst[N] = src[N];
@@ -70,11 +62,11 @@ struct FillComponentsFromArrayJob : IJob {
 
 template<typename T>
 struct InitializeArrayJob : IJob {
-    GroupArray<T> values;
+    MutableArrayRef<T> values;
 
     T value;
 
-    InitializeArrayJob(const GroupArray<T>& values, const T& initializationValue) : values(this), value(initializationValue) {
+    InitializeArrayJob(MutableArrayRef<T> values, const T& initializationValue) : values(this), value(initializationValue) {
         this->values = values;
     }
 
@@ -93,25 +85,19 @@ struct EnforceMaxSizeJob : IJobParallelFor {
 
     ElementArray element;
 
-    float dt;
-
     // instantiate component arrays
-    EnforceMaxSizeJob()
-    : viewbox(this), maxSize(this), element(this) {
+    EnforceMaxSizeJob(JobGroup group)
+    : IJobParallelFor(group), viewbox(this), maxSize(this), element(this) {
         
     }
 
-    void update(float deltaTime) {
-        this->dt = deltaTime;
+    void update() {
+        
     }
 
     void Execute(int N) {
-        if (viewbox[N].absolute.size.x > maxSize[N].maxSize.x) {
-            viewbox[N].absolute.size.x = maxSize[N].maxSize.x;
-            commands.addComponent(element[N], EC::Hidden{});
-        }
-        if (viewbox[N].absolute.size.y > maxSize[N].maxSize.y) viewbox[N].absolute.size.y = maxSize[N].maxSize.y;
-        
+        if (viewbox[N].absolute.size.x > maxSize[N].maxSize.x) viewbox[N].absolute.size.x = maxSize[N].maxSize.x;
+        if (viewbox[N].absolute.size.y > maxSize[N].maxSize.y) viewbox[N].absolute.size.y = maxSize[N].maxSize.y;   
     }
 };
 
@@ -120,8 +106,8 @@ struct EnforceMinSizeJob : IJobParallelFor {
     ComponentArray<const GUI::EC::SizeConstraint> minSize;
 
     // instantiate component arrays
-    EnforceMinSizeJob()
-    : viewbox(this), minSize(this) {
+    EnforceMinSizeJob(JobGroup group)
+    : IJobParallelFor(group), viewbox(this), minSize(this) {
         
     }
 
@@ -140,31 +126,41 @@ struct ComponentWithElement {
 };
 
 struct SizeConstraintSystem : ISystem {
-    ComponentGroup<
+    static constexpr ComponentGroup<
         ReadWrite<EC::ViewBox>,
         ReadOnly<EC::SizeConstraint>
     > group;
 
-    EnforceMaxSizeJob maxSizeJob;
-    EnforceMinSizeJob minSizeJob;
-
-    SizeConstraintSystem(SystemManager& manager) : ISystem(manager), maxSizeJob() {
+    SizeConstraintSystem(SystemManager& manager) : ISystem(manager) {
         
     }
 
-    void ScheduleJobs() override {
-        Schedule(group, maxSizeJob);
-        Schedule(group, minSizeJob);
+    void ScheduleJobs() {
+        auto maxSizeJob = new EnforceMaxSizeJob(&group);
+        Schedule(maxSizeJob);
+    }
+};
+
+struct GetViewLevelsJob : IJobParallelFor {
+    ComponentArray<const EC::ViewBox> viewbox;
+
+    GuiRenderLevel* levels;
+
+    GetViewLevelsJob(JobGroup group, GuiRenderLevel* levels)
+    : IJobParallelFor(group), viewbox(this), levels(levels) {}
+
+    void Execute(int N) {
+        levels[N] = viewbox[N].level;
     }
 };
 
 struct BoxToQuadJob : IJobParallelFor {
     ComponentArray<const EC::ViewBox> viewbox;
 
-    PlainArray<QuadRenderer::Quad> quads;
+    QuadRenderer::Quad* quads;
 
-    BoxToQuadJob(const PlainArray<QuadRenderer::Quad>& quadsArray)
-    : viewbox(this), quads(this, quadsArray) {}
+    BoxToQuadJob(JobGroup group, QuadRenderer::Quad* quadsArray)
+    : IJobParallelFor(group), viewbox(this), quads(quadsArray) {}
 
     void Execute(int N) {
         Box box = viewbox[N].absolute;
@@ -181,9 +177,10 @@ struct BoxToQuadJob : IJobParallelFor {
 struct ColorToQuadJob : IJobParallelFor {
     ComponentArray<const EC::Background> background;
 
-    PlainArray<QuadRenderer::Quad> quads;
+    QuadRenderer::Quad* quads;
 
-    ColorToQuadJob(const PlainArray<QuadRenderer::Quad>& quadsArray) : background(this), quads(this, quadsArray) {}
+    ColorToQuadJob(JobGroup group, QuadRenderer::Quad* quadsArray)
+    : IJobParallelFor(group), background(this), quads(quadsArray) {}
 
     void Execute(int N) {
         SDL_Color color = background[N].color;
@@ -198,19 +195,17 @@ struct ColorToQuadJob : IJobParallelFor {
 struct BufferQuadJob : IJobSingleThreaded {
     ComponentArray<const EC::ViewBox> viewbox;
 
-    PlainArray<QuadRenderer::Quad> quads;
-    PlainArray<const GuiRenderLevel> levels;
+    const QuadRenderer::Quad* quads;
+    const GuiRenderLevel* levels;
 
     GuiRenderer* guiRenderer;
 
-    BufferQuadJob(const PlainArray<QuadRenderer::Quad>& quadArray, const PlainArray<GuiRenderLevel>& levels, GuiRenderer* guiRenderer)
-    : viewbox(this), quads(this, quadArray), levels(this, levels), guiRenderer(guiRenderer) {
-    
-    }
+    BufferQuadJob(JobGroup group, const QuadRenderer::Quad* quads, const GuiRenderLevel* levels, GuiRenderer* guiRenderer)
+    : IJobSingleThreaded(group), viewbox(this), quads(quads), levels(levels), guiRenderer(guiRenderer) {}
 
     void Execute(int N) {
         const QuadRenderer::Quad& quad = quads[N];
-        GuiRenderLevel level = viewbox[N].level;
+        GuiRenderLevel level = levels[N];
         if (level < 0 || level > guiRenderer->levels.size) {
             return;
         }
@@ -222,23 +217,16 @@ struct BufferQuadJob : IJobSingleThreaded {
     }
 };
 
-namespace SystemOrder {
-    enum SystemOrdering {
-        BeforeRendering,
-        AfterRendering
-    };
-}
-
 using BorderQuads = std::array<QuadRenderer::Quad, 4>;
 
 struct BufferBordersJob : IJobSingleThreaded {
-    PlainArray<const BorderQuads> quads;
-    PlainArray<const GuiRenderLevel> levels;
+    const BorderQuads* quads;
+    const GuiRenderLevel* levels;
 
     GuiRenderer* guiRenderer;
 
-    BufferBordersJob(const PlainArray<BorderQuads>& quads, const PlainArray<GuiRenderLevel>& levels, GuiRenderer* guiRenderer)
-    : quads(this, quads), levels(this, levels), guiRenderer(guiRenderer) {}
+    BufferBordersJob(JobGroup group, const BorderQuads* quads, const GuiRenderLevel* levels, GuiRenderer* guiRenderer)
+    : IJobSingleThreaded(group), quads(quads), levels(levels), guiRenderer(guiRenderer) {}
 
     void Execute(int N) {
         GuiRenderLevel level = levels[N];
@@ -251,12 +239,12 @@ struct BufferBordersJob : IJobSingleThreaded {
 };
 
 struct BorderQuadsJob : IJobParallelFor {
-    PlainArray<BorderQuads> quads;
+    BorderQuads* quads;
     ComponentArray<const EC::ViewBox> viewbox;
     ComponentArray<const EC::Border> border;
 
-    BorderQuadsJob(const PlainArray<BorderQuads>& quads)
-    : quads(this, quads), viewbox(this), border(this) {}
+    BorderQuadsJob(JobGroup group, BorderQuads* quads)
+    : IJobParallelFor(group), quads(quads), viewbox(this), border(this) {}
 
     QuadRenderer::Quad colorRect(glm::vec2 min, glm::vec2 max, SDL_Color color) {
         return QuadRenderer::Quad{{
@@ -284,62 +272,96 @@ struct BorderQuadsJob : IJobParallelFor {
 };
 
 struct RenderBackgroundSystem : ISystem {
-    ComponentGroup<
+    static constexpr ComponentGroup<
         ReadOnly<EC::ViewBox>,
-        ReadOnly<EC::Background>
+        ReadOnly<EC::Background>,
+        Subtract<EC::Hidden>
     > backgroundGroup;
 
-    ComponentGroup<
+    static constexpr ComponentGroup<
         ReadOnly<EC::Border>,
         ReadOnly<EC::ViewBox>
     > borderGroup;
 
-    PlainArray<QuadRenderer::Quad> backgroundQuads;
-    PlainArray<BorderQuads> borderQuads;
-    PlainArray<GuiRenderLevel> levels;
 
-    ColorToQuadJob fillBackgroundQuadColors;
-    BoxToQuadJob fillBackgroundQuadBoxes;
-    BufferQuadJob bufferBackgroundQuads;
-
-    BorderQuadsJob makeBorderQuads;
-    BufferBordersJob bufferBorderQuads;
-    
+    GuiRenderer* guiRenderer;
 
     RenderBackgroundSystem(SystemManager& manager, GuiRenderer* guiRenderer)
-    : ISystem(manager, SystemOrder::AfterRendering),
-    backgroundQuads(nullptr), borderQuads(nullptr), levels(nullptr),
-    fillBackgroundQuadColors(backgroundQuads), fillBackgroundQuadBoxes(backgroundQuads),
-    bufferBackgroundQuads(backgroundQuads, levels, guiRenderer),
-    makeBorderQuads(borderQuads), bufferBorderQuads(borderQuads, levels, guiRenderer) {
+    : ISystem(manager), guiRenderer(guiRenderer) {}
 
+
+    void ScheduleJobs() {
+        auto* levelsBg = makeTempGroupArray<GuiRenderLevel>(backgroundGroup);
+        auto* quadsBg = makeTempGroupArray<QuadRenderer::Quad>(backgroundGroup);
+        
+        auto bufferQuadsJob = 
+        Schedule(new BufferQuadJob(&backgroundGroup, quadsBg, levelsBg, guiRenderer),
+            Schedule(new BoxToQuadJob(&backgroundGroup, quadsBg),
+               {Schedule(new GetViewLevelsJob(&backgroundGroup, levelsBg)),
+                Schedule(new ColorToQuadJob(&backgroundGroup, quadsBg))}
+            )
+        );
+
+        auto* levelsBd = makeTempGroupArray<GuiRenderLevel>(borderGroup);
+        auto* quadsBd = makeTempGroupArray<BorderQuads>(borderGroup);
+
+        auto bufferBordersJob = 
+        Schedule(new BufferBordersJob(&borderGroup, quadsBd, levelsBd, guiRenderer),
+            Schedule(new BorderQuadsJob(&borderGroup, quadsBd)));
+
+        AddDependency(bufferBordersJob, bufferQuadsJob);
     }
 
     void BeforeExecution() {}
+};
 
-    void ScheduleJobs() {
-        Schedule(backgroundGroup, fillBackgroundQuadColors);
-        Schedule(backgroundGroup, fillBackgroundQuadBoxes);
+struct MakeTextureQuadsJob : IJobParallelFor {
+    QuadRenderer::Quad* quads;
+    ComponentArray<const EC::SimpleTexture> textures;
+    ComponentArray<const EC::ViewBox> viewbox;
+    
+    const TextureAtlas* textureAtlas;
 
-        Schedule(borderGroup, bufferBorderQuads)
-            .DependentOn(fillBackgroundQuadColors)
-            .DependentOn(fillBackgroundQuadBoxes);
+    MakeTextureQuadsJob(JobGroup group, QuadRenderer::Quad* quads, const TextureAtlas* textureAtlas)
+    : IJobParallelFor(group), quads(quads), textures(this), viewbox(this), textureAtlas(textureAtlas) {}
 
-        // borders
-        Schedule(borderGroup, makeBorderQuads);
-        Schedule(backgroundGroup, bufferBackgroundQuads)
-            .DependentOn(makeBorderQuads);
+    void Execute(int N) {
+        TextureID texture = textures[N].texture;
+        TextureAtlas::Space space = getTextureAtlasSpace(textureAtlas, texture);
+        Vec2 texMin = space.min;
+        Vec2 texMax = space.max;
+
+        Vec2 min = viewbox[N].absolute.min + textures[N].texBox.min;
+        Vec2 max = viewbox[N].absolute.min + textures[N].texBox.max();
+
+        SDL_Color color = {0,0,0,0};
+
+        quads[N][0] = {glm::vec3{min.x, min.y, 0}, color, {texMin.x, texMin.y}};
+        quads[N][1] = {glm::vec3{min.x, max.y, 0}, color, {texMin.x, texMax.y}};
+        quads[N][2] = {glm::vec3{max.x, max.y, 0}, color, {texMax.x, texMax.y}};
+        quads[N][3] = {glm::vec3{max.x, min.y, 0}, color, {texMax.x, texMin.y}};
     }
 };
 
+struct RenderTexturesSystem : ISystem {
+    ComponentGroup<
+        ReadOnly<EC::SimpleTexture>,
+        ReadOnly<EC::ViewBox>,
+        Subtract<EC::Hidden>
+    > textureGroup;
 
+    GuiRenderer* guiRenderer;
 
-struct TestSystem : ISystem {
-    ComponentGroup<> all;
+    RenderTexturesSystem(SystemManager& manager, GuiRenderer* guiRenderer)
+    : ISystem(manager), guiRenderer(guiRenderer) {}
 
-    
-    TestSystem(SystemManager& manager) : ISystem(manager) {
-
+    void ScheduleJobs() {
+        GuiRenderLevel* levels = makeTempGroupArray<GuiRenderLevel>(textureGroup);
+        QuadRenderer::Quad* quads = makeTempGroupArray<QuadRenderer::Quad>(textureGroup);
+        Schedule(new BufferQuadJob(&textureGroup, quads, levels, guiRenderer), {
+            Schedule(new GetViewLevelsJob(&textureGroup, levels)),
+            Schedule(new MakeTextureQuadsJob(&textureGroup, quads, &guiRenderer->guiAtlas))
+        });
     }
 };
 

@@ -49,8 +49,6 @@ bool PlayerControls::pixelInWorld(glm::vec2 pixel) {
 }
 
 std::vector<GameAction> PlayerControls::handleClick(const SDL_MouseButtonEvent& event) {
-    LogInfo("click");
-
     mouseClicked = true;
 
     std::vector<GameAction> actions;

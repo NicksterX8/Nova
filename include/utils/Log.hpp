@@ -50,7 +50,7 @@ public:
         initialized = true;
         if (!outputFilepath)
             return -1;
-        strcpy(logOutputFilepath, outputFilepath);
+        strncpy(logOutputFilepath, outputFilepath, 512);
         outputFile = fopen(logOutputFilepath, "w+");
         if (!outputFile)
             return -1;

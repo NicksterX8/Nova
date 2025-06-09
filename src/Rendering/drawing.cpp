@@ -173,101 +173,6 @@ void Draw::drawFpsCounter(GuiRenderer& renderer, float fps, float tps, RenderOpt
     }
 }
 
-void Draw::drawConsole(GuiRenderer& renderer, const GUI::Console* console) {
-    if (!console) return;
-
-    auto font = Fonts->get("Debug");
-
-    renderer.options.scale = SDL::pixelScale * 0.5f;
-    float scale = renderer.options.scale;
-
-    // for everything
-    float maxWidth = renderer.options.size.x;
-    float maxHeight = renderer.options.size.y;
-    // max width for log
-    float logMaxWidth = MIN(300 * scale, maxWidth);
-
-    float logOffsetY = 0;
-    
-    if (console->promptOpen) {
-        // Render active message being written
-        glm::vec2 activeMsgBorder = renderer.pixels({15.0f, 7.5f});
-    
-        float activeMsgMinWidth = logMaxWidth;
-        float activeMsgMinHeight = font->height() * scale + activeMsgBorder.y*2; // always leave room for a line
-
-        constexpr SDL_Color activeMessageBackground = {30, 30, 30, 205};
-        glm::vec2 selectedCharPos = {activeMsgBorder.x, activeMsgBorder.y - font->descender()};
-        int selectedCharIndex = console->selectedCharIndex;
-        FRect activeMessageRect = {0, 0, activeMsgMinWidth, activeMsgMinHeight};
-        if (!console->activeMessage.empty()) {
-            TextFormattingSettings formatting{.align = TextAlignment::BottomLeft, .maxWidth = maxWidth - activeMsgBorder.x, .maxHeight = maxHeight - activeMsgBorder.y}; // active message max width is only the screen width
-            formatting.wrapOnWhitespace = true;
-            TextRenderingSettings activeTextRendering{.color = GUI::Console::activeTextColor, .scale = glm::vec2(scale)};
-            llvm::SmallVector<glm::vec2> characterPositions(console->activeMessage.size());
-            auto textInfo = renderer.text->render(console->activeMessage.c_str(), activeMsgBorder, formatting, activeTextRendering, characterPositions.data());
-            FRect textRect = textInfo.rect;
-            if (selectedCharIndex >= 0 && selectedCharIndex < characterPositions.size()) {
-                selectedCharPos = characterPositions[selectedCharIndex];
-                if (selectedCharIndex > 0 && selectedCharPos.x - activeMsgBorder.x == 0) {
-                    selectedCharPos = characterPositions[selectedCharIndex-1];
-                    selectedCharPos.x += font->advance(console->activeMessage.back()) * scale;
-                }
-            } else if (characterPositions.size() > 0 && selectedCharIndex == characterPositions.size()) {
-                selectedCharPos = characterPositions.back();
-                selectedCharPos.x += font->advance(console->activeMessage.back()) * scale;
-            }
-            
-            activeMessageRect = addBorder(textRect, activeMsgBorder);
-        }
-
-        // render active message background
-        // note that the max height of the text rect is calculated before padding, while the width is after padding
-        activeMessageRect.w = MAX(activeMessageRect.w, activeMsgMinWidth);
-        activeMessageRect.h = MAX(activeMessageRect.h, activeMsgMinHeight);
-        renderer.colorRect(activeMessageRect, activeMessageBackground);
-        
-        // render cursor
-        constexpr double flashDelay = 0.5;
-        static double timeTilFlash = flashDelay;
-        constexpr double flashDuration = 0.5;
-        timeTilFlash -= Metadata->frame.deltaTime / 1000.0; // subtract time in seconds from time
-        double secondsSinceCursorMove = Metadata->seconds() - console->timeLastCursorMove;
-        if (secondsSinceCursorMove < flashDuration) timeTilFlash = -secondsSinceCursorMove;
-        if (timeTilFlash < 0.0) {
-            FRect cursor = {
-                selectedCharPos.x,
-                selectedCharPos.y + font->descender(),
-                renderer.pixels(2.0f),
-                (float)font->height() * scale
-            };
-            renderer.colorRect(cursor, GUI::Console::activeTextColor);
-            if (timeTilFlash < -flashDuration) {
-                timeTilFlash = flashDelay;
-            }
-        }
-        
-        logOffsetY = activeMessageRect.y + activeMessageRect.h;
-    }
-
-    if (console->promptOpen || Metadata->seconds() - console->timeLastMessageSent < CONSOLE_LOG_NEW_MESSAGE_OPEN_DURATION) {
-        // Render console log
-        SDL_Color logBackground = {90, 90, 90, 150};
-        auto strBuffer = console->newLogStringBuffer();
-        My::Vec<SDL_Color> colors = My::Vec<SDL_Color>::WithCapacity(console->log.size());
-        for (auto& message : console->log) {
-            colors.push(message.color);
-        }
-        
-        Vec2 padding = renderer.pixels({15, 15});
-        auto formatting = TextFormattingSettings{.align = TextAlignment::BottomLeft, .maxWidth = logMaxWidth, .maxHeight = maxHeight, .wrapOnWhitespace = false};
-        auto renderSettings = TextRenderingSettings{.font = font, .scale = Vec2(scale)};
-        renderer.textBox(strBuffer, 10, {0, logOffsetY}, formatting, renderSettings, logBackground, padding, {0, 0}, colors);
-        colors.destroy();
-        strBuffer.destroy();
-    }
-}
-
 void renderFontComponents(const Font* font, glm::vec2 p, GuiRenderer& renderer) {
     if (!font) return;
     auto* face = font->face;
@@ -385,7 +290,6 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
     Draw::drawFpsCounter(guiRenderer, (float)Metadata->fps(), (float)Metadata->tps(), guiRenderer.options);
 
     //textRenderer.setFont(&ren.debugFont);
-    //Draw::drawConsole(guiRenderer, &gui->console);
     //textRenderer.setFont(&ren.font);
 
     //testTextRendering(guiRenderer, textRenderer);

@@ -75,7 +75,7 @@ inline Element buildConsole(GuiManager& gui) {
     // make papa console
     auto console = gui.newElement(ElementTypes::Normal, gui.screen);
     gui.addName(console, "console");
-    gui.addComponent(console, EC::ViewBox{.box = {{0,0}, {INFINITY, INFINITY}}});
+    gui.addComponent(console, EC::ViewBox{.box = {{0,0}, {INFINITY, INFINITY}}, .visible = false});
     gui.addComponent(console, EC::StackConstraint{.vertical = true});
 
     // make terminal

@@ -360,6 +360,11 @@ struct ElementManager {
         return element;
     }
 
+    bool elementExists(Element element) {
+        auto* elementData = components.getElementData(element.id);
+        return elementData && (elementData->version == element.version);
+    }
+
     inline const Prototype* getPrototype(PrototypeID type) const {
         return prototypes.get(type);
     }
