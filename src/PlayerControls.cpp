@@ -2,13 +2,12 @@
 #include "Game.hpp"
 
 MouseState getMouseState() {
-    int mouseX,mouseY;
+    float mouseX,mouseY;
     Uint32 buttons = SDL_GetMouseState(&mouseX,&mouseY);
     mouseX *= SDL::pixelScale;
     mouseY *= SDL::pixelScale;
     return {
-        mouseX,
-        mouseY,
+        {mouseX, mouseY},
         buttons
     };
 }
@@ -16,25 +15,28 @@ MouseState getMouseState() {
 bool Controller::connect(int joystick_index) {
     if (connected()) disconnect();
 
-    int numJoysticks = SDL_NumJoysticks();
+    int numJoysticks = 0;
+    SDL_JoystickID* joysticks = SDL_GetJoysticks(&numJoysticks);
     if (numJoysticks) {
-        gameController = SDL_GameControllerOpen(0);
+        SDL_JoystickID firstJoystick = joysticks[0];
+        gameController = SDL_OpenGamepad(firstJoystick);
         joystickIndex = 0;
         if (gameController) {
-            type = SDL_GameControllerGetType(gameController);
+            type = SDL_GetGamepadType(gameController);
             controllerName = TypeNames[type];
             LogInfo("Connected %s controller with joystick index %d.", controllerName, joystickIndex);
         } else {
             LogError("Failed to open game controller - Error: %s", SDL_GetError());
         }
     }
+    SDL_free(joysticks);
     return false;
 }
 
 PlayerControls::PlayerControls(Game* game) : camera(game->camera), game(game) {
     mouse = getMouseState();
     mouseClicked = false;
-    mouseWorldPos = camera.pixelToWorld(glm::vec2(mouse.x, mouse.y));
+    mouseWorldPos = camera.pixelToWorld(mouse.position);
 
     connectController();
     
@@ -134,7 +136,7 @@ std::vector<GameAction> PlayerControls::handleClick(const SDL_MouseButtonEvent& 
 }
 
 void PlayerControls::leftMouseHeld(const MouseState& mouse) {
-    IVec2 mousePos = {mouse.x, mouse.y};
+    Vec2 mousePos = mouse.position;
     if (pointInRect(mousePos, camera.displayViewport)) {
         glm::vec2 relMousePos = {mousePos.x - camera.displayViewport.x, mousePos.y - camera.displayViewport.y};
         if (!game->gui->pointInArea(relMousePos)) {
@@ -183,12 +185,12 @@ void PlayerControls::clickOnEntity(Entity clickedEntity) {
 }
 
 void PlayerControls::playerMouseTargetMoved(const MouseState& mouseState, const MouseState& prevMouseState) {
-    Vec2 newWorldPos = camera.pixelToWorld(mouseState.x, mouseState.y);
-    Vec2 prevWorldPos = camera.pixelToWorld(prevMouseState.x, prevMouseState.y);
+    Vec2 newWorldPos = camera.pixelToWorld(mouseState.position);
+    Vec2 prevWorldPos = camera.pixelToWorld(prevMouseState.position);
 
     if (mouseState.buttons & SDL_BUTTON_LMASK) {
         // only do it if the isnt in the gui either currently or previously
-        if (!game->gui->pointInArea({mouseState.x, mouseState.y})) {
+        if (!game->gui->pointInArea(mouseState.position)) {
             auto line = raytraceDDA(prevWorldPos, newWorldPos);
             ScopedAlloc(Tile, tiles, line.size());
             getTiles(game->state->chunkmap, line.data(), tiles, line.size());
@@ -209,8 +211,8 @@ void PlayerControls::playerMouseTargetMoved(const MouseState& mouseState, const 
 }
 
 void PlayerControls::handleKeydown(const SDL_KeyboardEvent& event) {
-    const SDL_Keycode keycode = event.keysym.sym;
-    const SDL_Scancode scancode = event.keysym.scancode;
+    const SDL_Keycode keycode = event.key;
+    const SDL_Scancode scancode = event.scancode;
 
     if (enteringText) {
         auto commandInput = game->gui->console.handleKeypress(keycode, gCommands);
@@ -259,7 +261,7 @@ void PlayerControls::handleKeydown(const SDL_KeyboardEvent& event) {
         }
 
         for (int i = 1; i <= (int)game->state->player.numHotbarSlots; i++) {
-            if (event.keysym.sym == i + '0') {
+            if (event.key == i + '0') {
                 game->state->player.selectHotbarSlot(i - 1);
             }
         }
@@ -268,11 +270,17 @@ void PlayerControls::handleKeydown(const SDL_KeyboardEvent& event) {
     switch (keycode) {
         case SDLK_RETURN:
             enteringText = !enteringText;
+            if (enteringText) {
+                SDL_StartTextInput(game->sdlCtx.primary.window);
+            } else {
+                SDL_StopTextInput(game->sdlCtx.primary.window);
+            }
             game->gui->console.showLog = enteringText;
             game->gui->console.promptOpen = enteringText;
             break;
         case SDLK_SLASH:
             if (!enteringText) {
+                SDL_StartTextInput(game->sdlCtx.primary.window);
                 enteringText = true;
                 game->gui->console.showLog = true;
                 game->gui->console.promptOpen = true;
@@ -324,34 +332,34 @@ void PlayerControls::update() {
     
     if (!enteringText) {
         for (auto keyBinding : keyboard.bindings) {
-            keyBinding->updateKeyState(keyboard.keyState[SDL_GetScancodeFromKey(keyBinding->key)]);
+            keyBinding->updateKeyState(keyboard.keyState[SDL_GetScancodeFromKey(keyBinding->key, nullptr)]);
         }
     }
 
     Vec2 rightStick = controller.getRightStickVector();
     if (rightStick.x != 0.0f || rightStick.y != 0.0f) {
-        int dx = (int)round(rightStick.x * 12);
-        int dy = (int)round(rightStick.y * 12);
-        SDL_WarpMouseInWindow(game->sdlCtx.win, mouse.x + dx, mouse.y + dy);
+        Vec2 delta = rightStick * 12.0f;
+        Vec2 mousePos = mouse.position + delta;
+        SDL_WarpMouseInWindow(game->sdlCtx.primary.window, mousePos.x, mousePos.y);
     }
 }
 
 std::vector<GameAction> PlayerControls::handleEvent(const SDL_Event* event) {
     std::vector<GameAction> actions;
     switch (event->type) {
-    case SDL_KEYDOWN:
+    case SDL_EVENT_KEY_DOWN:
         handleKeydown(event->key);
         break;
-    case SDL_MOUSEBUTTONDOWN:
+    case SDL_EVENT_MOUSE_BUTTON_DOWN:
         actions = handleClick(event->button);
         break;
-    case SDL_MOUSEBUTTONUP:
+    case SDL_EVENT_MOUSE_BUTTON_UP:
         this->justGrabbedItem = false;
         break;
-    case SDL_MOUSEMOTION:
+    case SDL_EVENT_MOUSE_MOTION:
         handleMouseMotion(event->motion);
         break;
-    case SDL_TEXTINPUT: {
+    case SDL_EVENT_TEXT_INPUT: {
         const char* text = event->text.text;
         if (enteringText) {
             game->gui->console.enterText(text);

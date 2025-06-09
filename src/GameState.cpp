@@ -4,10 +4,10 @@
 #include <array>
 #include <glm/geometric.hpp>
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include "constants.hpp"
 #include "rendering/textures.hpp"
-#include "utils/vectors.hpp"
+#include "utils/vectors_and_rects.hpp"
 #include "Tiles.hpp"
 #include "Player.hpp"
 #include "ECS/entities/entities.hpp"

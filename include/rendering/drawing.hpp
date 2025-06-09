@@ -1,7 +1,7 @@
 #ifndef DRAWING_INCLUDED
 #define DRAWING_INCLUDED
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include "../GameState.hpp"
 #include "../sdl.hpp"
 #include "../Camera.hpp"

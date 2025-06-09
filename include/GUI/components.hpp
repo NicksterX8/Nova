@@ -2,7 +2,7 @@
 #define GUI_COMPONENTS_INCLUDED
 
 #include "rendering/textures.hpp"
-#include "utils/vectors.hpp"
+#include "utils/vectors_and_rects.hpp"
 #include "rendering/text.hpp"
 #include "ECS/generic/components.hpp"
 #include "actions.hpp"

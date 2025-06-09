@@ -5,7 +5,7 @@
 #include "llvm/BitVector.h"
 
 #include "constants.hpp"
-#include "utils/vectors.hpp"
+#include "utils/vectors_and_rects.hpp"
 
 #include "Tiles.hpp"
 #include "Chunks.hpp"

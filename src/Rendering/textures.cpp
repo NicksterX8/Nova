@@ -58,10 +58,10 @@ SDL_Surface* loadSurface(const char* filepath, bool flip) {
             flipSurface(surface); // May not be necessary
         }
 
-        if (surface->format->format != SDL_PIXELFORMAT_RGBA32) {
-            SDL_Surface* newSurface = SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA32, 0);
+        if (surface->format != SDL_PIXELFORMAT_RGBA32) {
+            SDL_Surface* newSurface = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
             if (newSurface) {
-                SDL_FreeSurface(surface);
+                SDL_DestroySurface(surface);
                 surface = newSurface;
             } else {
                 LogError("Couldn't convert surface format while loading \"%s\"!", filepath);
@@ -120,9 +120,9 @@ SDL_Surface* loadTexture(TextureID id, TextureManager* textures, const char* bas
         return nullptr;
     }
     textures->data[id] = TextureData{{image->w, image->h}};
-    if (image->format->format != StandardPixelFormat) {
-        SDL_Surface* newSurface = SDL_ConvertSurfaceFormat(image, StandardPixelFormat, 0);
-        SDL_FreeSurface(image);
+    if (image->format != StandardPixelFormat) {
+        SDL_Surface* newSurface = SDL_ConvertSurface(image, StandardPixelFormat);
+        SDL_DestroySurface(image);
         if (newSurface) {
             image = newSurface;
         } else {
@@ -203,7 +203,7 @@ TextureArray makeTextureArray(glm::ivec2 size, TextureManager* textures, Texture
 
     // images can be freed after being loaded into texture array
     for (auto image : images) {
-        SDL_FreeSurface(image);
+        SDL_DestroySurface(image);
     }
 
     for (int i = 0; i < images.size(); i++) {
@@ -320,7 +320,7 @@ TextureAtlas makeTextureAtlas(TextureManager* textures, TextureType typesInclude
 
     // images can be freed after being loaded into texture array
     for (auto image : images) {
-        SDL_FreeSurface(image);
+        SDL_DestroySurface(image);
     }
 
     return atlas;

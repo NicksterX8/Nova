@@ -1,7 +1,7 @@
 #ifndef RENDERING_INCLUDED
 #define RENDERING_INCLUDED
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include "sdl_gl.hpp"
 #include "GameState.hpp"
 #include "utils/Metadata.hpp"

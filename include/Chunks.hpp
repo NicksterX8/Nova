@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include "Tiles.hpp"
 #include "constants.hpp"
-#include "utils/vectors.hpp"
+#include "utils/vectors_and_rects.hpp"
 #include "ECS/Entity.hpp"
 #include "utils/Metadata.hpp"
 

@@ -5,7 +5,7 @@
 #include "utils/Log.hpp"
 #include "utils/random.hpp"
 #include "My/Vec.hpp"
-#include "utils/vectors.hpp"
+#include "utils/vectors_and_rects.hpp"
 #include "llvm/ArrayRef.h"
 #include "global.hpp"
 #include "rendering/drawing.hpp"
@@ -24,7 +24,7 @@ void renderWater(RenderContext& ren, const Camera& camera, Vec2 min, Vec2 max, f
     shader.setFloat("iTime", time);
     //shader.setFloat("surface_y", 400.0f);
     int width,height;
-    SDL_GL_GetDrawableSize(ren.window, &width, &height);
+    SDL_GetWindowSizeInPixels(ren.window, &width, &height);
     //shader.setVec2("iResolution", Vec2(width, height));
 
     float z = getLayerHeight(RenderLayer::Water);

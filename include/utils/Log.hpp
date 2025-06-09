@@ -1,7 +1,7 @@
 #ifndef LOG_INCLUDED
 #define LOG_INCLUDED
 
-#include <SDL2/SDL_log.h>
+#include <SDL3/SDL_log.h>
 #include <string>
 #include <stdio.h>
 #include "common-macros.hpp"

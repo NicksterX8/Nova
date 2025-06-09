@@ -5,7 +5,7 @@
 #include "ECS/components/components.hpp"
 #include "rendering/textures.hpp"
 #include "ECS/EntityWorld.hpp"
-#include "utils/vectors.hpp"
+#include "utils/vectors_and_rects.hpp"
 
 using ExplosionCreateFunction = Entity(EntityWorld*, Vec2);
 

@@ -135,9 +135,9 @@ void logEntityComponentInfo() {
 }
 
 void initLogging() {
-    SDL_LogSetOutputFunction(Logger::logOutputFunction, &gLogger);
-    SDL_LogSetAllPriority(SDL_LOG_PRIORITY_ERROR);
-    SDL_LogSetPriority(LogCategory::Main, SDL_LOG_PRIORITY_INFO);
+    SDL_SetLogOutputFunction(Logger::logOutputFunction, &gLogger);
+    SDL_SetLogPriorities(SDL_LOG_PRIORITY_ERROR);
+    SDL_SetLogPriority(LogCategory::Main, SDL_LOG_PRIORITY_INFO);
 }
 
 #define LOG LogInfo
@@ -145,7 +145,7 @@ void initLogging() {
 void initPaths() {
     char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
 
-    char* basePath = SDL_GetBasePath();
+    const char* basePath = SDL_GetBasePath();
 
     pid_t pid = getpid();
     int ret = proc_pidpath(pid, pathbuf, sizeof(pathbuf));
@@ -194,8 +194,8 @@ int main(int argc, char** argv) {
     SDL_Rect windowRect = {
         0,
         0,
-        800,
-        800
+        1000,
+        9999
     };
     SDLContext sdlCtx = initSDL(windowTitle.c_str(), windowRect);
 
@@ -204,9 +204,7 @@ int main(int argc, char** argv) {
     logEntityComponentInfo();
 
     int screenWidth,screenHeight;
-    SDL_GL_GetDrawableSize(sdlCtx.win, &screenWidth, &screenHeight);
-
-    //load(sdlCtx.ren, sdlCtx.scale);
+    SDL_GetWindowSizeInPixels(sdlCtx.primary.window, &screenWidth, &screenHeight);
 
     Game* game = new Game(sdlCtx);
     Mem::init(

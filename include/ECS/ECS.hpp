@@ -1,12 +1,12 @@
 #ifndef ECS_INCLUDED
 #define ECS_INCLUDED
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <stdlib.h>
 #include <stddef.h>
 
 #include "constants.hpp"
-#include "utils/vectors.hpp"
+#include "utils/vectors_and_rects.hpp"
 #include "rendering/textures.hpp"
 #include "utils/Log.hpp"
 

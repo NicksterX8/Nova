@@ -59,7 +59,7 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
         auto& mouse = playerControls.mouse;
         Entity zombie = Entities::Enemy(
             &ecs,
-            camera.pixelToWorld(mouse.x, mouse.y),
+            camera.pixelToWorld(mouse.position),
             state.player.entity
         );
         (void)zombie;
@@ -528,7 +528,7 @@ void logComponentPoolSizes(const EntityWorld& ecs) {
 
 void displaySizeChanged(SDL_Window* window, const RenderContext& renderContext, Camera* camera) {
     int drawableWidth,drawableHeight;
-    SDL_GL_GetDrawableSize(window, &drawableWidth, &drawableHeight);
+    SDL_GetWindowSizeInPixels(window, &drawableWidth, &drawableHeight);
     glViewport(0, 0, drawableWidth, drawableHeight);
     camera->pixelWidth = (float)drawableWidth;
     camera->pixelHeight = (float)drawableHeight;
@@ -541,24 +541,26 @@ void displaySizeChanged(SDL_Window* window, const RenderContext& renderContext, 
 int Game::handleEvent(const SDL_Event* event) {
     int code = 0;
     switch(event->type) {
-        case SDL_QUIT:
+        case SDL_EVENT_QUIT:
             code = 1; 
             break;
-        case SDL_WINDOWEVENT:
-            if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
-                displaySizeChanged(sdlCtx.win, *renderContext, &camera);
-            }
-            if (event->window.event == SDL_WINDOWEVENT_DISPLAY_CHANGED) {
+        case SDL_EVENT_WINDOW_DISPLAY_CHANGED: {
+            if (event->window.windowID == SDL_GetWindowID(sdlCtx.primary.window)) {
                 float oldPixelScale = SDL::pixelScale;
-                SDL::pixelScale = SDL::getPixelScale(sdlCtx.win);
+                SDL::pixelScale = SDL::getPixelScale(sdlCtx.primary.window);
                 camera.baseScale = BASE_UNIT_SCALE * SDL::pixelScale;
                 float pixelScaleChange = SDL::pixelScale / oldPixelScale;
                 //scaleAllFonts(renderContext->fonts, pixelScaleChange);
-                displaySizeChanged(sdlCtx.win, *renderContext, &camera);
+                displaySizeChanged(sdlCtx.primary.window, *renderContext, &camera);
             }
-            break;
-        case SDL_MOUSEWHEEL: {
-            float wheelMovement = event->wheel.preciseY;
+        break;}
+        case SDL_EVENT_WINDOW_RESIZED:
+            if (event->window.windowID == SDL_GetWindowID(sdlCtx.primary.window)) {
+                displaySizeChanged(sdlCtx.primary.window, *renderContext, &camera);
+            }
+        break;
+        case SDL_EVENT_MOUSE_WHEEL: {
+            float wheelMovement = event->wheel.y;
             if (wheelMovement != 0.0f) {
                 const float min = 1.0f / 16.0f;
                 const float max = 32.0f;
@@ -582,26 +584,26 @@ int Game::handleEvent(const SDL_Event* event) {
                 camera.zoom = zoom;
             }
         break;}    
-        case SDL_KEYDOWN: {
-            switch (event->key.keysym.sym) {
-                case ']':
+        case SDL_EVENT_KEY_DOWN: {
+            switch (event->key.key) {
+                case '{':
                     logComponentPoolSizes(state->ecs);
                     break;
             }
         break;}
-        case SDL_CONTROLLERDEVICEADDED: {
+        case SDL_EVENT_GAMEPAD_ADDED: {
             int joystickIndex = event->jdevice.which;
             LogInfo("Controller device added. Joystick index: %d", joystickIndex);
             playerControls->connectController();
         break;}
-        case SDL_CONTROLLERDEVICEREMOVED: {
+        case SDL_EVENT_GAMEPAD_REMOVED: {
             int instanceID = event->jdevice.which;
             LogInfo("Controller device removed. Instance id: %d", instanceID);
             playerControls->controller.disconnect();
         break;}
-        case SDL_CONTROLLERBUTTONDOWN: {
-            Uint8 buttonPressed = event->cbutton.button;
-            if (buttonPressed == SDL_CONTROLLER_BUTTON_A) {
+        case SDL_EVENT_GAMEPAD_BUTTON_DOWN: {
+            Uint8 buttonPressed = event->gbutton.button;
+            if (buttonPressed == SDL_GAMEPAD_BUTTON_LABEL_A) {
                 playerControls->movePlayer(playerControls->mouseWorldPos - state->player.get<EC::Position>()->vec2());
             }
         break;}
@@ -732,7 +734,7 @@ int Game::init(int screenWidth, int screenHeight) {
 
     this->debug->console = &this->gui->console;
 
-    this->renderContext = new RenderContext(sdlCtx.win, sdlCtx.gl);
+    this->renderContext = new RenderContext(sdlCtx.primary.window, sdlCtx.primary.glContext);
     LogInfo("starting render init");  
     renderInit(*renderContext, screenWidth, screenHeight);
 
@@ -757,10 +759,9 @@ int Game::init(int screenWidth, int screenHeight) {
     }
 
     this->playerControls = new PlayerControls(this);
-    SDL_Point mousePos = SDL::getMousePixelPosition();
+    SDL_FPoint mousePos = SDL::getMousePixelPosition();
     this->lastUpdateMouseState = {
-        .x = mousePos.x,
-        .y = mousePos.y,
+        .position = {mousePos.x, mousePos.y},
         .buttons = SDL::getMouseButtons()
     };
 

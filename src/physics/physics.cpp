@@ -1,4 +1,4 @@
-#include "utils/vectors.hpp"
+#include "utils/vectors_and_rects.hpp"
 #include "utils/common-macros.hpp"
 #include <iostream>
 
@@ -32,24 +32,6 @@ Rectangle calculateOverlapRectangle(const Rectangle& rect1, const Rectangle& rec
     }
 
     return overlapRect;
-}
-
-
-Boxf overlap(const Boxf& a, const Boxf& b) {
-    Vec2 a_min = a[0], a_max = a[1];
-    Vec2 b_min = b[0], b_max = b[1];
-    Vec2 theoreticalMaxSize = b_max - a_min;
-    Vec2 leftAlley = (b_min - a_min);
-    Vec2 rightAlley = (b_max - a_max);
-    Vec2 size =  - Vec2{abs(leftAlley.x), abs(leftAlley.y)} - Vec2{abs(rightAlley.x), abs(rightAlley.y)};
-    Vec2 p2 = a_max - b_min;
-
-    Vec2 _min = {fmax(a_min.x, b_min.x), fmax(a_min.x, b_min.x)};
-    Vec2 _max = {fmin(a_max.x, b_max.x), fmin(a_max.y, b_max.y)};
-    
-    /*
-    
-    */
 }
 
 int physics_test() {

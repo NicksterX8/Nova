@@ -1,7 +1,7 @@
 #ifndef PLAYER_INCLUDED
 #define PLAYER_INCLUDED
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include "Tiles.hpp"
 #include "rendering/textures.hpp"
 #include "ECS/entities/entities.hpp"

@@ -1,31 +1,24 @@
 #ifndef SDL_HPP
 #define SDL_HPP
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include "constants.hpp"
 #include "utils/FileSystem.hpp"
 #include "My/String.hpp"
 using My::str_add;
 #include "sdl_gl.hpp"
 #include "utils/Log.hpp"
-#include "utils/vectors.hpp"
+#include "utils/vectors_and_rects.hpp"
 
-// sdl image header broken for some reason so we just make our own for what we use
-/*
-extern "C" {
-    SDL_Surface* IMG_Load(const char*);
-    int IMG_Init(int flags);
-    enum ImgInitFlags {
-        IMG_INIT_JPG=1,
-        IMG_INIT_PNG=2
-    };
-}
-*/
+struct WindowContext {
+    SDL_Window* window = nullptr;
+    SDL_GLContext glContext = NULL;
+};
 
-typedef struct SDLContext {
-    SDL_Window *win;
-    SDL_GLContext gl;
-} SDLContext;
+struct SDLContext {
+    WindowContext primary;
+    WindowContext secondary;
+};
 
 namespace SDL {
 
@@ -39,19 +32,20 @@ extern float pixelScale;
 * If the scale for some reason is not 1:1 for the width and height values, returns the scale for the width.
 * @return the scale of the window coordinates to the renderer 
 */
-inline float getPixelScale(SDL_Window *win) {
-    int windowWidth,windowHeight;
-    SDL_GetWindowSize(win, &windowWidth, &windowHeight);
-    int rendererWidth,rendererHeight; // ow and oh for output width and height
-    SDL_GL_GetDrawableSize(win, &rendererWidth, &rendererHeight);
+inline float getPixelScale(SDL_Window* window) {
+    // int windowWidth,windowHeight;
+    // SDL_GetWindowSize(win, &windowWidth, &windowHeight);
+    // int rendererWidth,rendererHeight; // ow and oh for output width and height
+    // SDL_GetWindowSizeInPixels(win, &rendererWidth, &rendererHeight);
     
-    // on MacOS when high DPI is enabled, both of these should equal to 2,
-    // Most cases this should just be one.
-    return (float)rendererWidth / (float)windowWidth;
+    // // on MacOS when high DPI is enabled, both of these should equal to 2,
+    // // Most cases this should just be one.
+    // return (float)rendererWidth / (float)windowWidth;
+    return SDL_GetWindowPixelDensity(window);
 }
 
-inline SDL_Point getMousePixelPosition() {
-    struct SDL_Point mousePos;
+inline SDL_FPoint getMousePixelPosition() {
+    struct SDL_FPoint mousePos;
     SDL_GetMouseState(&mousePos.x, &mousePos.y);
 
     mousePos.x *= SDL::pixelScale;
@@ -64,6 +58,8 @@ inline Uint32 getMouseButtons() {
 }
 
 }
+
+SDL_Window* createWindow(const char* windowTitle, SDL_Rect windowRect);
 
 SDLContext initSDL(const char* windowTitle, SDL_Rect windowRect);
 

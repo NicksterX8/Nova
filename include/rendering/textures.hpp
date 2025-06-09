@@ -1,8 +1,8 @@
 #ifndef TEXTURES_INCLUDED
 #define TEXTURES_INCLUDED
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 #include <string>
 #include <glm/vec2.hpp>
 #include "memory.hpp"
@@ -79,7 +79,7 @@ void flipSurface(SDL_Surface* surface);
 GLuint GlLoadTexture(const char* pixels, glm::ivec2 size, GLint minFilter, GLint magFilter);
 GLuint GlLoadSurface(SDL_Surface* surface, GLint minFilter, GLint magFilter);
 
-constexpr SDL_PixelFormatEnum StandardPixelFormat = SDL_PIXELFORMAT_RGBA32;
+constexpr SDL_PixelFormat StandardPixelFormat = SDL_PIXELFORMAT_RGBA32;
 constexpr int StandardPixelFormatBytes = 4;
 constexpr int RGBA32PixelSize = 4;
 static_assert(StandardPixelFormatBytes == sizeof(SDL_Color));

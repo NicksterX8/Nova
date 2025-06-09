@@ -8,7 +8,7 @@
 #include <functional>
 #include <string>
 #include "constants.hpp"
-#include "utils/vectors.hpp"
+#include "utils/vectors_and_rects.hpp"
 #include "utils/Log.hpp"
 #include "utils/common-macros.hpp"
 #include "utils/ints.hpp"

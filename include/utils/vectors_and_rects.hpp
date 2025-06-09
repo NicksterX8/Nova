@@ -1,14 +1,23 @@
-#ifndef UTILS_VECTORS_INCLUDED
-#define UTILS_VECTORS_INCLUDED
+#ifndef UTILS_VECTORS_AND_RECTS_INCLUDED
+#define UTILS_VECTORS_AND_RECTS_INCLUDED
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <math.h>
-#include <SDL2/SDL_rect.h>
+#include <SDL3/SDL_rect.h>
 #include <array>
 
 using Vec2 = glm::vec2;
 using IVec2 = glm::ivec2;
+
+struct IVec2Hash {
+    size_t operator()(const IVec2& point) const {
+        constexpr size_t hashTypeHalfBits = sizeof(size_t) * 8 / 2;
+        static_assert(sizeof(point) == sizeof(size_t), "point fits into hash");
+        // y coordinate is most significant 32 bits, x least significant 32 bits
+        return ((size_t)point.y << hashTypeHalfBits) | ((size_t)point.x); 
+    }
+};
 
 using Rect = SDL_Rect;
 using FRect = SDL_FRect;

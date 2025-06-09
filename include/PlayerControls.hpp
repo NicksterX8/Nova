@@ -19,19 +19,17 @@ struct Game;
 /* Mouse Stuff */
 
 inline Vec2 getMouseWorldPosition(const Camera& camera) {
-    SDL_Point pixelPosition = SDL::getMousePixelPosition();
+    SDL_FPoint pixelPosition = SDL::getMousePixelPosition();
     return camera.pixelToWorld(pixelPosition.x, pixelPosition.y);
 }
 
 struct MouseState {
-    int x;
-    int y;
+    Vec2 position;
     Uint32 buttons;
 
     void updateState(MouseState* mouseState) {
-        SDL_Point pos = SDL::getMousePixelPosition();
-        mouseState->x = pos.x;
-        mouseState->y = pos.y;
+        SDL_FPoint pos = SDL::getMousePixelPosition();
+        mouseState->position = {pos.x, pos.y};
         mouseState->buttons = SDL::getMouseButtons();
     }
 
@@ -113,13 +111,13 @@ struct ClickKeyBinding : public KeyBinding {
 };
 
 struct Keyboard {
-    ArrayRef<Uint8> keyState; // index with SDL_Scancode to get a 1 for key being pressed, 0 otherwise
+    ArrayRef<bool> keyState; // index with SDL_Scancode to get a 1 for key being pressed, 0 otherwise
     My::Vec<KeyBinding*> bindings;
 
     Keyboard() {
         int keyArrayLength;
-        const Uint8* state = SDL_GetKeyboardState(&keyArrayLength);
-        keyState = ArrayRef<Uint8>(state, keyArrayLength);
+        const bool* state = SDL_GetKeyboardState(&keyArrayLength);
+        keyState = ArrayRef<bool>(state, keyArrayLength);
         bindings = My::Vec<KeyBinding*>::Empty();
     }
 
@@ -148,10 +146,10 @@ struct Controller {
     };
 
     int joystickIndex = 0;
-    SDL_GameController* gameController = nullptr;
+    SDL_Gamepad* gameController = nullptr;
 
-    SDL_GameControllerType type = SDL_CONTROLLER_TYPE_UNKNOWN;
-    const char* controllerName = TypeNames[SDL_CONTROLLER_TYPE_UNKNOWN];
+    SDL_GamepadType type = SDL_GAMEPAD_TYPE_STANDARD;
+    const char* controllerName = TypeNames[SDL_GAMEPAD_TYPE_STANDARD];
 
     float leftStickDeadzone = 0.15f;
     float rightStickDeadzone = 0.05f;
@@ -169,21 +167,21 @@ struct Controller {
     }
 
     void disconnect()  {
-        SDL_GameControllerClose(gameController);
+        SDL_CloseGamepad(gameController);
         gameController = nullptr;
     }
 
-    Sint16 getAxisRaw(SDL_GameControllerAxis axis) const {
-        return SDL_GameControllerGetAxis(gameController, axis);
+    Sint16 getAxisRaw(SDL_GamepadAxis axis) const {
+        return SDL_GetGamepadAxis(gameController, axis);
     }
 
-    float getNormalizedAxis(SDL_GameControllerAxis axis) const {
+    float getNormalizedAxis(SDL_GamepadAxis axis) const {
         return (float)getAxisRaw(axis) / INT16_MAX;
     }
 
     Vec2 getLeftStickVector() const {
-        Sint16 x = getAxisRaw(SDL_CONTROLLER_AXIS_LEFTX);
-        Sint16 y = getAxisRaw(SDL_CONTROLLER_AXIS_LEFTY);
+        Sint16 x = getAxisRaw(SDL_GAMEPAD_AXIS_LEFTX);
+        Sint16 y = getAxisRaw(SDL_GAMEPAD_AXIS_LEFTY);
 
         float xf = (float)x / INT16_MAX;
         float yf = (float)-y / INT16_MAX;
@@ -199,8 +197,8 @@ struct Controller {
     }
 
     Vec2 getRightStickVector() const {
-        float x = getNormalizedAxis(SDL_CONTROLLER_AXIS_RIGHTX);
-        float y = getNormalizedAxis(SDL_CONTROLLER_AXIS_RIGHTY);
+        float x = getNormalizedAxis(SDL_GAMEPAD_AXIS_RIGHTX);
+        float y = getNormalizedAxis(SDL_GAMEPAD_AXIS_RIGHTY);
 
         x = applyDeadzone(x, rightStickDeadzone);
         y = applyDeadzone(y, rightStickDeadzone);
@@ -235,7 +233,7 @@ public:
     /* Mouse */
 
     glm::vec2 mousePixelPos() const {
-        return {mouse.x, camera.pixelHeight - mouse.y};
+        return {mouse.position.x, camera.pixelHeight - mouse.position.y};
     }
 
     std::vector<GameAction> handleClick(const SDL_MouseButtonEvent& event);
@@ -279,7 +277,7 @@ public:
     void updateState() {
         mouse = getMouseState();
         mouseClicked = false;
-        mouseWorldPos = camera.pixelToWorld(glm::vec2(mouse.x, mouse.y));
+        mouseWorldPos = camera.pixelToWorld(mouse.position);
     }
 
     void update();

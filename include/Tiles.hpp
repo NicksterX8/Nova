@@ -3,7 +3,7 @@
 
 #include "constants.hpp"
 #include "rendering/textures.hpp"
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include "items/items.hpp"
 #include "ECS/SEntity.hpp"
 

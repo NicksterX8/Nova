@@ -2,7 +2,7 @@
 #define METADATA_INCLUDED
 
 #include "../constants.hpp"
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include "My/Vec.hpp"
 
 using Tick = int64_t;

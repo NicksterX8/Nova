@@ -434,7 +434,7 @@ struct TextRenderer {
                 renderSettings.color = colors[colors.size - 1 - i];
             }
             auto result = render(str, pos + offset, formatSettings, renderSettings);
-            SDL_UnionFRect(&maxRect, &result.rect, &maxRect);
+            SDL_GetRectUnionFloat(&maxRect, &result.rect, &maxRect);
             auto outputHeight = result.rect.h;
             formatSettings.maxHeight -= outputHeight * scale.y;
             offset.y += outputHeight;

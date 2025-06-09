@@ -1,8 +1,8 @@
 #ifndef COMPONENTS_INCLUDED
 #define COMPONENTS_INCLUDED
 
-#include <SDL2/SDL.h>
-#include "utils/vectors.hpp"
+#include <SDL3/SDL.h>
+#include "utils/vectors_and_rects.hpp"
 #include "items/items.hpp"
 #include "ECS/SEntity.hpp"
 

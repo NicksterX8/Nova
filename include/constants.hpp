@@ -3,15 +3,16 @@
 
 #include <stdio.h>
 #include <stdarg.h>
-#include <SDL2/SDL_log.h>
-#include <SDL2/SDL_rect.h>
+#include <SDL3/SDL_log.h>
+#include <SDL3/SDL_rect.h>
 
 #define GAME_TITLE "Faketorio"
 #define WINDOW_TITLE "Faketorio"
 
+#define USE_SECONDARY_WINDOW 0
 #define WINDOW_HIGH_DPI 1
 
-#define GetTicks SDL_GetTicks64
+#define GetTicks SDL_GetTicks
 #define GetPerformanceCounter SDL_GetPerformanceCounter
 #define GetPerformanceFrequency SDL_GetPerformanceFrequency
 

@@ -131,7 +131,7 @@ inline ShaderData loadShader(const char* name) {
     if (!name) return {};
     auto basePath = FileSystem.shaders.get(name);
     auto geometryPath = str_add(basePath, ".gs");
-    auto geometryFile = SDL_RWFromFile(geometryPath, "r");
+    auto geometryFile = SDL_IOFromFile(geometryPath, "r");
     ShaderProgram program = loadShaderProgram(str_add(basePath, ".vs"), str_add(basePath, ".fs"), geometryFile ? geometryPath : nullptr);
     return {program, std::string(name)};
 }

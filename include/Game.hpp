@@ -4,7 +4,7 @@
 #include <vector>
 #include <variant>
 #include <random>
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <math.h>
 
 #include "constants.hpp"
@@ -39,7 +39,6 @@ struct CameraFocus {
 
 struct Game {
     SDLContext sdlCtx;
-    const Uint8 *keyboard;
     GameState* state;
     Camera camera;
     CameraFocus cameraFocus;
@@ -60,7 +59,6 @@ struct Game {
         Debug = debug;
         debug->debugging = DEBUG;
 
-        keyboard = SDL_GetKeyboardState(NULL);
         state = NULL;
         gui = NULL;
         playerControls = NULL;

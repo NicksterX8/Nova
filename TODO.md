@@ -1,10 +1,10 @@
 # TODO
 
-shared components? do i need? do more research - prolly not
-systems need ordering!!
+replace old ECS system with new
+    - change element to entity
 
-elements may need component for being click-through (like a container that isn't actually visible)
-or maybe just an 'non-visible' component so we know
+shared components? do i need? do more research - prolly not
+
 
 fix text formatting
 
@@ -12,9 +12,7 @@ stuff:
 Items need to be stored canonically so there is only one ecs element per unique item type + variations. Item elements aren't just made willy nilly
 
 
-fix terminal making empty spot for console
-
-hidden elements shouldnt affect formatting
+fix terminal out of sync for a frame cause of size constraint stuff and text
 
 
 actual (new):

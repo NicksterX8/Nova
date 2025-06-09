@@ -6,7 +6,7 @@ project(faketorio VERSION 1.0)
 add_compile_options(-g -Wall -std=c++17
     -Wno-macro-redefined -Wno-unused-variable -Wno-char-subscripts -Wno-comment
     -Wliteral-conversion
-    )
+)
 
 add_link_options(-framework OpenGL)
 
@@ -63,21 +63,21 @@ add_executable(${PROJECT_NAME} ${SRC_FILES})
 set(HLB /opt/homebrew/Cellar)
 set(VLB /Users/nick/vcpkg/packages)
 
-target_link_directories(${PROJECT_NAME} PUBLIC 
-    ${HLB}/sdl2/2.0.22/lib
-    ${HLB}/sdl2_image/2.6.0/lib
-    ${HLB}/freetype/2.13.3/lib
+#find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3)
 
+target_link_directories(${PROJECT_NAME} PUBLIC 
+    ${HLB}/sdl3/3.2.16/lib
+    ${HLB}/sdl3_image/3.2.4/lib
+    ${HLB}/freetype/2.13.3/lib
 )
 
-target_link_libraries(${PROJECT_NAME} sdl2 freetype sdl2_image)
+target_link_libraries(${PROJECT_NAME} sdl3 freetype sdl3_image)
 target_include_directories(${PROJECT_NAME} PUBLIC
     ../faketorio/include
-    ${HLB}/sdl2/2.0.22/include/sdl2 # have to do this because of sdl_image 
-    ${HLB}/sdl2/2.0.22/include
-    ${HLB}/sdl2_image/2.6.0/include
+    ${HLB}/sdl3/3.2.16/include/SDL3 # have to do this because of sdl_image 
+    ${HLB}/sdl3/3.2.16/include
+    ${HLB}/sdl3_image/3.2.4/include
     ${HLB}/glm/0.9.9.8/include
-
     ${HLB}/freetype/2.13.3/include/freetype2 # Freetype is weird so you have to include it like this
 )
 
