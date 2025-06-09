@@ -5,7 +5,7 @@
 #include "PlayerControls.hpp"
 #include "elements.hpp"
 
-#include "ECS/generic/system.hpp"
+#include "ECS/system.hpp"
 
 #include "GUI/Gui.hpp"
 

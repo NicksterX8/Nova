@@ -92,10 +92,10 @@ std::vector<GameAction> PlayerControls::handleClick(const SDL_MouseButtonEvent& 
 
                 if (game->state->player.isHoldingItem()) {
 
-                    if (itemMgr.elementHas<ITC::Placeable>(heldItemStack->item)) {
+                    if (itemMgr.entityHas<ITC::Placeable>(heldItemStack->item)) {
                         placeItem(heldItemStack, mouseWorldPos);
                     }
-                    if (itemMgr.elementHas<ITC::Usable>(heldItemStack->item)) {
+                    if (itemMgr.entityHas<ITC::Usable>(heldItemStack->item)) {
                         auto usable = itemMgr.getComponent<ITC::Usable>(heldItemStack->item);
                         auto onUse = usable->onUse;
                         if (onUse) {

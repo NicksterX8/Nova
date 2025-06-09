@@ -9,7 +9,7 @@
 
 #include "Tiles.hpp"
 #include "Chunks.hpp"
-#include "ECS/EntityWorld.hpp"
+#include "world/EntityWorld.hpp"
 #include "Player.hpp"
 
 struct GameState {

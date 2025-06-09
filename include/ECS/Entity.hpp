@@ -5,12 +5,11 @@
 #include <string.h>
 #include <array>
 #include "Component.hpp"
-#include "metadata/ecs/ecs.hpp"
 #include "utils/Log.hpp"
 #include "constants.hpp"
 #include "My/Bitset.hpp"
 #include "My/String.hpp"
-#include "generic/Signature.hpp"
+#include "Signature.hpp"
 
 typedef uint32_t Uint32;
 
@@ -23,9 +22,7 @@ constexpr ComponentID NullComponentID = -1;
 
 template<class C>
 constexpr ComponentID getID() {
-    constexpr ComponentID id = ECS_ComponentIDs::getID<typename std::remove_const<C>::type>();
-    static_assert(id != NullComponentID, "Component failed check and is null! Check your template component parameters!");
-    return id;
+    return C::ID;
 }
 
 struct IDGetter {
@@ -35,7 +32,7 @@ struct IDGetter {
     }
 };
 
-using ComponentFlags = GECS::Signature<ECS_NUM_COMPONENTS, IDGetter>;
+using ComponentFlags = Signature;
 
 #define MAX_ENTITIES 64000
 #define ECS_BAD_COMPONENT_ID(id) (id < 0)
@@ -44,61 +41,61 @@ constexpr EntityID NULL_ENTITY_ID = (MAX_ENTITIES-1);
 constexpr EntityVersion NULL_ENTITY_VERSION = 0;
 constexpr EntityVersion WILDCARD_ENTITY_VERSION = UINT32_MAX;
 
-template<class... Components>
-constexpr ComponentFlags componentSignature() {
-    constexpr ComponentID ids[] = {getID<Components>() ...};
-    // sum component signatures
-    ComponentFlags result(0);
-    for (size_t i = 0; i < sizeof...(Components); i++) {
-        if (!ECS_BAD_COMPONENT_ID(ids[i]))
-            result.set((Uint32)ids[i]);
-    }
-    return result;
-}
+// template<class... Components>
+// constexpr ComponentFlags componentSignature() {
+//     constexpr ComponentID ids[] = {getID<Components>() ...};
+//     // sum component signatures
+//     ComponentFlags result(0);
+//     for (size_t i = 0; i < sizeof...(Components); i++) {
+//         if (!ECS_BAD_COMPONENT_ID(ids[i]))
+//             result.set((Uint32)ids[i]);
+//     }
+//     return result;
+// }
 
-template<class... Components>
-constexpr ComponentFlags componentMutSignature() {
-    constexpr ComponentID   ids[] = {getID<Components>() ...};
-    constexpr bool         muts[] = {!std::is_const<Components>() ...};
+// template<class... Components>
+// constexpr ComponentFlags componentMutSignature() {
+//     constexpr ComponentID   ids[] = {getID<Components>() ...};
+//     constexpr bool         muts[] = {!std::is_const<Components>() ...};
 
-    ComponentFlags result(0);
-    for (size_t i = 0; i < sizeof...(Components); i++) {
-        if (muts[i])
-            result.set(ids[i]);
-    }
-    return result;
-}
+//     ComponentFlags result(0);
+//     for (size_t i = 0; i < sizeof...(Components); i++) {
+//         if (muts[i])
+//             result.set(ids[i]);
+//     }
+//     return result;
+// }
 
-template<class... Components>
-constexpr std::array<ComponentID, sizeof...(Components)> getComponentIDs() {
-    return {getID<Components>() ...};
-}
+// template<class... Components>
+// constexpr std::array<ComponentID, sizeof...(Components)> getComponentIDs() {
+//     return {getID<Components>() ...};
+// }
 
-template<class T, class... Components>
-constexpr inline bool componentInComponents() {
-    constexpr ComponentFlags signature = componentSignature<Components...>();
-    //constexpr bool result = signature.getComponent<T>();
-    constexpr bool result = signature[getID<T>()];
-    return result;
-}
+// template<class T, class... Components>
+// constexpr inline bool componentInComponents() {
+//     constexpr ComponentFlags signature = componentSignature<Components...>();
+//     //constexpr bool result = signature.getComponent<T>();
+//     constexpr bool result = signature[getID<T>()];
+//     return result;
+// }
 
 template<class... Components>
 struct EntityType;
 
-struct EntityBase {
+struct Entity {
     EntityID id;
     EntityVersion version;
 
-    EntityBase() {};
+    Entity() {};
     
-    constexpr EntityBase(EntityID ID, EntityVersion Version)
+    constexpr Entity(EntityID ID, EntityVersion Version)
     : id(ID), version(Version) {}
 
-    constexpr bool operator==(EntityBase rhs) const {
+    constexpr bool operator==(Entity rhs) const {
         return (id == rhs.id && version == rhs.version);
     }
 
-    constexpr bool operator!=(EntityBase rhs) const {
+    constexpr bool operator!=(Entity rhs) const {
         return !operator==(rhs);
     }
 
@@ -134,94 +131,6 @@ struct EntityBase {
         return buffer;
     }
 };
-
-template<class... Components>
-struct EntityType : EntityBase {
-    using Self = EntityType<Components...>;
-
-    constexpr EntityType() : EntityBase(NULL_ENTITY_ID, NULL_ENTITY_VERSION) {}
-    constexpr EntityType(EntityID ID, EntityVersion Version) : EntityBase(ID, Version) {}
-
-    template<class... C>
-    EntityType(EntityType<C...> entity) {
-        static_assert((componentSignature<C...>().hasAll(componentSignature<Components...>()) || (sizeof...(C) == 0)), "need correct components to cast");
-
-        id = entity.id;
-        version = entity.version;
-    }
-
-    template<class C, class... Vs>
-    EntityType(C* creator, Vs... args) {
-        *this = creator->New(args...).template cast<Components...>();
-    }
-
-    template<class S>
-    inline bool Exists(const S* world) const {
-        return world->EntityExists(*this);
-    }
-
-    template<class T, class S>
-    inline T* Get(const S* getter) {
-        return getter->template Get<T>(*this);
-    }
-
-    template<class T, class S>
-    inline const T* Get(const S* getter) const {
-        return getter->template Get<T>(*this);
-    }
-
-    template<class... Cs, class S>
-    bool Has(const S* s) const {
-       return s->template EntityHas<Cs...>(*this);
-    }
-
-protected:
-    template<class T, class S>
-    int Add(S* s, const T& startValue) {
-        return s->template Add<T>(*this, startValue);
-    }
-/*
-    template<class... Cs, class S>
-    bool Add(S* s) {
-        return s->template Add<Cs...>(*this);
-    }
-*/
-public:
-
-    constexpr static ComponentFlags typeComponentFlags() {
-        return componentSignature<Components...>();
-    }
-
-    template<class... NewComponents>
-    constexpr EntityType<NewComponents...>& cast() const {
-        return *((EntityType<NewComponents...>*)(this));
-    }
-
-    template<class E>
-    constexpr E& castType() const {
-        return *((E*)(this));
-    }
-
-    constexpr operator Self&() const {
-        return cast<>();
-    }
-};
-
-struct ConstEntity : protected EntityType<> {
-    EntityID ID() const {
-        return this->id;
-    }
-
-    EntityVersion Version() const {
-        return this->version;
-    }
-
-    EntityType<> CastMut() const {
-        return *this;
-    }
-};
-
-typedef EntityType<> Entity;
 
 constexpr Entity NullEntity = Entity(NULL_ENTITY_ID, NULL_ENTITY_VERSION);
 

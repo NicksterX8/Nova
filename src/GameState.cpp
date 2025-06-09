@@ -131,11 +131,11 @@ void GameState::init(const TextureManager* textureManager) {
     });
 
     /* Init Items */
-    My::Vec<GECS::ComponentInfo> componentInfo; // TODO: Unimportant: This is leaked currently
+    My::Vec<ECS::ComponentInfo> componentInfo; // TODO: Unimportant: This is leaked currently
     {
         using namespace ITC;
-        constexpr auto componentInfoArray = GECS::getComponentInfoList<ITEM_COMPONENTS_LIST>();
-        componentInfo = My::Vec<GECS::ComponentInfo>(&componentInfoArray[0], componentInfoArray.size());
+        constexpr auto componentInfoArray = ECS::getComponentInfoList<ITEM_COMPONENTS_LIST>();
+        componentInfo = My::Vec<ECS::ComponentInfo>(&componentInfoArray[0], componentInfoArray.size());
     }
     itemManager = ItemManager(ArrayRef(componentInfo.data, componentInfo.size), ItemTypes::Count);
 

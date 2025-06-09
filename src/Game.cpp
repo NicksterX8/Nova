@@ -14,8 +14,8 @@
 #include "ECS/ECS.hpp"
 #include "ECS/systems/systems.hpp"
 #include "ECS/entities/entities.hpp"
-#include "ECS/components/components.hpp"
-#include "ECS/generic/ArchetypePool.hpp"
+#include "world/components/components.hpp"
+#include "ECS/ArchetypePool.hpp"
 
 #include "llvm/SmallVector.h"
 #include "llvm/ArrayRef.h"

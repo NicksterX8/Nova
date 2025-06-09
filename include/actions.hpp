@@ -2,7 +2,7 @@
 #define ACTIONS_INCLUDED
 
 #include <functional>
-#include "ECS/generic/ArchetypePool.hpp"
+#include "GUI/ecs-gui.hpp"
 
 struct Game;
 
@@ -11,8 +11,8 @@ struct GameAction {
     int type;
 };
 
-using GuiAction = void(*)(Game* g, GECS::Element e);
-inline GameAction guiActionToGameAction(GuiAction function, GECS::Element e) {
+using GuiAction = void(*)(Game* g, GUI::Element e);
+inline GameAction guiActionToGameAction(GuiAction function, GUI::Element e) {
     return {
         [e, function](Game* g){ function(g, e); },
         0
@@ -21,9 +21,9 @@ inline GameAction guiActionToGameAction(GuiAction function, GECS::Element e) {
 
 namespace GUI {
 
-    void selectHotbarSlot(Game* g, GECS::Element e);
+    void selectHotbarSlot(Game* g, GUI::Element e);
 
-    void makeTheSkyBlue(Game* g, GECS::Element e);
+    void makeTheSkyBlue(Game* g, GUI::Element e);
 
 }
 

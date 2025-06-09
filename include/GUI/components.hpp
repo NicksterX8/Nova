@@ -4,14 +4,14 @@
 #include "rendering/textures.hpp"
 #include "utils/vectors_and_rects.hpp"
 #include "rendering/text.hpp"
-#include "ECS/generic/components.hpp"
 #include "actions.hpp"
+#include "ECS/componentMacros.hpp"
 
 namespace GUI {
 
 namespace EC {
 
-using ComponentID = GECS::ComponentID;
+using ComponentID = ECS::ComponentID;
 
 
 /*
@@ -108,7 +108,7 @@ BEGIN_COMPONENT(SimpleTexture)
 END_COMPONENT(SimpleTexture)
 
 BEGIN_COMPONENT(ChildOf)
-    GECS::Element parent = GECS::NullElement;
+    Element parent = NullEntity;
 END_COMPONENT(ChildOf)
 
 BEGIN_COMPONENT(Text)

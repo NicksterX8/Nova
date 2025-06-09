@@ -379,7 +379,7 @@ public:
         size--;
     }
 
-    bool contains(Key key) {
+    bool contains(Key key) const {
         return key >= 0 && key <= MaxKeyValue && set[key] != NullIndex;
     }
 

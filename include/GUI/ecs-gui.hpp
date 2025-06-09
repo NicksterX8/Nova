@@ -1,20 +1,19 @@
 #ifndef GUI_ECS_GUI_INCLUDED
 #define GUI_ECS_GUI_INCLUDED
 
-#include "ECS/generic/ecs.hpp"
+#include "ECS/EntityManager.hpp"
 #include "components.hpp"
 #include "prototypes.hpp"
 #include "systems/basic.hpp"
 
 namespace GUI {
 
-using ComponentID = GECS::ComponentID;
+using ComponentID = ECS::ComponentID;
 
+using Element = ECS::Entity;
+constexpr Element NullElement = ECS::NullEntity;
 
-using Element = GECS::Element;
-constexpr Element NullElement = GECS::NullElement;
-
-using ElementID = GECS::ElementID;
+using ElementID = ECS::EntityID;
 
 struct GuiTreeNode {
     Element e = NullElement;
@@ -39,7 +38,7 @@ inline void addChildNode(GuiTreeNode* node, ElementID child) {
     std::copy(&child, &child + 1, &node->children[node->childCount++]);
 }
 
-struct GuiManager : GECS::ElementManager {
+struct GuiManager : ECS::EntityManager {
 
     Element screen = NullElement;
 
@@ -47,7 +46,7 @@ struct GuiManager : GECS::ElementManager {
 
     Element hoveredElement = NullElement;
 
-    Systems::SystemManager systemManager;
+    ECS::System::SystemManager systemManager;
 
     GuiTreeNode* getTreeNode(ElementID elementID) const {
         return treeMap.lookup(elementID);
@@ -70,11 +69,11 @@ struct GuiManager : GECS::ElementManager {
 
     GuiManager() {}
 
-    GuiManager(GECS::ComponentInfoRef componentInfo, int numPrototypes)
-     : GECS::ElementManager(componentInfo, numPrototypes), treeMap(32) {
-        EcsSystem::setupSystems(systemManager);
+    GuiManager(ECS::ComponentInfoRef componentInfo, int numPrototypes)
+     : ECS::EntityManager(componentInfo, numPrototypes), treeMap(32) {
+        ECS::System::setupSystems(systemManager);
 
-        screen = GECS::ElementManager::newElement(ElementTypes::Normal);
+        screen = ECS::EntityManager::newEntity(ElementTypes::Normal);
         treeMap.insert(screen.id, GuiTreeNode(screen, NullElement.id));
 
         addComponent(screen, EC::ViewBox{Box{Vec2(0), Vec2(INFINITY)}});
@@ -143,8 +142,8 @@ struct GuiManager : GECS::ElementManager {
         addChildNode(parentNode, child.id);
     }
 
-    Element newElement(GECS::PrototypeID prototype, Element parent = NullElement) {
-        Element element = GECS::ElementManager::newElement(prototype);
+    Element newElement(ECS::PrototypeID prototype, Element parent = NullElement) {
+        Element element = ECS::EntityManager::newEntity(prototype);
         if (parent != NullElement) {
             adopt(parent, element);
         }
@@ -152,7 +151,7 @@ struct GuiManager : GECS::ElementManager {
     }
 
     void hideElement(Element element) {
-        if (!elementExists(element)) {
+        if (!entityExists(element)) {
             LogError("Element does not exist!");
             return;
         }
@@ -163,7 +162,7 @@ struct GuiManager : GECS::ElementManager {
 private:
     void hideElement(ElementID elementID) {
         GuiTreeNode* node = treeMap.lookup(elementID);
-        if (node && !elementHas<EC::Hidden>(node->e)) {
+        if (node && !entityHas<EC::Hidden>(node->e)) {
             addComponent<EC::Hidden>(node->e, {});
             for (int i = 0; i < node->childCount; i++) {
                 hideElement(node->children[i]);
@@ -172,7 +171,7 @@ private:
     }
 public:
     void unhideElement(Element element) {
-        if (!elementExists(element)) {
+        if (!entityExists(element)) {
             LogError("Element does not exist!");
             return;
         }
@@ -182,7 +181,7 @@ public:
 private:
     void unhideElement(ElementID elementID) {
         GuiTreeNode* node = treeMap.lookup(elementID);
-        if (node && elementHas<EC::Hidden>(node->e)) {
+        if (node && entityHas<EC::Hidden>(node->e)) {
             removeComponent<EC::Hidden>(node->e);
             for (int i = 0; i < node->childCount; i++) {
                 unhideElement(node->children[i]);
@@ -206,7 +205,7 @@ public:
 
     Element getNamedElement(const char* name) const {
         Element namedElement = NullElement;
-        forEachElement<EC::Name>([&](Element e){
+        forEachEntity<EC::Name>([&](Element e){
             auto* nameEc = getComponent<EC::Name>(e);
             if (My::streq(nameEc->name, name)) {
                 namedElement = e;
@@ -222,9 +221,9 @@ public:
     void destroy() {
         destroyTree(getTreeNode(screen.id));
 
-        GECS::ElementManager::destroy();
+        ECS::EntityManager::destroy();
 
-        EcsSystem::cleanupSystems(systemManager);
+        ECS::System::cleanupSystems(systemManager);
     }
 };
 

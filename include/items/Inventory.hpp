@@ -75,7 +75,7 @@ struct Inventory {
         return items[slot].quantity;
     }
 
-    Element& element(int slot) const {
+    Entity& entity(int slot) const {
         return items[slot].item;
     }
 

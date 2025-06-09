@@ -14,7 +14,7 @@ set(CMAKE_BUILD_TYPE Debug)
 set(SD src)
 
 set(SRC_FILES 
-    llvm/SmallVector.cpp
+    ${SD}/llvm/SmallVector.cpp
     ${SD}/main.cpp
     ${SD}/global.cpp
     ${SD}/sdl.cpp
@@ -43,15 +43,11 @@ set(SRC_FILES
     ${SD}/rendering/Shader.cpp
     ${SD}/rendering/rendering.cpp
     ${SD}/rendering/TexturePacker.cpp
-    ${SD}/GameSave/main.cpp
     ${SD}/ECS/ECS.cpp
-    ${SD}/ECS/EntityManager.cpp
-    ${SD}/ECS/EntitySystem.cpp
-    ${SD}/ECS/SECS.cpp
-    ${SD}/ECS/components/components.cpp
-    ${SD}/ECS/entities/entities.cpp
-    ${SD}/ECS/entities/methods.cpp
-    ${SD}/ECS/generic/system.cpp
+    ${SD}/world/components/components.cpp
+    ${SD}/world/entities/entities.cpp
+    ${SD}/world/entities/methods.cpp
+    ${SD}/ECS/system.cpp
     ${SD}/physics/physics.cpp
 )
 

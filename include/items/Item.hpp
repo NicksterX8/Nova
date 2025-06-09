@@ -3,10 +3,10 @@
 
 #include "utils/ints.hpp"
 #include <functional>
-#include "ECS/secsy.hpp"
+#include "ECS/Entity.hpp"
 #include "My/Vec.hpp"
-#include "ECS/generic/components.hpp"
-#include "ECS/generic/ecs.hpp"
+#include "ECS/ArchetypePool.hpp"
+#include "ECS/componentMacros.hpp"
 
 typedef Uint16 TextureID;
 
@@ -24,11 +24,10 @@ struct IDGetter {
 
 #define MAX_ITEM_COMPONENTS 64
 
-using ItemECS = GECS::EcsClass;
-using ComponentID = GECS::ComponentID;
+using ComponentID = ECS::ComponentID;
 
-using GECS::ComponentInfoRef;
-using ComponentSignature = ItemECS::Signature;
+using ECS::ComponentInfoRef;
+using ComponentSignature = ECS::Signature;
 
 using ItemQuantity = Sint32;
 constexpr ItemQuantity ItemQuantityInfinity = -1;
@@ -38,13 +37,13 @@ namespace ItemTypes {
     GEN_IDS(ItemTypes, Uint16, ITEM_TYPE_LIST, Count);  // 65k types should be way more than enough
 }
 
-using GECS::Element;
-constexpr Element NullElement = GECS::NullElement;
+using ECS::Entity;
+constexpr Entity NullEntity = ECS::NullEntity;
 
-struct Item : Element {
+struct Item : Entity {
     ItemType type;
 
-    Item(ItemType type = ItemTypes::None, Element element = NullElement) : Element(element), type(type) {}
+    Item(ItemType type = ItemTypes::None, Entity entity = NullEntity) : Entity(entity), type(type) {}
 
     static Item None() {
         return Item();

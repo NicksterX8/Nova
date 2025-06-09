@@ -29,26 +29,26 @@ struct InventoryAllocator {
     }
 };
 
-struct ItemManager : GECS::ElementManager {
+struct ItemManager : ECS::EntityManager {
     InventoryAllocator inventoryAllocator;
 
     ItemManager() {}
 
     ItemManager(ComponentInfoRef componentInfo, int numPrototypes)
-     : GECS::ElementManager(componentInfo, numPrototypes),
+     : ECS::EntityManager(componentInfo, numPrototypes),
        inventoryAllocator() {
 
     }
 
     Item newItem(ItemType type) {
-        Element element = this->newElement(type);
-        return Item(type, element);
+        Entity entity = this->newEntity(type);
+        return Item(type, entity);
     }
 };
 
-using PrototypeManager = GECS::PrototypeManager;
+using PrototypeManager = ECS::PrototypeManager;
 
-using ItemPrototype = GECS::Prototype;
+using ItemPrototype = ECS::Prototype;
 
 inline void freeItem(Item item, ItemManager& manager) {
     // TODO:

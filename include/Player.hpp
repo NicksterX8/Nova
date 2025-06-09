@@ -4,8 +4,8 @@
 #include <SDL3/SDL.h>
 #include "Tiles.hpp"
 #include "rendering/textures.hpp"
-#include "ECS/entities/entities.hpp"
-#include "ECS/entities/methods.hpp"
+#include "world/entities/entities.hpp"
+#include "world/entities/methods.hpp"
 #include "items/items.hpp"
 #include"items/manager.hpp"
 #include "items/Item.hpp"
@@ -152,7 +152,7 @@ struct Player {
     }
 
     bool canPlaceItemStack(ItemStack stack, const ItemManager& itemManager) {
-        if (stack.quantity > 0 && itemManager.elementHas<ITC::Placeable>(stack.item)) {
+        if (stack.quantity > 0 && itemManager.entityHas<ITC::Placeable>(stack.item)) {
             return true;
         }
         return false;

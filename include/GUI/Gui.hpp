@@ -276,11 +276,11 @@ struct Gui {
     Gui() {}
 
     void init(GuiRenderer& renderer) {
-        My::Vec<GECS::ComponentInfo> componentInfo; // TODO: Unimportant: This is leaked currently
+        My::Vec<ECS::ComponentInfo> componentInfo; // TODO: Unimportant: This is leaked currently
         {
             using namespace GUI::EC;
-            constexpr auto componentInfoArray = GECS::getComponentInfoList<GUI_COMPONENTS_LIST>();
-            componentInfo = My::Vec<GECS::ComponentInfo>(&componentInfoArray[0], componentInfoArray.size());
+            constexpr auto componentInfoArray = ECS::getComponentInfoList<GUI_COMPONENTS_LIST>();
+            componentInfo = My::Vec<ECS::ComponentInfo>(&componentInfoArray[0], componentInfoArray.size());
         }
         manager = GUI::GuiManager(ArrayRef(componentInfo.data, componentInfo.size), GUI::ElementTypes::Count);
         manager.systemManager.elementManager = &manager;

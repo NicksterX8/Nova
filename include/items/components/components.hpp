@@ -2,7 +2,7 @@
 #define ITEMS_COMPONENTS_INCLUDED
 
 #include "utils/ints.hpp"
-#include "ECS/generic/components.hpp"
+#include "ECS/componentMacros.hpp"
 #include "items/Item.hpp"
 
 struct Game;

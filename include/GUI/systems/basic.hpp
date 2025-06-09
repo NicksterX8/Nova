@@ -1,7 +1,7 @@
 #ifndef GUI_SYSTEMS_BASIC_INCLUDED
 #define GUI_SYSTEMS_BASIC_INCLUDED
 
-#include "ECS/generic/system.hpp"
+#include "ECS/system.hpp"
 #include "GUI/components.hpp"
 #include "rendering/gui.hpp"
 
@@ -10,7 +10,7 @@ namespace GUI {
 namespace Systems {
 
 using namespace EcsSystem;
-using GECS::ElementCommandBuffer;
+using ECS::EntityCommandBuffer;
 
 struct IJobParallelFor : IJob {
     IJobParallelFor(JobGroup group) : IJob(IJob::Parallel, group) {}
@@ -28,7 +28,7 @@ struct CopyComponentArrayJob : IJobParallelFor {
     C* dst;
     ComponentArray<C> src;
 
-    CopyComponentArrayJob(JobGroup group, Element* dst)
+    CopyComponentArrayJob(JobGroup group, Entity* dst)
     : IJobParallelFor(group), dst(dst), src(this) {}
 
     void Execute(int N) {
@@ -36,11 +36,11 @@ struct CopyComponentArrayJob : IJobParallelFor {
     }
 };
 
-struct CopyElementArrayJob : IJobParallelFor {
-    Element* dst;
-    ElementArray src;
+struct CopyEntityArrayJob : IJobParallelFor {
+    Entity* dst;
+    EntityArray src;
 
-    CopyElementArrayJob(JobGroup group, Element* dst)
+    CopyEntityArrayJob(JobGroup group, Entity* dst)
     : IJobParallelFor(group), dst(dst), src(this) {}
 
     void Execute(int N) {
@@ -83,11 +83,11 @@ struct EnforceMaxSizeJob : IJobParallelFor {
     ComponentArray<GUI::EC::ViewBox> viewbox;
     ComponentArray<const GUI::EC::SizeConstraint> maxSize;
 
-    ElementArray element;
+    EntityArray entity;
 
     // instantiate component arrays
     EnforceMaxSizeJob(JobGroup group)
-    : IJobParallelFor(group), viewbox(this), maxSize(this), element(this) {
+    : IJobParallelFor(group), viewbox(this), maxSize(this), entity(this) {
         
     }
 
@@ -121,9 +121,6 @@ struct EnforceMinSizeJob : IJobParallelFor {
     }
 };
 
-struct ComponentWithElement {
-    Element element;
-};
 
 struct SizeConstraintSystem : ISystem {
     static constexpr ComponentGroup<

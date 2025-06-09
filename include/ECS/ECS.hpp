@@ -12,16 +12,7 @@
 
 #include "Entity.hpp"
 #include "Component.hpp"
-#include "SystemsConstants.hpp"
 #include "EntityManager.hpp"
-#include "ComponentPool.hpp"
-#include "metadata/ecs/ecs.hpp"
 
-
-namespace ECS {
-
-
-
-}
 
 #endif

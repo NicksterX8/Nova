@@ -5,7 +5,6 @@
 #include "rendering/textures.hpp"
 #include <SDL3/SDL.h>
 #include "items/items.hpp"
-#include "ECS/SEntity.hpp"
 
 namespace TileTypes {
     enum E: Uint16 {
