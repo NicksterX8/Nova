@@ -2,7 +2,7 @@
 #define ITEMS_MANAGER_INCLUDED
 
 #include "Item.hpp"
-#include "ComponentManager.hpp"
+#include "ECS/EntityManager.hpp"
 #include "components/components.hpp"
 
 namespace items {
@@ -34,7 +34,7 @@ struct ItemManager : ECS::EntityManager {
 
     ItemManager() {}
 
-    ItemManager(ComponentInfoRef componentInfo, int numPrototypes)
+    ItemManager(ECS::ComponentInfoRef componentInfo, int numPrototypes)
      : ECS::EntityManager(componentInfo, numPrototypes),
        inventoryAllocator() {
 

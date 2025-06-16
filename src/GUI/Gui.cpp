@@ -59,7 +59,7 @@ void buildFromTree(GuiTreeNode* node, GUI::GuiManager& gui, int level) {
         GuiTreeNode* childNode = gui.getTreeNode(node->children[i]);
         Element e = childNode->e;
         auto* viewEc = gui.getComponent<EC::ViewBox>(e);
-        if (viewEc && !gui.elementHas<EC::Hidden>(e)) {
+        if (viewEc && !gui.entityHas<EC::Hidden>(e)) {
             Box childBox = viewEc->box;
             
             // size
@@ -141,7 +141,7 @@ void Gui::renderElements(GuiRenderer& renderer, const PlayerControls& playerCont
     int hoveredLevel = -1;
     Element hoveredElement = NullElement;
 
-    gui.forEachElement([&](auto signature){ 
+    gui.forEachEntity([&](auto signature){ 
         return signature[EC::ViewBox::ID] && !signature[EC::Hidden::ID];
     }, [&](Element e){
         auto* viewbox = gui.getComponent<EC::ViewBox>(e);
@@ -162,15 +162,15 @@ void Gui::renderElements(GuiRenderer& renderer, const PlayerControls& playerCont
         gui.hoveredElement = NullElement;
     }
 
-    executeSystems(gui.systemManager, gui);
+    executeSystems(gui.systemManager);
 
     /* Elements are rendered based on their level
      * Parts of elements are rendered according to the order the forEach calls are made here
      */
 
     // text
-    gui.forEachElement<EC::ViewBox, EC::Text>([&](Element e){
-        if (gui.elementHas<EC::Hidden>(e)) return;
+    gui.forEachEntity<EC::ViewBox, EC::Text>([&](Element e){
+        if (gui.entityHas<EC::Hidden>(e)) return;
 
         auto* view = gui.getComponent<EC::ViewBox>(e);
         Box entityBox = view->absolute;

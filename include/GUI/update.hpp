@@ -234,7 +234,7 @@ inline std::vector<GameAction> update(GuiManager& gui, const PlayerControls& pla
 
     std::vector<GameAction> actions;
     
-    gui.forEachElement([&](auto signature){
+    gui.forEachEntity([&](auto signature){
         return signature[EC::ViewBox::ID] && signature[EC::Hover::ID];
     }, [&](Element e){
         auto* viewbox = gui.getComponent<EC::ViewBox>(e);

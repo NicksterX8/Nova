@@ -34,14 +34,15 @@ struct TaskGroup {
     bool flushCommandBuffers;
 };
 
+using OptionalExecuteType = void (IJob::*)(int index);
+
 struct AbstractGroupArray {
     void* data = nullptr;
     bool readonly = false;
     // for component array
     ComponentID componentType = -1;
-    // for plain array
-
-    //AbstractGroupArray* group = nullptr;
+    bool optional = false;
+    OptionalExecuteType optionalExecute;
     // for entity array
     bool entityArray = false;
 };
@@ -98,12 +99,12 @@ int findEligiblePools(const IComponentGroup* group, const EntityManager& entityM
 
 struct SystemManager {
     std::vector<ISystem*> systems;
-    const EntityManager* entityManager = nullptr;
+    EntityManager* entityManager = nullptr;
     //std::vector<void*> tempSystemAllocations;
 public:
     SystemManager() {}
 
-    SystemManager(const EntityManager* entityManager) : entityManager(entityManager) {}
+    SystemManager(EntityManager* entityManager) : entityManager(entityManager) {}
 
     void addSystem(ISystem* system) {
         systems.push_back(system);
@@ -156,9 +157,9 @@ struct ISystem {
         manager.addSystem(this);
     }
 
-    virtual void ScheduleJobs() = 0;
-
     virtual void BeforeExecution() {}
+    virtual void ScheduleJobs() {}
+    virtual void AfterExecution() {}
 
     IJob* Schedule(IJob* job, const Dependency& dependency) {
         for (IJob* jobDependency : dependency.jobDependencies) {
@@ -244,6 +245,15 @@ struct EntityArray : AbstractGroupArray {
 };
 
 template<class C>
+struct OptionalComponentArray : ComponentArray<C> {
+    template<class OptionalExecuteMethodT>
+    OptionalComponentArray(IJob* job, OptionalExecuteMethodT optionalExecute) : ComponentArray<C>(job) {
+        this->optional = true;
+        this->optionalExecute = static_cast<OptionalExecuteType>(optionalExecute);
+    }
+};
+
+template<class C>
 struct ReadOnly {
     static constexpr bool read = true;
     static constexpr bool write = false;
@@ -302,7 +312,7 @@ void setupSystems(SystemManager&);
 
 void cleanupSystems(SystemManager&);
 
-void executeSystems(SystemManager&, ECS::EntityManager&);
+void executeSystems(SystemManager&);
 
 inline bool jobsAreConflicting(IJob* jobA, IJob* jobB) {
     const IComponentGroup& groupA = *jobA->group;
@@ -312,6 +322,70 @@ inline bool jobsAreConflicting(IJob* jobA, IJob* jobB) {
     
     return false;
 }   
+
+
+// default jobs
+
+struct IJobParallelFor : IJob {
+    IJobParallelFor(JobGroup group) : IJob(IJob::Parallel, group) {}
+};
+
+struct IJobSingleThreaded : IJob {
+    IJobSingleThreaded(JobGroup group) : IJob(IJob::MainThread, group) {}
+};
+
+template <class C>
+struct CopyComponentArrayJob : IJobParallelFor {
+    C* dst;
+    ComponentArray<C> src;
+
+    CopyComponentArrayJob(JobGroup group, Entity* dst)
+    : IJobParallelFor(group), dst(dst), src(this) {}
+
+    void Execute(int N) {
+        dst[N] = src[N];
+    }
+};
+
+struct CopyEntityArrayJob : IJobParallelFor {
+    Entity* dst;
+    EntityArray src;
+
+    CopyEntityArrayJob(JobGroup group, Entity* dst)
+    : IJobParallelFor(group), dst(dst), src(this) {}
+
+    void Execute(int N) {
+        dst[N] = src[N];
+    }
+};
+
+template<class Component>
+struct FillComponentsFromArrayJob : IJob {
+    Component* src;
+    ComponentArray<const Component> dst;
+
+    FillComponentsFromArrayJob(Component* src) : src(src), dst(this) {}
+
+    void Execute(int N) {
+        dst[N] = src[N];
+    }
+};
+
+template<typename T>
+struct InitializeArrayJob : IJob {
+    MutableArrayRef<T> values;
+
+    T value;
+
+    InitializeArrayJob(MutableArrayRef<T> values, const T& initializationValue) : values(this), value(initializationValue) {
+        this->values = values;
+    }
+
+    void Execute(int N) {
+        values[N] = value;
+    }
+};
+
 
 }
 

@@ -364,7 +364,7 @@ CharacterLayoutData formatText(const Font* font, const char* text, int textLengt
     return layout;
 }
 
-TextRenderer TextRenderer::init(Font* defaultFont, My::Vec<TextRenderBatch>* buffer) {
+TextRenderer TextRenderer::init(const Font* defaultFont, My::Vec<TextRenderBatch>* buffer) {
     TextRenderer self;
     self.buffer = buffer;
     self.defaultFont = defaultFont;

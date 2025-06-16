@@ -4,12 +4,11 @@
 #include <stdint.h>
 #include <string.h>
 #include <array>
+#include "My/String.hpp"
 #include "Component.hpp"
+#include "Signature.hpp"
 #include "utils/Log.hpp"
 #include "constants.hpp"
-#include "My/Bitset.hpp"
-#include "My/String.hpp"
-#include "Signature.hpp"
 
 typedef uint32_t Uint32;
 
@@ -17,20 +16,8 @@ namespace ECS {
 
 typedef Uint32 EntityID;
 typedef Uint32 EntityVersion;
-typedef Sint32 ComponentID;
+typedef Sint16 ComponentID;
 constexpr ComponentID NullComponentID = -1;
-
-template<class C>
-constexpr ComponentID getID() {
-    return C::ID;
-}
-
-struct IDGetter {
-    template<class C>
-    constexpr static ComponentID get() {
-        return getID<C>();
-    }
-};
 
 using ComponentFlags = Signature;
 
@@ -79,8 +66,6 @@ constexpr EntityVersion WILDCARD_ENTITY_VERSION = UINT32_MAX;
 //     return result;
 // }
 
-template<class... Components>
-struct EntityType;
 
 struct Entity {
     EntityID id;
@@ -135,5 +120,8 @@ struct Entity {
 constexpr Entity NullEntity = Entity(NULL_ENTITY_ID, NULL_ENTITY_VERSION);
 
 }
+
+using ECS::Entity;
+using ECS::NullEntity;
 
 #endif

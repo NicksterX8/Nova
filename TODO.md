@@ -1,5 +1,14 @@
 # TODO
 
+pause / unpause game
+
+Improve allocation method for archetype pools
+
+make it AAABBBCCC instead of AAA - BBB - CCC. better cache and stuff
+
+ECS: make entity maker class that is like a command buffer you make and then execute at end of entity creation.
+Makes making entities easy and efficient. Can also be used to make large numbers of entities at once efficiently
+
 replace old ECS system with new
     - change element to entity
 

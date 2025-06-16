@@ -10,6 +10,7 @@
 #include "elements.hpp"
 #include "update.hpp"
 #include "GUI/ecs-gui.hpp"
+#include "systems/basic.hpp"
 
 struct GuiRenderer;
 
@@ -276,14 +277,10 @@ struct Gui {
     Gui() {}
 
     void init(GuiRenderer& renderer) {
-        My::Vec<ECS::ComponentInfo> componentInfo; // TODO: Unimportant: This is leaked currently
-        {
-            using namespace GUI::EC;
-            constexpr auto componentInfoArray = ECS::getComponentInfoList<GUI_COMPONENTS_LIST>();
-            componentInfo = My::Vec<ECS::ComponentInfo>(&componentInfoArray[0], componentInfoArray.size());
-        }
-        manager = GUI::GuiManager(ArrayRef(componentInfo.data, componentInfo.size), GUI::ElementTypes::Count);
-        manager.systemManager.elementManager = &manager;
+        using namespace GUI::EC;
+        constexpr static auto componentInfoArray = ECS::getComponentInfoList<GUI_COMPONENTS_LIST>();
+        manager = GUI::GuiManager(ArrayRef(componentInfoArray), GUI::ElementTypes::Count);
+        manager.systemManager.entityManager = &manager;
         makeGuiPrototypes(manager);
         initGui(manager);
 

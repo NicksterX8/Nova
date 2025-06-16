@@ -1,21 +1,24 @@
-#include "ECS/entities/methods.hpp"
+#include "world/entities/methods.hpp"
 #include "GameState.hpp"
+
+namespace World {
 
 namespace Entities {
 
-    void throwEntity(EntityWorld* ecs, Entity entity, Vec2 target, float speed) {
-        ecs->Add(entity, EC::Motion(target, speed));
-        if (entity.Has<EC::Rotation>(ecs)) {
-            float rotation = entity.Get<EC::Rotation>(ecs)->degrees;
+    void throwEntity(EntityWorld& ecs, Entity entity, Vec2 target, float speed) {
+        ecs.Add(entity, EC::Motion(target, speed));
+        if (ecs.EntityHas<EC::Rotation>(entity)) {
+            float rotation = ecs.Get<EC::Rotation>(entity)->degrees;
             float timeToTarget = target.length() / speed;
-            ecs->Add<EC::AngleMotion>(entity, EC::AngleMotion(rotation + timeToTarget * 30.0f, 30.0f));
+            ecs.Add<EC::AngleMotion>(entity, EC::AngleMotion(rotation + timeToTarget * 30.0f, 30.0f));
         }
     }
 
     Entity findNamedEntity(const char* name, const EntityWorld* ecs) {
         Entity target = NullEntity;
-        ecs->ForEach_EarlyReturn< EntityQuery< ECS::RequireComponents<EC::Nametag> > >(
-        [&](Entity entity)->bool{
+        ecs->ForEach_EarlyReturn([](ECS::Signature components){
+            return components[EC::Nametag::ID];
+        }, [&](Entity entity){
             auto nametag = ecs->Get<const EC::Nametag>(entity);
             // super inefficient btw
             if (My::streq(name, nametag->name)) {
@@ -135,5 +138,7 @@ void entityViewAndPosChanged(GameState* state, Entity entity, Vec2 oldPos, Box o
 }
 
 void entityCreated(GameState* state, Entity entity) {
+
+}
 
 }

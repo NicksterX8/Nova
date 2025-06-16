@@ -66,7 +66,7 @@ struct Bitset {
     constexpr static size_t nBytes = N/CHAR_BIT + (N%CHAR_BIT != 0);
     using IntegerType = IntegerT;
 private:
-    using Self = Bitset<N>;
+    using Self = Bitset<N, IntegerT>;
 public:
     static_assert(std::is_unsigned<IntegerT>::value, "Bitset integer types must be unsigned!");
 

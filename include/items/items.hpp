@@ -6,6 +6,7 @@
 #include "Tiles.hpp"
 #include "manager.hpp"
 #include "Inventory.hpp"
+#include "ECS/PrototypeManager.hpp"
 
 namespace items {
 
@@ -26,7 +27,7 @@ namespace Items {
     }
 }
 
-PrototypeManager* makePrototypes(ComponentInfoRef componentInfo);
+PrototypeManager* makePrototypes(ECS::ComponentInfoRef componentInfo);
 
 } // namespace items
 

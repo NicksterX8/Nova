@@ -43,8 +43,8 @@ set(SRC_FILES
     ${SD}/rendering/Shader.cpp
     ${SD}/rendering/rendering.cpp
     ${SD}/rendering/TexturePacker.cpp
-    ${SD}/ECS/ECS.cpp
     ${SD}/world/components/components.cpp
+    ${SD}/world/functions.cpp
     ${SD}/world/entities/entities.cpp
     ${SD}/world/entities/methods.cpp
     ${SD}/ECS/system.cpp

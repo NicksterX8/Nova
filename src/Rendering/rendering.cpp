@@ -1,5 +1,4 @@
 #include "rendering/rendering.hpp"
-#include "rendering/systems/simple.hpp"
 #include "Chunks.hpp"
 #include "utils/Debug.hpp"
 #include "utils/Log.hpp"
@@ -9,6 +8,7 @@
 #include "llvm/ArrayRef.h"
 #include "global.hpp"
 #include "rendering/drawing.hpp"
+#include "world/functions.hpp"
 
 void scaleAllFonts(FontManager& fontManager, float scale) {
     for (auto font : fontManager.fonts) {
@@ -27,7 +27,7 @@ void renderWater(RenderContext& ren, const Camera& camera, Vec2 min, Vec2 max, f
     SDL_GetWindowSizeInPixels(ren.window, &width, &height);
     //shader.setVec2("iResolution", Vec2(width, height));
 
-    float z = getLayerHeight(RenderLayer::Water);
+    float z = World::getLayerHeight(RenderLayer::Water);
     glm::vec3 p1 = {min.x, min.y, z};
     glm::vec3 p2 = {max.x, max.y, z};
     glm::vec4 color = {1.0, 1.0, 1.0, 1.0};
@@ -272,7 +272,7 @@ int setConstantShaderUniforms(RenderContext& ren) {
     auto tilemap = mgr.use(Shaders::Tilemap);
     tilemap.setInt("tex", TextureUnit::MyTextureAtlas);
     tilemap.setVec2("texSize", ren.textureAtlas.size);
-    tilemap.setFloat("height", getLayerHeight(RenderLayer::Tilemap));
+    tilemap.setFloat("height", World::getLayerHeight(RenderLayer::Tilemap));
     
     mgr.use(Shaders::Text).setInt("text", TextureUnit::Font0);
 
@@ -388,7 +388,7 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
     scaleAllFonts(fonts, SDL::pixelScale * fontScale);
 }
 
-void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
+void renderInit(RenderContext& ren) {
     createShaders(ren.shaders);
 
     /* Init textures */
@@ -402,8 +402,8 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
     initFonts(ren.fonts, ren.shaders);
     Fonts = &ren.fonts;
 
-    ren.guiTextRenderer = TextRenderer::init(ren.fonts.get("Debug"), nullptr);
-    ren.worldTextRenderer = TextRenderer::init(ren.fonts.get("World"), nullptr);
+    ren.guiTextRenderer = TextRenderer::init(Fonts->get("Debug"), nullptr);
+    ren.worldTextRenderer = TextRenderer::init(Fonts->get("World"), nullptr);
     ren.worldTextRenderer.defaultRendering.scale = Vec2(1/32.0f);
     GL::logErrors();
 
@@ -413,6 +413,8 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
 
     TextureAtlas guiAtlas = makeTextureAtlas(&ren.textures, TextureTypes::Gui | TextureTypes::World, FileSystem.assets.get(), GL_LINEAR, GL_LINEAR, TextureUnit::GuiAtlas);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    int screenWidth,screenHeight;
+    SDL_GetWindowSizeInPixels(ren.window, &screenWidth, &screenHeight);
     RenderOptions guiOptions = {
         .size = {screenWidth, screenHeight}, // won't render if not set later
         .scale = 1.0f
@@ -452,9 +454,6 @@ void renderInit(RenderContext& ren, int screenWidth, int screenHeight) {
 
     ren.screenModel = makeScreenModel();
     ren.framebuffer = makeRenderBuffer({screenWidth, screenHeight});
-    //resizeRenderBuffer(ren.framebuffer, {screenWidth, screenHeight});
-
-    ren.renderSystem = new RenderSystem();
 
     setConstantShaderUniforms(ren);
 }
@@ -548,15 +547,8 @@ static void renderWorld(RenderContext& ren, Camera& camera, GameState* state, Ve
     float seconds = Metadata->frame.timestamp / 1000.0f;
     renderWater(ren, camera, maxBoundingArea[0], maxBoundingArea[1], seconds);
 
-    ren.renderSystem->Update(state->ecs, state->chunkmap, ren, camera);
-
-    /*
-    const static auto demoQuads = makeDemoQuads();
-    ren.worldQuadRenderer.render(demoQuads);
-
-    ren.worldGuiRenderer.colorRect({0.0f, 0.0f}, {1.0f, 1.0f}, {255, 0, 0, 255});
-    ren.worldGuiRenderer.flush(ren.shaders, camera.getTransformMatrix());
-    */
+    // do systems
+    ECS::System::executeSystems(*ren.ecsRenderSystems);
 }
 
 // Binds the newly made texture on the active texture unit
@@ -729,7 +721,7 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
         Draw::chunkBorders(ren.guiQuadRenderer, camera, SDL_Color{255, 0, 255, 155}, 8.0f, 0.5f);
     }
 
-    auto holyTree = Entities::findNamedEntity("Holy tree", &state->ecs);
+    auto holyTree = World::Entities::findNamedEntity("Holy tree", &state->ecs);
  
     //ren.worldGuiRenderer.text->render("HI", {5, 5});
     float offset = 50.0f;

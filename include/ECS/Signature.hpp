@@ -2,36 +2,56 @@
 #define ECS_GENERIC_SIGNATURE_INCLUDED
 
 #include "utils/ints.hpp"
+#include "My/Bitset.hpp"
 
 namespace ECS {
 
 using ComponentID = Sint16;
 
-template<size_t maxComponentID>
-struct SignatureTemplate : My::Bitset<maxComponentID> {
-    private: using Base = My::Bitset<maxComponentID>; public:
-    using Self = Signature<maxComponentID>;
+#define ECS_MAX_COMPONENT 64
+constexpr ComponentID MaxComponentID = ECS_MAX_COMPONENT;
+
+template<class C>
+constexpr ComponentID getID() {
+    return C::ID;
+}
+
+template<class ...Cs>
+constexpr static My::Bitset<MaxComponentID> getSignature() {
+    constexpr ComponentID ids[] = {getID<Cs>() ...};
+    // sum component signatures
+    auto result = My::Bitset<MaxComponentID>(0);
+    for (size_t i = 0; i < sizeof...(Cs); i++) {
+        if (ids[i] < result.size())
+            result.set(ids[i]);
+    }
+    return result;
+}
+
+struct Signature : My::Bitset<MaxComponentID> {
+    private: using Base = My::Bitset<MaxComponentID>; public:
 
     constexpr Signature() {}
 
     constexpr Signature(typename Base::IntegerType startValue) : Base(startValue) {}
 
+    constexpr Signature(const My::Bitset<MaxComponentID>& base) : Base(base) {}
+
     template<class C>
     constexpr bool getComponent() const {
-        constexpr ComponentID id = C::ID;
-        return this->operator[](id);
+        return this->operator[](C::ID);
     }
 
     template<class C>
     constexpr void setComponent(bool val) {
-        constexpr ComponentID id = C::ID;
-        My::Bitset<maxComponentID>::set(id, val);
+        My::Bitset<MaxComponentID>::set(C::ID, val);
+    }
+
+    template<class... Cs>
+    constexpr bool hasComponents() const {
+        return hasAll(getSignature<Cs...>());
     }
 };
-
-#define ECS_MAX_COMPONENT 64
-constexpr ComponentID MaxComponentID = ECS_MAX_COMPONENT;
-using Signature = SignatureTemplate<MaxComponentID>;
 
 struct SignatureHash {
     size_t operator()(Signature self) const {

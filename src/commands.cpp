@@ -158,10 +158,10 @@ namespace Commands {
 
     Entity getEntity(std::string entityIdStr, const EntityWorld* ecs) {
         if (entityIdStr.empty()) return NullEntity;
-        EntityID entityID = NullEntity.id;
+        ECS::EntityID entityID = NullEntity.id;
         // special cases
         if (entityIdStr == "player") {
-            return Entities::findNamedEntity(entityIdStr.c_str(), ecs);
+            return World::Entities::findNamedEntity(entityIdStr.c_str(), ecs);
         } else {
             if (inputIsNumeric(entityIdStr)) {
                 entityID = atoi(entityIdStr.c_str());
@@ -170,7 +170,7 @@ namespace Commands {
                 }
             }
         }
-        EntityVersion version = NullEntity.version;
+        ECS::EntityVersion version = NullEntity.version;
         if (entityID != NullEntity.id) {
             version = ecs->GetEntityVersion(entityID);
         }
@@ -194,8 +194,8 @@ namespace Commands {
             return RES_ERROR("That entity doesn't exist!");
         }
 
-        ComponentID componentID = ecs->GetComponentIdFromName(componentName.c_str());
-        if (componentID == NullComponentID) {
+        ECS::ComponentID componentID = ecs->GetComponentIdFromName(componentName.c_str());
+        if (componentID == ECS::NullComponentID) {
             return RES_ERROR("Invalid component!");
         }
 
@@ -203,10 +203,10 @@ namespace Commands {
         //if (componentValueStr.size() < 2) return {"Invalid component value"} ;
         //std::string interiorValue = componentValueStr.substr(1, componentValueStr.size()-2); // cut off braces
 
-        void* component = ecs->Get(componentID, entity);
+        void* component = ecs->Get(entity, componentID);
         if (!component) {
             // entity doesn't have this component, so add it
-            ecs->Add(componentID, entity);
+            ecs->Add(entity, componentID);
         }
 
         auto componentSize = ecs->getComponentSize(componentID);
@@ -214,10 +214,10 @@ namespace Commands {
 
         bool success;
         // position is annoying. maybe change one day
-        if (componentID == ECS::getID<EC::Position>()) {
-            Vec2 oldPos = ((EC::Position*)component)->vec2();
+        if (componentID == ECS::getID<World::EC::Position>()) {
+            Vec2 oldPos = ((World::EC::Position*)component)->vec2();
             success = ecs->GetComponentValueFromStr(componentID, componentValueStr, component);
-            entityPositionChanged(state, entity, oldPos);
+            World::entityPositionChanged(state, entity, oldPos);
         } else {
             success = ecs->GetComponentValueFromStr(componentID, componentValueStr, component);
         }
@@ -232,9 +232,10 @@ namespace Commands {
         bool isName = !inputIsNumeric(target);
         if (isName) {
             int numDestroyed = 0;
-            state->ecs.ForEach< EntityQuery< ECS::RequireComponents<EC::EntityTypeEC> > >(
-            [&](Entity entity){
-                auto type = state->ecs.Get<const EC::EntityTypeEC>(entity);
+            state->ecs.ForEach([](ECS::Signature components){
+                return components[World::EC::EntityTypeEC::ID];
+            }, [&](Entity entity){
+                auto type = state->ecs.Get<const World::EC::EntityTypeEC>(entity);
                 // super inefficient btw
                 if (target == "ALL" || target == type->name) {
                     if (state->ecs.EntityExists(entity)) {
@@ -437,7 +438,7 @@ namespace Commands {
         auto entityIdStr = args.get();
         Entity entity = getEntity(entityIdStr, ecs);
         if (entity.Null()) return RES_ERROR("No entity found");
-        Entity clone  = Entities::clone(ecs, entity);
+        Entity clone  = World::Entities::clone(ecs, entity);
         if (ecs->EntityExists(clone)) {
             return RES_SUCCESS(string_format("Entity successfully cloned! ID: %d", clone.id));
         }
@@ -453,10 +454,10 @@ namespace Commands {
             if (entity.Null()) {
                 return RES_ERROR(string_format("No entity found for id '%s'!", entityId.c_str()));
             }
-            if (!ecs->EntityHas<EC::Position>(entity)) {
+            if (!ecs->EntityHas<World::EC::Position>(entity)) {
                 return RES_ERROR("The entity cannot be focused on, as it has no position.");
             }
-            cameraFocus->focus = CameraEntityFocus{entity, ecs->EntityHas<EC::Dynamic>(entity)};
+            cameraFocus->focus = CameraEntityFocus{entity, ecs->EntityHas<World::EC::Dynamic>(entity)};
             return RES_SUCCESS("Focus set.");
         } else if (targetType == "point") {
             // TODO:

@@ -6,6 +6,7 @@
 #include "ECS/Entity.hpp"
 #include "My/Vec.hpp"
 #include "ECS/ArchetypePool.hpp"
+#include "ECS/ComponentInfo.hpp"
 #include "ECS/componentMacros.hpp"
 
 typedef Uint16 TextureID;

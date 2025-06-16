@@ -9,71 +9,7 @@ namespace GUI {
 
 namespace Systems {
 
-using namespace EcsSystem;
-using ECS::EntityCommandBuffer;
-
-struct IJobParallelFor : IJob {
-    IJobParallelFor(JobGroup group) : IJob(IJob::Parallel, group) {}
-};
-
-struct IJobSingleThreaded : IJob {
-    IJobSingleThreaded(JobGroup group) : IJob(IJob::MainThread, group) {}
-};
-
-template<typename T>
-using GroupArray = T*;
-
-template <class C>
-struct CopyComponentArrayJob : IJobParallelFor {
-    C* dst;
-    ComponentArray<C> src;
-
-    CopyComponentArrayJob(JobGroup group, Entity* dst)
-    : IJobParallelFor(group), dst(dst), src(this) {}
-
-    void Execute(int N) {
-        dst[N] = src[N];
-    }
-};
-
-struct CopyEntityArrayJob : IJobParallelFor {
-    Entity* dst;
-    EntityArray src;
-
-    CopyEntityArrayJob(JobGroup group, Entity* dst)
-    : IJobParallelFor(group), dst(dst), src(this) {}
-
-    void Execute(int N) {
-        dst[N] = src[N];
-    }
-};
-
-template<class Component>
-struct FillComponentsFromArrayJob : IJob {
-    Component* src;
-    ComponentArray<const Component> dst;
-
-    FillComponentsFromArrayJob(Component* src) : src(src), dst(this) {}
-
-    void Execute(int N) {
-        dst[N] = src[N];
-    }
-};
-
-template<typename T>
-struct InitializeArrayJob : IJob {
-    MutableArrayRef<T> values;
-
-    T value;
-
-    InitializeArrayJob(MutableArrayRef<T> values, const T& initializationValue) : values(this), value(initializationValue) {
-        this->values = values;
-    }
-
-    void Execute(int N) {
-        values[N] = value;
-    }
-};
+using namespace ECS::System;
 
 using CopyNamesJob = CopyComponentArrayJob<GUI::EC::Name>;
 

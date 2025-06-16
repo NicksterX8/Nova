@@ -1,5 +1,7 @@
 #include "world/components/components.hpp"
 
+namespace World {
+
 namespace EC {
 
 Explosion::Explosion(float radius, float damage, float life, int particleCount):
@@ -12,5 +14,7 @@ void Nametag::setName(const char* name) {
     strcpy(this->name, name);
 }
 
+
+}
 
 }

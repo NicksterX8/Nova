@@ -4,7 +4,7 @@
 #include "ECS/EntityManager.hpp"
 #include "components.hpp"
 #include "prototypes.hpp"
-#include "systems/basic.hpp"
+#include "ECS/system.hpp"
 
 namespace GUI {
 
@@ -203,7 +203,7 @@ public:
         return addComponent<EC::Name>(element, nameEc);
     }
 
-    Element getNamedElement(const char* name) const {
+    Element getNamedElement(const char* name) {
         Element namedElement = NullElement;
         forEachEntity<EC::Name>([&](Element e){
             auto* nameEc = getComponent<EC::Name>(e);
@@ -214,7 +214,7 @@ public:
         return namedElement;
     }
 
-    Element getNamedElement(std::string name) const {
+    Element getNamedElement(std::string name) {
         return getNamedElement(name.c_str());
     }
 

@@ -10,28 +10,9 @@
 #include "utils/vectors_and_rects.hpp"
 #include "Tiles.hpp"
 #include "Player.hpp"
-#include "ECS/entities/entities.hpp"
-#include "ECS/systems/systems.hpp"
-#include "metadata/ecs/ecs.hpp"
+#include "world/entities/entities.hpp"
 #include "items/manager.hpp"
 #include "items/prototypes/prototypes.hpp"
-
-template<class... Components>
-void addComponents(EntityWorld* ecs, Entity entity, Components... components) {
-    ecs->StartDeferringEvents();
-    bool success[] = {ecs->Add<Components>(entity) ...};
-    // do something
-    ecs->StopDeferringEvents();
-}
-
-Box getEntityViewBoxBounds(const EntityWorld* ecs, Entity entity) {
-    Vec2 pos = ecs->Get<EC::Position>(entity)->vec2();
-    auto* viewbox = ecs->Get<EC::ViewBox>(entity);
-    return Box{
-        pos + viewbox->box.min,
-        pos + viewbox->box.min + viewbox->box.size
-    };
-}
 
 void makeItemPrototypes(ItemManager& im) {
     using namespace items;
@@ -67,77 +48,15 @@ void GameState::init(const TextureManager* textureManager) {
     }
 
     /* Init ECS */
-    ecs = EntityWorld::Init<ECS_COMPONENTS>();
-    ecs.SetOnAdd<EC::ViewBox>([&](EntityWorld* ecs, Entity entity) {
-
-        auto* viewBox = ecs->Get<EC::ViewBox>(entity);
-        if (!viewBox) {
-            LogError("entity viewbox not found!");
-            return;
-        }
-        auto* position = ecs->Get<EC::Position>(entity);
-        if (!position) {
-            LogError("Entity position not found. Make sure to add position before viewbox.");
-            return;
-        }
-
-        Vec2 pos = position->vec2();
-
-        IVec2 minChunkPosition = toChunkPosition(pos + viewBox->box.min);
-        IVec2 maxChunkPosition = toChunkPosition(pos + viewBox->box.max());
-        for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
-            for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
-                IVec2 chunkPosition = {col, row};
-                // add entity to new chunk
-                ChunkData* newChunkdata = chunkmap.get(chunkPosition);
-                if (newChunkdata) {
-                    newChunkdata->closeEntities.push(entity);
-                }
-            }
-        }
-    });
-    ecs.SetBeforeRemove<EC::ViewBox>([&](EntityWorld* ecs, Entity entity){
-        auto* viewbox = ecs->Get<EC::ViewBox>(entity);
-        if (!viewbox) {
-            LogError("entity viewbox not found!");
-            return;
-        }
-        auto* position = ecs->Get<EC::Position>(entity);
-        if (!position) {
-            LogError("Entity position not found");
-            return;
-        }
-        forEachChunkContainingBounds(&chunkmap, {{position->vec2() + viewbox->box.min, position->vec2() + viewbox->box.max()}}, [entity](ChunkData* chunkdata){
-            if (!chunkdata->removeCloseEntity(entity)) {
-                LogWarn("couldn't remove entity");
-            }
-        });
-    });
-
-    ecs.SetOnAdd<EC::Inventory>([](EntityWorld* ecs, Entity entity){
-        ecs->Get<EC::Inventory>(entity)->inventory.addRef();
-    });
-    ecs.SetBeforeRemove<EC::Inventory>([](EntityWorld* ecs, Entity entity){
-        ecs->Get<EC::Inventory>(entity)->inventory.removeRef();
-    });
-
-    ecs.SetOnAdd<EC::TransportLineEC>([](EntityWorld* ecs, Entity entity){
-        auto* transportLineEc = ecs->Get<EC::TransportLineEC>(entity);
-        
-    });
-    ecs.SetBeforeRemove<EC::TransportLineEC>([&](EntityWorld* ecs, Entity entity){
-        auto* transportLineEc = ecs->Get<EC::TransportLineEC>(entity);
-        transportLineEc->belts.destroy();
-    });
+    //ecs = EntityWorld();
+    World::setEventCallbacks(ecs, chunkmap);
 
     /* Init Items */
-    My::Vec<ECS::ComponentInfo> componentInfo; // TODO: Unimportant: This is leaked currently
     {
-        using namespace ITC;
-        constexpr auto componentInfoArray = ECS::getComponentInfoList<ITEM_COMPONENTS_LIST>();
-        componentInfo = My::Vec<ECS::ComponentInfo>(&componentInfoArray[0], componentInfoArray.size());
+        using namespace items::ITC;
+        static constexpr auto itemComponentInfo = ECS::getComponentInfoList<ITEM_COMPONENTS_LIST>();
+        itemManager = ItemManager(ArrayRef(itemComponentInfo), ItemTypes::Count);
     }
-    itemManager = ItemManager(ArrayRef(componentInfo.data, componentInfo.size), ItemTypes::Count);
 
     makeItemPrototypes(itemManager);
     loadTileData(itemManager, textureManager);
@@ -158,25 +77,6 @@ void GameState::init(const TextureManager* textureManager) {
     for (int i = 0; i < (int)(sizeof(startInventory) / sizeof(ItemStack)); i++) {
         playerInventory->addItemStack(startInventory[i]);
     }
-
-    //Entities::Tree(&ecs, {-2, -2}, {5, 5});
-    
-    //auto tree = Entities::Tree(&ecs, {-20, -20}, {5, 5});
-    //Entities::giveName(tree, "Holy tree", &ecs);
-
-    //Entities::scaleGuy(this, tree, 2.0f);
-
-    auto enemy = Entities::Enemy(&ecs, {15, 15}, player.entity);
-    ecs.Remove<EC::Follow>(enemy);
-
-    /*
-    auto view = ecs.Get<EC::ViewBox>(enemy);
-    view->size = {0.2, 0.2};
-    auto collision = ecs.Get<EC::CollisionBox>(enemy);
-    collision->box[]
-    */
-    Entities::scaleGuy(this, enemy, 2.0f);
-    Entities::giveName(enemy, "MyLittleGuy", &ecs);
 }
 
 void GameState::destroy() {
@@ -380,108 +280,6 @@ void worldLineAlgorithm(Vec2 start, Vec2 end, const std::function<int(IVec2)>& c
     }
 }
 
-OptionalEntity<> findTileEntityAtPosition(const GameState* state, Vec2 position) {
-    IVec2 tilePosition = vecFloori(position);
-    Tile* selectedTile = getTileAtPosition(state->chunkmap, tilePosition);
-    if (selectedTile) {
-        /*
-        auto tileEntity = selectedTile->entity;
-        if (tileEntity.Exists(&state->ecs)) {
-            if (pointIsOnTileEntity(&state->ecs, tileEntity, tilePosition, position)) {
-                return tileEntity;
-            }
-        }
-        */
-    }
-
-    // no entity could be found at that position
-    return NullEntity;
-}
-
-bool removeEntityOnTile(EntityWorld* ecs, Tile* tile) {
-    /*
-    if (tile->entity.Exists(ecs)) {
-        ecs->Destroy(tile->entity);
-        return true;
-    }
-    tile->entity = NullEntity;
-    */
-    return false;
-}
-
-bool placeEntityOnTile(EntityWorld* ecs, Tile* tile, Entity entity) {
-    /*
-    if (!tile->entity.Exists(ecs)) {
-        tile->entity = entity;
-        return true;
-    }
-    */
-    return false;
-}
-
-void forEachEntityInRange(const ComponentManager<EC::ViewBox>& ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, const std::function<int(EntityT<EC::ViewBox>)>& callback) {
-    radius = abs(radius);
-    float radiusSqrd = radius * radius;
-
-    // form rectangle of chunks to search for entities in
-    IVec2 highChunkBound = {(int)floor((pos.x + radius) / CHUNKSIZE), (int)floor((pos.y + radius) / CHUNKSIZE)};
-    IVec2 lowChunkBound =  {(int)floor((pos.x - radius) / CHUNKSIZE), (int)floor((pos.y - radius) / CHUNKSIZE)};
-
-    // go through each chunk in chunk search rectangle
-    for (int y = lowChunkBound.y; y <= highChunkBound.y; y++) {
-        for (int x = lowChunkBound.x; x <= highChunkBound.x; x++) {
-            const ChunkData* chunkdata = chunkmap->get({x, y});
-            if (chunkdata == NULL) {
-                // entities can't be in non-existent chunks
-                continue;
-            }
-
-            for (int e = 0; e < chunkdata->closeEntities.size; e++) {
-                Entity closeEntity = chunkdata->closeEntities[e];
-                if (!ecs.EntityExists(closeEntity)) {
-                    LogError("Entity in closeEntities is dead!");
-                    continue;
-                }
-                EC::ViewBox* entityBox = ecs.Get<EC::ViewBox>(closeEntity);
-                assert(entityBox);
-                Vec2 entityCenter = entityBox->box.center();
-                Vec2 entitySize = entityBox->box.size;
-
-                Vec2 halfSize = entitySize * 0.5f;
-
-                // TODO: collision is broke for non squares. need math and stuff
-
-                radiusSqrd += (halfSize.x * halfSize.y + halfSize.y * halfSize.y) * M_SQRT2;
-            
-                Vec2 delta = entityCenter - pos;
-                float distSqrd = delta.x * delta.x + delta.y * delta.y;
-                if (distSqrd < radiusSqrd) {
-                    // entity is within radius
-                    if (callback(closeEntity)) {
-                        return;
-                    }
-                }
-            }
-        }
-    }
-}
-
-void forEachEntityNearPoint(ComponentManager<EC::ViewBox> ecs, const ChunkMap* chunkmap, Vec2 point, const std::function<int(Entity)>& callback) {
-    IVec2 chunkPos = toChunkPosition(point);
-    const ChunkData* chunkdata = chunkmap->get(chunkPos);
-    if (!chunkdata) {
-        // entities can't be in non-existent chunks
-        return;
-    }
-
-    for (int e = 0; e < chunkdata->closeEntities.size; e++) {
-        Entity closeEntity = chunkdata->closeEntities[e];
-        if (callback(closeEntity)) {
-            return;
-        }
-    }
-}
-
 void forEachChunkContainingBounds(const ChunkMap* chunkmap, Boxf bounds, const std::function<void(ChunkData*)>& callback) {
     IVec2 minChunkPosition = toChunkPosition(bounds[0]);
     IVec2 maxChunkPosition = toChunkPosition(bounds[1]);
@@ -494,97 +292,4 @@ void forEachChunkContainingBounds(const ChunkMap* chunkmap, Boxf bounds, const s
             }
         }
     }
-}
-
-void forEachEntityInBounds(ComponentManager<const EC::ViewBox> ecs, const ChunkMap* chunkmap, Boxf bounds, const std::function<void(Entity)>& callback) {
-    forEachChunkContainingBounds(chunkmap, bounds, [&](ChunkData* chunkdata){
-        Vec2 min = bounds[0];
-        Vec2 max = bounds[1];
-
-        for (int i = chunkdata->closeEntities.size-1 ; i >= 0; i--) {
-            auto closeEntity = chunkdata->closeEntities[i];
-            /* TEMPORARY!  TODO: replace this */
-            if (!ecs.EntityExists(closeEntity)) {
-                chunkdata->removeCloseEntity(closeEntity);
-                continue;
-            }
-
-            auto* entityViewbox = ecs.Get<const EC::ViewBox>(closeEntity);
-            auto* entityPos = ecs.Get<const EC::Position>(closeEntity);
-            assert(entityViewbox && entityPos);
-
-            Vec2 eMin = entityPos->vec2() + entityViewbox->box.min;
-            Vec2 eMax = eMin + entityViewbox->box.size;
-
-            if (eMin.x < max.x && eMax.x > min.x &&
-                eMin.y < max.y && eMax.y > min.y)
-            {
-                callback(closeEntity);
-            }
-        }
-    });
-}
-
-OptionalEntity<EC::ViewBox>
-findFirstEntityAtPosition(const EntityWorld& ecs, const ChunkMap* chunkmap, Vec2 position) {
-    OptionalEntity<EC::ViewBox> foundEntity;
-    forEachEntityNearPoint(ComponentManager<EC::ViewBox>(&ecs), chunkmap, position, [&](Entity entity){
-        if (pointInEntity(position, entity, ComponentManager<EC::ViewBox>(&ecs))) {
-            // player is targeting this entity
-            foundEntity = entity;
-            return 1;
-        }
-        return 0;
-    });
-
-    return foundEntity;
-}
-
-
-
-OptionalEntity<EC::Position>
-findClosestEntityToPosition(const EntityWorld* ecs, const ChunkMap* chunkmap, Vec2 position) {
-    EntityT<EC::Position> closestEntity = NullEntity;
-    float closestDistSqrd = INFINITY;
-    forEachEntityNearPoint(ComponentManager<EC::ViewBox>(ecs), chunkmap, position, [&](Entity entity){
-        // TODO: only works correctly for squares
-        Vec2 entityCenter = ecs->Get<EC::ViewBox>(entity)->box.center();
-        Vec2 delta = entityCenter - position;
-        float entityDistSqrd = delta.x*delta.x + delta.y*delta.y;
-        if (entityDistSqrd < closestDistSqrd) {
-            closestEntity = entity;
-            closestDistSqrd = entityDistSqrd;
-        }
-        return 0;
-    });
-
-    return closestEntity;
-}
-
-OptionalEntity<EC::ViewBox, EC::Render>
-findPlayerFocusedEntity(ComponentManager<EC::ViewBox, const EC::Render> ecs, const ChunkMap& chunkmap, Vec2 playerMousePos) {
-    Vec2 target = playerMousePos;
-    Entity focusedEntity;
-    int focusedEntityLayer = RenderLayers::Lowest;
-    forEachEntityNearPoint(ecs, &chunkmap, target,
-    [&](Entity entity){
-        if (!entity.Has<EC::Position, EC::ViewBox, EC::Render>(&ecs)) {
-            return 0;
-        }
-
-        auto render = entity.Get<const EC::Render>(&ecs);
-        // TODO: enhance for multiple textures
-        int entityLayer = render->textures[0].layer;
-
-        if (pointInEntity(target, entity, ecs)) {
-            if (entityLayer > focusedEntityLayer
-            || (entityLayer == focusedEntityLayer && entity.id > focusedEntity.id)) {
-                focusedEntity = entity;
-                focusedEntityLayer = entityLayer;
-            }
-        }
-
-        return 0;
-    });
-    return focusedEntity;
 }

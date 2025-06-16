@@ -19,14 +19,12 @@
 
 struct Game;
 
-void placeInserter(ChunkMap& chunkmap, EntityWorld* ecs, Vec2 mouseWorldPos);
-
-void rotateEntity(const ComponentManager<EC::Rotation, EC::Rotatable>& ecs, EntityT<EC::Rotation, EC::Rotatable> entity, bool counterClockwise);
+void rotateEntity(const EntityWorld& ecs, Entity entity, bool counterClockwise);
 
 void setDefaultKeyBindings(Game& ctx, PlayerControls* controls);
 
 struct CameraEntityFocus {
-    EntityT<EC::Position> entity;
+    Entity entity;
     bool rotateWithEntity;
 };
 
@@ -35,6 +33,19 @@ struct CameraFocus {
         CameraEntityFocus, // follow entity
         Vec2 // static point
     > focus;
+};
+
+namespace World {
+    namespace RenderSystems {
+        struct RenderEntitySystem;
+    }
+}
+
+struct GameEntitySystems {
+    ECS::System::SystemManager ecsRenderSystems;
+    ECS::System::SystemManager ecsStateSystems;
+
+    World::RenderSystems::RenderEntitySystem* renderEntitySys;
 };
 
 struct Game {
@@ -49,6 +60,7 @@ struct Game {
     DebugClass* debug;
     MetadataTracker metadata;
     RenderContext* renderContext;
+    GameEntitySystems systems;
     Mode mode;
 
     Game(SDLContext sdlContext):
@@ -66,7 +78,7 @@ struct Game {
         mode = Unstarted;
     }
 
-    int init(int screenWidth, int screenHeight);
+    int init();
 
     int start();
 

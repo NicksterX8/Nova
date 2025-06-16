@@ -1,9 +1,10 @@
-#include "ECS/entities/entities.hpp"
+#include "world/entities/entities.hpp"
 #include "ECS/ECS.hpp"
 #include "world/components/components.hpp"
 #include "Tiles.hpp"
-#include "ECS/SEntity.hpp"
-#include "ECS/entities/methods.hpp"
+#include "world/entities/methods.hpp"
+
+namespace World {
 
 namespace Entities {
 
@@ -17,16 +18,17 @@ namespace Entities {
 
     Explosive Airstrike(EntityWorld* ecs, Vec2 position, Vec2 size, Vec2 target) {
         Explosive airstrike = Explosive(ecs, position, size, TextureIDs::Grenade, airstrikeExplosion);
-        throwEntity(ecs, airstrike, target, 0.2f);
+        throwEntity(*ecs, airstrike, target, 0.2f);
         return airstrike;
     }
 
     Explosive ThrownGrenade(EntityWorld* ecs, Vec2 position, Vec2 target) {
         Explosive grenade = Grenade(ecs, position);
-        throwEntity(ecs, grenade, target, 0.2f);
+        throwEntity(*ecs, grenade, target, 0.2f);
         return grenade;
     }
 
+    /*
     Entity Chest(EntityWorld* ecs, Vec2 position, int inventorySize, int width, int height, ItemManager& allocator) {
         Entity chest = ecs->New("chest");
         ecs->Add<EC::Position>(chest, position);
@@ -41,6 +43,7 @@ namespace Entities {
         return chest;
     }
 
+
     Entity Inserter(EntityWorld* ecs, Vec2 position, int reach, IVec2 inputTile, IVec2 outputTile) {
         Entity inserter = ecs->New("inserter");
         ecs->Add<EC::Position>(inserter, position);
@@ -54,7 +57,7 @@ namespace Entities {
     }
 
     Entity Enemy(EntityWorld* ecs, Vec2 position, Entity following) {
-        Entity enemy = ecs->New("enemy");
+        Entity enemy = ecs->New(PrototypeIDs::Enemy);
         ecs->StartDeferringEvents();
         ecs->Add<EC::Position>(enemy, position);
         ecs->Add<EC::Dynamic>(enemy, position);
@@ -68,4 +71,7 @@ namespace Entities {
         ecs->StopDeferringEvents();
         return enemy;
     }
+    */
+}
+
 }

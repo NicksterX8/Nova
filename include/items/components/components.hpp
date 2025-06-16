@@ -53,7 +53,8 @@ namespace ITC {
             float saturation;
         END_PROTO_COMPONENT(Edible)
 
-        FLAG_PROTO_COMPONENT(Wettable)
+        BEGIN_PROTO_COMPONENT(Wettable)
+        END_PROTO_COMPONENT(Wettable)
 
         BEGIN_PROTO_COMPONENT(StartDurability)
             Durability durability;

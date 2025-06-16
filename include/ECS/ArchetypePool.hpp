@@ -9,6 +9,7 @@
 #include "utils/ints.hpp"
 #include "Entity.hpp"
 #include "Signature.hpp"
+#include "ComponentInfo.hpp"
 
 template <size_t I, typename Tuple>
 constexpr size_t element_offset() {
@@ -44,94 +45,6 @@ constexpr size_t element_offset() {
 
 namespace ECS {
 
-struct ComponentInfo {
-    size_t size = 0;
-    size_t alignment = 0;
-    const char* name = "null";
-};
-
-template<class Component>
-static constexpr ComponentInfo getComponentInfo() {
-    return {sizeof(Component), alignof(Component), Component::NAME};
-}
-
-template<class... Components>
-static constexpr std::array<ComponentInfo, sizeof...(Components)> getComponentInfoList() {
-    return {getComponentInfo<Components>() ...};
-}
-
-class ComponentInfoRef {
-    ArrayRef<ComponentInfo> components;
-public:
-    ComponentInfoRef() {}
-
-    ComponentInfoRef(ArrayRef<ComponentInfo> componentInfoList) : components(componentInfoList) {
-        
-    }
-
-    int numComponents() const {
-        return components.size();
-    }
-
-    size_t size(ComponentID component) const {
-        return components[component].size;
-    }
-
-    size_t alignment(ComponentID component) const {
-        return components[component].alignment;
-    }
-
-    const char* name(ComponentID component) const {
-        return components[component].name;
-    }
-};
-
-
-template<class C>
-constexpr static ComponentID getRawID() {
-    return IDGetter::template get<C>();
-}
-
-template<class C>
-constexpr static ComponentID getID() {
-    constexpr auto raw = getRawID<C>();
-    return raw ? raw : -raw;
-}
-
-struct IDGetter {
-
-};
-
-template<class C>
-constexpr static bool isPrototype() {
-    return getRawID<C>() < 0;
-}
-
-template<class C>
-constexpr static bool getPrototypeID() {
-    static_assert(getID<C>() != NullComponentID, "Bad component!");
-    static_assert(getID<C>() < 0, "Component isn't a prototype component!");
-    return getID<C>();
-}
-
-template<class ...Cs>
-constexpr static Signature getSignature() {
-    constexpr ComponentID ids[] = {getID<Cs>() ...};
-    // sum component signatures
-    auto result = Signature(0);
-    for (size_t i = 0; i < sizeof...(Cs); i++) {
-        if (ids[i] < result.size())
-            result.set(ids[i]);
-    }
-    return result;
-}
-
-template<class ...RegCs>
-static Signature getNonProtoSignature(Signature signature) {
-    constexpr Signature allRegularComponents = getSignature<RegCs...>();
-    return signature & allRegularComponents;
-}
-
 struct Archetype {
     Sint8 componentIndices[MaxComponentID];
     int32_t numComponents;
@@ -152,6 +65,29 @@ struct Archetype {
         return sizes[componentIndices[component]];
     }
 };
+
+static Archetype makeArchetype(Signature signature, ComponentInfoRef componentTypeInfo) {
+    auto count = signature.count();
+    Archetype archetype{
+        .signature = signature,
+        .componentIndices = {-1},
+        .sizes = Alloc<uint16_t>(count),
+        .componentIDs = Alloc<ComponentID>(count),
+        .numComponents = (int)count
+    };
+    for (int i = 0; i < MaxComponentID; i++) {
+        archetype.componentIndices[i] = -1;
+    }
+
+    int index = 0;
+    signature.forEachSet([&](auto componentID){
+        auto componentSize = (uint16_t)componentTypeInfo.get(componentID).size;
+        archetype.sizes[index] = componentSize;
+        archetype.componentIDs[index] = componentID;
+        archetype.componentIndices[componentID] = index++;
+    });
+    return archetype;
+}
 
 struct ArchetypePool {
     int size;
@@ -228,33 +164,10 @@ struct ArchetypePool {
     }
 };
 
+
+
 struct ArchetypalComponentManager {
-    static Archetype makeArchetype(Signature signature, ComponentInfoRef componentTypeInfo) {
-        auto count = signature.count();
-        Archetype archetype{
-            .signature = signature,
-            .componentIndices = {-1},
-            .sizes = Alloc<uint16_t>(count),
-            .componentIDs = Alloc<ComponentID>(count),
-            .numComponents = (int)count
-        };
-        for (int i = 0; i < MaxComponentID; i++) {
-            archetype.componentIndices[i] = -1;
-        }
-
-        int index = 0;
-        signature.forEachSet([&](auto componentID){
-            auto componentSize = (uint16_t)componentTypeInfo.size(componentID);
-            archetype.sizes[index] = componentSize;
-            archetype.componentIDs[index] = componentID;
-            archetype.componentIndices[componentID] = index++;
-        });
-        return archetype;
-    }
-
     static constexpr size_t MaxEntityID = (1 << 14) - 1;
-
-    
 
     using ArchetypeID = Sint16;
     static constexpr ArchetypeID NullArchetypeID = -1;
@@ -302,7 +215,9 @@ struct ArchetypalComponentManager {
         return entity;
     }
 
-    void destroyEntity(Entity entity) {
+    void deleteEntity(Entity entity) {
+        if (entity.Null()) return;
+
         const EntityData* data = entityData.lookup(entity.id);
         if (!data || (entity.version != data->version)) {
             // entity isn't around anyway
@@ -323,7 +238,7 @@ struct ArchetypalComponentManager {
         return entityData.lookup(entityID);
     }
 
-    Signature getEntitiesignature(Entity entity) const {
+    Signature getEntitySignature(Entity entity) const {
         if (entity.id == NullEntity.id) {
             return {0};
         }
@@ -340,7 +255,7 @@ struct ArchetypalComponentManager {
             return 0;
         }
         const EntityData* data = entityData.lookup(entity.id);
-        if (!data || (!entity.version != data->version)) {
+        if (!data || (entity.version != data->version)) {
             return false;
         }
 
@@ -352,12 +267,74 @@ struct ArchetypalComponentManager {
             return nullptr;
         }
         const EntityData* data = entityData.lookup(entity.id);
-        if (!data || (entity.version != data->version)) {
+        if (!data) {
+            return nullptr;
+        } else if (entity.version != data->version) {
+            LogError("Entity no longer exists!");
+            return nullptr;
+        }
+
+        if (!data->signature[component]) {
+            // entity does not have component
             return nullptr;
         }
 
         const auto& pool = pools[data->archetype];
         return pool.getComponent(component, data->poolIndex);
+    }
+
+    // returns true on success, false on failure
+    bool addSignature(Entity entity, Signature components) {
+        if (entity.id == NullEntity.id) {
+            return false;
+        }
+        EntityData* data = entityData.lookup(entity.id);
+        if (!data || (entity.version != data->version)) {
+            return false;
+        }
+
+        Signature oldSignature = data->signature;
+        data->signature |= components;
+
+        auto newArchetypeID = getArchetypeID(data->signature);
+        if (newArchetypeID == NullArchetypeID) {
+            newArchetypeID = initArchetype(data->signature);
+        }
+
+        ArchetypePool* newArchetype = getArchetypePool(newArchetypeID);
+        auto oldArchetypeID = data->archetype;
+        if (newArchetypeID == oldArchetypeID) {
+            // no new components in signature
+            return true;
+        }
+
+        int newEntityIndex = newArchetype->addNew(entity);
+        
+        if (oldArchetypeID > 0) {
+            int oldEntityIndex = data->poolIndex;
+            ArchetypePool* oldArchetype = getArchetypePool(oldArchetypeID);
+            for (int i = 0; i < oldArchetype->buffers.size; i++) {
+                auto componentSize = oldArchetype->archetype.sizes[i];
+                ComponentID transferComponent = oldArchetype->archetype.componentIDs[i];
+                int newArchetypeIndex = newArchetype->archetype.getIndex(transferComponent);
+                assert(newArchetypeIndex != -1);
+                char* newComponentAddress = newArchetype->buffers[newArchetypeIndex] + componentSize * newEntityIndex;
+                char* oldComponentAddress = oldArchetype->buffers[i] + componentSize * oldEntityIndex;
+                memcpy(newComponentAddress, oldComponentAddress, componentSize);
+            }
+
+            Entity movedEntity = oldArchetype->remove(oldEntityIndex);
+            if (!movedEntity.Null()) {
+                EntityData* movedEntityData = entityData.lookup(movedEntity.id);
+                assert(movedEntityData);
+                movedEntityData->poolIndex = oldEntityIndex;
+            }
+        }
+
+        data->archetype = newArchetypeID;
+        data->poolIndex = newEntityIndex;
+
+        return true;
     }
 
     void* addComponent(Entity entity, ComponentID component, const void* initializationValue = nullptr) {
@@ -496,51 +473,15 @@ public:
         return pools.size-1;
     }
 
+    const ComponentInfo& getComponentInfo(ComponentID component) const {
+        return componentInfo.get(component);
+    }
+
     void destroy() {
         pools.destroy();
         unusedEntities.destroy();
         archetypes.destroy();
         entityData.destroy();
-    }
-};
-
-using ComponentPtr = void*;
-
-class LargeComponentList {
-    using Set = My::DenseSparseSet<ComponentID, ComponentPtr, Uint16, MaxComponentID>;
-    Set components;
-public:
-
-    static LargeComponentList New() {
-        LargeComponentList self;
-        self.components = Set::Empty();
-        return self;
-    }
-
-    ComponentPtr get(ComponentID component) const {
-        void** ptrToActualPtr = (void**)components.lookup(component);
-        if (ptrToActualPtr) {
-            return *ptrToActualPtr;
-        }
-        return nullptr;
-    }
-
-    // warning: slow and not too efficient
-    bool has(ComponentID component) const {
-        this->components.contains(component);
-    }
-
-    // storage must be stable, allocated memory to hold the component value
-    void add(ComponentID component, void* storage) {
-        components.insert(component, storage);
-    }
-
-    void remove(ComponentID component) {
-        components.remove(component);
-    }
-
-    void destroy() {
-        components.destroy();
     }
 };
 

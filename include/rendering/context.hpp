@@ -41,8 +41,6 @@ struct RenderBuffer {
     GLuint velocityTexture;
 };
 
-struct RenderSystem;
-
 struct FontManager {
     std::unordered_map<std::string, Font*> fonts;
     float fontScale = 1.0f;
@@ -79,9 +77,15 @@ struct FontManager {
 
 extern const FontManager* Fonts;
 
+namespace ECS {
+    namespace System {
+        struct SystemManager;
+    }
+}
+
 struct RenderContext {
-    SDL_Window* window = NULL;
-    SDL_GLContext glCtx = NULL;
+    SDL_Window* window = nullptr;
+    SDL_GLContext glCtx = nullptr;
 
     TextureAtlas textureAtlas;
     TextureArray textureArray;
@@ -96,7 +100,7 @@ struct RenderContext {
     TextRenderer worldTextRenderer;
     GuiRenderer worldGuiRenderer;
 
-    RenderSystem* renderSystem;
+    ECS::System::SystemManager* ecsRenderSystems;
 
     ChunkModel chunkModel;
     ChunkBuffer chunkBuffer;

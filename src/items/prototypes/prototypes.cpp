@@ -1,21 +1,23 @@
 #include "items/prototypes/prototypes.hpp"
-#include "ECS/entities/entities.hpp"
+#include "world/entities/entities.hpp"
 #include "Game.hpp"
 
 namespace items {
 namespace Prototypes {
 
 bool Grenade::onUse(Game* g) {
-    auto grenade = Entities::Grenade(
+    auto grenade = World::Entities::Grenade(
         &g->state->ecs,
-        g->state->player.get<EC::Position>()->vec2()); 
-    Entities::throwEntity(&g->state->ecs, grenade, g->playerControls->mouseWorldPos, 1.5f);
+        g->state->player.get<World::EC::Position>()->vec2()); 
+    World::Entities::throwEntity(g->state->ecs, grenade, g->playerControls->mouseWorldPos, 1.5f);
     return true;
 }
 
 bool SandGun::onUse(Game* g) {
+    namespace EC = World::EC;
+
     auto& ecs = g->state->ecs;
-    auto sand = ecs.New("sand particle");
+    auto sand = ecs.New(World::Entities::PrototypeIDs::SandParticle);
     
     ecs.Add(sand, EC::Render({TextureIDs::Tiles::Sand, RenderLayers::Particles}));
     auto* playerPos = g->state->player.get<EC::Position>();

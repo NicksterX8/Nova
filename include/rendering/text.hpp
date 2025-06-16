@@ -379,7 +379,7 @@ struct TextRenderer {
 
     static_assert(sizeof(GlyphVertex) == sizeof(glm::vec2) + sizeof(TexCoord) + sizeof(SDL_Color) + sizeof(glm::vec2), "no struct padding");
 
-    static TextRenderer init(Font* defaultFont, My::Vec<TextRenderBatch>* buffer);
+    static TextRenderer init(const Font* defaultFont, My::Vec<TextRenderBatch>* buffer);
 
     struct RenderResult {
         FRect rect; // rect that text will be rendered to

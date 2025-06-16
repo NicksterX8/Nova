@@ -7,6 +7,13 @@
 #include "ECS/Entity.hpp"
 #include "ECS/componentMacros.hpp"
 
+#define BEGIN_COMPONENT(name) struct name {\
+    constexpr static ComponentID ID = ComponentIDs::name;\
+    constexpr static bool PROTOTYPE = false;\
+    constexpr static const char* NAME = TOSTRING(name);
+
+#define END_COMPONENT(name) }; static_assert(true | ComponentIDs::name, "Checking for id");
+
 struct RawArray {
     const void* data;
     const size_t size;
@@ -17,9 +24,24 @@ struct RawArray {
     RawArray(const T& value) : data(&value), size(sizeof(value)) {}
 };
 
-struct EntityWorld;
-
+namespace World {
+ 
 namespace EC {
+
+using ComponentID = ECS::ComponentID;
+
+namespace ComponentIDs {
+    #define WORLD_REGULAR_COMPONENT_LIST \
+        Grabbable, Nametag, Health, CollisionBox, ViewBox,  \
+        Size, Position, Inventory, Motion, AngleMotion,     \
+        Render, Inserter, Dynamic, Immortal, Selected, Follow, \
+        Special, TransportLineEC, Transporter, Dying, Fresh, \
+        ItemStack, Rotation, Rotatable, Explosion, \
+        Explosive, Growth, Point, EntityTypeEC
+    #define WORLD_PROTOTYPE_COMPONENT_LIST Temp
+    #define WORLD_COMPONENT_LIST WORLD_REGULAR_COMPONENT_LIST COMMA WORLD_PROTOTYPE_COMPONENT_LIST
+    GEN_IDS(ComponentIDs, ComponentID, WORLD_COMPONENT_LIST, Count)
+};
 
 //using SerializerOutput = void (*)(RawArray);
 using SerializerOutput = const std::function<void(RawArray)>&;
@@ -62,40 +84,17 @@ struct EntityComponent : public ECS::Component {
         }
     public:
 
-        void construct(EntityWorld*, Entity) {}
-        void deconstruct(EntityWorld*, Entity) {}
 };
-
-#define ENTITY_TYPE_NAME_SIZE 64
 
 using ECS::Entity;
 
-struct EntityTypeEC : EntityComponent<EntityTypeEC> {
-    //Uint32 id;
-    char name[ENTITY_TYPE_NAME_SIZE];
-
-    EntityTypeEC(const char* _name) {
-        strcpy(this->name, _name);
-    }
-
-    static int Serialize(const EntityTypeEC* components, Uint32 count, SerializerOutput output) {
-        output(RawArray(components, count * sizeof(EntityTypeEC)));
-        return 0;
-    }
-
-    static int Deserialize(EntityTypeEC* components, Uint32 count, const char* serialized) {
-        memcpy(components, serialized, sizeof(EntityTypeEC) * count);
-        return 0;
-    }
-};
-
-struct Grabable : EntityComponent<Grabable>, Serializable<Grabable> {
+BEGIN_COMPONENT(Grabbable)
     ::ItemStack itemGiven;
 
-    Grabable(::ItemStack itemGiven) : itemGiven(itemGiven) {}
-};
+    Grabbable(::ItemStack itemGiven) : itemGiven(itemGiven) {}
+END_COMPONENT(Grabbable)
 
-struct Health : EntityComponent<Health>, Serializable<Health> {
+BEGIN_COMPONENT(Health)
     float health;
     float damageTaken = 0.0f;
     Tick timeDamaged = NullTick;
@@ -113,15 +112,15 @@ struct Health : EntityComponent<Health>, Serializable<Health> {
     }
 
     Health(float Health) : health(Health) {}
-};
+END_COMPONENT(Health)
 
-struct Growth : EntityComponent<Growth>, Serializable<Growth> {
+BEGIN_COMPONENT(Growth)
     float growth;
 
     Growth(float Growth) : growth(Growth) {}
-};
+END_COMPONENT(Growth)
 
-struct ViewBox : EntityComponent<ViewBox>, Serializable<ViewBox> {
+BEGIN_COMPONENT(ViewBox)
     Box box;
 
     constexpr ViewBox(Box box) : box(box) {}
@@ -136,9 +135,9 @@ struct ViewBox : EntityComponent<ViewBox>, Serializable<ViewBox> {
         return ViewBox{Box{size/2.0f, size}};
     }
         
-};
+END_COMPONENT(ViewBox)
 
-struct CollisionBox : EntityComponent<CollisionBox>, Serializable<CollisionBox> {
+BEGIN_COMPONENT(CollisionBox)
     Box box;
 
     CollisionBox(Box box) : box(box) {}
@@ -146,15 +145,15 @@ struct CollisionBox : EntityComponent<CollisionBox>, Serializable<CollisionBox> 
     CollisionBox(Vec2 min, Vec2 size) {
         box = Box{min, size};
     }
-};
+END_COMPONENT(CollisionBox)
 
-struct Point : EntityComponent<Point>, Serializable<Point> {
+BEGIN_COMPONENT(Point)
     Vec2 p;
 
     Point(Vec2 p) : p(p) {}
-};
+END_COMPONENT(Point)
 
-struct Position : EntityComponent<Position>, Serializable<Position> {
+BEGIN_COMPONENT(Position)
     float x;
     float y;
 
@@ -164,9 +163,9 @@ struct Position : EntityComponent<Position>, Serializable<Position> {
     Vec2 vec2() const {
         return Vec2(x, y);
     }
-};
+END_COMPONENT(Position)
 
-struct Size : EntityComponent<Size>, Serializable<Size> {
+BEGIN_COMPONENT(Size)
     float width;
     float height;
 
@@ -176,19 +175,19 @@ struct Size : EntityComponent<Size>, Serializable<Size> {
     Vec2 vec2() const {
         return Vec2(width, height);
     };
-};
+END_COMPONENT(Size)
 
 /*
-struct Render : EntityComponent<Render>, Serializable<Render> {
+BEGIN_COMPONENT(Render)
     TextureID texture;
     int layer;
 
     Render(TextureID texture, int layer) : texture(texture), layer(layer) {}
-};
+END_COMPONENT()
 */
 
 #define RENDER_COMPONENT_MAX_TEX 3
-struct Render : EntityComponent<Render> {
+BEGIN_COMPONENT(Render)
     static constexpr Box FullBox = Box{Vec2(0), Vec2(1)};
 
     struct Texture {
@@ -219,23 +218,18 @@ struct Render : EntityComponent<Render> {
             this->textures[i] = textures[i];
         }
     }
-};
+END_COMPONENT(Render)
 
-struct Explosion : EntityComponent<Explosion>, Serializable<Explosion> {
+BEGIN_COMPONENT(Explosion)
     float radius;
     float damage;
     float life;
     int particleCount;
 
     Explosion(float radius, float damage, float life, int particleCount);
-};
+END_COMPONENT(Explosion)
 
-struct ExplosionComponentType {
-    char name[64];
-    Explosion explosion;
-};
-
-struct Explosive : EntityComponent<Explosive>, Serializable<Explosive> {
+BEGIN_COMPONENT(Explosive)
     Explosion explosion;
 
     struct SerializationData {
@@ -245,11 +239,15 @@ struct Explosive : EntityComponent<Explosive>, Serializable<Explosive> {
     Explosive(const Explosion& explosion) : explosion(explosion) {
 
     }
-};
+END_COMPONENT(Explosive)
 
 #define MAX_ENTITY_NAME_LENGTH 64
 
-struct Nametag : EntityComponent<Nametag>, Serializable<Nametag>{
+BEGIN_COMPONENT(EntityTypeEC)
+    char name[MAX_ENTITY_NAME_LENGTH];
+END_COMPONENT(EntityTypeEC)
+
+BEGIN_COMPONENT(Nametag)
     char name[MAX_ENTITY_NAME_LENGTH];
 
     void setName(const char* name);
@@ -260,34 +258,26 @@ struct Nametag : EntityComponent<Nametag>, Serializable<Nametag>{
     Nametag(const char* name) {
         setName(name);
     }
-};
+END_COMPONENT(Nametag)
 
-struct Motion : EntityComponent<Motion>, Serializable<Motion> {
+BEGIN_COMPONENT(Motion)
     Vec2 target;
     float speed;
 
     Motion(Vec2 target, float speed) : target(target), speed(speed) {}
-};
+END_COMPONENT(Motion)
 
-struct AngleMotion : EntityComponent<AngleMotion>, Serializable<AngleMotion> {
+BEGIN_COMPONENT(AngleMotion)
     float rotationTarget;
     float rotationSpeed;
 
     AngleMotion(float rotationTarget, float rotationSpeed) : rotationTarget(rotationTarget), rotationSpeed(rotationSpeed) {}
-};
+END_COMPONENT(AngleMotion)
 
-struct Inventory : EntityComponent<Inventory> {
+BEGIN_COMPONENT(Inventory)
     ::Inventory inventory;
 
     Inventory(::Inventory inventory) : inventory(inventory) {}
-
-    void construct(EntityWorld* ecs, Entity entity) {
-        inventory.addRef();
-    }
-
-    void deconstruct(EntityWorld* ecs, Entity entity) {
-        inventory.removeRef();
-    }
 
     /*
     static int Serialize(const Inventory* components, Uint32 count, SerializerOutput output) {
@@ -319,21 +309,21 @@ struct Inventory : EntityComponent<Inventory> {
         
     }
     */
-};
+END_COMPONENT(Inventory)
 
-struct Dying : EntityComponent<Dying>, Serializable<Dying> {
+BEGIN_COMPONENT(Dying)
     int timeToRemoval;
 
     Dying(int updatesTilRemoval) : timeToRemoval(updatesTilRemoval) {}
-};
+END_COMPONENT(Dying)
 
-struct Fresh : EntityComponent<Fresh>, Serializable<Fresh> {
+BEGIN_COMPONENT(Fresh)
     ECS::Signature components;
 
-    Fresh() : components({0}) {}
-};
+    Fresh() : components(0) {}
+END_COMPONENT(Fresh)
 
-struct Inserter : EntityComponent<Inserter>, Serializable<Inserter> {
+BEGIN_COMPONENT(Inserter)
     int cycleLength;
     int stackSize;
     int cycle;
@@ -347,15 +337,15 @@ struct Inserter : EntityComponent<Inserter>, Serializable<Inserter> {
     : cycleLength(updatesPerMove), stackSize(stackSize), inputTile(input), outputTile(output) {
         cycle = 0;
     }
-};
+END_COMPONENT(Inserter)
 
-struct Rotation : EntityComponent<Rotation>, Serializable<Rotation> {
+BEGIN_COMPONENT(Rotation)
     float degrees;
 
     Rotation(float degrees) : degrees(degrees) {};
-};
+END_COMPONENT(Rotation)
 
-struct Rotatable : EntityComponent<Rotatable>, Serializable<Rotatable> {
+BEGIN_COMPONENT(Rotatable)
     float start;
     float increment;
     // entity was rotated in the last update
@@ -365,11 +355,11 @@ struct Rotatable : EntityComponent<Rotatable>, Serializable<Rotatable> {
     : start(start), increment(increment) {
         rotated = false;
     }
-};
+END_COMPONENT(Rotatable)
 
 // Entity that must have components
 
-struct Follow : EntityComponent<Follow>, Serializable<Follow> {
+BEGIN_COMPONENT(Follow)
     Entity entity;
     float speed;
 
@@ -377,39 +367,50 @@ struct Follow : EntityComponent<Follow>, Serializable<Follow> {
     : entity(following), speed(speed) {
         
     }
-};
+END_COMPONENT(Follow)
 
-struct ItemStack : EntityComponent<ItemStack>, Serializable<ItemStack> {
+BEGIN_COMPONENT(ItemStack)
     ::ItemStack item;
 
     ItemStack(::ItemStack itemStack) : item(itemStack) {}
-};
+END_COMPONENT(ItemStack)
 
-struct Transporter : EntityComponent<Transporter>, Serializable<Transporter> {
+BEGIN_COMPONENT(Transporter)
     IVec2 facing;
     float speed;
 
     Transporter(float speed) : speed(speed) {}
-};
+END_COMPONENT(Transporter)
 
-struct TransportLineEC : EntityComponent<TransportLineEC>, Serializable<TransportLineEC> {
+BEGIN_COMPONENT(TransportLineEC)
     IVec2 originTile;
     float cycle; // 0 to 1
     IVec2 endTile;
     My::Vec<IVec2> belts;
-};
+END_COMPONENT(TransportLineEC)
 
-struct Immortal : EntityComponent<Immortal>, Serializable<Immortal> {};
+BEGIN_COMPONENT(Immortal)
+END_COMPONENT(Immortal)
 
-struct Special : EntityComponent<Special>, Serializable<Special> {};
+BEGIN_COMPONENT(Special)
+END_COMPONENT(Special)
 
-struct Dynamic : EntityComponent<Dynamic>, Serializable<Dynamic> {
+BEGIN_COMPONENT(Dynamic)
     Dynamic(Vec2 pos) : pos(pos) {}
 
     Vec2 pos;
-};
+END_COMPONENT(Dynamic)
 
-struct Selected : EntityComponent<Selected>, Serializable<Selected> {};
+BEGIN_COMPONENT(Selected)
+END_COMPONENT(Selected)
+
+
+// proto components
+BEGIN_PROTO_COMPONENT(Temp)
+    int x;
+END_PROTO_COMPONENT(Temp)
+
+};
 
 }
 

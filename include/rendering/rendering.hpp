@@ -21,7 +21,7 @@ RenderBuffer makeRenderBuffer(glm::ivec2 size);
 void resizeRenderBuffer(RenderBuffer renderBuffer, glm::ivec2 newSize);
 void destroyRenderBuffer(RenderBuffer renderBuffer);
 
-void renderInit(RenderContext& ren, int screenWidth, int screenHeight);
+void renderInit(RenderContext& ren);
 void renderQuit(RenderContext& ren);
 void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* state, Camera& camera, const PlayerControls& playerControls, Mode mode, bool renderWorld);
 

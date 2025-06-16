@@ -312,7 +312,7 @@ public:
 
     Value* insert(Key key) {
         assertValidKey(key);
-        if (UNLIKELY(size > capacity)) {
+        if (UNLIKELY(size + 1 > capacity)) {
             reallocate(MAX(size+1, capacity*2));
         }
 
@@ -372,7 +372,7 @@ public:
         const auto topKey = keys[topIndex];
         // move key, value, and index over
         keys[indexOfRemoved] = topKey;
-        memcpy(getValue(indexOfRemoved), getValue(topIndex), sizeof(Value));
+        memcpy(&values[indexOfRemoved], &values[topIndex], sizeof(Value));
         set[topKey] = NullIndex;
         assert(set[key] != NullIndex && "Attempted to remove key not present in sparse set");
         set[key] = indexOfRemoved; // mark removed key as gone
@@ -391,6 +391,10 @@ public:
         keys   = Realloc(keys, (size_t)newCapacity);
         
         capacity = newCapacity;
+    }
+
+    int getSize() const {
+        return size;
     }
 
     void destroy() {

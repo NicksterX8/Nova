@@ -2,7 +2,11 @@
 #define ACTIONS_INCLUDED
 
 #include <functional>
-#include "GUI/ecs-gui.hpp"
+#include "ECS/Entity.hpp"
+
+namespace GUI {
+    using Element = ECS::Entity;
+}
 
 struct Game;
 

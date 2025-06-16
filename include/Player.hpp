@@ -60,7 +60,7 @@ struct ItemHold {
 };
 
 struct Player {
-    OptionalEntityT<Entities::Player> entity;
+    Entity entity;
     const EntityWorld* ecs = NULL;
     Direction facingDirection = DirectionUp;
 
@@ -68,7 +68,7 @@ struct Player {
     ItemHold heldItemStack;
     int selectedHotbarSlot = -1; // -1 means no slot is selected. TODO: rename this to slot
 
-    OptionalEntity<> selectedEntity;
+    Entity selectedEntity;
 
     int grenadeThrowCooldown = 0;
     static constexpr int GrenadeCooldown = 10;
@@ -76,8 +76,8 @@ struct Player {
     Player() {}
 
     Player(EntityWorld* ecs, Vec2 startPosition, ItemManager& inventoryAllocator) : ecs(ecs) {
-        entity = Entities::Player(ecs, startPosition, inventoryAllocator);
-        Entities::giveName(entity, "player", ecs);
+        entity = World::Entities::Player(ecs, startPosition, inventoryAllocator);
+        World::Entities::giveName(entity, "player", ecs);
     }
 
     template<class C>
@@ -91,8 +91,8 @@ struct Player {
     }
 
     void setPosition(ChunkMap& chunkmap, Vec2 pos) {
-        if (entity.Exists(ecs)) {
-            auto position = entity.Get<EC::Position>(ecs);
+        if (ecs->EntityExists(entity)) {
+            auto position = ecs->Get<World::EC::Position>(entity);
             if (position) {
                 position->x = pos.x;
                 position->y = pos.y;
@@ -103,8 +103,8 @@ struct Player {
     }
 
     const Inventory* inventory() const {
-        if (entity.Exists(ecs)) {
-            auto component = entity.Get<EC::Inventory>(ecs);
+        if (ecs->EntityExists(entity)) {
+            auto component = ecs->Get<World::EC::Inventory>(entity);
             if (component) {
                 return &component->inventory;
             }
@@ -112,8 +112,8 @@ struct Player {
         return NULL;        
     }
     Inventory* inventory() {
-        if (entity.Exists(ecs)) {
-            auto component = entity.Get<EC::Inventory>(ecs);
+        if (ecs->EntityExists(entity)) {
+            auto component = ecs->Get<World::EC::Inventory>(entity);
             if (component) {
                 return &component->inventory;
             }
@@ -122,7 +122,7 @@ struct Player {
     }
 
     void selectHotbarSlot(int index) {
-        if (!entity.Has<EC::Inventory>(ecs)) return;
+        if (!ecs->EntityHas<World::EC::Inventory>(entity)) return;
 
         selectedHotbarSlot = index;
         auto* slot = &inventory()->get(index);

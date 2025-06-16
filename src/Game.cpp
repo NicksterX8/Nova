@@ -12,36 +12,13 @@
 #include "commands.hpp"
 
 #include "ECS/ECS.hpp"
-#include "ECS/systems/systems.hpp"
-#include "ECS/entities/entities.hpp"
+#include "world/entities/entities.hpp"
 #include "world/components/components.hpp"
 #include "ECS/ArchetypePool.hpp"
+#include "rendering/systems/new.hpp"
 
 #include "llvm/SmallVector.h"
 #include "llvm/ArrayRef.h"
-
-void placeInserter(ChunkMap& chunkmap, EntityWorld* ecs, Vec2 mouseWorldPos) {
-    Tile* tile = getTileAtPosition(chunkmap, mouseWorldPos);
-    // TODO: entity collision stuff
-    if (tile) {
-        Vec2 inputPos = {mouseWorldPos.x + 1, mouseWorldPos.y};
-        Vec2 outputPos = {mouseWorldPos.x - 1, mouseWorldPos.y};
-        Entity inserter = Entities::Inserter(ecs, Vec2(floor(mouseWorldPos.x), floor(mouseWorldPos.y)) + Vec2(0.5f, 0.5f), 1, vecFloori(inputPos), vecFloor(outputPos));
-        placeEntityOnTile(ecs, tile, inserter);
-    }
-}
-
-void rotateEntity(const ComponentManager<EC::Rotation, EC::Rotatable>& ecs, EntityT<EC::Rotation, EC::Rotatable> entity, bool clockwise) {
-    float* rotation = &entity.Get<EC::Rotation>(&ecs)->degrees;
-    auto rotatable = entity.Get<EC::Rotatable>(&ecs);
-    // left shift switches direction
-    if (clockwise) {
-        *rotation += rotatable->increment;
-    } else {
-        *rotation -= rotatable->increment;
-    }
-    rotatable->rotated = true;
-}
 
 void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
     GameState& state = *ctx.state;
@@ -54,63 +31,13 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
     DebugClass& debug = *ctx.debug;
     ItemManager& itemManager = state.itemManager;
 
-    controls->addKeyBinding(new FunctionKeyBinding('y',
-    [&ecs, &camera, &state, &playerControls](){
-        auto& mouse = playerControls.mouse;
-        Entity zombie = Entities::Enemy(
-            &ecs,
-            camera.pixelToWorld(mouse.position),
-            state.player.entity
-        );
-        (void)zombie;
-    }));
-
     KeyBinding* keyBindings[] = {
         new FunctionKeyBinding('u', [&](){
             debug.settings["drawEntityViewBoxes"] = !debug.settings["drawEntityViewBoxes"];
         }),
         new FunctionKeyBinding('p', [&](){
             debug.settings["drawEntityCollisionBoxes"] = !debug.settings["drawEntityCollisionBoxes"];
-        }),
-
-        new FunctionKeyBinding('t', [&player, &playerControls, &chunkmap](){
-            // teleport
-            player.setPosition(chunkmap, playerControls.mouseWorldPos);
-        }),
-        
-        new FunctionKeyBinding('c', [&itemManager, &ecs, &playerControls](){
-            int width = 2;
-            int height = 1;
-            Vec2 position = vecFloor(playerControls.mouseWorldPos) + Vec2(width/2.0f, height/2.0f);
-            auto chest = Entities::Chest(&ecs, position, 3, width, height, itemManager);
-            (void)chest;
-        }),
-        new FunctionKeyBinding('l', [&ecs](){
-            // do airstrikes row by row
-            for (int y = -100; y < 100; y += 5) {
-                for (int x = -100; x < 100; x += 5) {
-                    Entities::Airstrike(&ecs, Vec2(x, y * 2), {3.0f, 3.0f}, Vec2(x, y));
-                }
-            }
-        }),
-        new FunctionKeyBinding('i', [&ecs, &mouseWorldPos, &chunkmap](){
-            placeInserter(chunkmap, &ecs, mouseWorldPos);
-        }),
-        new FunctionKeyBinding('r', [&playerControls, &ecs, &chunkmap](){
-            auto focusedEntity = findPlayerFocusedEntity(ecs, chunkmap, playerControls.mouseWorldPos);
-            if (focusedEntity.Has<EC::Rotation, EC::Rotatable>(&ecs))
-                rotateEntity(ComponentManager<EC::Rotation, EC::Rotatable, EC::Position>(&ecs), focusedEntity.cast<EC::Rotation, EC::Rotatable>(), playerControls.keyboard.keyState[SDL_SCANCODE_LSHIFT]);
-        }),
-        // testing stuff
-        new FunctionKeyBinding('5', [&](){
-            ecs.IterateEntities([&](Entity entity){
-                // dont kill player plz
-                if (entity.id != player.entity.id) {
-                    ecs.Destroy(entity);
-                }
-            });
-        }),
-        
+        })
     };
 
     for (size_t i = 0; i < sizeof(keyBindings) / sizeof(KeyBinding*); i++) {
@@ -212,9 +139,11 @@ void runSystem(EntityWorld* ecs) {
 */
 
 void updateDynamicEntityChunkPositions(EntityWorld& ecs, GameState* state) {
-    ecs.ForEach<
-    EntityQuery< ECS::RequireComponents<EC::Dynamic, EC::ViewBox> >
-    >([&](auto entity){
+    namespace EC = World::EC;
+    
+    ecs.ForEach([](ECS::Signature components){
+        return components.hasAll(ECS::getSignature<EC::Position, EC::Dynamic, EC::ViewBox>());
+    }, [&](auto entity){
         //auto* viewbox  = ecs.Get<EC::ViewBox>(entity);
         auto* positionEc = ecs.Get<EC::Position>(entity);
         auto* dynamicEc = ecs.Get<EC::Dynamic>(entity);
@@ -228,65 +157,7 @@ void updateDynamicEntityChunkPositions(EntityWorld& ecs, GameState* state) {
         positionEc->x = newPos.x;
         positionEc->y = newPos.y;
 
-        entityPositionChanged(state, entity, oldPos);
-        /*
-        
-
-        if (UNLIKELY(!isValidEntityPosition(newPos))) {
-            LogCritical("Entity has invalid position! Entity: %s, Position: %f,%f", entity.DebugStr(), newPos.x, newPos.y);
-            // don't move at all
-            ecs.Set<EC::Dynamic>(entity, {oldPos});
-            return;
-        }
-
-        / put entity in to the chunks it's visible in /
-
-        IVec2 oldMinChunkPosition = toChunkPosition(oldPos);
-        IVec2 oldMaxChunkPosition = toChunkPosition(oldPos + size);
-        IVec2 newMinChunkPosition = toChunkPosition(newPos);
-        IVec2 newMaxChunkPosition = toChunkPosition(newPos + size);
-        IVec2 minChunkPosition = {
-            (oldMinChunkPosition.x < newMinChunkPosition.x) ? oldMinChunkPosition.x : newMinChunkPosition.x,
-            (oldMinChunkPosition.y < newMinChunkPosition.y) ? oldMinChunkPosition.y : newMinChunkPosition.y
-        };
-        IVec2 maxChunkPosition = {
-            (oldMaxChunkPosition.x > newMaxChunkPosition.x) ? oldMaxChunkPosition.x : newMaxChunkPosition.x,
-            (oldMaxChunkPosition.y > newMaxChunkPosition.y) ? oldMaxChunkPosition.y : newMaxChunkPosition.y
-        };
-        for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
-            for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
-                IVec2 chunkPosition = {col, row};
-
-                bool inNewArea = (chunkPosition.x >= newMinChunkPosition.x && chunkPosition.y >= newMinChunkPosition.y &&
-                    chunkPosition.x <= newMaxChunkPosition.x && chunkPosition.y <= newMaxChunkPosition.y);
-                
-                bool inOldArea = (chunkPosition.x >= oldMinChunkPosition.x && chunkPosition.y >= oldMinChunkPosition.y &&
-                    chunkPosition.x <= oldMaxChunkPosition.x && chunkPosition.y <= oldMaxChunkPosition.y);
-
-                if ((inNewArea && !inOldArea)) {
-                    // add entity to new chunk
-                    ChunkData* newChunkdata = state->chunkmap.get(chunkPosition);
-                    if (newChunkdata) {
-                        newChunkdata->closeEntities.push(entity);
-                    }
-                }
-
-                / Remove entity form chunks it's no longer in /
-
-                if (inOldArea && !inNewArea) {
-                    // remove entity from old chunk
-                    ChunkData* oldChunkdata = state->chunkmap.get(chunkPosition);
-                    if (oldChunkdata) {
-                        oldChunkdata->removeCloseEntity(entity);
-                    }
-                }
-            }
-        }
-        
-        positionEc->x = dynamicEc->pos.x;
-        positionEc->y = dynamicEc->pos.y;
-        */
-
+        World::entityPositionChanged(state, entity, oldPos);
     });
 }
 
@@ -294,15 +165,17 @@ static void updateSystems(GameState* state) {
     EntityWorld& ecs = state->ecs;
     auto& chunkmap = state->chunkmap;
 
-    ecs.ForEach<
-    EntityQuery< ECS::RequireComponents<EC::Dynamic, EC::Follow> >
-    >([&](EntityT<EC::Dynamic, EC::Follow> entity){
+    namespace EC = World::EC;
+
+    ecs.ForEach([](ECS::Signature components){
+        return components[EC::Follow::ID] && components[EC::CollisionBox::ID] && components[EC::Dynamic::ID] && components[EC::Position::ID]; 
+    }, [&](Entity entity){
         auto followComponent = ecs.Get<EC::Follow>(entity);
         assert(followComponent);
         if (!ecs.EntityExists(followComponent->entity)) {
             return;
         }
-        EntityT<EC::Position> following = followComponent->entity;
+        Entity following = followComponent->entity;
         Vec2 followingPos = ecs.Get<EC::Position>(following)->vec2();
         Box followingCollision = ecs.Get<EC::CollisionBox>(following)->box;
         Vec2 target = followingPos + followingCollision.center();
@@ -319,8 +192,8 @@ static void updateSystems(GameState* state) {
 
             // do something
             // hurt them if they have health
-            if (following.Has<EC::Health>(&ecs)) {
-                following.Get<EC::Health>(&ecs)->damage(10);
+            if (ecs.EntityHas<EC::Health>(following)) {
+                ecs.Get<EC::Health>(following)->damage(10);
             }
 
         } else {
@@ -345,76 +218,17 @@ static void updateSystems(GameState* state) {
         }
     });
 
-    
-    //MotionSystem motionSystem;
-    //motionSystem.Update(ecs, &state->chunkmap);
-
-    /*
-    state->chunkmap.iterateChunkdata([](ChunkData* chunkdata){
-        chunkdata->closeEntities.clear();
-        return 0;
-    });
-    */
-
-    /*
-        Vec2 size = sys.GetReadOnly<EC::Size>(entity)->vec2();
-
-        IVec2 minChunkPosition = toChunkPosition(position - size * 0.5f);
-        IVec2 maxChunkPosition = toChunkPosition(position + size * 0.5f);
-        for (int col = minChunkPosition.x; col <= maxChunkPosition.x; col++) {
-            for (int row = minChunkPosition.y; row <= maxChunkPosition.y; row++) {
-                IVec2 chunkPosition = {col, row};
-                ChunkData* chunkdata = chunkmap->get(chunkPosition);
-                if (chunkdata) {
-                    chunkdata->closeEntities.push(entity);
-                }
-            }
-        }
-        */
-
-   /*
-    ecs.System<MotionSystem>()->m_ecs = &ecs;
-    ecs.System<MotionSystem>()->m_chunkmap = &state->chunkmap;
-
-    std::array<EntitySystem*, 3> group = {
-        ecs.System<GrowthSystem>(),
-        ecs.System<MotionSystem>(),
-        ecs.System<RotationSystem>()
-    };
-    runConcurrently(&ecs, group);
-
-    runSystem<FollowSystem>(&ecs);
-    // ecs.System<ExplosivesSystem>()->Update();
-    runSystem<ExplosivesSystem>(&ecs);
-    */
-
-    /*
-    state->chunkmap.iterateChunkdata([](ChunkData* chunkdata){
-        chunkdata->closeEntities.clear();
-        return 0;
-    });
-    runSystem<PositionSystem>(&ecs);
-    */
-
-   /*
-    ecs.System<ExplosionSystem>()->Update(&ecs, state->chunkmap);
-    playBackCommandBuffer(&ecs, ecs.System<ExplosionSystem>()->commandBuffer);
-    runSystem<InserterSystem>(&ecs);
-    runSystem<InventorySystem>(&ecs);
-    runSystem<HealthSystem>(&ecs);
-    runSystem<RotatableSystem>(&ecs);
-    runSystem<DyingSystem>(&ecs);
-    */
-    
-    ecs.ForEach<
-    EntityQuery< ECS::RequireComponents<EC::Health> >
-    >([&](Entity entity){
+    // TODO: ForEach while destroying could cause issues maybe? tried using command buffer but ran into issues with const and stuff.
+    // return command buffer instead of executing automatically if necessary
+    ecs.ForEach([](ECS::Signature components){
+       return components[EC::Health::ID]; 
+    }, [&](Entity entity){
         auto* health = ecs.Get<EC::Health>(entity); assert(health);
         // Must do check like this instead of (*health <= 0.0f) to account for NaN values,
         // which can occur when infinite damage is done to an entity with infinite health
         // so in that situation the infinite damage wins out, rather than the infinte health
         if (!(health->health > 0.0f)) {
-            if (!ecs.EntitySignature(entity.id).getComponent<EC::Immortal>()) {
+            if (!ecs.EntityHas<EC::Immortal>(entity)) {
                 ecs.Destroy(entity);
             }
         }
@@ -424,8 +238,9 @@ static void updateSystems(GameState* state) {
         }
     });
 
-    ecs.ForEach< EntityQuery< ECS::RequireComponents<EC::Motion, EC::Dynamic> > >(
-    [&](auto entity){
+    ecs.ForEach([](ECS::Signature components){
+        return components[EC::Dynamic::ID] && components[EC::Motion::ID];
+    }, [&](auto entity){
         auto* pos = ecs.Get<EC::Dynamic>(entity);
         Vec2 oldPos = pos->pos;
         auto* motion = ecs.Get<EC::Motion>(entity);
@@ -447,17 +262,19 @@ static void updateSystems(GameState* state) {
         //entityPositionChanged(state, entity, oldPos);
     });
 
-    ecs.ForEach< EntityQuery< ECS::RequireComponents<EC::Position, EC::Fresh> > >(
-    [&](Entity entity){
+    ecs.ForEach([](ECS::Signature components){
+        return components.hasComponents<EC::Fresh, EC::Position>();
+    }, [&](Entity entity){
         auto fresh = ecs.Get<EC::Fresh>(entity); assert(fresh);
-        if (fresh->flags.getComponent<EC::Position>()) {
+        if (fresh->components.getComponent<EC::Position>()) {
             // ec::position just added
-            fresh->flags.setComponent<EC::Position>(0);
+            fresh->components.setComponent<EC::Position>(0);
         }
     });
 
-    ecs.ForEach< EntityQuery< ECS::RequireComponents<EC::Fresh> > >(
-    [&](Entity entity){
+    ecs.ForEach([](ECS::Signature components){
+        return components.hasComponents<EC::Fresh>();
+    }, [&](Entity entity){
         ecs.Remove<EC::Fresh>(entity);
     });
 }
@@ -466,46 +283,7 @@ int tick(GameState* state, PlayerControls* playerControls) {
     state->player.grenadeThrowCooldown--;
     updateSystems(state);
     if (Metadata->getTick() % 1 == 0) {
-        int i = 0;
-        /*
-        for (auto& chunk: state->chunkmap.chunkList) {
-            for (int y = 0; y < CHUNKSIZE; y++) {
-                for (int x = 0; x < CHUNKSIZE; x++) {
-                    //chunk[y][x].type = TileTypes::Grass;
-                    TileType& type = chunk[y][x].type;
-                    if (type == TileTypes::Grass) {
-                        type = TileTypes::Sand;
-                    }
-                    else if (type == TileTypes::Sand) {
-                        if (randomInt(0, 3) == 0) {
-                            type = TileTypes::Grass;
-                        }
-                    } else {
-                        chunk[y][x].type = randomInt(TileTypes::Grass, TileTypes::Wall);
-                    }
-                }
-            }
-        }
-        */
-        /*
-        for (int x = -200; x < 200; x++) {
-            for (int y = -200; y < 200; y++) {
-                #define GETT(x, y) getTileAtPosition(state->chunkmap, IVec2{x, y})
-                #define GETTT(x, y) GETT(x, y)->type
-                Tile* tile = getTileAtPosition(state->chunkmap, IVec2{x, y});
-                if (tile) {
-                    TileType& type = tile->type;
-                    if (GETT(x, y+1) && GETT(x, y-1) && GETTT(x, y+1) == GETTT(x, y-1)) {
-                        type = GETTT(x, y+1);
-                    }
-                    if (GETT(x+1, y) && GETT(x-1, y) && GETTT(x+1, y) == GETTT(x-1, y)) {
-                        GETTT(x+1, y) = type;
-                        GETTT(x-1, y) = type;
-                    }
-                }
-            }
-        }
-        */
+
     }
 
     playerControls->doPlayerMovementTick();
@@ -513,17 +291,6 @@ int tick(GameState* state, PlayerControls* playerControls) {
     updateDynamicEntityChunkPositions(state->ecs, state);
 
     return 0;
-}
-
-void logComponentPoolSizes(const EntityWorld& ecs) {
-    LogInfo("Total number of entities: %u", ecs.EntityCount());
-    for (ECS::ComponentID id = 0; id < ecs.NumComponentPools(); id++) {
-        const ECS::ComponentPool* pool = ecs.GetPool(id);
-        LogInfo("%s || Size: %u", pool->name, pool->size());
-        if (pool->size() > ecs.EntityCount()) {
-            LogError("Size is too large!");
-        }
-    }
 }
 
 void displaySizeChanged(SDL_Window* window, const RenderContext& renderContext, Camera* camera) {
@@ -586,9 +353,7 @@ int Game::handleEvent(const SDL_Event* event) {
         break;}    
         case SDL_EVENT_KEY_DOWN: {
             switch (event->key.key) {
-                case '{':
-                    logComponentPoolSizes(state->ecs);
-                    break;
+                
             }
         break;}
         case SDL_EVENT_GAMEPAD_ADDED: {
@@ -604,7 +369,7 @@ int Game::handleEvent(const SDL_Event* event) {
         case SDL_EVENT_GAMEPAD_BUTTON_DOWN: {
             Uint8 buttonPressed = event->gbutton.button;
             if (buttonPressed == SDL_GAMEPAD_BUTTON_LABEL_A) {
-                playerControls->movePlayer(playerControls->mouseWorldPos - state->player.get<EC::Position>()->vec2());
+                playerControls->movePlayer(playerControls->mouseWorldPos - state->player.get<World::EC::Position>()->vec2());
             }
         break;}
         default:
@@ -620,8 +385,8 @@ int Game::handleEvent(const SDL_Event* event) {
 
 void focusCameraOnEntity(Camera* camera, CameraEntityFocus entityFocus, const EntityWorld* ecs) {
     Entity entity = entityFocus.entity;
-    auto* viewbox = ecs->Get<EC::ViewBox>(entity);
-    auto* pos = ecs->Get<EC::Position>(entity);
+    auto* viewbox = ecs->Get<World::EC::ViewBox>(entity);
+    auto* pos = ecs->Get<World::EC::Position>(entity);
     Vec2 focus = {0, 0};
     if (pos) {
         focus = pos->vec2();
@@ -635,7 +400,7 @@ void focusCameraOnEntity(Camera* camera, CameraEntityFocus entityFocus, const En
     camera->position.y = focus.y;
     assert(isValidEntityPosition(camera->position));
 
-    auto* rotation = ecs->Get<EC::Rotation>(entity);
+    auto* rotation = ecs->Get<World::EC::Rotation>(entity);
     if (entityFocus.rotateWithEntity && rotation) {
         camera->setAngle(rotation->degrees);
     } else {
@@ -724,7 +489,7 @@ int Game::update() {
     return 0; 
 }
 
-int Game::init(int screenWidth, int screenHeight) {
+int Game::init() {
     LogInfo("Starting game init");
 
     this->gui = new Gui();
@@ -736,26 +501,34 @@ int Game::init(int screenWidth, int screenHeight) {
 
     this->renderContext = new RenderContext(sdlCtx.primary.window, sdlCtx.primary.glContext);
     LogInfo("starting render init");  
-    renderInit(*renderContext, screenWidth, screenHeight);
+    renderInit(*renderContext);
 
     this->gui->init(renderContext->guiRenderer);
 
     this->state = new GameState();
 
     this->state->init(&renderContext->textures);
+
+    this->systems.ecsRenderSystems.entityManager = &this->state->ecs.em;
+    this->systems.ecsStateSystems.entityManager  = &this->state->ecs.em;
+    renderContext->ecsRenderSystems = &this->systems.ecsRenderSystems;
+
+    // init systems
+    systems.renderEntitySys = new World::RenderSystems::RenderEntitySystem(systems.ecsRenderSystems, *renderContext, camera, state->ecs, state->chunkmap);
+
     for (int e = 0; e < 200; e++) {
         Vec2 pos = {(float)randomInt(-400, 400), (float)randomInt(-400, 400)};
         // do placing collision checks
-        auto tree = Entities::Tree(&state->ecs, pos, {4, 4});
+        auto tree = World::Entities::Tree(&state->ecs, pos, {4, 4});
         (void)tree;
     }
 
-    Entities::Tree(&state->ecs, {10.5, 10.5}, {40, 40});
+    World::Entities::Tree(&state->ecs, {10.5, 10.5}, {40, 40});
 
     for (int i = 0; i < 10; i++) {
-        auto tree = Entities::Grenade(&state->ecs, Vec2(i*2));
-        state->ecs.Get<EC::Render>(tree)->textures[1].layer = i;
-        state->ecs.Get<EC::Render>(tree)->textures[0].layer = i;
+        auto tree = World::Entities::Grenade(&state->ecs, Vec2(i*2));
+        state->ecs.Get<World::EC::Render>(tree)->textures[1].layer = i;
+        state->ecs.Get<World::EC::Render>(tree)->textures[0].layer = i;
     }
 
     this->playerControls = new PlayerControls(this);
@@ -766,6 +539,9 @@ int Game::init(int screenWidth, int screenHeight) {
     };
 
     setDefaultKeyBindings(*this, playerControls);
+
+    int screenWidth,screenHeight;
+    SDL_GetWindowSizeInPixels(sdlCtx.primary.window, &screenWidth, &screenHeight);
 
     glViewport(0, 0, screenWidth, screenHeight);
     this->camera = Camera(BASE_UNIT_SCALE, glm::vec3(0.0f), screenWidth, screenHeight);

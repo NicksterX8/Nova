@@ -28,27 +28,4 @@ void moveItemStack(Inventory* dst, int dstSlot, Inventory* src, int srcSlot) {
     dst->size++;
 }
 
-ItemQuantity addItemStackToInventory(ItemManager& manager, Inventory* dst, ItemStack stack, ItemQuantity itemStackSize) {
-    UNFINISHED_CRASH();
-    for (int s = 0; s < dst->size; s++) {
-        auto slotType = dst->type(s);
-        // the second check should become more complicated later on for stuff like durability stacks adding together
-        if (isSame(stack.item, dst->get(s).item)) {
-            
-        }
-        if (slotType == stack.item.type && dst->signature(s) == stack.item.signature) {
-            /*
-            auto maxQuantity = componentManager->getType(slotType)->stackSize;
-            auto maxQuantity2 = componentManager->get<ITC::StackSize>()->;
-            auto maxQuantity3 = slotType->stackSize;
-            */
-            
-            auto spaceLeft = itemStackSize - dst->quantity(s);
-            if (spaceLeft > 0) {
-                // blah blah blah
-            }
-        }
-    }
-}
-
 }
