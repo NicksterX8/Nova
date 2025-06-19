@@ -163,22 +163,39 @@ struct Console {
         moveCursor(selectedCharIndex + textLen);
     }
 
-    CommandInput handleKeypress(SDL_Keycode keycode, ArrayRef<Command> possibleCommands) {
+    CommandInput handleKeypress(SDL_Keycode keycode, ArrayRef<Command> possibleCommands, bool enteringText) {
         CommandInput command = {};
         switch (keycode) {
         case SDLK_RETURN2:
         case SDLK_RETURN: {
-            recallIndex = -1;
-
-            command = processMessage(activeMessage, possibleCommands);
-            if (command) {
-                pushActiveMessage(MessageType::Command);
+            if (!enteringText) {
+                // we will be now
+                showLog = true;
+                promptOpen = true;
             } else {
-                // not command
-                pushActiveMessage(MessageType::Default);
+                // message sent
+                showLog = false;
+                promptOpen = false;
+                
+                recallIndex = -1;
+
+                command = processMessage(activeMessage, possibleCommands);
+                if (command) {
+                    pushActiveMessage(MessageType::Command);
+                } else {
+                    // not command
+                    pushActiveMessage(MessageType::Default);
+                }
             }
             break;
         }
+        case SDLK_SLASH:
+            showLog = true;
+            promptOpen = true;
+            if (!enteringText) {
+                enterText("/");
+            }
+            break;
         case SDLK_DELETE:
         case SDLK_BACKSPACE:
             if (!activeMessage.empty()) {
@@ -190,7 +207,7 @@ struct Console {
             break;
         case SDLK_TAB:
             enterChar('\t');
-        break;
+            break;
         case SDLK_UP:
             recallPastMessage();
             break;
@@ -206,18 +223,6 @@ struct Console {
         } // end keycode switch
 
         return command;
-    }
-
-    // the string buffer must be handled (freed) after calling this function
-    My::StringBuffer newLogStringBuffer() const {
-        auto buffer = My::StringBuffer::WithCapacity(64);
-        for (int i = 0; i < log.size(); i++) {
-            if (log[i].copyNumber > 0) {
-                buffer += string_format("(%d)", + log[i].copyNumber);
-            }
-            buffer += log[i].text.c_str();
-        }
-        return buffer;
     }
 
     void destroy() {
@@ -331,114 +336,7 @@ struct Gui {
         return GUI::update(manager, playerControls);
     }
 
-    void drawConsole(GuiRenderer& renderer) {
-        Element consoleElement = manager.getNamedElement("console");
-        auto* consoleView = manager.getComponent<EC::ViewBox>(consoleElement);
-
-        float scale = renderer.options.scale;
-        bool showLog = console.promptOpen || Metadata->seconds() - console.timeLastMessageSent < CONSOLE_LOG_NEW_MESSAGE_OPEN_DURATION;
-        if (!showLog && console.activeMessage.empty()) {
-            manager.hideElement(consoleElement);
-            return;
-        } else {
-            manager.unhideElement(consoleElement);
-        }
-        
-        Element consoleLogElement = manager.getNamedElement("console-log");
-        auto* logViewEc = manager.getComponent<EC::ViewBox>(consoleLogElement);
-        if (showLog && logViewEc) {
-            manager.unhideElement(consoleElement);
-            
-            TextFormattingSettings logFormatting{
-                .align = TextAlignment::BottomLeft,
-                .maxWidth = 300,
-                .wrapOnWhitespace = false
-            };
-            TextRenderingSettings logRenderingSettings {
-                .font = Fonts->get("Debug"),
-                .scale = Vec2(0.5f)
-            };
-            float messageSpacing = logRenderingSettings.font->height() * 0.25f;
-            Vec2 pos = logViewEc->absolute.min;
-            for (int i = console.log.size()-1; i >= 0; i--) {
-                const Console::LogMessage& message = console.log[i];
-                logRenderingSettings.color = message.color;
-                auto result = renderer.renderText(message.text.c_str(), pos, logFormatting, logRenderingSettings, logViewEc->level);
-                pos.y += result.rect.h + messageSpacing;
-            }
-        } else {
-            manager.hideElement(consoleLogElement);
-        }
-        
-        SDL_Color terminalTextColor = {255,255,255,255};
-
-        Element consoleTerminal = manager.getNamedElement("console-terminal");
-        EC::ViewBox* terminalViewEc = manager.getComponent<EC::ViewBox>(consoleTerminal);
-        const std::string& activeMessage = console.activeMessage;
-
-        TextFormattingSettings terminalTextFormatting{
-            .align = TextAlignment::BottomLeft,
-            .maxWidth = renderer.options.size.x,
-            .wrapOnWhitespace = false
-        };
-        const Font* terminalFont = Fonts->get("Debug");
-        float terminalFontScale = 0.75;
-        TextRenderingSettings terminalTextRenderSettings{
-            .color = terminalTextColor,
-            .scale = Vec2(terminalFontScale),
-            .font = terminalFont
-        };
-
-        bool showTerminal = console.promptOpen;
-        if (showTerminal) {
-            manager.unhideElement(consoleTerminal);
-
-            Vec2* characterPositions = Alloc<Vec2>(activeMessage.size());
-            auto textRect = renderer.renderText(activeMessage.c_str(), terminalViewEc->absolute.min, terminalTextFormatting, terminalTextRenderSettings, terminalViewEc->level, characterPositions).rect;
-            terminalViewEc->box = *rectAsBox(&textRect);
-            if (terminalViewEc->box.size.y < terminalFont->height() * terminalFontScale) {
-                terminalViewEc->box.size.y = terminalFont->height() * terminalFontScale;
-            }
-
-            Vec2 selectedCharPos = terminalViewEc->absolute.min;
-            int selectedCharIndex = console.selectedCharIndex;
-            
-            // in the middle case
-            if (selectedCharIndex >= 0 && selectedCharIndex < activeMessage.size()) {
-                selectedCharPos = characterPositions[selectedCharIndex];
-                if (selectedCharIndex > 0) {
-                    selectedCharPos = characterPositions[selectedCharIndex-1];
-                    selectedCharPos.x += terminalFont->advance(activeMessage.back()) * terminalFontScale;
-                }
-            // end case
-            } else if (activeMessage.size() > 0 && selectedCharIndex == activeMessage.size()) {
-                selectedCharPos = characterPositions[activeMessage.size()-1];
-                selectedCharPos.x += terminalFont->advance(activeMessage.back()) * terminalFontScale;
-            }
-            // for case where message is empty
-            if (activeMessage.size() > 0) {
-                selectedCharPos.y += terminalFont->descender() * terminalFontScale;
-            }
-
-            Box cursor = {
-                selectedCharPos,
-                {renderer.pixels(2.0f), terminalFont->height() * terminalFontScale}
-            };
-            
-            // render cursor
-            constexpr double flashDelay = 0.5;
-            static double timeTilFlash = flashDelay;
-            constexpr double flashDuration = 0.5;
-            timeTilFlash -= Metadata->frame.deltaTime / 1000.0; // subtract time in seconds from time
-            double secondsSinceCursorMove = Metadata->seconds() - console.timeLastCursorMove;
-            if (secondsSinceCursorMove < flashDuration) timeTilFlash = -secondsSinceCursorMove;
-            if (timeTilFlash < 0.0) {
-                renderer.colorRect(cursor, terminalTextColor, terminalViewEc->level);
-            }
-        } else {
-            manager.hideElement(consoleTerminal);
-        }
-    }
+    void drawConsole(GuiRenderer& renderer);
 
     void draw(GuiRenderer& renderer, const FRect& viewport, const Player* player, const ItemManager& itemManager, const PlayerControls& playerControls) {
        

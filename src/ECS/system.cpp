@@ -136,7 +136,7 @@ void ECS::System::executeSystems(SystemManager& sysManager) {
                                 assert(0);
                             }
                         } else {
-                            char* poolComponentArray = pool->buffers[neededComponentIndex];
+                            char* poolComponentArray = pool->getBuffer(neededComponentIndex);
                             array->data = poolComponentArray - entitiesProcessed * pool->archetype.sizes[neededComponentIndex];
                             if (array->optionalExecute) {
                                 optionalExecutes.push_back(array->optionalExecute);

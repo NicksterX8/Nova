@@ -51,6 +51,7 @@ struct Archetype {
     Signature signature;
     uint16_t* sizes;
     ComponentID* componentIDs;
+    int32_t sumSize; // size of all components added
 
     static Archetype Null() {
         return {{-1}, 0, 0, 0, nullptr};
@@ -73,7 +74,8 @@ static Archetype makeArchetype(Signature signature, ComponentInfoRef componentTy
         .componentIndices = {-1},
         .sizes = Alloc<uint16_t>(count),
         .componentIDs = Alloc<ComponentID>(count),
-        .numComponents = (int)count
+        .numComponents = (int)count,
+        .sumSize = 0
     };
     for (int i = 0; i < MaxComponentID; i++) {
         archetype.componentIndices[i] = -1;
@@ -83,6 +85,7 @@ static Archetype makeArchetype(Signature signature, ComponentInfoRef componentTy
     signature.forEachSet([&](auto componentID){
         auto componentSize = (uint16_t)componentTypeInfo.get(componentID).size;
         archetype.sizes[index] = componentSize;
+        archetype.sumSize += componentSize;
         archetype.componentIDs[index] = componentID;
         archetype.componentIndices[componentID] = index++;
     });
@@ -93,35 +96,65 @@ struct ArchetypePool {
     int size;
     int capacity;
     Entity* entities; // contained entities
-    My::Vec<char*> buffers;
+    char* buffer;
+    My::Vec<int> bufferOffsets; // make llvm::SmallVector?
     Archetype archetype;
     
     ArchetypePool(const Archetype& archetype) : archetype(archetype) {
         entities = nullptr;
-        buffers = My::Vec<char*>::Filled(archetype.numComponents, nullptr);
+        buffer = nullptr;
+        bufferOffsets = My::Vec<int>::Filled(archetype.numComponents, -1);
         size = 0;
         capacity = 0;
     }
 
+    int numBuffers() const {
+        return bufferOffsets.size;
+    }
+
+    char* getBuffer(int bufferIndex) const {
+        if (bufferIndex < 0 || bufferIndex >= numBuffers()) {
+            LogError("Buffer index out of range!");
+            return nullptr;
+        }
+        return buffer + bufferOffsets[bufferIndex];
+    }
+
+    char* getComponentByIndex(int bufferIndex, int componentIndex) const {
+        char* buf = getBuffer(bufferIndex);
+        if (buf) {
+            return buf + archetype.sizes[bufferIndex] * componentIndex;
+        }
+        return nullptr;
+    }
+
     // index must be in bounds
     void* getComponent(ComponentID component, int index) const {
-        assert(index < size);
-
-        auto componentIndex = archetype.getIndex(component);
-        if (componentIndex == -1) return nullptr;
-        return buffers[componentIndex] + index * archetype.sizes[componentIndex];
+        assert(index < size && index >= 0);
+        auto bufferIndex = archetype.getIndex(component);
+        return getComponentByIndex(bufferIndex, index);
     }
 
     // returns index where entity is stored
     int addNew(Entity entity) {
         if (size + 1 > capacity) {
             int newCapacity = (capacity * 2 > size) ? capacity * 2 : size + 1;
-            for (int i = 0; i < buffers.size; i++) {
-                char* newBuffer = Realloc(buffers[i], newCapacity * archetype.sizes[i]);
-                if (newBuffer) {  
-                    buffers[i] = newBuffer;
+            char* newBuffer = Alloc<char>(newCapacity * archetype.sumSize);
+            if (newBuffer) {
+                int offset = 0;
+                for (int i = 0; i < archetype.numComponents; i++) {
+                    auto oldComponentBufferSize = archetype.sizes[i] * capacity;
+                    auto newComponentBufferSize = archetype.sizes[i] * newCapacity;
+
+                    memcpy(newBuffer + offset, buffer + bufferOffsets[i], oldComponentBufferSize);
+
+                    bufferOffsets[i] = offset;
+                    offset += newComponentBufferSize;
                 }
+
+                buffer = newBuffer;
             }
+            
             Entity* newEntities = Realloc(entities, newCapacity);
             if (newEntities) {
                 entities = newEntities;
@@ -146,9 +179,9 @@ struct ArchetypePool {
         Entity entityToMove = entities[size-1];
         entities[index] = entityToMove;
 
-        for (int i = 0; i < buffers.size; i++) {
+        for (int i = 0; i < archetype.numComponents; i++) {
             auto componentSize = archetype.sizes[i];
-            memcpy(buffers[i] + index * componentSize, buffers[i] + (size-1) * componentSize, componentSize);
+            memcpy(buffer + bufferOffsets[i] + index * componentSize, buffer + bufferOffsets[i] + (size-1) * componentSize, componentSize);
         }
 
         size--;
@@ -156,10 +189,8 @@ struct ArchetypePool {
     }
 
     void destroy() {
-        for (int i = 0; i < buffers.size; i++) {
-            Free(buffers[i]);
-            buffers.destroy();
-        }
+        Free(buffer);
+        bufferOffsets.destroy();
         Free(entities);
     }
 };
@@ -313,13 +344,13 @@ struct ArchetypalComponentManager {
         if (oldArchetypeID > 0) {
             int oldEntityIndex = data->poolIndex;
             ArchetypePool* oldArchetype = getArchetypePool(oldArchetypeID);
-            for (int i = 0; i < oldArchetype->buffers.size; i++) {
+            for (int i = 0; i < oldArchetype->numBuffers(); i++) {
                 auto componentSize = oldArchetype->archetype.sizes[i];
                 ComponentID transferComponent = oldArchetype->archetype.componentIDs[i];
                 int newArchetypeIndex = newArchetype->archetype.getIndex(transferComponent);
                 assert(newArchetypeIndex != -1);
-                char* newComponentAddress = newArchetype->buffers[newArchetypeIndex] + componentSize * newEntityIndex;
-                char* oldComponentAddress = oldArchetype->buffers[i] + componentSize * oldEntityIndex;
+                char* newComponentAddress = newArchetype->getBuffer(newArchetypeIndex) + componentSize * newEntityIndex;
+                char* oldComponentAddress = oldArchetype->getBuffer(i) + componentSize * oldEntityIndex;
                 memcpy(newComponentAddress, oldComponentAddress, componentSize);
             }
 
@@ -367,13 +398,13 @@ struct ArchetypalComponentManager {
         if (oldArchetypeID > 0) {
             int oldEntityIndex = data->poolIndex;
             ArchetypePool* oldArchetype = getArchetypePool(oldArchetypeID);
-            for (int i = 0; i < oldArchetype->buffers.size; i++) {
+            for (int i = 0; i < oldArchetype->numBuffers(); i++) {
                 auto componentSize = oldArchetype->archetype.sizes[i];
                 ComponentID transferComponent = oldArchetype->archetype.componentIDs[i];
                 int newArchetypeIndex = newArchetype->archetype.getIndex(transferComponent);
                 assert(newArchetypeIndex != -1);
-                char* newComponentAddress = newArchetype->buffers[newArchetypeIndex] + componentSize * newEntityIndex;
-                char* oldComponentAddress = oldArchetype->buffers[i] + componentSize * oldEntityIndex;
+                char* newComponentAddress = newArchetype->getBuffer(newArchetypeIndex) + componentSize * newEntityIndex;
+                char* oldComponentAddress = oldArchetype->getBuffer(i) + componentSize * oldEntityIndex;
                 memcpy(newComponentAddress, oldComponentAddress, componentSize);
             }
 
@@ -426,13 +457,13 @@ struct ArchetypalComponentManager {
         if (oldArchetypeID > 0) {
             int oldEntityIndex = data->poolIndex;
             ArchetypePool* oldArchetype = getArchetypePool(oldArchetypeID);
-            for (int i = 0; i < newArchetype->buffers.size; i++) {
+            for (int i = 0; i < newArchetype->numBuffers(); i++) {
                 auto componentSize = newArchetype->archetype.sizes[i];
                 ComponentID transferComponent = newArchetype->archetype.componentIDs[i];
                 int oldArchetypeIndex = oldArchetype->archetype.getIndex(transferComponent);
                 assert(oldArchetypeIndex != -1);
-                char* oldComponentAddress = oldArchetype->buffers[oldArchetypeIndex] + componentSize * oldEntityIndex;
-                char* newComponentAddress = newArchetype->buffers[i] + componentSize * newEntityIndex;
+                char* oldComponentAddress = oldArchetype->getBuffer(oldArchetypeIndex) + componentSize * oldEntityIndex;
+                char* newComponentAddress = newArchetype->getBuffer(i) + componentSize * newEntityIndex;
                 memcpy(newComponentAddress, oldComponentAddress, componentSize);
             }
 

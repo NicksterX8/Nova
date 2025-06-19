@@ -204,8 +204,6 @@ BEGIN_COMPONENT(Render)
     Texture textures[RENDER_COMPONENT_MAX_TEX];
     int numTextures;
 
-    
-
     // constructor for single texture that takes up whole viewbox
     Render(TextureID texture, int layer, float opacity = 1.0f) {
         textures[0] = {texture, layer, FullBox, opacity};

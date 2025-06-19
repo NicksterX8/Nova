@@ -210,35 +210,9 @@ void PlayerControls::handleKeydown(const SDL_KeyboardEvent& event) {
     const SDL_Keycode keycode = event.key;
     const SDL_Scancode scancode = event.scancode;
 
-    if (enteringText) {
-        auto commandInput = game->gui->console.handleKeypress(keycode, gCommands);
+    auto commandInput = game->gui->console.handleKeypress(keycode, gCommands, enteringText);
+    if (commandInput)
         handleCommandInput(commandInput);
-    } else {
-        switch (keycode) {
-            case 'z': {
-                auto* heldItemStack = &game->state->player.heldItemStack;
-                if (heldItemStack && heldItemStack->get()) {
-                    ItemStack dropStack = ItemStack(heldItemStack->get()->item, 1);
-                    heldItemStack->get()->reduceQuantity(1);
-                    World::Entities::ItemStack(&game->state->ecs, mouseWorldPos, dropStack, game->state->itemManager);
-                }
-            break;} 
-            case 'h': {
-                static bool wireframeModeEnabled = false;
-                if (!wireframeModeEnabled)
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                else
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                wireframeModeEnabled ^= 1;
-            break;}
-        }
-
-        for (int i = 1; i <= (int)game->state->player.numHotbarSlots; i++) {
-            if (event.key == i + '0') {
-                game->state->player.selectHotbarSlot(i - 1);
-            }
-        }
-    }
 
     switch (keycode) {
         case SDLK_RETURN:
@@ -248,20 +222,42 @@ void PlayerControls::handleKeydown(const SDL_KeyboardEvent& event) {
             } else {
                 SDL_StopTextInput(game->sdlCtx.primary.window);
             }
-            game->gui->console.showLog = enteringText;
-            game->gui->console.promptOpen = enteringText;
             break;
         case SDLK_SLASH:
             if (!enteringText) {
                 SDL_StartTextInput(game->sdlCtx.primary.window);
                 enteringText = true;
-                game->gui->console.showLog = true;
-                game->gui->console.promptOpen = true;
             }
             break;
         default:
             break;
     }
+   
+    switch (keycode) {
+        case 'z': {
+            auto* heldItemStack = &game->state->player.heldItemStack;
+            if (heldItemStack && heldItemStack->get()) {
+                ItemStack dropStack = ItemStack(heldItemStack->get()->item, 1);
+                heldItemStack->get()->reduceQuantity(1);
+                World::Entities::ItemStack(&game->state->ecs, mouseWorldPos, dropStack, game->state->itemManager);
+            }
+        break;} 
+        case 'h': {
+            static bool wireframeModeEnabled = false;
+            if (!wireframeModeEnabled)
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            else
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            wireframeModeEnabled ^= 1;
+        break;}
+    }
+
+    for (int i = 1; i <= (int)game->state->player.numHotbarSlots; i++) {
+        if (event.key == i + '0') {
+            game->state->player.selectHotbarSlot(i - 1);
+        }
+    }
+    
 }
 
 void PlayerControls::handleCommandInput(CommandInput commandInput) {

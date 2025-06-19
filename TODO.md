@@ -2,6 +2,8 @@
 
 pause / unpause game
 
+new hash maps (robin hood thing)
+
 Improve allocation method for archetype pools
 
 make it AAABBBCCC instead of AAA - BBB - CCC. better cache and stuff
