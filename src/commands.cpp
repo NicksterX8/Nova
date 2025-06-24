@@ -187,9 +187,9 @@ namespace Commands {
         auto componentName = args.get();
         auto componentValueStr = args.get();
 
-        auto* ecs = &state->ecs;
+        auto* ecs = state->ecs;
 
-        Entity entity = getEntity(entityIdStr, &state->ecs);
+        Entity entity = getEntity(entityIdStr, state->ecs);
         if (!ecs->EntityExists(entity)) {
             return RES_ERROR("That entity doesn't exist!");
         }
@@ -228,33 +228,40 @@ namespace Commands {
     }
 
     Result kill(Args args, GameState* state) {
+        auto& ecs = *state->ecs;
         auto target = args.get();
         bool isName = !inputIsNumeric(target);
         if (isName) {
             int numDestroyed = 0;
-            state->ecs.ForEach([](ECS::Signature components){
-                return components[World::EC::EntityTypeEC::ID];
-            }, [&](Entity entity){
-                auto type = state->ecs.Get<const World::EC::EntityTypeEC>(entity);
-                // super inefficient btw
-                if (target == "ALL" || target == type->name) {
-                    if (state->ecs.EntityExists(entity)) {
-                        state->ecs.Destroy(entity);
-                        numDestroyed += 1;
+            const World::Prototype* prototype = ecs.getPrototype(target.c_str());
+            if (!prototype) {
+                return RES_ERROR("Couldn't find prototype with that name!");
+            }
+            ECS::PrototypeID prototypeID = prototype->id;
+            World::EntityCommandBuffer commandBuffer;
+            ecs.useCommandBuffer(&commandBuffer);
+            ecs.ForEachAll([&](Entity entity){
+                if (target == "ALL" || ecs.em.getPrototypeID(entity) == prototypeID) {
+                    if (ecs.EntityExists(entity)) {
+                        if (!ecs.EntityHas<World::EC::Immortal>(entity)) {
+                            ecs.Destroy(entity);
+                            numDestroyed += 1;
+                        }
                     } else {
-                        LogWarn("Entity didn't exist while killing entities");
+                        LogError("Entity didn't exist in for each?");
                     }
                 }
                 return false;
             });
+            ecs.executeCommandBuffer(&commandBuffer);
             char message[512];
             snprintf(message, 512, "Killed %d %ss", numDestroyed, target.c_str());
             return RES_SUCCESS(std::string(message));
         } else {
             // entity id
-            Entity entity = getEntity(target, &state->ecs);
+            Entity entity = getEntity(target, &ecs);
             if (entity.NotNull()) {
-                state->ecs.Destroy(entity);
+                ecs.Destroy(entity);
                 return RES_SUCCESS("Killed!!");
             }
             return RES_ERROR("Entity not found!");
@@ -262,8 +269,8 @@ namespace Commands {
     }
 
     Result showTexture(Args args, const TextureManager* textures) {
-        if (g.debugTexture) {
-            glDeleteTextures(1, &g.debugTexture);
+        if (Global.debugTexture) {
+            glDeleteTextures(1, &Global.debugTexture);
         }
 
         auto texture = args.get();
@@ -271,7 +278,7 @@ namespace Commands {
         TextureID texID = textures->getID(texture.c_str());
         auto& metadata = textures->metadata[texID];
 
-        g.debugTexture = GlLoadSurface(loadSurface(FileSystem.assets.get(metadata.filename)), GL_NEAREST, GL_NEAREST);
+        Global.debugTexture = GlLoadSurface(loadSurface(FileSystem.assets.get(metadata.filename)), GL_NEAREST, GL_NEAREST);
         return RES_SUCCESS("Showing texture");
     }
 
@@ -491,6 +498,16 @@ namespace Commands {
         console->log.clear();
         return RES_SUCCESS("");
     }
+
+    Result pause(Args args, Game* game) {
+        game->pause();
+        return RES_SUCCESS("");
+    }
+
+    Result resume(Args args, Game* game) {
+        game->resume();
+        return RES_SUCCESS("");
+    }
 }
  
 std::vector<Command> gCommands;
@@ -502,7 +519,7 @@ void setCommands(Game* game) {
 
     auto* ren = game->renderContext;
     auto* state = game->state;
-    auto* ecs = &state->ecs;
+    auto* ecs = state->ecs;
     auto* textures = &game->renderContext->textures;
     auto* textureArray = &game->renderContext->textureArray;
     auto* shaderManager = &ren->shaders;
@@ -524,6 +541,8 @@ void setCommands(Game* game) {
     REG_COMMAND(clear, &game->gui->console);
     REG_COMMAND(setDebugSetting, game);
     REG_COMMAND(setUniform, ren->shaders);
+    REG_COMMAND(pause, game);
+    REG_COMMAND(resume, game);
 }
 
 CommandInput processMessage(std::string message, ArrayRef<Command> possibleCommands) {

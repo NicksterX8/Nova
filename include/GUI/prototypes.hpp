@@ -19,13 +19,13 @@ namespace Prototypes {
 
     struct Normal : Prototype {
         Normal(ECS::PrototypeManager& manager) : Prototype(manager.New(ElementTypes::Normal)) {
-
+            setName("normal");
         }
     };
 
     struct Epic : Prototype {
         Epic(ECS::PrototypeManager& manager) : Prototype(manager.New(ElementTypes::Normal)) {
-            
+            setName("epic");
         }
     };
 

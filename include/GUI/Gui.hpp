@@ -234,8 +234,8 @@ struct Console {
 inline void makeGuiPrototypes(GuiManager& gui) {
     auto& pm = gui.prototypes;
 
-    auto normal = Prototypes::Normal(pm);
-    auto epic = Prototypes::Epic(pm);
+    auto normal = new Prototypes::Normal(pm);
+    auto epic = new Prototypes::Epic(pm);
 
     pm.add(normal);
     pm.add(epic);
@@ -290,6 +290,7 @@ struct Gui {
         initGui(manager);
 
         systems.init(manager.systemManager, renderer);
+        ECS::System::setupSystems(manager.systemManager);
     }
 
     void renderElements(GuiRenderer& renderer, const PlayerControls& playerControls);
@@ -298,6 +299,12 @@ struct Gui {
         auto hotbarElement = manager.getNamedElement("hotbar");
 
         auto* inventory = player.inventory();
+        if (!inventory) {
+            manager.hideElement(hotbarElement);
+            return;
+        } else {
+            manager.unhideElement(hotbarElement);
+        }
 
         static char slotText[64][9];
 

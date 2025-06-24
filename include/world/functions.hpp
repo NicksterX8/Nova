@@ -4,6 +4,7 @@
 #include "EntityWorld.hpp"
 
 struct ChunkMap;
+struct GameState;
 
 namespace World {
 
@@ -37,12 +38,16 @@ Box getEntityViewBoxBounds(const EntityWorld* ecs, Entity entity);
 void setEventCallbacks(EntityWorld& ecs, ChunkMap& chunkmap);
 
 void forEachEntityInRange(const EntityWorld& ecs, const ChunkMap* chunkmap, Vec2 pos, float radius, const std::function<int(Entity)>& callback);
-
 void forEachEntityNearPoint(const EntityWorld& ecs, const ChunkMap* chunkmap, Vec2 point, const std::function<int(Entity)>& callback);
-
 void forEachEntityInBounds(const EntityWorld& ecs, const ChunkMap* chunkmap, Boxf bounds, const std::function<void(Entity)>& callback);
-
 Entity findClosestEntityToPosition(const EntityWorld& ecs, const ChunkMap* chunkmap, Vec2 position);
+
+void entityCreated(GameState* state, Entity entity);
+
+void entityViewChanged(ChunkMap* chunkmap, Entity entity, Vec2 newPos, Vec2 oldPos, Box newViewbox, Box oldViewbox, bool justMade);
+void entityPositionChanged(GameState* state, Entity entity, Vec2 oldPos);
+void entityViewboxChanged(GameState* state, Entity entity, Box oldViewbox);
+void entityViewAndPosChanged(GameState* state, Entity entity, Vec2 oldPos, Box oldViewbox);
 
 }
 

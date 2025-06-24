@@ -33,13 +33,6 @@ inline void giveName(Entity entity, const char* name, EntityWorld* ecs) {
 
 }
 
-void entityCreated(GameState* state, Entity entity);
-
-void entityViewChanged(ChunkMap* chunkmap, Entity entity, Vec2 newPos, Vec2 oldPos, Box newViewbox, Box oldViewbox, bool justMade);
-void entityPositionChanged(GameState* state, Entity entity, Vec2 oldPos);
-void entityViewboxChanged(GameState* state, Entity entity, Box oldViewbox);
-void entityViewAndPosChanged(GameState* state, Entity entity, Vec2 oldPos, Box oldViewbox);
-
 }
 
 #endif

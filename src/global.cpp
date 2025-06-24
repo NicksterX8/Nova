@@ -1,3 +1,3 @@
 #include "global.hpp"
 
-Globals g = {};
+GlobalsType Global = {};

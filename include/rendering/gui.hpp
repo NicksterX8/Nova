@@ -202,37 +202,27 @@ struct GuiRenderer {
         rectOutline(min, max, color, strokeIn, strokeOut, level);
     }
 
-    void textBox(const My::StringBuffer& textBuffer, int maxLines,
-            glm::vec2 pos, TextFormattingSettings formatting, TextRenderingSettings renderingSettings,
-            Color backgroundColor, glm::vec2 padding, glm::vec2 minSize = {0,0},
-            My::Vec<SDL_Color> textColors = My::Vec<SDL_Color>::Empty()
-        ) {
-
-        if (textBuffer.empty()) return;
-
-        // some space is used by padding, take it from the text space
-        formatting.maxWidth -= padding.x*2.0f;
-        formatting.maxHeight -= padding.y*2.0f;
-
-        formatting.wrapOnWhitespace = false;
-        FRect textRect = text->renderStringBufferAsLinesReverse(
-            textBuffer, 
-            maxLines, // max lines
-            pos + padding, // position
-            formatting,
-            renderingSettings, // scale
-            textColors
-        );
-
-
-        auto rect = addBorder(textRect, padding);
-        colorRect(rect, backgroundColor);
+    void rectOutline(Box box, Color color, glm::vec2 strokeIn, glm::vec2 strokeOut, GuiRenderLevel level = UseDefaultLevel) {
+        rectOutline(box.min, box.max(), color, strokeIn, strokeOut, level);
     }
 
     TextRenderer::RenderResult boxedText(const char* message, Box boundingBox, TextFormattingSettings formatting, TextRenderingSettings renderSettings, GuiRenderLevel level = UseDefaultLevel, Vec2* characterPositions = nullptr) {
         formatting.maxWidth = MIN(formatting.maxWidth, boundingBox.size.x);
         formatting.maxHeight = MIN(formatting.maxHeight, boundingBox.size.y);
         return renderText(message, boundingBox.min, formatting, renderSettings, level, characterPositions);
+    }
+
+    TextRenderer::RenderResult textBox(const char* message, Box box, Vec2 padding,
+        Color backgroundColor, Vec2 borderSize, Color borderColor,
+        TextFormattingSettings formatting, TextRenderingSettings renderSettings,
+        GuiRenderLevel level = UseDefaultLevel)
+    {   
+        colorRect(box, backgroundColor, level);
+        rectOutline(box, borderColor, {0, 0}, borderSize, level);
+
+        Vec2 textOffset = getAlignmentOffset(formatting.align, box.size);
+        
+        return boxedText(message, {box.min + padding + textOffset, box.size - padding*2.0f}, formatting, renderSettings, level);
     }
 
     void flush(const ShaderManager& shaders, const glm::mat4& transform) {

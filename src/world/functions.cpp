@@ -240,4 +240,96 @@ void rotateEntity(const EntityWorld& ecs, Entity entity, bool clockwise) {
     rotatable->rotated = true;
 }
 
+void entityViewChanged(ChunkMap* chunkmap, Entity entity, Vec2 newPos, Vec2 oldPos, Box newViewbox, Box oldViewbox, bool justMade) {
+    /* put entity in to the chunks it's visible in */
+    if (UNLIKELY(!isValidEntityPosition(newPos))) {
+        LogCritical("Entity has invalid position! Position: %f,%f", newPos.x, newPos.y);
+    }
+
+    IVec2 oldMinChunkPosition = toChunkPosition(oldPos + oldViewbox.min);
+    IVec2 oldMaxChunkPosition = toChunkPosition(oldPos + oldViewbox.max());
+    IVec2 newMinChunkPosition = toChunkPosition(newPos + newViewbox.min);
+    IVec2 newMaxChunkPosition = toChunkPosition(newPos + newViewbox.max());
+
+    // early exit for simple and common case where entity never changed what chunks its in
+    if ((newMinChunkPosition == oldMinChunkPosition) &&
+        (newMaxChunkPosition == oldMaxChunkPosition) &&
+        !justMade) return;
+
+    IVec2 minChunkPosition = {
+        (oldMinChunkPosition.x < newMinChunkPosition.x) ? oldMinChunkPosition.x : newMinChunkPosition.x,
+        (oldMinChunkPosition.y < newMinChunkPosition.y) ? oldMinChunkPosition.y : newMinChunkPosition.y
+    };
+    IVec2 maxChunkPosition = {
+        (oldMaxChunkPosition.x > newMaxChunkPosition.x) ? oldMaxChunkPosition.x : newMaxChunkPosition.x,
+        (oldMaxChunkPosition.y > newMaxChunkPosition.y) ? oldMaxChunkPosition.y : newMaxChunkPosition.y
+    };
+
+    if (!justMade) {
+        for (int col = oldMinChunkPosition.x; col <= oldMaxChunkPosition.x; col++) {
+            for (int row = oldMinChunkPosition.y; row <= oldMaxChunkPosition.y; row++) {
+                IVec2 chunkPosition = {col, row};
+
+                bool inNewArea = (chunkPosition.x >= newMinChunkPosition.x && chunkPosition.y >= newMinChunkPosition.y &&
+                    chunkPosition.x <= newMaxChunkPosition.x && chunkPosition.y <= newMaxChunkPosition.y);
+
+                if (!inNewArea) {
+                    // remove entity from old chunk
+                    ChunkData* oldChunkdata = chunkmap->get(chunkPosition);
+                    if (oldChunkdata) {
+                        oldChunkdata->removeCloseEntity(entity);
+                    }
+                }
+            }
+        }
+    }
+
+    for (int col = newMinChunkPosition.x; col <= newMaxChunkPosition.x; col++) {
+        for (int row = newMinChunkPosition.y; row <= newMaxChunkPosition.y; row++) {
+            IVec2 chunkPosition = {col, row};
+            bool inOldArea = (chunkPosition.x >= oldMinChunkPosition.x && chunkPosition.y >= oldMinChunkPosition.y &&
+                chunkPosition.x <= oldMaxChunkPosition.x && chunkPosition.y <= oldMaxChunkPosition.y);
+
+            if (!inOldArea) {
+                // add entity to new chunk
+                ChunkData* newChunkdata = chunkmap->get(chunkPosition);
+                if (newChunkdata) {
+                    newChunkdata->closeEntities.push(entity);
+                }
+            }
+        }
+    }
+}
+
+void entityPositionChanged(GameState* state, Entity entity, Vec2 oldPos) {
+    auto* position = state->ecs->Get<EC::Position>(entity);
+    auto* viewbox = state->ecs->Get<EC::ViewBox>(entity);
+    if (!position || !viewbox) {
+        LogError("why here? no veiwbox or pos");
+    }
+    entityViewChanged(&state->chunkmap, entity, position->vec2(), oldPos, viewbox->box, viewbox->box, false);
+}
+
+void entityViewboxChanged(GameState* state, Entity entity, Box oldViewbox) {
+    auto* position = state->ecs->Get<EC::Position>(entity);
+    auto* viewbox = state->ecs->Get<EC::ViewBox>(entity);
+    if (!position || !viewbox) {
+        LogError("why here? no veiwbox or pos");
+    }
+    entityViewChanged(&state->chunkmap, entity, position->vec2(), position->vec2(), viewbox->box, oldViewbox, false);
+}
+
+void entityViewAndPosChanged(GameState* state, Entity entity, Vec2 oldPos, Box oldViewbox) {
+    auto* position = state->ecs->Get<EC::Position>(entity);
+    auto* viewbox = state->ecs->Get<EC::ViewBox>(entity);
+    if (!position || !viewbox) {
+        LogError("why here? no veiwbox or pos");
+    }
+    entityViewChanged(&state->chunkmap, entity, position->vec2(), oldPos, viewbox->box, oldViewbox, false);
+}
+
+void entityCreated(GameState* state, Entity entity) {
+
+}
+
 }

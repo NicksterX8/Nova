@@ -5,14 +5,20 @@
 #include "utils/Log.hpp"
 #include "My/String.hpp"
 #include "utils/vectors_and_rects.hpp"
+#include "threads.hpp"
 
-struct Globals {
+struct GlobalsType {
     unsigned int debugTexture = 0;
     glm::vec2 playerMovement = {NAN, NAN};
     bool mouseClickedOnGui = false;
+
+    bool paused = false;
+
+    bool multithreadingEnabled = USE_MULTITHREADING;
+    ThreadManager threadManager;
 };
 
-extern Globals g;
+extern GlobalsType Global;
 
 enum Mode : int {
     NullMode,

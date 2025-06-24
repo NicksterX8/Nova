@@ -1,37 +1,37 @@
 # TODO
 
-pause / unpause game
+what happens when prototype components are used in methods like EntityManager::add? nothing good
 
 new hash maps (robin hood thing)
-
-Improve allocation method for archetype pools
-
-make it AAABBBCCC instead of AAA - BBB - CCC. better cache and stuff
 
 ECS: make entity maker class that is like a command buffer you make and then execute at end of entity creation.
 Makes making entities easy and efficient. Can also be used to make large numbers of entities at once efficiently
 
-replace old ECS system with new
-    - change element to entity
-
 shared components? do i need? do more research - prolly not
-
 
 fix text formatting
 
 stuff:
 Items need to be stored canonically so there is only one ecs element per unique item type + variations. Item elements aren't just made willy nilly
 
-
 fix terminal out of sync for a frame cause of size constraint stuff and text
 
+add<...> components
+entities aren't put into chunk entity list when created
+
+fix alignment for archetype pools
+now: atomic structures / multithreading
+
+text rendering is extremely slow right now? or at least the console. probably mainly that
 
 actual (new):
 fix scrolling up/down with keys on console
-more text features (copying & pasting??)
+more text features (copying & pasting??) (prolly not, not necessary)
 
-do new gui
 
+better code:
+int_fastN_t
+-fsanitize=signed-integer-overflow
 
 ## Big picture
 - Move stuff to .cpp files 
@@ -101,6 +101,11 @@ do new gui
 √ allow moving the console cursor with left and right arrow keys
 √ log errors to in game console as well as regular one
 √ bring back rendering chunk borders
+√ pause / unpause game
+√ Improve allocation method for archetype pools
+    make it AAABBBCCC instead of AAA - BBB - CCC. better cache and stuff
+√ replace old ECS system with new
+    - change element to entity
 
 ----------
 

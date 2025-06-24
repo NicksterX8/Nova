@@ -191,10 +191,15 @@ struct ISystem {
     }
 
     template<class T>
-    T* makeTempGroupArray(const IComponentGroup& group) {
-        T* allocation = new T[getGroupSize(group)];
+    T* makeTempArray(size_t elementCount) {
+        T* allocation = new T[elementCount];
         tempAllocations.push_back(allocation);
         return allocation;
+    }
+
+    template<class T>
+    T* makeTempGroupArray(const IComponentGroup& group) {
+        return makeTempArray<T>(getGroupSize(group));
     }
 
     // ordering

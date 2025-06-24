@@ -16,9 +16,29 @@ constexpr ComponentID getID() {
     return C::ID;
 }
 
+// prototype components will result in a compilation error
+template<class C>
+constexpr ComponentID getIDNoProto() {
+    static_assert(!C::PROTOTYPE, "Invalid use of prototype component, only regular components are accepted");
+    return C::ID;
+}
+
 template<class ...Cs>
 constexpr static My::Bitset<MaxComponentID> getSignature() {
     constexpr ComponentID ids[] = {getID<Cs>() ...};
+    // sum component signatures
+    auto result = My::Bitset<MaxComponentID>(0);
+    for (size_t i = 0; i < sizeof...(Cs); i++) {
+        if (ids[i] < result.size())
+            result.set(ids[i]);
+    }
+    return result;
+}
+
+// prototype components will result in a compilation error
+template<class ...Cs>
+constexpr static My::Bitset<MaxComponentID> getSignatureNoProto() {
+    constexpr ComponentID ids[] = {getIDNoProto<Cs>() ...};
     // sum component signatures
     auto result = My::Bitset<MaxComponentID>(0);
     for (size_t i = 0; i < sizeof...(Cs); i++) {
@@ -43,7 +63,7 @@ struct Signature : My::Bitset<MaxComponentID> {
     }
 
     template<class C>
-    constexpr void setComponent(bool val) {
+    constexpr void setComponent(bool val = true) {
         My::Bitset<MaxComponentID>::set(C::ID, val);
     }
 
@@ -59,8 +79,8 @@ struct SignatureHash {
         // intsPerHash will always be 1 or greater as IntegerT cannot be larger than size_t
         constexpr size_t intsPerHash = sizeof(size_t) / Signature::IntegerSize;
         size_t hash = 0;
-        for (int i = 0; i < self.nInts; i++) {
-            for (int j = 0; j < intsPerHash; j++) {
+        for (unsigned i = 0; i < self.nInts; i++) {
+            for (unsigned j = 0; j < intsPerHash; j++) {
                 hash ^= (size_t)self.bits[i] << j * Signature::IntegerSize * CHAR_BIT;
             }
         }

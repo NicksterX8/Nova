@@ -16,6 +16,8 @@
 #include "Camera.hpp"
 #include "rendering/rendering.hpp"
 #include "ECS/system.hpp"
+#include "world/systems/movement.hpp"
+#include "global.hpp"
 
 struct Game;
 
@@ -46,6 +48,9 @@ struct GameEntitySystems {
     ECS::System::SystemManager ecsStateSystems;
 
     World::RenderSystems::RenderEntitySystem* renderEntitySys;
+    World::Systems::DynamicEntitySystem* dynamicEntitySys;
+
+    void init(GameState* state, RenderContext* renderContext, Camera& camera);
 };
 
 struct Game {
@@ -62,6 +67,23 @@ struct Game {
     RenderContext* renderContext;
     GameEntitySystems systems;
     Mode mode;
+private:
+    bool m_paused;
+public:
+
+    bool isPaused() const {
+        return m_paused;
+    }
+
+    void pause() {
+        m_paused = true;
+        Global.paused = true;
+    }
+
+    void resume() {
+        m_paused = false;
+        Global.paused = false;
+    }
 
     Game(SDLContext sdlContext):
     sdlCtx(sdlContext), metadata(TARGET_FPS, TICKS_PER_SECOND, ENABLE_VSYNC) {

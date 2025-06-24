@@ -577,20 +577,6 @@ RenderBuffer makeRenderBuffer(glm::ivec2 size) {
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);  
 
-    /* Make texture for storing pixel velocities */
-    // Old pixel position is stored for each pixel
-    /*
-    GLuint velocityTexture;
-    glGenTextures(1, &velocityTexture);
-    glActiveTexture(GL_TEXTURE0 + TextureUnit::Screen1);
-    glBindTexture(GL_TEXTURE_2D, velocityTexture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_SHORT, NULL);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, velocityTexture, 0);  
-    */
-
     /* Make depth attachment with render buffer */
     GLuint rbo;
     glGenRenderbuffers(1, &rbo);
@@ -718,10 +704,10 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     auto quadShader = shaders.use(Shaders::Quad);
     quadShader.setMat4("transform", worldTransform);
     if (Debug->settings["drawChunkBorders"]) {
-        Draw::chunkBorders(ren.guiQuadRenderer, camera, SDL_Color{255, 0, 255, 155}, 8.0f, 0.5f);
+        Draw::chunkBorders(ren.worldQuadRenderer, camera, SDL_Color{255, 0, 255, 155}, 8.0f, 0.5f);
     }
 
-    auto holyTree = World::Entities::findNamedEntity("Holy tree", &state->ecs);
+    auto holyTree = World::Entities::findNamedEntity("Holy tree", state->ecs);
  
     //ren.worldGuiRenderer.text->render("HI", {5, 5});
     float offset = 50.0f;

@@ -10,13 +10,21 @@ namespace ECS {
 
 struct PrototypeManager {
     ComponentInfoRef componentInfo; // default constructed to null
-    std::vector<Prototype> prototypes;
+    Signature validComponents;
+    std::vector<Prototype*> prototypes;
+    std::unordered_map<std::string, Prototype*> namedPrototypes;
     My::BucketArray<char, 1024> componentAllocator = My::BucketArray<char, 1024>::Empty();
 
     PrototypeManager() = default;
 
     PrototypeManager(ComponentInfoRef componentInfo, int numPrototypes) : componentInfo(componentInfo) {
-        prototypes.resize(numPrototypes, Prototype());
+        validComponents = {0};
+        for (int i = 0; i < componentInfo.size(); i++) {
+            if (componentInfo.get(i).prototype)
+                validComponents.set(i);
+        }
+
+        prototypes.resize(numPrototypes, nullptr);
     }
 
     Prototype New(PrototypeID id) {
@@ -26,7 +34,17 @@ struct PrototypeManager {
 
     const Prototype* get(PrototypeID id) const {
         if (id >= prototypes.size() || id < 0) return nullptr;
-        return &prototypes[id];
+        return prototypes[id];
+    }
+
+    // Search through all prototypes to get 
+    const Prototype* get(const char* name) const {
+        for (auto& prototype : prototypes) {
+            if (prototype && prototype->name == name) {
+                return prototype;
+            }
+        }
+        return nullptr;
     }
 
     int numPrototypes() const {
@@ -34,9 +52,18 @@ struct PrototypeManager {
     }
 
     // add prototype
-    void add(const Prototype& prototype) {
-        auto id = prototype.id;
+    void add(Prototype* prototype) {
+        auto id = prototype->id;
         prototypes[id] = prototype;
+        if (!prototype->name.empty()) {
+            if (namedPrototypes.find(prototype->name) == namedPrototypes.end()) {
+                namedPrototypes.insert({prototype->name, prototypes[id]});
+            } else {
+                LogError("A prototype already has the name %s", prototype->name.c_str());
+            }
+        } else {
+            LogWarn("Prototype has no name!");
+        }
     }
 
     AllocListRef allocateComponents(Signature signature) {
@@ -45,8 +72,8 @@ struct PrototypeManager {
         size_t totalSize = 0;
         int i = 0;
         signature.forEachSet([&](auto componentID){
-            const auto componentSize = componentInfo.size(componentID);
-            const auto componentAlignment = componentInfo.alignment(componentID);
+            const auto& info = componentInfo.get(componentID);
+            const auto componentAlignment = info.alignment;
             const auto offset = totalSize + totalSize % componentAlignment;
             offsets[i] = offset;
             totalSize += offset;
@@ -59,9 +86,9 @@ struct PrototypeManager {
 
     void destroy() {
         for (auto& prototype : prototypes) {
-            prototype.components.destroy();
+            prototype->components.destroy();
         }
-        prototypes = std::vector<Prototype>(); // deallocate vector explicitly, in case the destructor is never called
+        prototypes = std::vector<Prototype*>(); // deallocate vector explicitly, in case the destructor is never called
         componentAllocator.destroy();
     }
 };

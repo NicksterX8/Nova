@@ -6,17 +6,17 @@ namespace items {
 namespace Prototypes {
 
 bool Grenade::onUse(Game* g) {
-    auto grenade = World::Entities::Grenade(
-        &g->state->ecs,
+    auto& grenade = World::Entities::Grenade::make(
+        g->state->ecs,
         g->state->player.get<World::EC::Position>()->vec2()); 
-    World::Entities::throwEntity(g->state->ecs, grenade, g->playerControls->mouseWorldPos, 1.5f);
+    World::Entities::throwEntity(*g->state->ecs, grenade(), g->playerControls->mouseWorldPos, 1.5f);
     return true;
 }
 
 bool SandGun::onUse(Game* g) {
     namespace EC = World::EC;
 
-    auto& ecs = g->state->ecs;
+    auto& ecs = *g->state->ecs;
     auto sand = ecs.New(World::Entities::PrototypeIDs::SandParticle);
     
     ecs.Add(sand, EC::Render({TextureIDs::Tiles::Sand, RenderLayers::Particles}));

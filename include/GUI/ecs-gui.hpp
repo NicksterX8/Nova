@@ -71,8 +71,6 @@ struct GuiManager : ECS::EntityManager {
 
     GuiManager(ECS::ComponentInfoRef componentInfo, int numPrototypes)
      : ECS::EntityManager(componentInfo, numPrototypes), treeMap(32) {
-        ECS::System::setupSystems(systemManager);
-
         screen = ECS::EntityManager::newEntity(ElementTypes::Normal);
         treeMap.insert(screen.id, GuiTreeNode(screen, NullElement.id));
 
@@ -205,6 +203,7 @@ public:
 
     Element getNamedElement(const char* name) {
         Element namedElement = NullElement;
+        
         forEachEntity<EC::Name>([&](Element e){
             auto* nameEc = getComponent<EC::Name>(e);
             if (My::streq(nameEc->name, name)) {

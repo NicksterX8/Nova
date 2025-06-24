@@ -246,8 +246,8 @@ protected:
     SizeT capacity; // number of elements allocated for in the map
 
     Index* set; // a set connecting keys to values | Index by key to get the index of the element corresponding to that key
-    Value* values; // a byte buffer for values
-    Key* keys; // keys corresponding to each value
+    Value* values; // contigious array of values
+    Key* keys; // contigious array of keys, parallel to values
 
     void assertValidKey(Key key) const {
         assert(key >= 0 && key <= MaxKeyValue && "DenseSparseSet key out of bounds!");
@@ -306,7 +306,8 @@ public:
         keys[index] = key;
         assert(set[key] == NullIndex && "Attempted to insert key already present in sparse set");
         set[key] = index;
-        memcpy(&values[index], &value, sizeof(Value));
+        // memcpy(&values[index], &value, sizeof(Value));
+        values[index] = value;
         size++;
     }
 
@@ -395,6 +396,14 @@ public:
 
     int getSize() const {
         return size;
+    }
+
+    Value* getValueArray() const {
+        return values;
+    }
+
+    const Key* getKeyArray() const {
+        return keys;
     }
 
     void destroy() {

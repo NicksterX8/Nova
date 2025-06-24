@@ -9,21 +9,10 @@ namespace World {
 namespace Entities {
 
     EC::Explosion grenadeExplosion = EC::Explosion(4, 25, 1.0f, 60);
-    EC::Explosion airstrikeExplosion = EC::Explosion(8, 10000, 1.0f, 30);
+    
 
-    Explosive Grenade(EntityWorld* ecs, Vec2 position) {
-        Explosive grenade = Explosive(ecs, position, Vec2(0.5), TextureIDs::Grenade, grenadeExplosion);
-        return grenade;
-    }
-
-    Explosive Airstrike(EntityWorld* ecs, Vec2 position, Vec2 size, Vec2 target) {
-        Explosive airstrike = Explosive(ecs, position, size, TextureIDs::Grenade, airstrikeExplosion);
-        throwEntity(*ecs, airstrike, target, 0.2f);
-        return airstrike;
-    }
-
-    Explosive ThrownGrenade(EntityWorld* ecs, Vec2 position, Vec2 target) {
-        Explosive grenade = Grenade(ecs, position);
+    Entity ThrownGrenade(EntityWorld* ecs, Vec2 position, Vec2 target) {
+        Entity grenade = Grenade::make(ecs, position).make();
         throwEntity(*ecs, grenade, target, 0.2f);
         return grenade;
     }

@@ -289,10 +289,13 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
     //textRenderer.setFont(&ren.font);
     Draw::drawFpsCounter(guiRenderer, (float)Metadata->fps(), (float)Metadata->tps(), guiRenderer.options);
 
-    //textRenderer.setFont(&ren.debugFont);
-    //textRenderer.setFont(&ren.font);
-
-    //testTextRendering(guiRenderer, textRenderer);
+    if (Global.paused) {
+        guiRenderer.textBox("Paused.",
+            Box::Centered({guiRenderer.options.size / 2.0f}, {400, 400}),
+            {10, 10}, {200,200,200,140}, 
+            {4, 4}, {0,0,0,255},
+            TextFormattingSettings{.align = TextAlignment::MiddleCenter}, TextRenderingSettings{.color = {0,0,0,255}}, 10);
+    }
 
     guiRenderer.flush(ren.shaders, screenTransform);
     

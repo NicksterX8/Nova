@@ -207,6 +207,7 @@ struct ArchetypalComponentManager {
     My::Vec<Entity> unusedEntities;
     My::HashMap<Signature, ArchetypeID, SignatureHash> archetypes;
     ComponentInfoRef componentInfo;
+    Signature validComponents;
 
     struct EntityData {
         Sint32 prototype;
@@ -222,6 +223,12 @@ struct ArchetypalComponentManager {
     ArchetypalComponentManager() {}
 
     ArchetypalComponentManager(ComponentInfoRef componentInfo) : componentInfo(componentInfo) {
+        validComponents = {0};
+        for (int i = 0; i < componentInfo.size(); i++) {
+            if (!componentInfo.get(i).prototype)
+                validComponents.set(i);
+        }
+
         auto nullPool = ArchetypePool(Archetype::Null());
         pools = My::Vec<ArchetypePool>(&nullPool, 1);
         archetypes = decltype(archetypes)::Empty();
@@ -230,7 +237,7 @@ struct ArchetypalComponentManager {
         unusedEntities = My::Vec<Entity>::WithCapacity(1000);
         unusedEntities.require(1000);
         for (int i = 0; i < 1000; i++) {
-            unusedEntities[i].id = i + 1;
+            unusedEntities[i].id = 1000 - i - 1;
             unusedEntities[i].version = 0;
         }
     }
@@ -422,7 +429,7 @@ struct ArchetypalComponentManager {
         void* newComponentValue = newArchetype->getComponent(component, newEntityIndex);
         if (initializationValue) {
             assert(newComponentValue);
-            memcpy(newComponentValue, initializationValue, componentInfo.size(component));
+            memcpy(newComponentValue, initializationValue, componentInfo.get(component).size);
         }
 
         return newComponentValue;

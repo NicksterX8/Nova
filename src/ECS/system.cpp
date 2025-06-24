@@ -1,5 +1,6 @@
 #include "ECS/system.hpp"
 #include "llvm/SmallVector.h"
+#include "global.hpp"
 
 using namespace ECS;
 using namespace ECS::System;
@@ -50,6 +51,45 @@ int calculateSystemStages(ISystem* source, int stage) {
     return highestStage;
 }
 
+int testThreads(void* ptr) {
+    int cnt;
+
+    for (cnt = 0; cnt < 10; ++cnt) {
+        SDL_Delay(50);
+    }
+
+    return cnt;
+}
+
+void example() {
+    ThreadManager& manager = Global.threadManager;
+
+    auto coolThread = manager.openThread(testThreads, nullptr);
+
+    int ret = manager.waitThread(coolThread);
+    LogInfo("thread return: %d", ret);
+
+    manager.closeThread(coolThread);
+}
+
+struct JobDistributor {
+    static constexpr ThreadManager& threadManager = Global.threadManager;
+
+    /*
+        input: a list of jobChunks that can all be executed in any order
+
+        completes when all job chunks complete
+
+        each thread needs it's own copy of the job so they can each
+        have their own entity command buffer and component arrays references
+    */
+};
+
+void jobTask(IJob* job) {
+    
+    
+}
+
 void ECS::System::setupSystems(SystemManager& sysManager) {
     for (ISystem* system : sysManager.systems) {
         if (system->systemOrder == ISystem::NullSystemOrder) {
@@ -61,6 +101,10 @@ void ECS::System::setupSystems(SystemManager& sysManager) {
     [](ISystem* lhs, ISystem* rhs){
         return lhs->systemOrder >= rhs->systemOrder;
     });
+
+    // do thread stuff
+    
+
 }
 
 void ECS::System::cleanupSystems(SystemManager& sysManager) {
@@ -70,6 +114,14 @@ void ECS::System::cleanupSystems(SystemManager& sysManager) {
         }
     }
 }
+
+struct JobChunk {
+    IJob* job;
+    ArchetypePool* pool;
+    int poolOffset;
+    int groupOffset;
+    int size;
+};
 
 void ECS::System::executeSystems(SystemManager& sysManager) {
 
@@ -83,8 +135,9 @@ void ECS::System::executeSystems(SystemManager& sysManager) {
 
         if (system->flushCommandBuffers) {
             for (auto& commandBuffer : unexecutedCommands) {
-                sysManager.entityManager->executeCommandBuffer(commandBuffer);
+                sysManager.entityManager->executeCommandBuffer(&commandBuffer);
             }
+            unexecutedCommands.clear();
         }
         // systems still flush command buffers (if value is set) when disabled
         if (!system->enabled) continue;
@@ -108,62 +161,84 @@ void ECS::System::executeSystems(SystemManager& sysManager) {
         });
 
         int entitiesInTask = 0;
-        
+
+        std::vector<JobChunk> chunks;
+
         for (IJob* job : system->jobs) {
             JobGroup group = job->group;
-
             std::vector<ArchetypePool*> eligiblePools;
             findEligiblePools(group, *sysManager.entityManager, &eligiblePools);
 
-            int entitiesProcessed = 0;
+            int groupEntityOffset = 0;
             for (ArchetypePool* pool : eligiblePools) {
-                llvm::SmallVector<OptionalExecuteType> optionalExecutes;
-
-                // make sure job arrays are referencing the correct data
-                for (AbstractGroupArray* array : job->arrays) {
-                    ComponentID neededComponent = array->componentType;
-                    if (neededComponent != -1) {
-                        if (!group->signature[neededComponent]) {
-                            LogError("Group not allowed to access component %d", neededComponent);
-                        }
-                        if (!array->readonly && !group->write[neededComponent]) {
-                            LogError("Component array without write permissions not marked read only. Review group permissions");
-                        }
-                        int neededComponentIndex = pool->archetype.getIndex(neededComponent);
-                        if (neededComponentIndex == -1) {
-                            if (!array->optional) {
-                                LogCritical("Couldn't get component pool for %d", neededComponent);
-                                assert(0);
-                            }
-                        } else {
-                            char* poolComponentArray = pool->getBuffer(neededComponentIndex);
-                            array->data = poolComponentArray - entitiesProcessed * pool->archetype.sizes[neededComponentIndex];
-                            if (array->optionalExecute) {
-                                optionalExecutes.push_back(array->optionalExecute);
-                            }
-                        }
-                    } else if (array->entityArray) {
-                        array->data = pool->entities - entitiesProcessed;
-                    } else {
-                        LogError("Array doesn't seem to have any type. what up?");
-                    }
+                // break up into chunks if pool is large enough.
+                // make it really small chunks so we can actually test
+                constexpr int ChunkSize = 4;
+                int remainderChunkSize = pool->size % ChunkSize;
+                chunks.push_back({job, pool, 0, groupEntityOffset, remainderChunkSize});
+                int additionalChunkCount = pool->size / ChunkSize;
+                for (int i = 0; i < additionalChunkCount; i++) {
+                    JobChunk chunk = {
+                        .job = job,
+                        .pool = pool,
+                        .poolOffset = i * ChunkSize,
+                        .groupOffset = groupEntityOffset,
+                        .size = ChunkSize
+                    };
+                    chunks.push_back(chunk);
                 }
-
-                // execute job per pool of entities
-                for (int e = 0; e < pool->size; e++) {
-                    job->Execute(entitiesProcessed + e);
-                }
-
-                for (OptionalExecuteType optionalExecute : optionalExecutes) {
-                    for (int e = 0; e < pool->size; e++) {
-                        (job->*optionalExecute)(entitiesProcessed + e);
-                    }
-                }
-                
-                entitiesProcessed += pool->size;
-            } // for each pool end
+                groupEntityOffset += pool->size;
+            }
 
             unexecutedCommands.push_back(job->commands);
+        }
+
+        for (JobChunk& chunk : chunks) {
+            IJob* job = chunk.job;
+            ArchetypePool* pool = chunk.pool;
+
+            llvm::SmallVector<OptionalExecuteType> optionalExecutes;
+            // make sure job arrays are referencing the correct data
+            for (AbstractGroupArray* array : job->arrays) {
+                ComponentID neededComponent = array->componentType;
+                if (neededComponent != -1) {
+                    if (!job->group->signature[neededComponent]) {
+                        LogError("Group not allowed to access component %d", neededComponent);
+                    }
+                    if (!array->readonly && !job->group->write[neededComponent]) {
+                        LogError("Component array without write permissions not marked read only. Review group permissions");
+                    }
+                    int neededComponentIndex = pool->archetype.getIndex(neededComponent);
+                    if (neededComponentIndex == -1) {
+                        if (!array->optional) {
+                            LogCritical("Couldn't get component pool for %d", neededComponent);
+                            assert(0);
+                        }
+                    } else {
+                        char* poolComponentArray = pool->getBuffer(neededComponentIndex);
+                        Uint16 componentSize = pool->archetype.sizes[neededComponentIndex];
+                        array->data = poolComponentArray - (chunk.groupOffset * componentSize);
+                        if (array->optionalExecute) {
+                            optionalExecutes.push_back(array->optionalExecute);
+                        }
+                    }
+                } else if (array->entityArray) {
+                    array->data = chunk.pool->entities - chunk.groupOffset;
+                } else {
+                    LogError("Array doesn't seem to have any type. what up?");
+                }
+            }
+
+            // execute job per pool of entities
+            for (int e = 0; e < chunk.size; e++) {
+                job->Execute(chunk.groupOffset + chunk.poolOffset + e);
+            }
+
+            for (OptionalExecuteType optionalExecute : optionalExecutes) {
+                for (int e = 0; e < chunk.size; e++) {
+                    (job->*optionalExecute)(chunk.groupOffset + chunk.poolOffset + e);
+                }
+            }
         } // for each job end
         system->jobs.clear();
 
@@ -177,8 +252,7 @@ void ECS::System::executeSystems(SystemManager& sysManager) {
     } // for each system end
 
     for (auto& commandBuffer : unexecutedCommands) {
-        sysManager.entityManager->executeCommandBuffer(commandBuffer);
+        sysManager.entityManager->executeCommandBuffer(&commandBuffer);
     }
-
-    // free arrays at some point
+    unexecutedCommands.clear();
 }

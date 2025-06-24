@@ -90,7 +90,7 @@ inline void my_aligned_free(void* mem, size_t alignment) {
 }
 */
 
-inline void* aligned_malloc(size_t size, size_t alignment, bool nonnull = false) {
+inline void* aligned_malloc(size_t size, size_t alignment, bool /*nonnull = false*/) {
     void* memory;
     int code = posix_memalign(&memory, alignment, size);
     (void)code;

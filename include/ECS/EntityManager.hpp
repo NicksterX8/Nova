@@ -23,7 +23,7 @@ struct EntityManager {
 private:
     bool* stateLocked = new bool(false);
 
-    EntityCommandBuffer tempCommandBuffer;
+    EntityCommandBuffer* commandBuffer = nullptr;
 public:
 
     EntityManager() = default;
@@ -31,9 +31,25 @@ public:
     EntityManager(ComponentInfoRef componentInfo, int numPrototypes)
      : components(componentInfo), prototypes(componentInfo, numPrototypes) {} 
 
+
+    const ComponentInfo& getComponentInfo(ComponentID component) const {
+        return components.getComponentInfo(component);
+    }
+
+    void useCommandBuffer(EntityCommandBuffer* buffer) {
+        assert(!commandBuffer && "Cannot use a new command buffer while another is active");
+        this->commandBuffer = buffer;
+    }
+
+    // executes the current command buffer if it exists, and sets current command buffer to null
+    void flushCurrentCommandBuffer() {
+        executeCommandBuffer(commandBuffer);
+        commandBuffer = nullptr;
+    }
+
     bool lock() const {
         if (!*stateLocked) {
-            //*stateLocked = true;
+            *stateLocked = true;
             return true;
         }
         return false;
@@ -47,31 +63,34 @@ public:
         return *stateLocked;
     }
 
-    void executeCommandBuffer(EntityCommandBuffer& commandBuffer) {
-        for (auto& command : commandBuffer.commands) {
+    // command buffer is destroyed after this
+    void executeCommandBuffer(EntityCommandBuffer* commandBuffer) {
+        for (auto& command : commandBuffer->commands) {
             switch (command.type) {
             case EntityCommandBuffer::Command::CommandAdd:
-                addComponent(command.value.add.target, command.value.add.component, command.value.add.componentValue);
+                addComponent(command.value.add.target, command.value.add.component, command.value.add.componentValueIndex + commandBuffer->valueBuffer.data);
                 break;
             case EntityCommandBuffer::Command::CommandRemove:
                 removeComponent(command.value.remove.target, command.value.remove.component);
                 break;
             case EntityCommandBuffer::Command::CommandDelete:
-                deleteEntity(command.value.del.target);
+                components.deleteEntity(command.value.del.target);
                 break;
             default:
                 LogError("Invalid command type!");
             }
         }
 
-        commandBuffer.commands.clear();
+        commandBuffer->destroy();
     }
 
     template<class... ReqComponents, class Func>
     void forEachEntity(Func func) const {
+        static_assert((!ReqComponents::PROTOTYPE && ...), "Prototype components cannot be used in for each!");
         bool locked = lock();
 
-        Signature reqSignature = getSignature<ReqComponents...>();
+        constexpr Signature reqSignature = getSignatureNoProto<ReqComponents...>();
+
         for (Uint32 i = 0; i < components.pools.size; i++) {
             auto& pool = components.pools[i];
             auto signature = pool.archetype.signature;
@@ -80,6 +99,26 @@ public:
                     Entity entity = pool.entities[e];
                     func(entity);
                 }
+            }
+        }
+
+        if (locked) {
+            unlock();
+        }
+    }
+
+    template<class Func>
+    void forAllEntities(Func func) const {
+        bool locked = lock();
+
+        int entityCount = getEntityCount();
+        auto entityDataArray = components.entityData.getValueArray();
+        auto entityIDArray = components.entityData.getKeyArray();
+        for (int e = 0; e < entityCount; e++) {
+            auto& data = entityDataArray[e];
+            EntityID id = entityIDArray[e];
+            if (func(Entity{id, data.version})) {
+                break;
             }
         }
 
@@ -130,23 +169,6 @@ public:
         }
     }
 
-    // template<class C, class Func>
-    // void forEachComponent(Func func) const {
-    //     for (Uint32 i = 0; i < components.pools.size; i++) {
-    //         auto& pool = components.pools[i];
-    //         auto signature = pool.archetype.signature;
-    //         if (signature[C::ID]) {
-    //             auto index = pool.archetype.getIndex(C::ID);
-    //             assert(index >= 0);
-    //             C* components = (C*)pool.buffers[index];
-    //             Entity* entities = pool.entities;
-    //             for (Uint32 e = 0; e < pool.size; e++) {
-    //                 func(entities[e], components[e]);
-    //             }
-    //         }
-    //     }
-    // }
-
     Entity newEntity(PrototypeID prototype) {
         Entity entity = components.newEntity(prototype);
         return entity;
@@ -159,7 +181,8 @@ public:
         }
 
         if (commandsLocked()) {
-            tempCommandBuffer.deleteEntity(entity);
+            assert(commandBuffer && "Locking without valid command buffer!");
+            commandBuffer->deleteEntity(entity);
             return;
         }
 
@@ -171,11 +194,11 @@ public:
         return entityData && (entityData->version == entity.version);
     }
 
-    inline const Prototype* getPrototype(PrototypeID type) const {
+    const Prototype* getPrototype(PrototypeID type) const {
         return prototypes.get(type);
     }
 
-    inline const Prototype* getPrototype(Entity entity) const {
+    const Prototype* getPrototype(Entity entity) const {
         auto* entityData = components.getEntityData(entity.id);
         if (!entityData || (entityData->version != entity.version)) {
             return nullptr;
@@ -183,15 +206,29 @@ public:
         return getPrototype(entityData->prototype);
     }
 
+    PrototypeID getPrototypeID(Entity entity) const {
+        auto* entityData = components.getEntityData(entity.id);
+        if (!entityData || (entityData->version != entity.version)) {
+            return -1;
+        }
+        return entityData->prototype;
+    }
+
+    const Prototype* getPrototype(const char* prototypeName) const {
+        return prototypes.get(prototypeName);
+    }
+
 protected:
     template<class C>
     const C* getProtoComponent(Entity entity) const {
+        static_assert(C::PROTOTYPE, "Component must be a prototype component!");
         auto* prototype = getPrototype(entity);
         return prototype ? prototype->get<C>() : nullptr;
     }
 
     template<class C>
     C* getRegularComponent(Entity entity) const {
+        static_assert(!C::PROTOTYPE, "Component must not be a prototype component!");
         return (C*)components.getComponent(entity, C::ID);
     }
 public:
@@ -212,37 +249,32 @@ public:
 
     template<class C>
     void setComponent(Entity entity, const C& value) {
-        static_assert(C::PROTOTYPE == false);
+        static_assert(!C::PROTOTYPE, "Cannot set a prototype component value!");
         C* component = getComponent<C>(entity);
         if (component) {
             *component = value;
         } else {
-            LogError("Component %s does not exist for entity!", components.componentInfo.name(C::ID));
+            LogError("Component %s does not exist for entity!", getComponentInfo(C::ID).name);
         }
     }
 
     template<class C>
     bool addComponent(Entity entity, const C& startValue) {
+        static_assert(!C::PROTOTYPE, "Cannot add a prototype component to a entity!");
+        
+        return addComponent(entity, C::ID, &startValue);
+    }
+
+    // generic add
+    bool addComponent(Entity entity, ComponentID component, const void* value = nullptr) {
         if (!entityExists(entity)) {
             LogError("Entity does not exist!");
             return false;
         }
 
         if (commandsLocked()) {
-            tempCommandBuffer.addComponent<C>(entity, startValue);
-            return false;
-        }
-
-        C* component = (C*)components.addComponent(entity, C::ID);
-        if (!component) return false;
-        memcpy(component, &startValue, sizeof(C));
-        return true;
-    }
-
-    // generic add. Not Lockable
-    bool addComponent(Entity entity, ComponentID component, const void* value = nullptr) {
-        if (!entityExists(entity)) {
-            LogError("Entity does not exist!");
+            assert(commandBuffer && "Locking without valid command buffer!");
+            commandBuffer->addComponent(entity, component, value, getComponentInfo(component).size);
             return false;
         }
 
@@ -260,24 +292,41 @@ public:
 
     template<class C>
     void removeComponent(Entity entity) {
+        static_assert(!C::PROTOTYPE, "Cannot remove a prototype component from an entity!");
+        removeComponent(entity, C::ID);
+    }
+
+    bool validRegComponent(ComponentID component) {
+        return components.validComponents[component];
+    }
+
+    bool validPrototypeComponent(ComponentID component) {
+        return prototypes.validComponents[component];
+    }
+
+    // enum class ComponentType {
+    //     Invalid,
+    //     Regular,
+    //     Prototype
+    // };
+
+    void removeComponent(Entity entity, ComponentID component) {
+        assert(validRegComponent(component));
+
         if (!entityExists(entity)) {
             LogError("Entity does not exist!");
         }
 
         if (commandsLocked()) {
-            tempCommandBuffer.removeComponent<C>(entity);
-            return;
-        }
-
-        components.removeComponent(entity, C::ID);
-    }
-
-    void removeComponent(Entity entity, ComponentID component) {
-        if (!entityExists(entity)) {
-            LogError("Entity does not exist!");
+            assert(commandBuffer && "Locking without valid command buffer!");
+            commandBuffer->removeComponent(entity, component);
         }
 
         components.removeComponent(entity, component);
+    }
+
+    int getComponentSize(ComponentID component) const {
+        return components.getComponentInfo(component).size;
     }
 
     template<class... Components>
@@ -316,6 +365,10 @@ public:
         }
 
         return components.getEntitySignature(entity);
+    }
+
+    int getEntityCount() const {
+        return components.entityData.getSize();
     }
 
     void destroy() {

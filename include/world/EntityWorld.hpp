@@ -9,10 +9,74 @@
 #include "ECS/EntityManager.hpp"
 #include "utils/common-macros.hpp"
 #include "components/components.hpp"
-#include "entities/prototypes/prototypes.hpp"
+#include "entities/prototypes/def.hpp"
 #include "ECS/system.hpp"
 
+struct ChunkMap;
+
 namespace World {
+
+using ECS::EntityCommandBuffer;
+
+struct EntityWorld;
+
+struct EntityMaker {
+    EntityWorld* ecs = nullptr;
+    
+    Entity entity = NullEntity;
+    ECS::Signature components = {0};
+    ECS::PrototypeID prototype = -1;
+
+    Uint16 bufUsed = 0;
+    MutableArrayRef<char> buf;
+
+    static constexpr size_t MaxComponentMemory = std::numeric_limits<Uint16>::max();
+    struct ComponentValue {
+        ECS::ComponentID id;
+        Uint16 valueBufPos;
+    };
+    llvm::SmallVector<ComponentValue> componentValues;
+
+    EntityMaker() {}
+
+    EntityMaker(EntityWorld* ecs);
+    
+    EntityMaker(const EntityMaker& other) = delete;
+
+    // if an entity was in progress or already made, that data will be replaced with a fresh start
+    void start(ECS::PrototypeID prototype) {
+        clear();
+        this->prototype = prototype;
+    }
+
+    template<class C>
+    void Add(const C& value) {
+        components.setComponent<C>();
+        if (bufUsed + sizeof(C) > buf.size()) {
+            assert(0 && "Ran out of buffer space");
+        }
+        Uint16 offset = (Uint16)((uintptr_t)buf.data() % alignof(C));
+        memcpy(&buf[bufUsed + offset], &value, sizeof(C));
+        componentValues.push_back(ComponentValue{C::ID, (Uint16)(bufUsed + offset)});
+        bufUsed += sizeof(C) + offset;
+    }
+
+    void setPos(Vec2 pos) {
+        Add<EC::Position>(pos);
+    }
+
+    Entity make();
+
+    void make(Entity* pEntity) {
+        *pEntity = make();
+    }
+
+    Entity operator()() {
+        return make();
+    }
+
+    void clear();
+};
 
 struct EntityWorld {
     ECS::EntityManager em;
@@ -28,13 +92,25 @@ protected:
         EventCallback callback;
     };
     llvm::SmallVector<DeferredEvent, 3> deferredEvents;
+
+    char* entityMakerBuffer = new char[1024];
+    EntityMaker entityMaker;
+
+    ChunkMap* chunkmap;
 public:
-    
-    EntityWorld() {
+
+    static EntityWorld* init(ChunkMap* chunkmap) {
+        EntityWorld* ecs = new EntityWorld();
+        ecs->chunkmap = chunkmap;
         using namespace EC;
+        using namespace EC::Proto;
         static constexpr auto infoList = ECS::getComponentInfoList<WORLD_COMPONENT_LIST>();
-        em = ECS::EntityManager(ArrayRef(infoList), World::Entities::PrototypeIDs::Count);
+        ecs->em = ECS::EntityManager(ArrayRef(infoList), World::Entities::PrototypeIDs::Count);
+        ecs->entityMaker = EntityMaker(ecs);
+        return ecs;
     }
+
+    EntityWorld() {}
 
     EntityWorld(const EntityWorld& copy) = delete;
 
@@ -47,8 +123,20 @@ public:
         em.destroy();
     }
 
-    Sint32 getComponentSize(ECS::ComponentID id) const {
-        return em.components.componentInfo.size(id);
+    void useCommandBuffer(EntityCommandBuffer* buffer) {
+        em.useCommandBuffer(buffer);
+    }
+
+    void flushCurrentCommandBuffer() {
+        em.flushCurrentCommandBuffer();
+    }
+
+    void executeCommandBuffer(EntityCommandBuffer* buffer) {
+        em.executeCommandBuffer(buffer);
+    }
+
+    ssize_t getComponentSize(ECS::ComponentID id) const {
+        return em.getComponentInfo(id).size;
     }
 
     /* Create a new entity with just an entity type component using the type name given.
@@ -56,6 +144,7 @@ public:
      */
     Entity New(ECS::PrototypeID prototype) {
         Entity entity = em.newEntity(prototype);
+        
         return entity;
     }
 
@@ -162,6 +251,16 @@ public:
         return component;
     }
 
+    void Set(Entity entity, ECS::ComponentID componentID, void* value) {
+        assert(value);
+        void* component = em.getComponent(entity, componentID);
+        if (component) {
+            memcpy(component, value, em.getComponentSize(componentID));
+        } else {
+            LogError("Failed to set component, it could not be found.");
+        }
+    }
+
     /* Add a component of the type to the entity, immediately initializing the value to param startValue.
      * Triggers the relevant 'onAdd' event directly after adding and setting start value if not currently deferring events,
      * otherwise it will be added to the back of the deferred events queue to be executed when finished deferring.
@@ -171,49 +270,50 @@ public:
     bool Add(Entity entity, const T& startValue) {
         if (em.addComponent<T>(entity, startValue)) {
             
-            auto& onAddT = callbacksOnAdd[ECS::getID<T>()];
-            if (onAddT) {
-                if (deferringEvents) {
-                    deferredEvents.push_back({entity, onAddT});
-                } else {
-                    onAddT(this, entity);
-                }
-            }
+            // auto& onAddT = callbacksOnAdd[ECS::getID<T>()];
+            // if (onAddT) {
+            //     if (deferringEvents) {
+            //         deferredEvents.push_back({entity, onAddT});
+            //     } else {
+            //         onAddT(this, entity);
+            //     }
+            // }
             return true;
             
         }
         return false;
     }
 
+    // TODO: should this exist?
+    // template<class T>
+    // bool Add(EntityMaker& entity, const T& startValue) {
+    //     entity.Add<T>(startValue);
+    //     return false;
+    // }
+
     /* Add the component corresponding to the id to the given entity
      * Triggers the relevant 'onAdd' event directly after adding and setting start value if not currently deferring events,
      * otherwise it will be added to the back of the deferred events queue to be executed when finished deferring.
      * @return 0 on success, any other value otherwise. A relevant error message should be logged.
      */
-    bool Add(Entity entity, ECS::ComponentID id) {
-        //LogInfo("Adding %s to entity: %s", em.getComponentName<T>(), entity.DebugStr());
-        bool ret = em.addComponent(entity, id);
-        if (ret) {
-            auto& onAddT = callbacksOnAdd[id];
-            if (onAddT) {
-                if (deferringEvents) {
-                    deferredEvents.push_back({entity, onAddT});
-                } else {
-                    onAddT(this, entity);
-                }
-            }
-        }
+    bool Add(Entity entity, ECS::ComponentID id, void* value = nullptr) {
+        bool ret = em.addComponent(entity, id, value);
+        // if (ret) {
+        //     auto& onAddT = callbacksOnAdd[id];
+        //     if (onAddT) {
+        //         if (deferringEvents) {
+        //             deferredEvents.push_back({entity, onAddT});
+        //         } else {
+        //             onAddT(this, entity);
+        //         }
+        //     }
+        // }
         return ret;
     }
 
     bool AddSignature(Entity entity, ECS::Signature signature) {
         if (em.addSignature(entity, signature)) {
-            signature.forEachSet([&](ECS::ComponentID component){
-                auto& onAddT = callbacksOnAdd[component];
-                if (onAddT) {
-                    deferredEvents.push_back({entity, onAddT});
-                }
-            });
+            
             return true;
         }
         return false;
@@ -226,27 +326,16 @@ public:
      * The events will not be triggered if adding any of the components failed.
      * @return 0 on success, -1 if adding any one of the components failed. A relevant error message should be logged.
      */
-    /*
     template<class... Components>
-    bool Add(Entity entity) {
-        constexpr auto ids = ECS::getComponentIDs<Components...>();
-        bool ret = em.Add<Components...>(entity);
+    bool Add(Entity entity, Components... components) {
+        constexpr ECS::Signature signature = ECS::getSignature<Components...>();
+        bool ret = em.addSignature(entity, signature);
         if (ret) {
-            for (size_t i = 0; i < ids.size(); i++) {
-                auto& onAddT = callbacksOnAdd[ids[i]];
-                if (onAddT) {
-                    if (deferringEvents) {
-                        deferredEvents.push_back({entity, onAddT});
-                    } else {
-                        onAddT(this, entity);
-                    }
-                }
-            }
+            void* ptrs[] = {(void*)Set<Components>(entity, components) ...};
         }
 
         return ret;
     }
-    */
 
     template<class T>
     void Remove(Entity entity) {
@@ -261,6 +350,31 @@ public:
         }
         
         em.removeComponent<T>(entity);
+    }
+
+    const Prototype* getPrototype(ECS::PrototypeID prototype) {
+        return (Prototype*)em.getPrototype(prototype);
+    }
+
+    const Prototype* getPrototype(const char* prototypeName) {
+        return (Prototype*)em.getPrototype(prototypeName);
+    }
+
+    const Prototype* getPrototype(Entity entity) {
+        return (Prototype*)em.getPrototype(entity);
+    }
+
+    EntityMaker& startMakingEntity(ECS::PrototypeID prototype) {
+        entityMaker.start(prototype);
+        return entityMaker;
+    }
+
+    EntityMaker* getEntityMaker() {
+        return &entityMaker;
+    }
+
+    MutableArrayRef<char> getEntityMakerBuffer() const {
+        return MutableArrayRef(entityMakerBuffer, 1024);
     }
 
     void StartDeferringEvents() {
@@ -285,6 +399,10 @@ public:
     void SetBeforeRemove(EventCallback callback) {
         callbacksBeforeRemove[ECS::getID<T>()] = callback;
     }
+
+    void ForEachAll(std::function<bool(Entity entity)> callback) const {
+        em.forAllEntities(callback);
+    } 
 
     /* Iterate entities filtered using an EntityQuery.
      * It is safe to destroy entities while iterating.
@@ -374,6 +492,16 @@ public:
         }
 
         return false;
+    }
+};
+
+struct EntityBuilder {
+    EntityWorld* ecs;
+
+    EntityBuilder(EntityWorld* ecs) : ecs(ecs) {}
+
+    EntityMaker& New(ECS::PrototypeID prototype) {
+        return ecs->startMakingEntity(prototype);
     }
 };
 

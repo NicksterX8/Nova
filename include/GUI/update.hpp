@@ -230,7 +230,7 @@ inline std::vector<GameAction> update(GuiManager& gui, const PlayerControls& pla
     bool mouseLeftDown = playerControls.mouse.leftButtonDown();
     bool mouseClicked = playerControls.mouseClicked;
 
-    g.mouseClickedOnGui = false;
+    Global.mouseClickedOnGui = false;
 
     std::vector<GameAction> actions;
     

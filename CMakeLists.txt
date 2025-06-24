@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.23.3)
 
 set(CMAKE_BUILD_TYPE Debug)
 project(faketorio VERSION 1.0)
-
+# -Wextra -pedantic
 add_compile_options(-g -Wall -std=c++17
     -Wno-macro-redefined -Wno-unused-variable -Wno-char-subscripts -Wno-comment
     -Wliteral-conversion
@@ -19,6 +19,7 @@ set(SRC_FILES
     ${SD}/global.cpp
     ${SD}/sdl.cpp
     ${SD}/memory.cpp
+    ${SD}/threads.cpp
     ${SD}/actions.cpp
     ${SD}/utils/Log.cpp
     ${SD}/utils/Metadata.cpp
@@ -47,6 +48,7 @@ set(SRC_FILES
     ${SD}/world/functions.cpp
     ${SD}/world/entities/entities.cpp
     ${SD}/world/entities/methods.cpp
+    ${SD}/world/EntityWorld.cpp
     ${SD}/ECS/system.cpp
     ${SD}/physics/physics.cpp
 )

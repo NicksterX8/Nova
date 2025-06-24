@@ -7,6 +7,9 @@ namespace GUI {
 void selectHotbarSlot(Game* g, Element e) {
     int slot = g->gui->manager.getComponent<EC::Numbered>(e)->number;
     auto* playerInventory = g->state->player.inventory();
+    if (!playerInventory) {
+        return;
+    }
     ItemStack* stack = &playerInventory->items[slot];
     if (g->state->player.heldItemStack) {
         // set held stack down in slot only if actually holding stack and if slot is empty

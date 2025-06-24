@@ -76,7 +76,7 @@ struct Player {
     Player() {}
 
     Player(EntityWorld* ecs, Vec2 startPosition, ItemManager& inventoryAllocator) : ecs(ecs) {
-        entity = World::Entities::Player(ecs, startPosition, inventoryAllocator);
+        entity = World::Entities::Player::make(ecs, startPosition, inventoryAllocator);
         World::Entities::giveName(entity, "player", ecs);
     }
 
@@ -109,7 +109,7 @@ struct Player {
                 return &component->inventory;
             }
         }
-        return NULL;        
+        return nullptr;        
     }
     Inventory* inventory() {
         if (ecs->EntityExists(entity)) {
@@ -118,7 +118,7 @@ struct Player {
                 return &component->inventory;
             }
         }
-        return NULL;
+        return nullptr;
     }
 
     void selectHotbarSlot(int index) {

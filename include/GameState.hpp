@@ -13,7 +13,8 @@
 
 struct GameState {
     ChunkMap chunkmap;
-    EntityWorld ecs;
+    EntityWorld* ecs;
+    ECS::System::SystemManager* ecsSystems;
     Player player;
     ItemManager itemManager;
 
@@ -29,7 +30,7 @@ llvm::SmallVector<IVec2> raytraceDDA(Vec2 start, Vec2 end);
 void worldLineAlgorithm(Vec2 start, Vec2 end, const std::function<int(IVec2)>& callback);
 
 inline void updateEntityViewBox(const GameState* state, Entity entity, World::EC::ViewBox viewbox) {
-    assert(state->ecs.EntityExists(entity));
+    assert(state->ecs->EntityExists(entity));
 
     llvm::BitVector entityViewBoxModifiedFlags(MAX_ENTITIES);
 
@@ -49,7 +50,7 @@ constexpr inline bool isValidEntityPosition(Vec2 p) {
 }
 
 inline void setEntityStaticPosition(GameState* state, Entity entity, Vec2 position) {
-    auto* positionEc = state->ecs.Get<World::EC::Position>(entity);
+    auto* positionEc = state->ecs->Get<World::EC::Position>(entity);
     Vec2 oldPos = positionEc->vec2();
     positionEc->x = position.x;
     positionEc->y = position.y;

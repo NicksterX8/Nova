@@ -93,6 +93,10 @@ struct Box {
             size.y
         };
     }
+
+    static Box Centered(Vec2 center, Vec2 size) {
+        return {center - size * 0.5f, size};
+    }
 };
 
 inline Vec2 vecFloor(Vec2 vec) {

@@ -14,8 +14,9 @@ namespace Prototypes {
 namespace IDs = ItemTypes;
 using namespace ITC::Proto;
 
-struct Tile : public ItemPrototype {
+struct Tile : ItemPrototype {
     Tile(PrototypeManager& manager) : ItemPrototype(manager.New(ItemTypes::Tile)) {
+        setName("tile");
         add<ITC::StackSize>({64});
     }
 
@@ -28,8 +29,9 @@ struct Tile : public ItemPrototype {
     }
 };
 
-struct Grenade : public items::ItemPrototype {
+struct Grenade : items::ItemPrototype {
     Grenade(PrototypeManager& manager) : ItemPrototype(manager.New(ItemTypes::Grenade)) {
+        setName("grenade");
         add<ITC::StackSize>({64});
         add<ITC::Fuel>({100.0f, 20.0f});
         add<ITC::Edible>({.hungerValue = 1.0f, .saturation = 2.0f});
@@ -54,6 +56,7 @@ struct None : ItemPrototype {
 
 struct SandGun : ItemPrototype {
     SandGun(PrototypeManager& manager) : ItemPrototype(manager.New(IDs::SandGun)) {
+        setName("sand-gun");
         add<ITC::StackSize>({1});
         add<ITC::Usable>({onUse, false});
     }

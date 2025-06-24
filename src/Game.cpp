@@ -23,7 +23,7 @@
 void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
     GameState& state = *ctx.state;
     Player& player = state.player;
-    EntityWorld& ecs = state.ecs;
+    EntityWorld& ecs = *state.ecs;
     ChunkMap& chunkmap = state.chunkmap;
     Camera& camera = ctx.camera;
     PlayerControls& playerControls = *ctx.playerControls;
@@ -138,6 +138,14 @@ void runSystem(EntityWorld* ecs) {
 }
 */
 
+void GameEntitySystems::init(GameState* state, RenderContext* renderContext, Camera& camera) {
+    this->renderEntitySys = new World::RenderSystems::RenderEntitySystem(ecsRenderSystems, *renderContext, camera, *state->ecs, state->chunkmap);
+    this->dynamicEntitySys = new World::Systems::DynamicEntitySystem(ecsStateSystems, &state->chunkmap);
+
+    ECS::System::setupSystems(ecsRenderSystems);
+    ECS::System::setupSystems(ecsStateSystems);
+}
+
 void updateDynamicEntityChunkPositions(EntityWorld& ecs, GameState* state) {
     namespace EC = World::EC;
     
@@ -162,10 +170,11 @@ void updateDynamicEntityChunkPositions(EntityWorld& ecs, GameState* state) {
 }
 
 static void updateSystems(GameState* state) {
-    EntityWorld& ecs = state->ecs;
+    EntityWorld& ecs = *state->ecs;
     auto& chunkmap = state->chunkmap;
 
     namespace EC = World::EC;
+    ECS::System::executeSystems(*state->ecsSystems);
 
     ecs.ForEach([](ECS::Signature components){
         return components[EC::Follow::ID] && components[EC::CollisionBox::ID] && components[EC::Dynamic::ID] && components[EC::Position::ID]; 
@@ -218,12 +227,12 @@ static void updateSystems(GameState* state) {
         }
     });
 
-    // TODO: ForEach while destroying could cause issues maybe? tried using command buffer but ran into issues with const and stuff.
-    // return command buffer instead of executing automatically if necessary
+    ECS::EntityCommandBuffer destroyEntities;
+    ecs.useCommandBuffer(&destroyEntities);
     ecs.ForEach([](ECS::Signature components){
        return components[EC::Health::ID]; 
     }, [&](Entity entity){
-        auto* health = ecs.Get<EC::Health>(entity); assert(health);
+        auto* health = ecs.Get<EC::Health>(entity);
         // Must do check like this instead of (*health <= 0.0f) to account for NaN values,
         // which can occur when infinite damage is done to an entity with infinite health
         // so in that situation the infinite damage wins out, rather than the infinte health
@@ -237,6 +246,7 @@ static void updateSystems(GameState* state) {
             health->iFrames--;
         }
     });
+    ecs.flushCurrentCommandBuffer();
 
     ecs.ForEach([](ECS::Signature components){
         return components[EC::Dynamic::ID] && components[EC::Motion::ID];
@@ -272,23 +282,24 @@ static void updateSystems(GameState* state) {
         }
     });
 
+    ECS::EntityCommandBuffer removeFreshes;
+    ecs.useCommandBuffer(&removeFreshes);
     ecs.ForEach([](ECS::Signature components){
         return components.hasComponents<EC::Fresh>();
     }, [&](Entity entity){
         ecs.Remove<EC::Fresh>(entity);
     });
+    ecs.flushCurrentCommandBuffer();
 }
 
 int tick(GameState* state, PlayerControls* playerControls) {
     state->player.grenadeThrowCooldown--;
-    updateSystems(state);
-    if (Metadata->getTick() % 1 == 0) {
 
-    }
+    updateSystems(state);
 
     playerControls->doPlayerMovementTick();
 
-    updateDynamicEntityChunkPositions(state->ecs, state);
+    //updateDynamicEntityChunkPositions(*state->ecs, state);
 
     return 0;
 }
@@ -450,21 +461,23 @@ int Game::update() {
     double deltaTime = metadata.frame.deltaTime;
 
     static double remainingTime = 0.0;
-    remainingTime += deltaTime;
-    
-    int ticksThisFrame = 0;
-    
-    while (remainingTime > fixedFrametime) {
-        remainingTime -= fixedFrametime;
 
-        if (ticksThisFrame++ < maxTicks) {
-            Tick currentTick = metadata.newTick();
-            tick(state, playerControls);
+    if (!isPaused()) {
+        remainingTime += deltaTime;
+        
+        int ticksThisFrame = 0;
+        while (remainingTime > fixedFrametime) {
+            remainingTime -= fixedFrametime;
+
+            if (ticksThisFrame++ < maxTicks) {
+                Tick currentTick = metadata.newTick();
+                tick(state, playerControls);
+            }
         }
-    }
 
-    // update to new state from tick
-    focusCamera(&camera, &cameraFocus, &state->ecs);
+        // update to new state from tick
+        focusCamera(&camera, &cameraFocus, state->ecs);
+    }
 
     float scale = SDL::pixelScale;
     RenderOptions options = {
@@ -509,26 +522,28 @@ int Game::init() {
 
     this->state->init(&renderContext->textures);
 
-    this->systems.ecsRenderSystems.entityManager = &this->state->ecs.em;
-    this->systems.ecsStateSystems.entityManager  = &this->state->ecs.em;
+    this->systems.ecsRenderSystems.entityManager = &this->state->ecs->em;
+    this->systems.ecsStateSystems.entityManager  = &this->state->ecs->em;
     renderContext->ecsRenderSystems = &this->systems.ecsRenderSystems;
+    state->ecsSystems = &this->systems.ecsStateSystems;
 
     // init systems
-    systems.renderEntitySys = new World::RenderSystems::RenderEntitySystem(systems.ecsRenderSystems, *renderContext, camera, state->ecs, state->chunkmap);
+    systems.init(state, renderContext, camera);
 
     for (int e = 0; e < 200; e++) {
         Vec2 pos = {(float)randomInt(-400, 400), (float)randomInt(-400, 400)};
         // do placing collision checks
-        auto tree = World::Entities::Tree(&state->ecs, pos, {4, 4});
+        auto tree = World::Entities::Tree::make(state->ecs, pos, {4, 4}).make();
         (void)tree;
     }
 
-    World::Entities::Tree(&state->ecs, {10.5, 10.5}, {40, 40});
+    auto tree = World::Entities::Tree::make(state->ecs, {10.5, 10.5}, {40, 40})();
+    state->ecs->Add<World::EC::Fresh, World::EC::Immortal>(tree, {}, {});
 
     for (int i = 0; i < 10; i++) {
-        auto tree = World::Entities::Grenade(&state->ecs, Vec2(i*2));
-        state->ecs.Get<World::EC::Render>(tree)->textures[1].layer = i;
-        state->ecs.Get<World::EC::Render>(tree)->textures[0].layer = i;
+        auto& tree = World::Entities::Grenade::make(state->ecs, Vec2(i*2));
+        state->ecs->Get<World::EC::Render>(tree())->textures[1].layer = i;
+        state->ecs->Get<World::EC::Render>(tree())->textures[0].layer = i;
     }
 
     this->playerControls = new PlayerControls(this);

@@ -54,12 +54,14 @@ void Gui::drawConsole(GuiRenderer& renderer) {
             logRenderingSettings.color = message.color;
             std::string text;
             if (message.copyNumber > 0) {
-                text = string_format("(%d) %s", message.copyNumber, message.text.c_str());
+                text = string_format("(%d) %s", message.copyNumber + 1, message.text.c_str());
             } else {
                 text = message.text;
             }
             auto result = renderer.renderText(text.c_str(), pos, logFormatting, logRenderingSettings, logViewEc->level);
             pos.y += result.rect.h + messageSpacing;
+            // check if message will be visible on screen
+            if (pos.y >= renderer.options.size.y) break;
         }
     } else {
         manager.hideElement(consoleLogElement);
@@ -201,8 +203,7 @@ void buildFromTree(GuiTreeNode* node, GUI::GuiManager& gui, int level) {
             Vec2 offset = {0, 0};
             if (alignmentConstraint && !fitConstraint) {
                 Vec2 margin = parentBox.size - childBox.size;
-                offset.x = (int)alignmentConstraint->alignment.horizontal * 0.5f * margin.x;
-                offset.y = (2 - (int)alignmentConstraint->alignment.vertical) * 0.5f * margin.y;
+                offset = getAlignmentOffset(alignmentConstraint->alignment, margin);
                 childBox.min = offset;
             }
             childBox.min += fitBox.min;

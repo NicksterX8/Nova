@@ -126,6 +126,14 @@ public:
         bits[position64] = (bits[position64] & ~((uint64_t)1 << (uint64_t)modulus)) | digit; // disabling part
     }
 
+    constexpr bool empty() const {
+        for (size_t i = 0; i < nInts; i++) {
+            if (bits[i])
+                return false;
+        }
+        return true;
+    }
+
     constexpr bool any() const {
         for (size_t i = 0; i < nInts; i++) {
             if (bits[i])

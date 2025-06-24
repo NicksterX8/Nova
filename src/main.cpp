@@ -84,6 +84,13 @@ int main(int argc, char** argv) {
         9999
     };
     SDLContext sdlCtx = initSDL(windowTitle.c_str(), windowRect);
+    
+    
+    if (Global.multithreadingEnabled) {
+        int numCores = SDL_GetNumLogicalCPUCores();
+        int numThreadsToPool = MIN(numCores - 1, 5);
+        Global.threadManager = ThreadManager(numThreadsToPool);
+    }
 
     tests();
 

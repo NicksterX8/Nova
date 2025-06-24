@@ -18,15 +18,33 @@ void makeItemPrototypes(ItemManager& im) {
     using namespace items;
     auto& pm = im.prototypes;
 
-    auto tile = Prototypes::Tile(pm);
-    auto grenade = Prototypes::Grenade(pm);
-    auto sandGun = Prototypes::SandGun(pm);
+    auto tile = new Prototypes::Tile(pm);
+    auto grenade = new Prototypes::Grenade(pm);
+    auto sandGun = new Prototypes::SandGun(pm);
 
-    ItemPrototype prototypes[] = {
+    ItemPrototype* prototypes[] = {
         tile, grenade, sandGun
     };
 
-    for (int i = 0; i < sizeof(prototypes) / sizeof(ItemPrototype); i++) {
+    for (int i = 0; i < sizeof(prototypes) / sizeof(prototypes[0]); i++) {
+        pm.add(prototypes[i]);
+    }
+}
+
+void makeEntityPrototypes(EntityWorld& ecs) {
+    auto& pm = ecs.em.prototypes;
+    using namespace World::Entities;
+    auto player = new World::Entities::Player(pm);
+    auto itemStack = new World::Entities::ItemStack(pm);
+    auto monster = new World::Entities::Monster(pm);
+    auto spider = new Spider(pm);
+    auto grenade = new World::Entities::Grenade(pm);
+
+    ItemPrototype* prototypes[] = {
+        player, itemStack, monster, spider, grenade
+    };
+
+    for (int i = 0; i < sizeof(prototypes) / sizeof(prototypes[0]); i++) {
         pm.add(prototypes[i]);
     }
 }
@@ -48,8 +66,9 @@ void GameState::init(const TextureManager* textureManager) {
     }
 
     /* Init ECS */
-    //ecs = EntityWorld();
-    World::setEventCallbacks(ecs, chunkmap);
+    ecs = EntityWorld::init(&chunkmap);
+    makeEntityPrototypes(*ecs);
+    World::setEventCallbacks(*ecs, chunkmap);
 
     /* Init Items */
     {
@@ -62,7 +81,7 @@ void GameState::init(const TextureManager* textureManager) {
     loadTileData(itemManager, textureManager);
 
     /* Init Player */
-    player = Player(&ecs, Vec2(0, 0), itemManager);
+    player = Player(ecs, Vec2(0, 0), itemManager);
 
     ItemStack startInventory[] = {
         ItemStack(items::Prototypes::SandGun::make(itemManager)),
@@ -70,7 +89,6 @@ void GameState::init(const TextureManager* textureManager) {
         ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::Grass), 64),
         ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::Sand), 24),
         ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::TransportBelt), 200),
-       // ItemStack(items::Items::tile(itemManager, TileTypes::Grass), 2)
     };
 
     Inventory* playerInventory = player.inventory();
@@ -81,7 +99,8 @@ void GameState::init(const TextureManager* textureManager) {
 
 void GameState::destroy() {
     chunkmap.destroy();
-    ecs.destroy();
+    ecs->destroy();
+    delete ecs;
 }
 
 llvm::SmallVector<IVec2> raytraceDDA(const Vec2 start, const Vec2 end) {
@@ -143,74 +162,6 @@ llvm::SmallVector<IVec2> raytraceDDA(const Vec2 start, const Vec2 end) {
     
     return line;
 }
-
-/*
-* Get a line of chunk coordinates from start to end, using DDA.
-* Returns a line of size lineSize that must be freed using free()
-* @param lineSize a pointer to an int to be filled in the with size of the line.
-
-IVec2* worldChunkLine(Vec2 startChunkCoord, Vec2 endChunkCoord, int* lineSize) {
-    IVec2 startChunk = vecFloori(startChunkCoord);
-    IVec2 endChunk = vecFloori(endChunkCoord);
-    IVec2 delta = endChunk - startChunk;
-    int lineTileLength = (abs(delta.x) + abs(delta.y)) + 1;
-    IVec2* line = Alloc<IVec2>(lineTileLength);
-    if (lineSize) *lineSize = lineTileLength;
-
-    Vec2 dir = glm::normalize((Vec2)(endChunk - startChunk));
-
-    IVec2 mapCheck = startChunk;
-    Vec2 unitStep = {sqrt(1 + (dir.y / dir.x) * (dir.y / dir.x)), sqrt(1 + (dir.x / dir.y) * (dir.x / dir.y))};
-    Vec2 rayLength;
-    IVec2 step;
-    if (dir.x < 0) {
-        step.x = -1;
-        rayLength.x = (start.x - mapCheck.x) * unitStep.x;
-    } else {
-        step.x = 1;
-        rayLength.x = ((mapCheck.x + 1) - start.x) * unitStep.x;
-    }
-    if (dir.y < 0) {
-        step.y = -1;
-        rayLength.y = (start.y - mapCheck.y) * unitStep.y;
-    } else {
-        step.y = 1;
-        rayLength.y = ((mapCheck.y + 1) - start.y) * unitStep.y;
-    }
-
-    // have to check for horizontal and vertical lines because of divison by zero things
-
-    // horizontal line
-    if (startTile.y == endTile.y) {
-        for (int i = 0; i < lineTileLength; i++) {
-            line[i] = mapCheck;
-            mapCheck.x += step.x;
-        }
-    }
-    // vertical line
-    else if (startTile.x == endTile.x) {
-        for (int i = 0; i < lineTileLength; i++) {
-            line[i] = mapCheck;
-            mapCheck.y += step.y;
-        }
-    }
-    // any other line
-    else {
-        for (int i = 0; i < lineTileLength; i++) {
-            line[i] = mapCheck;
-            if (rayLength.x < rayLength.y) {
-                mapCheck.x += step.x;
-                rayLength.x += unitStep.x;
-            } else {
-                mapCheck.y += step.y;
-                rayLength.y += unitStep.y;
-            }
-        }
-    }
-    
-    return line;
-}
-*/
 
 void worldLineAlgorithm(Vec2 start, Vec2 end, const std::function<int(IVec2)>& callback) {
     Vec2 delta = end - start;

@@ -110,7 +110,7 @@ std::vector<GameAction> PlayerControls::handleClick(const SDL_MouseButtonEvent& 
                 }
 
                 // find entity to select
-                auto entityOnMouse = findPlayerFocusedEntity(game->state->ecs, game->state->chunkmap, mouseWorldPos);
+                auto entityOnMouse = findPlayerFocusedEntity(*game->state->ecs, game->state->chunkmap, mouseWorldPos);
                 if (entityOnMouse.NotNull()) {
                     clickOnEntity(entityOnMouse);
                 }
@@ -148,35 +148,36 @@ void PlayerControls::rightMouseHeld(const MouseState& mouse) {
 
 void PlayerControls::clickOnEntity(Entity clickedEntity) {
     namespace EC = World::EC;
+    auto& ecs = *game->state->ecs;
 
     Entity* selectedEntity = &game->state->player.selectedEntity;
     // if the entity is already selected, deselect it, otherwise select the new one
     if (clickedEntity == *selectedEntity) {
-        game->state->ecs.Remove<EC::Selected>(clickedEntity);
+        ecs.Remove<EC::Selected>(clickedEntity);
         *selectedEntity = NullEntity;
     } else {
-        if (game->state->ecs.EntityHas<EC::Selected>(*selectedEntity)) {
-            game->state->ecs.Remove<EC::Selected>(*selectedEntity);
+        if (ecs.EntityHas<EC::Selected>(*selectedEntity)) {
+            ecs.Remove<EC::Selected>(*selectedEntity);
         }
-        game->state->ecs.Add<EC::Selected>(clickedEntity, {});
+        ecs.Add<EC::Selected>(clickedEntity, {});
         *selectedEntity = clickedEntity;
     }
     
-    if (game->state->ecs.EntityHas<EC::Render, EC::EntityTypeEC>(*selectedEntity)) {
+    if (ecs.EntityHas<EC::Render, EC::EntityTypeEC>(*selectedEntity)) {
         auto e = *selectedEntity;
-        const char* name = game->state->ecs.Get<EC::EntityTypeEC>(e)->name;
+        const char* name = ecs.Get<EC::EntityTypeEC>(e)->name;
         LogInfo("name: %s | id: %d", name, e.id);
-        auto* box = game->state->ecs.Get<EC::CollisionBox>(e);
-        auto* position = game->state->ecs.Get<EC::Position>(e);
+        auto* box = ecs.Get<EC::CollisionBox>(e);
+        auto* position = ecs.Get<EC::Position>(e);
         if (box && position) {
             LogInfo("position: %.1f,%.1f", position->x, position->y);
             LogInfo("size: %.1f,%.1f", box->box.size.x, box->box.size.y);
         }
     }
-    if (game->state->ecs.EntityHas<EC::Grabbable, EC::ItemStack>(*selectedEntity)) {
-        ItemStack itemGrabbed = game->state->ecs.Get<EC::ItemStack>(*selectedEntity)->item;
+    if (ecs.EntityHas<EC::Grabbable, EC::ItemStack>(*selectedEntity)) {
+        ItemStack itemGrabbed = ecs.Get<EC::ItemStack>(*selectedEntity)->item;
         game->state->player.inventory()->addItemStack(itemGrabbed);
-        game->state->ecs.Destroy(*selectedEntity);
+        ecs.Destroy(*selectedEntity);
     }
 }
 
@@ -239,7 +240,7 @@ void PlayerControls::handleKeydown(const SDL_KeyboardEvent& event) {
             if (heldItemStack && heldItemStack->get()) {
                 ItemStack dropStack = ItemStack(heldItemStack->get()->item, 1);
                 heldItemStack->get()->reduceQuantity(1);
-                World::Entities::ItemStack(&game->state->ecs, mouseWorldPos, dropStack, game->state->itemManager);
+                World::Entities::ItemStack::make(game->state->ecs, mouseWorldPos, dropStack, game->state->itemManager)();
             }
         break;} 
         case 'h': {
@@ -336,15 +337,15 @@ std::vector<GameAction> PlayerControls::handleEvent(const SDL_Event* event) {
 void PlayerControls::doPlayerMovementTick() {
     if (enteringText) return; // dont move player while typing... duh
 
-    g.playerMovement = {0.0f, 0.0f};
+    Global.playerMovement = {0.0f, 0.0f};
 
     int sidewaysInput = keyboard.keyState[SDL_SCANCODE_D] - keyboard.keyState[SDL_SCANCODE_A];
     int updownInput = keyboard.keyState[SDL_SCANCODE_W] - keyboard.keyState[SDL_SCANCODE_S];
     int rotationInput = keyboard.keyState[SDL_SCANCODE_Q] - keyboard.keyState[SDL_SCANCODE_E];
 
     Entity playerEntity = game->state->player.entity;
-    if (game->state->ecs.EntityHas<World::EC::Rotation, World::EC::ViewBox>(playerEntity)) {
-        auto playerRotation = game->state->ecs.Get<World::EC::Rotation>(playerEntity);
+    if (game->state->ecs->EntityHas<World::EC::Rotation, World::EC::ViewBox>(playerEntity)) {
+        auto playerRotation = game->state->ecs->Get<World::EC::Rotation>(playerEntity);
         if (sidewaysInput || updownInput) {
             glm::vec2 moveVector = glm::normalize(glm::vec2(sidewaysInput, updownInput));
             float angle = glm::radians(playerRotation->degrees);
@@ -354,7 +355,7 @@ void PlayerControls::doPlayerMovementTick() {
             ) * PLAYER_SPEED;
 
             movePlayer(movement);
-            g.playerMovement = movement;
+            Global.playerMovement = movement;
         }
         
         playerRotation->degrees += rotationInput * PLAYER_ROTATION_SPEED;

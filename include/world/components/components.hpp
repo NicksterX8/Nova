@@ -38,52 +38,10 @@ namespace ComponentIDs {
         Special, TransportLineEC, Transporter, Dying, Fresh, \
         ItemStack, Rotation, Rotatable, Explosion, \
         Explosive, Growth, Point, EntityTypeEC
-    #define WORLD_PROTOTYPE_COMPONENT_LIST Temp
+    #define WORLD_PROTOTYPE_COMPONENT_LIST \
+        Hostile, Nature, EntityRenderLayer, Living
     #define WORLD_COMPONENT_LIST WORLD_REGULAR_COMPONENT_LIST COMMA WORLD_PROTOTYPE_COMPONENT_LIST
     GEN_IDS(ComponentIDs, ComponentID, WORLD_COMPONENT_LIST, Count)
-};
-
-//using SerializerOutput = void (*)(RawArray);
-using SerializerOutput = const std::function<void(RawArray)>&;
-
-template<class T>
-int defaultSerializer(const T* components, Uint32 count, SerializerOutput output) {
-    output(RawArray(components, sizeof(T) * count));
-}
-
-template<class T>
-int defaultDeserializer(T* components, Uint32 count, const char* serialized) {
-    memcpy(components, serialized, sizeof(T) * count);
-}
-
-template<class T>
-using Serializer = int(const T*, Uint32, SerializerOutput);
-
-template<class T>
-using Deserializer = int(T*, Uint32, const char* serialized);
-
-template<class T>
-struct Serializable {
-    static int Serialize(const T* components, Uint32 count, SerializerOutput output) {
-        output(RawArray(components, sizeof(T) * count));
-        return 0;
-    }
-
-    static int Deserialize(T* components, Uint32 count, const char* serialized) {
-        memcpy(components, serialized, sizeof(T) * count);
-        return 0;
-    }
-};
-
-template<class T>
-struct EntityComponent : public ECS::Component {
-    private:
-        static void testSerialization() {
-            T::Serialize(NULL, 0, NULL);
-            T::Deserialize(NULL, 0, NULL);
-        }
-    public:
-
 };
 
 using ECS::Entity;
@@ -177,15 +135,6 @@ BEGIN_COMPONENT(Size)
     };
 END_COMPONENT(Size)
 
-/*
-BEGIN_COMPONENT(Render)
-    TextureID texture;
-    int layer;
-
-    Render(TextureID texture, int layer) : texture(texture), layer(layer) {}
-END_COMPONENT()
-*/
-
 #define RENDER_COMPONENT_MAX_TEX 3
 BEGIN_COMPONENT(Render)
     static constexpr Box FullBox = Box{Vec2(0), Vec2(1)};
@@ -230,10 +179,6 @@ END_COMPONENT(Explosion)
 BEGIN_COMPONENT(Explosive)
     Explosion explosion;
 
-    struct SerializationData {
-        char explosionName[64];
-    };
-
     Explosive(const Explosion& explosion) : explosion(explosion) {
 
     }
@@ -276,37 +221,6 @@ BEGIN_COMPONENT(Inventory)
     ::Inventory inventory;
 
     Inventory(::Inventory inventory) : inventory(inventory) {}
-
-    /*
-    static int Serialize(const Inventory* components, Uint32 count, SerializerOutput output) {
-        for (Uint32 i = 0; i < count; i++) {
-            const ::Inventory& inventory = components[i].inventory;
-
-            output(RawArray(inventory.size));
-            output(RawArray(inventory.items, inventory.size * sizeof(::ItemStack)));
-        }
-        return 0;
-    }
-
-    static int Deserialize(Inventory* components, Uint32 count, const char* serialized) {
-        
-        
-        const void* component = serialized;
-        for (Uint32 i = 0; i < count; i++) {
-            Uint32 size = *static_cast<const Uint32*>(component);
-            const ::ItemStack* items = (const ::ItemStack*)((const char*)component + sizeof(Uint32));
-            items::Inventory* inventory = &static_cast<EC::Inventory*>(components)[i].inventory;
-
-            inventory-> = items::Inventory(size);
-            memcpy(inventory->items, items, sizeof(::ItemStack) * size);
-            component = (const char*)component + (sizeof(size) + (sizeof(::ItemStack) * size));
-
-            // PROBABLY LEAKING MEMORY ON LOAD BECAUSE OF INVENTORY
-        }
-        return 0;
-        
-    }
-    */
 END_COMPONENT(Inventory)
 
 BEGIN_COMPONENT(Dying)
@@ -402,11 +316,17 @@ END_COMPONENT(Dynamic)
 BEGIN_COMPONENT(Selected)
 END_COMPONENT(Selected)
 
+namespace Proto {
+    BEGIN_PROTO_COMPONENT(Hostile)
+    END_PROTO_COMPONENT(Hostile)
 
-// proto components
-BEGIN_PROTO_COMPONENT(Temp)
-    int x;
-END_PROTO_COMPONENT(Temp)
+    FLAG_PROTO_COMPONENT(Nature)
+    FLAG_PROTO_COMPONENT(Living)
+
+    BEGIN_PROTO_COMPONENT(EntityRenderLayer)
+        RenderLayer layer;
+    END_PROTO_COMPONENT(EntityRenderLayer)
+}
 
 };
 

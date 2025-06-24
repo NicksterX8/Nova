@@ -49,6 +49,10 @@ struct TextAlignment {
     #undef ALIGNMENT_CONST_DECL
 };
 
+inline Vec2 getAlignmentOffset(TextAlignment alignment, Vec2 size) {
+    return {(float)alignment.horizontal * 0.5f * size.x, (2 - (float)alignment.vertical) * 0.5f * size.y};
+}
+
 extern FT_Library freetype;
 
 inline int initFreetype() {

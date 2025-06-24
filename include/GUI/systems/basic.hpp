@@ -213,7 +213,8 @@ struct RenderBackgroundSystem : ISystem {
 
     static constexpr ComponentGroup<
         ReadOnly<EC::Border>,
-        ReadOnly<EC::ViewBox>
+        ReadOnly<EC::ViewBox>,
+        Subtract<EC::Hidden>
     > borderGroup;
 
 

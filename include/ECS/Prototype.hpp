@@ -82,7 +82,8 @@ struct Prototype {
 
     My::Vec<void*> allocations = My::Vec<void*>::Empty();
 
-    /* Customizable, universal components */
+    /* universal components */
+    std::string name;
 
     /* Constructors */
 
@@ -107,6 +108,10 @@ struct Prototype {
     virtual void onCreate() {}
 
     /* Regular */
+
+    void setName(const char* name) {
+        this->name = name;
+    }
 
     bool has(ComponentID id) const {
         return signature[id];
@@ -141,7 +146,7 @@ struct Prototype {
         if (component) {
             *component = value;
         } else {
-            LogError("Attempted to set unowned prototype component (%s)", componentInfo.name(C::ID));
+            LogError("Attempted to set unowned prototype component (%s)", componentInfo.get(C::ID).name);
         }
     }
 
@@ -150,7 +155,7 @@ struct Prototype {
         auto component = get<C>();
         if (component) {
             *component = value;
-            LogWarn("Component (%s) already attached to this prototype!", componentInfo.name(C::ID));
+            LogWarn("Component (%s) already attached to this prototype!", componentInfo.get(C::ID).name);
         } else {
             C* storage = Alloc<C>(1);
             allocations.push(storage);
