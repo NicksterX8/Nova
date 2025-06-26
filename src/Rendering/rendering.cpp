@@ -281,9 +281,6 @@ int setConstantShaderUniforms(RenderContext& ren) {
     sdf.setFloat("smoothing", 0.01f);
     sdf.setFloat("outlineDistance", 0.5f);
     sdf.setVec4("outlineColor", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-    sdf.setVec4("shadowColor", glm::vec4(0.0f, 0.0f, 0.0f, 0.5f));
-    sdf.setVec2("shadowOffset", glm::vec2(0.005f, 0.005f));
-    sdf.setFloat("shadowSmoothing", 0.1f);
 
     mgr.use(Shaders::Texture).setInt("tex", TextureUnit::Random);
 

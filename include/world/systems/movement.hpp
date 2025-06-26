@@ -19,9 +19,12 @@ struct FindChangedEntitiesJob : IJobParallelFor {
     bool* posChanged;
     // TODO: replace with threadsafe queue
 
-    FindChangedEntitiesJob(JobGroup group, bool* posChangedArray) 
-    : IJobParallelFor(group), positions(this), dynamics(this), posChanged(posChangedArray) {
+    FindChangedEntitiesJob(bool* posChangedArray) 
+    : posChanged(posChangedArray) {}
 
+    void Init(JobData& data) {
+        data.getComponentArray(positions);
+        data.getComponentArray(dynamics);
     }
 
     void Execute(int N) {
@@ -39,8 +42,13 @@ struct ChangeEntityPosJob : IJobSingleThreaded {
 
     ChunkMap* chunkmap;
 
-    ChangeEntityPosJob(JobGroup group, bool* posChangedArray, ChunkMap* chunkmap)
-    : IJobSingleThreaded(group), oldPositions(this), newPositions(this), viewboxes(this), entities(this), posChanged(posChangedArray), chunkmap(chunkmap) {}
+    ChangeEntityPosJob(bool* posChangedArray, ChunkMap* chunkmap)
+    : posChanged(posChangedArray), chunkmap(chunkmap) {}
+
+    void Init(JobData& data) {
+        data.getComponentArrays(oldPositions, newPositions, viewboxes);
+        data.getEntityArray(entities);
+    }
 
     void Execute(int N) {
         if (LLVM_UNLIKELY(posChanged[N])) {
@@ -71,8 +79,8 @@ struct DynamicEntitySystem : ISystem {
 
     void ScheduleJobs() {
         bool* posChangedArray = makeTempGroupArray<bool>(dynamicGroup);
-        Schedule(new ChangeEntityPosJob(&dynamicGroup, posChangedArray, chunkmap), 
-            Schedule(new FindChangedEntitiesJob(&dynamicGroup, posChangedArray)));
+        Schedule(dynamicGroup, ChangeEntityPosJob(posChangedArray, chunkmap), 
+            Schedule(dynamicGroup, FindChangedEntitiesJob(posChangedArray)));
     }
 };
 

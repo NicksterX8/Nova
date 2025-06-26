@@ -53,8 +53,12 @@ struct GetEntityRotationsJob : IJobParallelFor {
     GLfloat* outRotation;
 
     GetEntityRotationsJob(JobGroup group, GLfloat* outRotation)
-    : IJobParallelFor(group), rotation(this), outRotation(outRotation) {
+    : outRotation(outRotation) {
 
+    }
+
+    void Init(JobData& data) {
+        data.getComponentArrays(rotation);
     }
 
     void Execute(int N) {
@@ -67,8 +71,8 @@ struct DrawEntityViewBoxJob : IJobSingleThreaded {
 
     GuiRenderer& worldGuiRenderer;
 
-    DrawEntityViewBoxJob(JobGroup group, const Box* dimensions, GuiRenderer& worldGuiRenderer)
-    : IJobSingleThreaded(group), worldGuiRenderer(worldGuiRenderer) {}
+    DrawEntityViewBoxJob(const Box* dimensions, GuiRenderer& worldGuiRenderer)
+    : worldGuiRenderer(worldGuiRenderer) {}
 
     void Execute(int N) {
         constexpr SDL_Color rectColor = {255, 0, 255, 180};
@@ -83,7 +87,11 @@ struct GetEntityDimensionsJob : IJobParallelFor {
     Box* dimensions;
 
     GetEntityDimensionsJob(JobGroup group, Box* outDimensions)
-    : IJobParallelFor(group), positions(this), viewboxes(this), dimensions(outDimensions) {}
+    : dimensions(outDimensions) {}
+
+    void Init(JobData& data) {
+        data.getComponentArrays(positions, viewboxes);
+    }
 
     void Execute(int N) {
         Vec2 pos = positions[N].vec2();
@@ -95,15 +103,20 @@ struct GetEntityDimensionsJob : IJobParallelFor {
 };
 
 struct EntityColorJob : IJobParallelFor {
-    OptionalComponentArray<const EC::Health> maybeHealth;
-    OptionalComponentArray<const EC::Selected> maybeSelected;
+    ComponentArray<const EC::Health> maybeHealth;
+    ComponentArray<const EC::Selected> maybeSelected;
 
     glm::vec4* colors;
 
-    EntityColorJob(JobGroup group, glm::vec4* colors)
-    : IJobParallelFor(group),
-    maybeHealth(this, &EntityColorJob::healthExecute), maybeSelected(this, &EntityColorJob::selectedExecute),
-    colors(colors) {}
+    EntityColorJob(glm::vec4* colors)
+    : colors(colors) {}
+
+    void Init(JobData& data) {
+        data.getComponentArrayMaybe(maybeHealth);
+        data.getComponentArrayMaybe(maybeSelected);
+        data.setOptionalExecution<EC::Health>(&EntityColorJob::healthExecute);
+        data.setOptionalExecution<EC::Health>(&EntityColorJob::selectedExecute);
+    }
 
     // class laid out in execution order
     void Execute(int N) {
@@ -216,21 +229,6 @@ struct RenderEntitySystem : RenderSystem {
         // }
         
         
-    }
-
-    void ScheduleJobsOld() {
-        auto dimensions = makeTempGroupArray<Box>(minimalGroup);
-        GetEntityDimensionsJob(&minimalGroup, dimensions);
-
-        auto colors = makeTempGroupArray<glm::vec4>(minimalGroup);
-        EntityColorJob(&minimalGroup, colors);
-
-        auto rotations = makeTempGroupArray<GLfloat>(rotationGroup);
-        GetEntityRotationsJob(&rotationGroup, rotations);
-
-        if (Debug->settings["drawEntityViewBoxes"]) {
-            DrawEntityViewBoxJob(&minimalGroup, dimensions, ren.guiRenderer);
-        }
     }
 
     void ScheduleJobs() {

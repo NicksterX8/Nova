@@ -13,6 +13,7 @@
 #define WINDOW_HIGH_DPI 1
 
 #define USE_MULTITHREADING 1
+#define CACHE_LINE_SIZE 128
 
 #define GetTicks SDL_GetTicks
 #define GetPerformanceCounter SDL_GetPerformanceCounter

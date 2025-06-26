@@ -10,12 +10,13 @@ int threadEntry(void* threadDataPtr) {
         if (flags & ThreadData::FlagQuit) {
             break;
         }
-        if (flags & ThreadData::FlagTaskAvailable) {
-            int ret = data.function(threadData->userdata);
+        if (flags & ThreadData::FlagTaskAvailable && !(flags & ThreadData::FlagTaskComplete)) {
+            int ret = data.function(data.userdata);
             data.flags |= ThreadData::FlagTaskComplete;
-            data.flags ^= ThreadData::FlagTaskAvailable; // task no longer available as it is completed
             data.functionReturn = ret;
             threadData->data.store(data);
+        } else {
+            SDL_Delay(0);
         }
     }
     return 0;
@@ -27,25 +28,32 @@ ThreadID ThreadManager::openThread(ThreadFunction function, void* userdata) {
     closedThreads.pop_back();
     ThreadObject& thread = threads[unusedThread];
     thread.opened = true;
-    thread.data->userdata = userdata;
     ThreadData::ManagingData data{
         .flags = ThreadData::FlagTaskAvailable,
-        .function = function
+        .function = function,
+        .userdata = userdata
     };
     thread.data->data.store(data);
-    return unusedThread;
+    return threadIDs[unusedThread];
 }
 
+// same as wait thread but doesn't wait
 void ThreadManager::closeThread(ThreadID threadID) {
     if (threadID == NullThread) return;
-    ThreadObject* thread = getThread(threadID);
-    if (!thread) {
+    int threadIndex = getThreadIndex(threadID);
+    if (threadIndex == -1) {
         LogError("Failed to close thread with id %d!", threadID);
         return;
     }
+    ThreadObject* thread = &threads[threadIndex];
     thread->opened = false;
-    thread->data->userdata = nullptr;
-    closedThreads.push_back(threadID);
+    // don't think this is necessary. could be good for debugging tho
+    // auto data = thread->data->data.load();
+    // data.userdata = nullptr;
+    // assert(data.flags | ThreadData::FlagTaskAvailable);
+    // data.flags ^= ThreadData::FlagTaskAvailable;
+    // thread->data->data.store(data);
+    closedThreads.push_back(threadIndex);
 }
 
 int ThreadManager::waitThread(ThreadID threadID) {
@@ -53,18 +61,27 @@ int ThreadManager::waitThread(ThreadID threadID) {
         LogError("Tried to wait on null thread!");
         return -999;
     }
-    ThreadObject* thread = getThread(threadID);
-    if (!thread) {
+    int threadIndex = getThreadIndex(threadID);
+    if (threadIndex == -1) {
         LogError("There is no thread with id %d!", threadID);
         return -998;
     }
+    ThreadObject* thread = &threads[threadIndex];
+    assert(thread->opened && "Thread wasn't open in the first place!");
     auto data = readThreadManagingData(*thread);
     assert(data.flags & ThreadData::FlagTaskAvailable);
     // spin lock until task complete
+    int iterations = 0;
     while (!(data.flags & ThreadData::FlagTaskComplete)) {
         data = readThreadManagingData(*thread);
+        if (++iterations > 100000000) {
+            LogError("Never ending!");
+            return -1;
+        }
     }
     // task complete
+    thread->opened = false;
+    closedThreads.push_back(threadIndex);
     return data.functionReturn;
 }
 
@@ -78,7 +95,7 @@ void ThreadManager::initThreads(int threadCount) {
         threads.push_back({sdlThread, threadData, false});
         ThreadID id = threadIDCounter++;
         threadIDs.push_back(id);
-        closedThreads.push_back(id);
+        closedThreads.push_back(i);
     }
 
     LogInfo("Made %d threads", threadCount);

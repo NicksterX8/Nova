@@ -124,14 +124,55 @@ struct Charlie {
     }
 };
 
-int main() {
+struct Base {
+    using VirtualMethod = void (Base::*)(int N);
 
-    Charlie charlie = Charlie(0);
-    int* charliePtr = charlie.intPtr;
-    int* truePtr = &charlie.y;
-    if (charliePtr == truePtr)
-        printf("we ogood");
-    else 
-        printf("NOO");
+    int x;
+
+    VirtualMethod method;
+
+    template<typename MethodT>
+    Base(MethodT method) : method((VirtualMethod)method) {}
+};
+
+struct Alpha : Base {
+    int a = 20;
+
+    Alpha(int a) : Base(&Alpha::Execute), a(a) {}
+
+    void Execute(int N) {
+        printf("N: %d", N + a);
+    } 
+};
+
+struct FakeChild {
+    Base* base;
+    int size;
+};
+
+template<class T>
+FakeChild makeBase(T* basePtr) {
+    return {basePtr, sizeof(T)};
+}
+
+FakeChild copyBase(FakeChild fake) {
+    // make enough space for full structure
+    char* buf = new char[fake.size];
+    // copy full structure to copy
+    memcpy(buf, (void*)fake.base, fake.size);
+
+    Base* copyPtr = (Base*)buf;
+    return {copyPtr, fake.size};
+}
+
+// children and base must be trivially copyable (via memcpy)
+
+int main() {
+    auto bA = makeBase(new Alpha(20));
+
+    auto aCopy = copyBase(bA);
+    (aCopy.base->*aCopy.base->method)(5);
+
+    
     return 0;
 }

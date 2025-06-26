@@ -1,19 +1,20 @@
 #include "ECS/system.hpp"
 #include "llvm/SmallVector.h"
 #include "global.hpp"
+#include "moodycamel/concurrentqueue.h"
 
 using namespace ECS;
 using namespace ECS::System;
 
 
-int ECS::System::findEligiblePools(const IComponentGroup* group, const ECS::EntityManager& entityManager, std::vector<ArchetypePool*>* eligiblePools) {
+int ECS::System::findEligiblePools(const IComponentGroup& group, const ECS::EntityManager& entityManager, std::vector<ArchetypePool*>* eligiblePools) {
     int eligibleEntities = 0;
     for (int p = 0; p < entityManager.components.pools.size; p++) {
         auto& pool = entityManager.components.pools[p];
         if (pool.size == 0) continue;
         auto poolSignature = pool.archetype.signature;
-        if ((poolSignature & group->signature) == group->signature
-         && (poolSignature & group->subtract) == 0) {
+        if ((poolSignature & group.signature) == group.signature
+         && (poolSignature & group.subtract) == 0) {
             if (eligiblePools)
                 eligiblePools->push_back(&pool);
             eligibleEntities += pool.size;
@@ -22,18 +23,32 @@ int ECS::System::findEligiblePools(const IComponentGroup* group, const ECS::Enti
     return eligibleEntities;
 }
 
-int calculateJobStages(IJob* source, int stage, int* highestOfALL) {
+int calculateJobStagesFromSource(ISystem* system, IJob* source, JobHandle sourceHandle, int stage, int* highestOfALL) {
     int highestStage = stage;
-    for (IJob* dependentOnSource : source->thisDependentOn.jobDependencies) {
-        if (highestStage < dependentOnSource->stage) {
-            highestStage = dependentOnSource->stage;
+    auto& dependencies = system->jobDependencies[sourceHandle];
+    for (JobHandle dependentOnSource : dependencies) {
+        IJob* job = system->jobs[dependentOnSource].job;
+        if (highestStage < job->stage) {
+            highestStage = job->stage;
         }
-        if (dependentOnSource->stage <= stage) {
-            calculateJobStages(dependentOnSource, stage + 1, highestOfALL);
-            *highestOfALL = MAX(*highestOfALL, dependentOnSource->stage);
+        if (job->stage <= stage) {
+            calculateJobStagesFromSource(system, job, dependentOnSource, stage + 1, highestOfALL);
         }
     }
     source->stage = highestStage;
+    *highestOfALL = MAX(*highestOfALL, highestStage);
+    return highestStage;
+}
+
+// returns highest stage
+int calculateJobStages(ISystem* system) {
+    int highestStage = -1;
+    for (int i = 0; i < system->jobs.size(); i++) {
+        IJob* job = system->jobs[i].job;
+        if (job->stage == IJob::NullStage) {
+            calculateJobStagesFromSource(system, job, i, 0, &highestStage);
+        }
+    }
     return highestStage;
 }
 
@@ -51,29 +66,16 @@ int calculateSystemStages(ISystem* source, int stage) {
     return highestStage;
 }
 
-int testThreads(void* ptr) {
-    int cnt;
-
-    for (cnt = 0; cnt < 10; ++cnt) {
-        SDL_Delay(50);
-    }
-
-    return cnt;
-}
-
-void example() {
-    ThreadManager& manager = Global.threadManager;
-
-    auto coolThread = manager.openThread(testThreads, nullptr);
-
-    int ret = manager.waitThread(coolThread);
-    LogInfo("thread return: %d", ret);
-
-    manager.closeThread(coolThread);
-}
-
 struct JobDistributor {
     static constexpr ThreadManager& threadManager = Global.threadManager;
+
+    std::vector<JobChunk> chunksToExecute;
+    using ThreadID = Threads::ThreadID;
+    std::vector<ThreadID> threads;
+
+    void init() {
+        
+    }
 
     /*
         input: a list of jobChunks that can all be executed in any order
@@ -85,9 +87,90 @@ struct JobDistributor {
     */
 };
 
-void jobTask(IJob* job) {
-    
-    
+// do a clone of the job using UB if you know the size of the actual derived job
+// must be freed with uglyCloneFree()
+IJob* uglyClone(const IJob* job, int jobSize) {
+    void* mem = SDL_aligned_alloc(CACHE_LINE_SIZE, jobSize);
+    memcpy(mem, (void*)job, jobSize);
+    return (IJob*)mem;
+}
+
+void uglyCloneFree(IJob* clone) {
+    SDL_aligned_free(clone);
+}
+
+// adds commands to commandBuffer
+// returns 0 on success, -1 on failure
+// make sure two threads are not using the same copy of the job, make a copy of the job before for multithreading
+// with executeJobChunkConcurrent
+int executeJobChunk(const JobChunk& chunk, IJob* job, EntityCommandBuffer* commandBuffer) {
+    //LogInfo("Executing job %p", job);
+    JobData data(chunk, commandBuffer);
+    job->Init(data);
+    if (data.failed()) {
+        return -1;
+    }
+    for (int e = chunk.indexBegin; e < chunk.indexEnd; e++) {
+        job->Execute(e);
+    }
+    auto additionalExecutions = data.getAdditionalExecutions();
+    for (auto& additionalExecution : additionalExecutions) {
+        for (int e = chunk.indexBegin; e < chunk.indexEnd; e++) {
+            (job->*additionalExecution)(e);
+        }
+    }
+    return 0;
+}
+
+int executeJobChunkConcurrent(const JobChunk& chunk, EntityCommandBuffer* commandsOut) {
+    IJob* copy = uglyClone(chunk.job, chunk.job->realSize);
+
+    int err = executeJobChunk(chunk, copy, commandsOut);
+
+    uglyCloneFree(copy);
+    return err;
+}
+
+struct JobThreadTask {
+   JobChunk chunk;
+};
+
+template<typename T>
+using SharedQueue = moodycamel::ConcurrentQueue<T>;
+
+struct ThreadData {
+    struct PerThread {
+        int threadNumber;
+        EntityCommandBuffer commandBuffer;
+    };
+    PerThread personal;
+    struct SharedData {
+        SharedQueue<JobThreadTask>* taskQueue;
+        bool quit = false;
+    };
+    SharedData* shared;
+};
+
+int executeJobTask(ThreadData* threadData, const JobThreadTask& task) {
+    int threadNumber = threadData->personal.threadNumber;
+    EntityCommandBuffer* chunkCommandBuffer = &threadData->personal.commandBuffer;
+    executeJobChunkConcurrent(task.chunk, chunkCommandBuffer);
+
+    return 0;
+}
+
+int jobThreadFunc(void* dataPtr) {
+    ThreadData* threadData = (ThreadData*)dataPtr;
+    auto& queue = threadData->shared->taskQueue;
+    JobThreadTask task;
+    while (!threadData->shared->quit) {
+        if (queue->try_dequeue(task)) {
+            int taskSuccess = executeJobTask(threadData, task);
+        } else {
+            break;
+        }
+    }
+    return 0;
 }
 
 void ECS::System::setupSystems(SystemManager& sysManager) {
@@ -101,43 +184,25 @@ void ECS::System::setupSystems(SystemManager& sysManager) {
     [](ISystem* lhs, ISystem* rhs){
         return lhs->systemOrder >= rhs->systemOrder;
     });
-
-    // do thread stuff
-    
-
 }
 
 void ECS::System::cleanupSystems(SystemManager& sysManager) {
     for (ISystem* system : sysManager.systems) {
-        for (IJob* job : system->jobs) {
-            delete job;
+        for (auto& scheduledJob : system->jobs) {
+           delete scheduledJob.job;
         }
     }
 }
 
-struct JobChunk {
-    IJob* job;
-    ArchetypePool* pool;
-    int poolOffset;
-    int groupOffset;
-    int size;
-};
-
 void ECS::System::executeSystems(SystemManager& sysManager) {
+    bool allowParallelization = true;
 
     int systemCount = sysManager.systems.size();
-    
-    
-    std::vector<EntityCommandBuffer> unexecutedCommands;
-
-    for (int i = 0; i < systemCount; i++) {
-        ISystem* system = sysManager.systems[i];
+    for (int s = 0; s < systemCount; s++) {
+        ISystem* system = sysManager.systems[s];
 
         if (system->flushCommandBuffers) {
-            for (auto& commandBuffer : unexecutedCommands) {
-                sysManager.entityManager->executeCommandBuffer(&commandBuffer);
-            }
-            unexecutedCommands.clear();
+            sysManager.entityManager->executeCommandBuffer(&sysManager.unexecutedCommands);
         }
         // systems still flush command buffers (if value is set) when disabled
         if (!system->enabled) continue;
@@ -145,102 +210,146 @@ void ECS::System::executeSystems(SystemManager& sysManager) {
         system->BeforeExecution();
 
         system->ScheduleJobs();
+        if (!system->jobs.empty()) {
+            int highestStage = calculateJobStages(system);
 
-        std::vector<IJob*> jobs;
-        
-        int highestStage = 0;
+            std::sort(system->jobs.begin(), system->jobs.end(), [](auto lhs, auto rhs){
+                return lhs.job->stage >= rhs.job->stage;
+            });
 
-        for (IJob* job : system->jobs) {
-            if (job->stage == IJob::NullStage) {
-                calculateJobStages(job, 0, &highestStage);
-            }
-        }
+            int entitiesInTask = 0;
 
-        std::sort(system->jobs.begin(), system->jobs.end(), [](IJob* lhs, IJob* rhs){
-            return lhs->stage >= rhs->stage;
-        });
+            int jobIndex = 0;
+            for (int stage = highestStage; stage >= 0; stage--) {
 
-        int entitiesInTask = 0;
+                // break jobs up into chunks
+                std::vector<JobChunk> jobThreadChunks;
+                std::vector<JobChunk> mainThreadChunks; // chunks to be run on main thread (this one)
+                std::vector<JobChunk> blockingChunks; // chunks that can only be run when no other jobs are running
+                
+                // split jobs into chunks while the stage is the same
+                for (; jobIndex < system->jobs.size(); jobIndex++) {
+                    auto& scheduledJob = system->jobs[jobIndex];
+                    if (scheduledJob.job->stage < stage) {
+                        break;
+                    }
+                    IJob* job = scheduledJob.job;
+                    const IComponentGroup& group = scheduledJob.group;
+                    std::vector<ArchetypePool*> eligiblePools;
+                    int totalJobEntities = findEligiblePools(group, *sysManager.entityManager, &eligiblePools);
 
-        std::vector<JobChunk> chunks;
+                    int groupEntityOffset = 0;
+                    for (ArchetypePool* pool : eligiblePools) {
+                        // break up into chunks if pool is large enough.
+                        // make it really small chunks so we can actually test
+                        std::vector<JobChunk>* chunks;
+                        if (job->needMainThread || !job->parallelize || !allowParallelization) {
+                            chunks = &mainThreadChunks;
+                        } else if (job->blocking) {
+                            chunks = &blockingChunks;
+                            assert(!job->parallelize && "Blocking job can't be parallelized!");
+                        } else {
+                            chunks = &jobThreadChunks;
+                        }
+                        int ChunkSize = (job->parallelize && allowParallelization) ? 4 : pool->size;
+                        
+                        int remainderChunkSize = pool->size % ChunkSize;
+                        if (remainderChunkSize > 0) {
+                            JobChunk chunk = {
+                                .job = job,
+                                .pool = pool,
+                                .indexBegin = groupEntityOffset,
+                                .indexEnd = groupEntityOffset + remainderChunkSize,
+                                .poolOffset = 0,
+                            };
+                            chunks->push_back(chunk);
+                        }
+                        int additionalChunkCount = pool->size / ChunkSize;
+                        for (int i = 0; i < additionalChunkCount; i++) {
+                            JobChunk chunk = {
+                                .job = job,
+                                .pool = pool,
+                                .indexBegin = groupEntityOffset + remainderChunkSize,
+                                .indexEnd = groupEntityOffset + ChunkSize + remainderChunkSize,
+                                .poolOffset = i * ChunkSize + remainderChunkSize
+                            };
+                            chunks->push_back(chunk);
+                        }
+                        groupEntityOffset += pool->size;
+                    }
+                }
 
-        for (IJob* job : system->jobs) {
-            JobGroup group = job->group;
-            std::vector<ArchetypePool*> eligiblePools;
-            findEligiblePools(group, *sysManager.entityManager, &eligiblePools);
+                // determine how many threads we should use
+                // TODO: DEBUG: high thread count
+                int idealThreadCount = (int)ceil(jobThreadChunks.size() / 4.0f); // using incredibly high number for testing
+                idealThreadCount = MIN(idealThreadCount, Global.threadManager.unusedThreads());
 
-            int groupEntityOffset = 0;
-            for (ArchetypePool* pool : eligiblePools) {
-                // break up into chunks if pool is large enough.
-                // make it really small chunks so we can actually test
-                constexpr int ChunkSize = 4;
-                int remainderChunkSize = pool->size % ChunkSize;
-                chunks.push_back({job, pool, 0, groupEntityOffset, remainderChunkSize});
-                int additionalChunkCount = pool->size / ChunkSize;
-                for (int i = 0; i < additionalChunkCount; i++) {
-                    JobChunk chunk = {
-                        .job = job,
-                        .pool = pool,
-                        .poolOffset = i * ChunkSize,
-                        .groupOffset = groupEntityOffset,
-                        .size = ChunkSize
+                llvm::SmallVector<Threads::ThreadID, 8> threads;
+                llvm::SmallVector<ThreadData, 8> perThreadData;
+
+                auto concurrentQueue = SharedQueue<JobThreadTask>();
+                if (idealThreadCount > 0 && allowParallelization) {
+                    std::vector<JobThreadTask> tasks;
+                    tasks.reserve(jobThreadChunks.size());
+                    for (int i = 0; i < jobThreadChunks.size(); i++) {
+                        tasks.push_back(JobThreadTask{jobThreadChunks[i]});
+                    }
+
+                    // add tasks to queue
+                    concurrentQueue.enqueue_bulk(tasks.data(), tasks.size());
+
+                    ThreadData::SharedData sharedThreadData = ThreadData::SharedData {
+                        .taskQueue = &concurrentQueue,
+                        .quit = false
                     };
-                    chunks.push_back(chunk);
+                    
+                    threads.reserve(idealThreadCount);
+                    perThreadData.resize(idealThreadCount, ThreadData{
+                        .shared = &sharedThreadData,
+                    });
+                    for (int i = 0; i < idealThreadCount; i++) {
+                        perThreadData[i].personal.threadNumber = i;
+                        Threads::ThreadID thread = Global.threadManager.openThread(jobThreadFunc, &perThreadData[i]);
+                        if (thread) {
+                            threads.push_back(thread);
+                        } else {
+                            // no point trying to keep opening threads after it already failed
+                            break;
+                        }
+                    }
                 }
-                groupEntityOffset += pool->size;
-            }
 
-            unexecutedCommands.push_back(job->commands);
+                if (threads.size() == 0 && !jobThreadChunks.empty()) {
+                    // give up on multithreading
+                    // make main thread run all chunks regardless of if they can be parallelized
+                    // add all job thread chunks to main thread chunks
+                    mainThreadChunks.insert(mainThreadChunks.end(), jobThreadChunks.begin(), jobThreadChunks.end());
+                    jobThreadChunks.clear();
+                }
+
+                // do main thread jobs after we have queued up job thread jobs
+                for (int i = 0; i < mainThreadChunks.size(); i++) {
+                    auto& chunk = mainThreadChunks[i];
+                    // put commands straight into unexecuted command list
+                    executeJobChunk(chunk, chunk.job, &sysManager.unexecutedCommands);
+                }
+
+                // wait for threads to finish jobs
+                for (int i = 0; i < threads.size(); i++) {
+                    int ret = Global.threadManager.waitThread(threads[i]);
+                    // add thread command buffer to unexecuted command list
+                    sysManager.unexecutedCommands.combine(perThreadData[i].personal.commandBuffer);
+                }
+
+                // do blocking jobs after job threads have closed
+                for (int i = 0; i < blockingChunks.size(); i++) {
+                    auto& chunk = blockingChunks[i];
+                    // put commands straight into unexecuted command list
+                    executeJobChunk(chunk, chunk.job, &sysManager.unexecutedCommands);
+                }
+            }
         }
-
-        for (JobChunk& chunk : chunks) {
-            IJob* job = chunk.job;
-            ArchetypePool* pool = chunk.pool;
-
-            llvm::SmallVector<OptionalExecuteType> optionalExecutes;
-            // make sure job arrays are referencing the correct data
-            for (AbstractGroupArray* array : job->arrays) {
-                ComponentID neededComponent = array->componentType;
-                if (neededComponent != -1) {
-                    if (!job->group->signature[neededComponent]) {
-                        LogError("Group not allowed to access component %d", neededComponent);
-                    }
-                    if (!array->readonly && !job->group->write[neededComponent]) {
-                        LogError("Component array without write permissions not marked read only. Review group permissions");
-                    }
-                    int neededComponentIndex = pool->archetype.getIndex(neededComponent);
-                    if (neededComponentIndex == -1) {
-                        if (!array->optional) {
-                            LogCritical("Couldn't get component pool for %d", neededComponent);
-                            assert(0);
-                        }
-                    } else {
-                        char* poolComponentArray = pool->getBuffer(neededComponentIndex);
-                        Uint16 componentSize = pool->archetype.sizes[neededComponentIndex];
-                        array->data = poolComponentArray - (chunk.groupOffset * componentSize);
-                        if (array->optionalExecute) {
-                            optionalExecutes.push_back(array->optionalExecute);
-                        }
-                    }
-                } else if (array->entityArray) {
-                    array->data = chunk.pool->entities - chunk.groupOffset;
-                } else {
-                    LogError("Array doesn't seem to have any type. what up?");
-                }
-            }
-
-            // execute job per pool of entities
-            for (int e = 0; e < chunk.size; e++) {
-                job->Execute(chunk.groupOffset + chunk.poolOffset + e);
-            }
-
-            for (OptionalExecuteType optionalExecute : optionalExecutes) {
-                for (int e = 0; e < chunk.size; e++) {
-                    (job->*optionalExecute)(chunk.groupOffset + chunk.poolOffset + e);
-                }
-            }
-        } // for each job end
-        system->jobs.clear();
+        system->clearJobs();
 
         // all jobs executed
         system->AfterExecution();
@@ -251,8 +360,6 @@ void ECS::System::executeSystems(SystemManager& sysManager) {
         system->tempAllocations.clear();
     } // for each system end
 
-    for (auto& commandBuffer : unexecutedCommands) {
-        sysManager.entityManager->executeCommandBuffer(&commandBuffer);
-    }
-    unexecutedCommands.clear();
+    // flush all commands at end of systems execution
+    sysManager.entityManager->executeCommandBuffer(&sysManager.unexecutedCommands);
 }

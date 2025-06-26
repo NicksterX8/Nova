@@ -21,6 +21,7 @@ entities aren't put into chunk entity list when created
 
 fix alignment for archetype pools
 now: atomic structures / multithreading
+optimize for components with no members (std::is_empty)
 
 text rendering is extremely slow right now? or at least the console. probably mainly that
 

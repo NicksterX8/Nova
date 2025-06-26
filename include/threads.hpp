@@ -14,11 +14,11 @@ namespace Threads {
 using ThreadFunction = int(*)(void*);
 
 struct ThreadData {
-    void* userdata = nullptr;
     struct ManagingData {
         uint32_t flags{0};
         ThreadFunction function = nullptr;
         int functionReturn = 0;
+        void* userdata = nullptr;
     };
     std::atomic<ManagingData> data;
 
@@ -45,7 +45,7 @@ using ThreadID = int;
 
 struct ThreadManager {
     std::vector<ThreadObject> threads;
-    static constexpr ThreadID NullThread = -1;
+    static constexpr ThreadID NullThread = 0;
     std::vector<int> closedThreads; // indices of threads that are closed
     std::vector<ThreadID> threadIDs;
 
@@ -57,6 +57,15 @@ private:
 
     void setThreadManagingData(ThreadObject& thread, const ThreadData::ManagingData& data) {
         thread.data->data.store(data);
+    }
+
+    int getThreadIndex(ThreadID id) {
+        for (int i = 0; i < threads.size(); i++) {
+            if (threadIDs[i] == id) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     ThreadObject* getThread(ThreadID id) {
@@ -78,7 +87,7 @@ public:
 
     void closeThread(ThreadID threadID);
 
-    // returns the return of the function
+    // returns the return of the function. automatically closes the thread, do not use the thread after this
     int waitThread(ThreadID threadID);
 
     void initThreads(int threadCount);

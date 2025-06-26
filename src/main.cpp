@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
         9999
     };
     SDLContext sdlCtx = initSDL(windowTitle.c_str(), windowRect);
-    
+    assert(CACHE_LINE_SIZE == SDL_GetCPUCacheLineSize() && "Incorrect cache line size constant!");
     
     if (Global.multithreadingEnabled) {
         int numCores = SDL_GetNumLogicalCPUCores();
