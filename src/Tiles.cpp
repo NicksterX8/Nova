@@ -64,17 +64,17 @@ void loadTileData(items::ItemManager& itemManager, const TextureManager* texture
     NewTile(Empty)
         Color({255, 255, 255, 255})
         Background(TextureIDs::Null)
-        Flags(Walkable)
+        Flags()
 
     NewTile(Grass)
         Color({92, 156, 55, 255})
         Background(TextureIDs::Tiles::Grass)
-        Flags(Walkable)
+        Flags()
 
     NewTile(Sand)
         Color({232, 230, 104, 255})
         Background(TextureIDs::Tiles::Sand)
-        Flags(Walkable)
+        Flags()
     
     NewTile(Water)
         Color({15, 125, 210, 255})
@@ -90,31 +90,31 @@ void loadTileData(items::ItemManager& itemManager, const TextureManager* texture
         SpaceFloor,
         {230, 230, 230, 255},
         TextureIDs::Tiles::SpaceFloor,
-        Walkable | Mineable);
+        Mineable);
 
      NewTile(Wall)
         Color({130, 130, 130, 255})
         Background(TextureIDs::Tiles::Wall)
-        Flags(Mineable)
+        Flags(Mineable, Solid)
         tile->mineable.item = items::Prototypes::Tile::make(itemManager, TileTypes::Wall);
 
     NewTile(GreyFloor)
         Color({230, 230, 230, 255})
         Background(TextureIDs::Tiles::GreyFloor)
-        Flags(Walkable, Mineable)
+        Flags(Mineable, Solid)
         tile->mineable.item = items::Prototypes::Tile::make(itemManager, TileTypes::GreyFloor);
     
     NewTile(GreyFloorOverhang)
         Color({230, 230, 230, 255})
         Background(TextureIDs::Tiles::GreyFloorOverhang)
-        Flags(Walkable, Mineable)
+        Flags(Mineable)
         tile->mineable.item = items::Prototypes::Tile::make(itemManager, TileTypes::GreyFloor);
 
     NewTile(TransportBelt)
         Color({255, 255, 255, 255});
         Background(TextureIDs::Buildings::TransportBelt)
         Animation(TextureIDs::Buildings::TransportBeltAnimation)
-        Flags(Walkable, Mineable)
+        Flags(Mineable)
         tile->mineable.item = items::Prototypes::Tile::make(itemManager, TileTypes::TransportBelt);
 }
 

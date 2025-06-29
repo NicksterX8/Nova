@@ -282,6 +282,16 @@ namespace Commands {
         return RES_SUCCESS("Showing texture");
     }
 
+    Result toggleWireframeMode(Args args, int) {
+        static bool wireframeModeEnabled = false;
+        if (!wireframeModeEnabled)
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        else
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        wireframeModeEnabled ^= 1;
+        return RES_SUCCESS(wireframeModeEnabled ? "Wireframe mode enabled" : "Wireframe mode disabled");
+    }
+
     Result reloadShader(Args args, RenderContext* renderContext) {
         auto shaderName = args.get();
         if (shaderName.empty()) return RES_ERROR("No shader given");
@@ -543,6 +553,7 @@ void setCommands(Game* game) {
     REG_COMMAND(setUniform, ren->shaders);
     REG_COMMAND(pause, game);
     REG_COMMAND(resume, game);
+    REG_COMMAND(toggleWireframeMode, 0);
 }
 
 CommandInput processMessage(std::string message, ArrayRef<Command> possibleCommands) {

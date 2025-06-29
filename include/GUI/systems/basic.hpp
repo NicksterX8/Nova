@@ -18,16 +18,12 @@ IJob* cloneJob(const Job& job) {
     return new Job(job);
 }
 
-struct EnforceMaxSizeJob : IJobParallelFor {
+JOB_PARALLEL_FOR(EnforceMaxSizeJob) {
 
     ComponentArray<GUI::EC::ViewBox> viewbox;
     ComponentArray<const GUI::EC::SizeConstraint> maxSize;
 
     const Entity* entity;
-
-    IJob* Clone() const {
-        return cloneJob(EnforceMaxSizeJob());
-    }
 
     void Init(JobData& data) {
         data.getComponentArray(viewbox);
@@ -41,7 +37,7 @@ struct EnforceMaxSizeJob : IJobParallelFor {
     }
 };
 
-struct EnforceMinSizeJob : IJobParallelFor {
+JOB_PARALLEL_FOR(EnforceMinSizeJob) {
     ComponentArray<GUI::EC::ViewBox> viewbox;
     ComponentArray<const GUI::EC::SizeConstraint> minSize;
 
@@ -72,13 +68,11 @@ struct SizeConstraintSystem : ISystem {
     }
 };
 
-struct GetViewLevelsJob : IJobParallelFor {
+JOB_PARALLEL_FOR(GetViewLevelsJob) {
     ComponentArray<const EC::ViewBox> viewbox;
+    MutArrayRef<GuiRenderLevel> levels;
 
-    GuiRenderLevel* levels;
-
-    GetViewLevelsJob(GuiRenderLevel* levels)
-    : levels(levels) {}
+    GetViewLevelsJob(MutArrayRef<GuiRenderLevel> levels) : levels(levels) {}
 
     void Init(JobData& data) {
         data.getComponentArrays(viewbox);
@@ -89,12 +83,12 @@ struct GetViewLevelsJob : IJobParallelFor {
     }
 };
 
-struct BoxToQuadJob : IJobParallelFor {
+JOB_PARALLEL_FOR(BoxToQuadJob) {
     ComponentArray<const EC::ViewBox> viewbox;
 
-    QuadRenderer::Quad* quads;
+    MutArrayRef<QuadRenderer::Quad> quads;
 
-    BoxToQuadJob(QuadRenderer::Quad* quadsArray) : quads(quadsArray) {
+    BoxToQuadJob(MutArrayRef<QuadRenderer::Quad> quadsArray) : quads(quadsArray) {
         
     }
 
@@ -114,12 +108,12 @@ struct BoxToQuadJob : IJobParallelFor {
     }
 };
 
-struct ColorToQuadJob : IJobParallelFor {
+JOB_PARALLEL_FOR(ColorToQuadJob) {
     ComponentArray<const EC::Background> background;
 
-    QuadRenderer::Quad* quads;
+    MutArrayRef<QuadRenderer::Quad> quads;
 
-    ColorToQuadJob(QuadRenderer::Quad* quadsArray)
+    ColorToQuadJob(MutArrayRef<QuadRenderer::Quad> quadsArray)
     : quads(quadsArray) {}
 
     void Init(JobData& data) {
@@ -136,20 +130,16 @@ struct ColorToQuadJob : IJobParallelFor {
     }
 };
 
-struct BufferQuadJob : IJobSingleThreaded {
+JOB_SINGLE_THREADED(BufferQuadJob) {
     ComponentArray<const EC::ViewBox> viewbox;
 
-    const QuadRenderer::Quad* quads;
-    const GuiRenderLevel* levels;
+    ArrayRef<QuadRenderer::Quad> quads;
+    ArrayRef<GuiRenderLevel> levels;
 
     GuiRenderer* guiRenderer;
 
-    BufferQuadJob(const QuadRenderer::Quad* quads, const GuiRenderLevel* levels, GuiRenderer* guiRenderer)
+    BufferQuadJob(ArrayRef<QuadRenderer::Quad> quads, ArrayRef<GuiRenderLevel> levels, GuiRenderer* guiRenderer)
     : quads(quads), levels(levels), guiRenderer(guiRenderer) {}
-
-    BufferQuadJob* Clone() const {
-        return new BufferQuadJob(quads, levels, guiRenderer);
-    }
 
     void Init(JobData& data) {
         data.getComponentArray(viewbox);
@@ -163,21 +153,17 @@ struct BufferQuadJob : IJobSingleThreaded {
         }
         guiRenderer->levels[level].quads.push(quad);
     }
-
-    void AfterExecution(int capacity) {
-        
-    }
 };
 
 using BorderQuads = std::array<QuadRenderer::Quad, 4>;
 
-struct BufferBordersJob : IJobSingleThreaded {
-    const BorderQuads* quads;
-    const GuiRenderLevel* levels;
+JOB_SINGLE_THREADED(BufferBordersJob) {
+    ArrayRef<BorderQuads> quads;
+    ArrayRef<GuiRenderLevel> levels;
 
     GuiRenderer* guiRenderer;
 
-    BufferBordersJob(const BorderQuads* quads, const GuiRenderLevel* levels, GuiRenderer* guiRenderer)
+    BufferBordersJob(ArrayRef<BorderQuads> quads, ArrayRef<GuiRenderLevel> levels, GuiRenderer* guiRenderer)
     : quads(quads), levels(levels), guiRenderer(guiRenderer) {}
 
     void Init(JobData& data) {
@@ -194,12 +180,12 @@ struct BufferBordersJob : IJobSingleThreaded {
     }
 };
 
-struct BorderQuadsJob : IJobParallelFor {
-    BorderQuads* quads;
+JOB_PARALLEL_FOR(BorderQuadsJob) {
+    MutArrayRef<BorderQuads> quads;
     ComponentArray<const EC::ViewBox> viewbox;
     ComponentArray<const EC::Border> border;
 
-    BorderQuadsJob(BorderQuads* quads)
+    BorderQuadsJob(MutArrayRef<BorderQuads> quads)
     : quads(quads) {}
 
     QuadRenderer::Quad colorRect(glm::vec2 min, glm::vec2 max, SDL_Color color) {
@@ -251,9 +237,10 @@ struct RenderBackgroundSystem : ISystem {
     : ISystem(manager), guiRenderer(guiRenderer) {}
 
 
-    void ScheduleJobs() {
-        auto* levelsBg = makeTempGroupArray<GuiRenderLevel>(backgroundGroup);
-        auto* quadsBg = makeTempGroupArray<QuadRenderer::Quad>(backgroundGroup);
+    void ScheduleJobsOld() {
+        auto levelsBg = makeTempGroupArray<GuiRenderLevel>(backgroundGroup);
+        Schedule(backgroundGroup, InitializeArrayJob<GuiRenderLevel>(levelsBg, GuiNullRenderLevel));
+        auto quadsBg = makeTempGroupArray<QuadRenderer::Quad>(backgroundGroup);
         
         auto bufferQuadsJob = 
         Schedule(backgroundGroup, BufferQuadJob(quadsBg, levelsBg, guiRenderer),
@@ -263,27 +250,56 @@ struct RenderBackgroundSystem : ISystem {
             )
         );
 
-        auto* levelsBd = makeTempGroupArray<GuiRenderLevel>(borderGroup);
-        auto* quadsBd = makeTempGroupArray<BorderQuads>(borderGroup);
+        auto levelsBd = makeTempGroupArray<GuiRenderLevel>(borderGroup);
+        auto quadsBd = makeTempGroupArray<BorderQuads>(borderGroup);
 
         auto bufferBordersJob = 
         Schedule(borderGroup, BufferBordersJob(quadsBd, levelsBd, guiRenderer),
-            Schedule(borderGroup, BorderQuadsJob(quadsBd)));
+           {Schedule(borderGroup, GetViewLevelsJob(levelsBd)),
+            Schedule(borderGroup, BorderQuadsJob(quadsBd))});
 
         AddDependency(bufferBordersJob, bufferQuadsJob);
+    }
+
+    void ScheduleJobs() {
+        auto levelsBg = makeTempGroupArray<GuiRenderLevel>(backgroundGroup);
+        auto quadsBg = makeTempGroupArray<QuadRenderer::Quad>(backgroundGroup);
+        auto bufferQuadsJob = Do({
+            Schedule(backgroundGroup, GetViewLevelsJob(levelsBg)),
+            Schedule(backgroundGroup, ColorToQuadJob(quadsBg))
+        }).Then(
+            Schedule(backgroundGroup, BoxToQuadJob(quadsBg))
+        ).Then(
+            Schedule(backgroundGroup, BufferQuadJob(quadsBg, levelsBg, guiRenderer))
+        ).handle();
+
+        auto levelsBd = makeTempGroupArray<GuiRenderLevel>(borderGroup);
+        auto quadsBd = makeTempGroupArray<BorderQuads>(borderGroup);
+
+        auto bufferBordersJob = Do(
+            Schedule(borderGroup, InitializeArrayJob(levelsBd, GuiNullRenderLevel)))
+        .Then({
+            Schedule(borderGroup, GetViewLevelsJob(levelsBd)),
+            Schedule(borderGroup, BorderQuadsJob(quadsBd))
+        })
+        .Then(
+            Schedule(borderGroup, BufferBordersJob(quadsBd, levelsBd, guiRenderer)))
+        .handle();
+
+        Conflict(bufferBordersJob, bufferQuadsJob);
     }
 
     void BeforeExecution() {}
 };
 
-struct MakeTextureQuadsJob : IJobParallelFor {
-    QuadRenderer::Quad* quads;
+JOB_PARALLEL_FOR(MakeTextureQuadsJob) {
+    MutArrayRef<QuadRenderer::Quad> quads;
     ComponentArray<const EC::SimpleTexture> textures;
     ComponentArray<const EC::ViewBox> viewbox;
     
     const TextureAtlas* textureAtlas;
 
-    MakeTextureQuadsJob(QuadRenderer::Quad* quads, const TextureAtlas* textureAtlas)
+    MakeTextureQuadsJob(MutArrayRef<QuadRenderer::Quad> quads, const TextureAtlas* textureAtlas)
     : quads(quads), textureAtlas(textureAtlas) {}
 
     MakeTextureQuadsJob* Clone() const {
@@ -326,8 +342,8 @@ struct RenderTexturesSystem : ISystem {
     : ISystem(manager), guiRenderer(guiRenderer) {}
 
     void ScheduleJobs() {
-        GuiRenderLevel* levels = makeTempGroupArray<GuiRenderLevel>(textureGroup);
-        QuadRenderer::Quad* quads = makeTempGroupArray<QuadRenderer::Quad>(textureGroup);
+        auto levels = makeTempGroupArray<GuiRenderLevel>(textureGroup);
+        auto quads = makeTempGroupArray<QuadRenderer::Quad>(textureGroup);
         Schedule(textureGroup, BufferQuadJob(quads, levels, guiRenderer), {
             Schedule(textureGroup, GetViewLevelsJob(levels)),
             Schedule(textureGroup, MakeTextureQuadsJob(quads, &guiRenderer->guiAtlas))

@@ -352,7 +352,7 @@ int setTextureMetadata(TextureManager* textureManager) {
 
     TILE(Grass, "grass.png");
     TILE(Sand, "sand.png");
-    TEX(Tiles::Water, World, "tiles/grass.png");
+    TEX(Tiles::Water, World, "tiles/water.jpg");
     TILE(SpaceFloor, "space-floor.png");
     TILE(Wall, "wall.png");
     TILE(GreyFloor, "grey-floor.png");

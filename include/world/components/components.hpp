@@ -37,7 +37,7 @@ namespace ComponentIDs {
         Render, Inserter, Dynamic, Immortal, Selected, Follow, \
         Special, TransportLineEC, Transporter, Dying, Fresh, \
         ItemStack, Rotation, Rotatable, Explosion, \
-        Explosive, Growth, Point, EntityTypeEC
+        Explosive, Growth, Point, Text
     #define WORLD_PROTOTYPE_COMPONENT_LIST \
         Hostile, Nature, EntityRenderLayer, Living
     #define WORLD_COMPONENT_LIST WORLD_REGULAR_COMPONENT_LIST COMMA WORLD_PROTOTYPE_COMPONENT_LIST
@@ -167,6 +167,13 @@ BEGIN_COMPONENT(Render)
     }
 END_COMPONENT(Render)
 
+BEGIN_COMPONENT(Text)
+    const char* message;
+    TextRenderingSettings rendering;
+    TextFormattingSettings formatting;
+    Box box;
+END_COMPONENT(Text)
+
 BEGIN_COMPONENT(Explosion)
     float radius;
     float damage;
@@ -184,14 +191,11 @@ BEGIN_COMPONENT(Explosive)
     }
 END_COMPONENT(Explosive)
 
-#define MAX_ENTITY_NAME_LENGTH 64
 
-BEGIN_COMPONENT(EntityTypeEC)
-    char name[MAX_ENTITY_NAME_LENGTH];
-END_COMPONENT(EntityTypeEC)
+#define MAX_ENTITY_NAMETAG_LENGTH 64
 
 BEGIN_COMPONENT(Nametag)
-    char name[MAX_ENTITY_NAME_LENGTH];
+    char name[MAX_ENTITY_NAMETAG_LENGTH];
 
     void setName(const char* name);
 

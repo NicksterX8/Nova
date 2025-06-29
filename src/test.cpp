@@ -124,6 +124,8 @@ struct Charlie {
     }
 };
 
+using SimpleFunc = void(void*, int N);
+
 struct Base {
     using VirtualMethod = void (Base::*)(int N);
 
@@ -165,14 +167,92 @@ FakeChild copyBase(FakeChild fake) {
     return {copyPtr, fake.size};
 }
 
-// children and base must be trivially copyable (via memcpy)
+void testY(void* data, int n) {
+
+}
+
+int* ints = new int(12);
+
+struct Job {
+    using ExeType = std::function<void(void*, int, int)>;
+    ExeType exe;
+
+    Job(const ExeType& exe) : exe(exe) {}
+
+    bool parallelizable = false;
+    bool mainThread = false;
+};
+
+template<class Child>
+struct JobDecl : Job {
+
+    JobDecl() : Job([](void* childPtr, int startN, int endN){
+            for (int N = startN; N < endN; N++) {
+                (((Child*)childPtr)->Child::Execute)(N);
+            }
+        }) {
+        // exe = [](void* childPtr, int startN, int endN){
+        //     for (int N = startN; N < endN; N++) {
+        //         (((Child*)childPtr)->Child::Execute)(N);
+        //     }
+        // };
+    }
+};
+
+template<class Child>
+struct IJobParallelFor : JobDecl<Child> {
+    IJobParallelFor() {
+       
+    }
+};
+
+#define JOB_STRUCT(name) struct name : JobDecl<name>
+#define JOB_PARALLEL_FOR(name) struct name : IJobParallelFor<name>
+
+
+JOB_PARALLEL_FOR(TestJob2) {
+    void Execute(int N) {
+
+    }
+};
+
+JOB_STRUCT(TestJob) {
+    int counter = 0;
+
+    TestJob() {
+
+    }
+
+    void Execute(int N) {
+        counter += N;
+    }
+};
+
+template<typename Child>
+struct Mama {
+    
+    Mama() {
+        static_assert(&Child::Execute != nullptr, "Must have execute method");
+        static_assert(std::is_same<decltype(std::declval<Child>().Execute(0)), void>::value, "Execute should take one parameter and return void!");
+    }
+};
+
+struct Baby : Mama<Baby> {
+    void Execute(int N) {
+       
+    }
+};
 
 int main() {
-    auto bA = makeBase(new Alpha(20));
+    Baby baby;
 
-    auto aCopy = copyBase(bA);
-    (aCopy.base->*aCopy.base->method)(5);
+    TestJob testJob;
+    Job* job = &testJob;
 
+    int x = 5;
+    if (true, &x) {
+
+    }
     
     return 0;
 }

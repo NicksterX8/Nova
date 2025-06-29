@@ -54,6 +54,7 @@ float warpedNoise(vec2 p) {
     float y = fractalNoise(p + m.yx + x);
     float z = fractalNoise(p - m - x + y);
     return fractalNoise(p + vec2(x, y) + vec2(y, z) + vec2(z, x) + length(vec3(x, y, z))*0.5);
+    
 }
 
 
@@ -61,14 +62,37 @@ void main() {
     // Screen coordinates. Using division by a scalar, namely "iResolution.y," for aspect correctness.
 	vec2 uv = fragCoord.xy;
     
-    float noise = fractalNoise(uv);
+    // Take two noise function samples near one another.
+    float n = warpedNoise(uv * 6.);
+    float n2 = warpedNoise(uv * 6. + .02);
     
-    vec4 color = vec4(0,0,0,1);
-
-    if (noise < 0.05) {
-        color = vec4(1,1,1,1);
-    }
-
+    // Highlighting - Effective, but not a substitute for bump mapping.
+    //
+    // Use a sample distance variation to produce some cheap and nasty highlighting. The process 
+    // is vaguely related to directional derivative lighting, which in turn is mildly connected to 
+    // Calculus from First Principles.
+    float bump = max(n2 - n, 0.)/.02*.7071;
+    float bump2 = max(n - n2, 0.)/.02*.7071;
+    
+    // Ramping the bump values up.
+    //
+    bump = bump*bump*.5 + pow(bump, 4.)*.5;
+    bump2 = bump2*bump2*.5 + pow(bump2, 4.)*.5;
+    
+    
+    // Produce a color based on the original noise function, then add the highlights.
+    //
+    // Liquid glass, wax or ice, with sun glow?
+    
+    //vec3 col = vec3(n*n)*(vec3(.25, .5, 1.)*bump*.2 + vec3(1., .4, .2)*bump2*.2 + .5);
+    // Fake jade.
+    //vec3 col = vec3(n*n*0.7, n, n*n*0.4)*n*n*(vec3(0.25, 0.5, 1.)*bump*.2 + vec3(1)*bump2*.2 + .75);
+    // Cheap fire palette.
+    vec3 col = pow(vec3(1.5, 1, 1)*n, vec3(2, 5, 24))*.8 + vec3(0.25, 0.5, 1.)*(bump + bump2)*.05;
+    // Not sure. :)
+    //vec3 col = n*n*(vec3(1, .7, .6)*vec3(bump, (bump + bump2)*.4, bump2)*.2 + .7);
+    // etc.
+    
     // Rough gamma correction.
-	FragColor = color;
+	FragColor = mix(vec4(sqrt(max(col, 0)), 1), vec4(0.5, 0.5, 0.5, 1.0), sqrt(4.0/scale));
 }

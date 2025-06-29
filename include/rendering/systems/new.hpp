@@ -47,7 +47,7 @@ namespace RenderSystems {
 
 using namespace ECS::System;
 
-struct GetEntityRotationsJob : IJobParallelFor {
+struct GetEntityRotationsJob : IJobParallelFor<GetEntityRotationsJob> {
     ComponentArray<const EC::Rotation> rotation;
     
     GLfloat* outRotation;
@@ -66,7 +66,7 @@ struct GetEntityRotationsJob : IJobParallelFor {
     }
 };
 
-struct DrawEntityViewBoxJob : IJobSingleThreaded {
+struct DrawEntityViewBoxJob : IJobSingleThreaded<DrawEntityViewBoxJob> {
     const Box* dimensions;
 
     GuiRenderer& worldGuiRenderer;
@@ -74,13 +74,17 @@ struct DrawEntityViewBoxJob : IJobSingleThreaded {
     DrawEntityViewBoxJob(const Box* dimensions, GuiRenderer& worldGuiRenderer)
     : worldGuiRenderer(worldGuiRenderer) {}
 
+    void Init(JobData&) {
+
+    }
+
     void Execute(int N) {
         constexpr SDL_Color rectColor = {255, 0, 255, 180};
         worldGuiRenderer.rectOutline(dimensions[N].rect(), rectColor, Vec2(0.05f), Vec2(0.05f));
     }
 };
 
-struct GetEntityDimensionsJob : IJobParallelFor {
+struct GetEntityDimensionsJob : IJobParallelFor<GetEntityDimensionsJob> {
     ComponentArray<const EC::Position> positions;
     ComponentArray<const EC::ViewBox> viewboxes;
     
@@ -102,7 +106,7 @@ struct GetEntityDimensionsJob : IJobParallelFor {
     }
 };
 
-struct EntityColorJob : IJobParallelFor {
+struct EntityColorJob : IJobParallelFor<EntityColorJob> {
     ComponentArray<const EC::Health> maybeHealth;
     ComponentArray<const EC::Selected> maybeSelected;
 

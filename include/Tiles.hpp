@@ -22,7 +22,7 @@ namespace TileTypes {
     };
 
     enum Flags: Uint32 {
-        Walkable = 1,
+        Solid = 1, // cant be walked on 
         Mineable = 2
     };
 

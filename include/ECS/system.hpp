@@ -93,8 +93,6 @@ struct JobChunk {
     int poolOffset;
 };
 
- using JobExecutionMethodType = void (IJob::*)(int index);
-
 struct JobData {
     EntityCommandBuffer* commandBuffer;
 private:
@@ -104,7 +102,8 @@ private:
 
     bool initFailed = false;
 
-    std::vector<JobExecutionMethodType> additionalExecutions;
+    using AdditionalExecutionFunc = std::function<void(void* data, int startN, int endN)>;
+    std::vector<AdditionalExecutionFunc> additionalExecutions;
 public:
 
     explicit JobData(const JobChunk& jobChunk, EntityCommandBuffer* commandBuffer) : pool(jobChunk.pool), indexBegin(jobChunk.indexBegin) {
@@ -136,15 +135,21 @@ public:
         array = getComponentArray<Component>();
     }
 
+    using JobExecutionMethodType = void(IJob::*)(int N);
+
     template<class Component, class DoExecutionMethod>
     void setOptionalExecution(DoExecutionMethod additionalExecution) {
         setOptionalExecutionReal(Component::ID, (JobExecutionMethodType)additionalExecution);
     }
 
 private:
-    void setOptionalExecutionReal(ComponentID hasComponent, JobExecutionMethodType additionalExecution) {
+    void setOptionalExecutionReal(ComponentID hasComponent, JobExecutionMethodType additionalExecutionPtr) {
         if (pool->archetype.getIndex(hasComponent) != -1) {
-            additionalExecutions.push_back(additionalExecution);
+            additionalExecutions.push_back([additionalExecutionPtr](void* jobPtr, int startN, int endN){
+                for (int N = startN; N < endN; N++) {
+                    (((IJob*)jobPtr)->*additionalExecutionPtr)(N);
+                }
+            });
         }
     }
 public:
@@ -180,7 +185,7 @@ public:
         return commandBuffer;
     }
 
-    ArrayRef<JobExecutionMethodType> getAdditionalExecutions() const {
+    ArrayRef<AdditionalExecutionFunc> getAdditionalExecutions() const {
         return additionalExecutions;
     }
     
@@ -221,26 +226,84 @@ struct ExperimentalAny {
     }
 };
 
-struct IJob {
+
+using JobExePtr = void(*)(void*, int startIndex, int endIndex);
+using JobInitPtr = void(*)(void*, JobData&);
+
+struct PureJob {
+    JobInitPtr init;
+    JobExePtr executeRange;
+
+    bool parallelize    : 1;
+    bool needMainThread : 1;
+    bool blocking       : 1;
+};
+
+struct IJob : PureJob {
     static constexpr int NullStage = -1;
 
     int stage = NullStage;
     int realSize = -1; // in bytes
 
-    bool parallelize    : 1;
-    bool needMainThread : 1;
-    bool blocking       : 1;
-
-    IJob(bool parallelizable, bool mainThread, bool blocking) : parallelize(parallelizable), needMainThread(mainThread), blocking(blocking) {
-
+    IJob(JobInitPtr init, JobExePtr execute, bool parallelizable, bool mainThread, bool blocking) {
+        this->init = init;
+        this->executeRange = execute;
+        this->parallelize = parallelizable;
+        this->needMainThread = mainThread;
+        this->blocking = blocking;
     }
-
-    virtual void Execute(int N) = 0;
-
-    virtual void Init(JobData& data) = 0;
-
-    virtual ~IJob() {}
 };
+
+template<class JobClass>
+constexpr auto JobClassExecuteRange = []
+    (void* childPtr, int startN, int endN){
+        for (int N = startN; N < endN; N++) {
+            ((JobClass*)childPtr)->Execute(N);
+        }
+    };
+
+template<class JobClass>
+constexpr auto JobClassInit = [](void* ptr, JobData& data){
+        ((JobClass*)ptr)->Init(data);
+    };
+
+template<class Inheritor>
+struct IJobDecl : IJob {
+    IJobDecl(bool parallelizable, bool mainThread, bool blocking) : IJob(JobClassInit<Inheritor>, JobClassExecuteRange<Inheritor>, parallelizable, mainThread, blocking) {
+        static_assert(std::is_trivially_copyable_v<Inheritor>, "Job must be copyable with memcpy");
+        static_assert(std::is_trivially_destructible_v<Inheritor>, "Job must not need destructors");
+        
+        static_assert(&Inheritor::Execute != nullptr, "Job must have Execute method");
+        static_assert(std::is_same_v<decltype(&Inheritor::Execute), void(Inheritor::*)(int)>, "Incorrect execute function signature!");
+        static_assert(&Inheritor::Init != nullptr, "Job must have Init method");
+        static_assert(std::is_same_v<decltype(&Inheritor::Init), void(Inheritor::*)(JobData&)>, "Incorrect init function signature!");
+    }
+};
+
+// struct JobFunctionData {
+//     using SimpleExecute = std::function<void(int N)>;
+//     SimpleExecute execute;
+//     using SimpleInit = std::function<void(JobData&)>;
+//     SimpleInit init;
+// };
+// didnt work out
+// IJob makeJob(const std::function<void(JobData&)>& init, const std::function<void(int N)>& execute, bool parallelize) {
+//     IJob job = IJob(
+//         [](void* data, JobData& jobData){
+//             IJob* job = (IJob*)data;
+//             JobFunctionData* fakeData = (JobFunctionData*)job->userdata;
+//             fakeData->init(jobData);
+//         },
+//         [](void* data, int start, int end){
+//             IJob* job = (IJob*)data;
+//             JobFunctionData* fakeData = (JobFunctionData*)job->userdata;
+//             for (int i = start; i < end; i++) {
+//                 fakeData->execute(i);
+//             }
+//         }, parallelize, false, false);
+//     job.userdata = new JobFunctionData{execute, init};
+//     return job;
+// }
 
 // returns number of eligible entities
 int findEligiblePools(const IComponentGroup& group, const EntityManager& entityManager, std::vector<ArchetypePool*>* eligiblePools);
@@ -249,6 +312,7 @@ struct SystemManager {
     std::vector<ISystem*> systems;
     EntityManager* entityManager = nullptr;
     EntityCommandBuffer unexecutedCommands;
+    bool allowParallelization = true;
 public:
     SystemManager() {}
 
@@ -323,7 +387,7 @@ struct ISystem {
     template<typename Job>
     JobHandle Schedule(const IComponentGroup& group, const Job& job, const DependencyList& dependencyList) {
         JobHandle handle = jobs.size();
-        Job* jobPtr = new Job(job);
+        IJob* jobPtr = static_cast<IJob*>(new Job(job));
         jobPtr->realSize = sizeof(Job);
         jobs.push_back({jobPtr, group});
         jobDependencies.push_back({});
@@ -357,6 +421,54 @@ struct ISystem {
         }
     }
 
+    void Conflict(JobHandle jobA, JobHandle jobB) {
+        // TODO: optimize
+        AddDependency(jobA, jobB);
+    }
+
+    class Thenner {
+        ISystem* system;
+        std::vector<JobHandle> lastThenList;
+    public:
+        Thenner(ISystem* system) : system(system) {}
+
+        Thenner& Then(JobHandle job) {
+            for (auto& dependency : lastThenList) {
+                system->AddDependency(job, dependency);
+            }
+            lastThenList.clear();
+            lastThenList.push_back(job);
+            return *this;
+        }
+
+        Thenner& Then(const std::initializer_list<JobHandle>& jobs) {
+            for (auto& job : jobs) {
+                for (auto& dependency : lastThenList) {
+                    system->AddDependency(job, dependency);
+                }
+            }
+            lastThenList = jobs;
+            return *this;
+        }
+
+        JobHandle handle() const {
+            assert(lastThenList.size() <= 1);
+
+            if (lastThenList.size() == 1)
+                return lastThenList[0];
+            else
+                return -1;
+        }
+    };
+
+    Thenner Do(const std::initializer_list<JobHandle>& jobs) {
+        return Thenner(this).Then(jobs);
+    }
+
+    Thenner Do(JobHandle job) {
+        return Thenner(this).Then(job);
+    }
+
     void clearJobs() {
         jobs.clear();
         jobDependencies.clear();
@@ -367,18 +479,19 @@ struct ISystem {
     }
 
     int getGroupSize(const IComponentGroup& group) {
+        // TODO: optimize to cache results instead of having to go through all pools every time
         return systemManager->getSizeOf(group);
     }
 
     template<class T>
-    T* makeTempArray(size_t elementCount) {
+    MutArrayRef<T> makeTempArray(size_t elementCount) {
         T* allocation = new T[elementCount];
         tempAllocations.push_back(allocation);
-        return allocation;
+        return MutArrayRef(allocation, elementCount);
     }
 
     template<class T>
-    T* makeTempGroupArray(const IComponentGroup& group) {
+    MutArrayRef<T> makeTempGroupArray(const IComponentGroup& group) {
         return makeTempArray<T>(getGroupSize(group));
     }
 
@@ -460,38 +573,37 @@ void setupSystems(SystemManager&);
 
 void cleanupSystems(SystemManager&);
 
+void executeSystem(SystemManager&, ISystem*);
 void executeSystems(SystemManager&);
-
-// inline bool jobsAreConflicting(IJob* jobA, IJob* jobB) {
-//     const IComponentGroup& groupA = *jobA->group;
-//     const IComponentGroup& groupB = *jobB->group;
-//     auto componentWriteConflicts = (groupA.write & groupB.signature) | (groupB.write & groupA.signature);
-//     if (componentWriteConflicts.any()) return true;
-    
-//     return false;
-// }   
 
 
 // default jobs
 
 // most strict
-struct IJobParallelFor : IJob {
-    IJobParallelFor() : IJob(true, false, false) {}
+template<class Child>
+struct IJobParallelFor : IJobDecl<Child> {
+    IJobParallelFor() : IJobDecl<Child>(true, false, false) {}
 };
 
 // less relaxed. allows for standard queues and vectors without worries of parallelism. May or may not be on the main thread
-struct IJobSingleThreaded : IJob {
-    IJobSingleThreaded() : IJob(false, false, false) {}
+template<class Child>
+struct IJobSingleThreaded : IJobDecl<Child> {
+    IJobSingleThreaded() : IJobDecl<Child>(false, false, false) {}
 };
 
 // run the job strictly on the main thread, single threaded
-struct IJobMainThread : IJob {
+template<class Child>
+struct IJobMainThread : IJobDecl<Child> {
     // param blocking: allow other jobs while this is run or run purely single threaded
-    IJobMainThread(bool blocking) : IJob(false, true, blocking) {}
+    IJobMainThread(bool blocking) : IJobDecl<Child>(false, true, blocking) {}
 };
 
+#define JOB_SINGLE_THREADED(name) struct name : IJobSingleThreaded<name>
+#define JOB_PARALLEL_FOR(name) struct name : IJobParallelFor<name>
+#define JOB_MAIN_THREAD(name) struct name : IJobMainThread<name>
+
 template <class C>
-struct CopyComponentArrayJob : IJobParallelFor {
+struct CopyComponentArrayJob : IJobParallelFor<CopyComponentArrayJob<C>> {
     C* dst;
     ComponentArray<C> src;
 
@@ -507,11 +619,11 @@ struct CopyComponentArrayJob : IJobParallelFor {
     }
 };
 
-struct CopyEntityArrayJob : IJobParallelFor {
+struct CopyEntityArrayJob : IJobParallelFor<CopyEntityArrayJob> {
     Entity* dst;
     const Entity* src;
 
-    CopyEntityArrayJob(JobGroup group, Entity* dst)
+    CopyEntityArrayJob(Entity* dst)
     : dst(dst) {}
 
     void Init(JobData& data) {
@@ -524,7 +636,7 @@ struct CopyEntityArrayJob : IJobParallelFor {
 };
 
 template<class Component>
-struct FillComponentsFromArrayJob : IJobParallelFor {
+struct FillComponentsFromArrayJob : IJobParallelFor<FillComponentsFromArrayJob<Component>> {
     const Component* src;
     ComponentArray<Component> dst;
 
@@ -540,14 +652,16 @@ struct FillComponentsFromArrayJob : IJobParallelFor {
 };
 
 template<typename T>
-struct InitializeArrayJob : IJobParallelFor {
+struct InitializeArrayJob : IJobParallelFor<InitializeArrayJob<T>> {
     MutableArrayRef<T> values;
 
     T value;
 
-    InitializeArrayJob(MutableArrayRef<T> values, const T& initializationValue) : values(this), value(initializationValue) {
+    InitializeArrayJob(MutableArrayRef<T> values, const T& initializationValue) : values(values), value(initializationValue) {
         this->values = values;
     }
+
+    void Init(JobData&) {}
 
     void Execute(int N) {
         values[N] = value;

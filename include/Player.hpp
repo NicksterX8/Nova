@@ -10,17 +10,6 @@
 #include"items/manager.hpp"
 #include "items/Item.hpp"
 
-enum Direction {
-    DirectionUp,
-    DirectionRight,
-    DirectionLeft,
-    DirectionDown,
-    DirectionUpRight,
-    DirectionDownRight,
-    DirectionUpLeft,
-    DirectionDownLeft
-};
-
 struct ItemHold {
     union DataType {
         ItemStack value;
@@ -62,7 +51,6 @@ struct ItemHold {
 struct Player {
     Entity entity;
     const EntityWorld* ecs = NULL;
-    Direction facingDirection = DirectionUp;
 
     unsigned int numHotbarSlots = 9;
     ItemHold heldItemStack;
@@ -119,6 +107,10 @@ struct Player {
             }
         }
         return nullptr;
+    }
+
+    float getSpeed() const {
+        return PLAYER_SPEED;
     }
 
     void selectHotbarSlot(int index) {

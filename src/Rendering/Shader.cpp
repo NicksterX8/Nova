@@ -164,7 +164,8 @@ GLint Shader::getUniformLocation(const char* name) const {
 
     GLint loc = glGetUniformLocation(id, name);
     if (loc == -1) {
-        LogError("Failed to get uniform location for \"%s\"", name);
+        // LogError("Failed to get uniform location for \"%s\"", name);
+        // spams and gives unnecessary errors for optimized out uniforms
     }
     return loc;
 }

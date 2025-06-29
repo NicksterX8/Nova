@@ -12,14 +12,14 @@ namespace Systems {
 
 using namespace ECS::System;
 
-struct FindChangedEntitiesJob : IJobParallelFor {
+JOB_PARALLEL_FOR(FindChangedEntitiesJob) {
     ComponentArray<const EC::Position> positions;
     ComponentArray<const EC::Dynamic> dynamics;
 
-    bool* posChanged;
+    MutArrayRef<bool> posChanged;
     // TODO: replace with threadsafe queue
 
-    FindChangedEntitiesJob(bool* posChangedArray) 
+    FindChangedEntitiesJob(MutArrayRef<bool> posChangedArray) 
     : posChanged(posChangedArray) {}
 
     void Init(JobData& data) {
@@ -32,22 +32,22 @@ struct FindChangedEntitiesJob : IJobParallelFor {
     }
 };
 
-struct ChangeEntityPosJob : IJobSingleThreaded {
+JOB_SINGLE_THREADED(ChangeEntityPosJob) {
     ComponentArray<EC::Position> oldPositions;
     ComponentArray<const EC::Dynamic> newPositions;
     ComponentArray<const EC::ViewBox> viewboxes;
-    EntityArray entities;
+    const Entity* entities;
 
-    bool* posChanged;
+    ArrayRef<bool> posChanged;
 
     ChunkMap* chunkmap;
 
-    ChangeEntityPosJob(bool* posChangedArray, ChunkMap* chunkmap)
+    ChangeEntityPosJob(ArrayRef<bool> posChangedArray, ChunkMap* chunkmap)
     : posChanged(posChangedArray), chunkmap(chunkmap) {}
 
     void Init(JobData& data) {
         data.getComponentArrays(oldPositions, newPositions, viewboxes);
-        data.getEntityArray(entities);
+        entities = data.getEntityArray();
     }
 
     void Execute(int N) {
@@ -58,7 +58,6 @@ struct ChangeEntityPosJob : IJobSingleThreaded {
             oldPositions[N].y = newPosition.pos.y;
             auto viewbox = viewboxes[N];
             World::entityViewChanged(chunkmap, entities[N], newPosition.pos, oldPosition.vec2(), viewbox.box, viewbox.box, false);
-            
         }
     }
 };
@@ -72,13 +71,17 @@ struct DynamicEntitySystem : ISystem {
 
     ChunkMap* chunkmap;
 
+    MutArrayRef<bool> entityPosChanged;
+
     DynamicEntitySystem(SystemManager& manager, ChunkMap* chunkmap)
-    : ISystem(manager), chunkmap(chunkmap) {
-        
+    : ISystem(manager), chunkmap(chunkmap) {}
+
+    void alloc() {
+
     }
 
     void ScheduleJobs() {
-        bool* posChangedArray = makeTempGroupArray<bool>(dynamicGroup);
+        auto posChangedArray = makeTempGroupArray<bool>(dynamicGroup);
         Schedule(dynamicGroup, ChangeEntityPosJob(posChangedArray, chunkmap), 
             Schedule(dynamicGroup, FindChangedEntitiesJob(posChangedArray)));
     }

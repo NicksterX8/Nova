@@ -288,7 +288,7 @@ void entityViewChanged(ChunkMap* chunkmap, Entity entity, Vec2 newPos, Vec2 oldP
         for (int row = newMinChunkPosition.y; row <= newMaxChunkPosition.y; row++) {
             IVec2 chunkPosition = {col, row};
             bool inOldArea = (chunkPosition.x >= oldMinChunkPosition.x && chunkPosition.y >= oldMinChunkPosition.y &&
-                chunkPosition.x <= oldMaxChunkPosition.x && chunkPosition.y <= oldMaxChunkPosition.y);
+                chunkPosition.x <= oldMaxChunkPosition.x && chunkPosition.y <= oldMaxChunkPosition.y && !justMade);
 
             if (!inOldArea) {
                 // add entity to new chunk
@@ -329,7 +329,12 @@ void entityViewAndPosChanged(GameState* state, Entity entity, Vec2 oldPos, Box o
 }
 
 void entityCreated(GameState* state, Entity entity) {
-
+    auto* position = state->ecs->Get<EC::Position>(entity);
+    auto* viewbox = state->ecs->Get<EC::ViewBox>(entity);
+    if (!position || !viewbox) {
+        LogError("why here? no veiwbox or pos");
+    }
+    entityViewChanged(&state->chunkmap, entity, position->vec2(), position->vec2(), viewbox->box, viewbox->box, true);
 }
 
 }

@@ -37,8 +37,8 @@ namespace Entities {
 
             e.Add<EC::Position>(position);
             e.Add<EC::Dynamic>(Vec2{-5,-5});
-            e.Add<EC::ViewBox>({Vec2(0), Vec2(1.0f)});
-            e.Add<EC::CollisionBox>({Vec2(0.05f), Vec2(0.9f)});
+            e.Add<EC::ViewBox>({Vec2(0), Vec2(PLAYER_DIAMETER)});
+            e.Add<EC::CollisionBox>({Vec2(0.05f), Vec2(PLAYER_DIAMETER - 0.1f)});
             e.Add<EC::Health>({300});
             e.Add<EC::Rotation>({0.0f});
             Inventory inventory = Inventory(&inventoryAllocator, PLAYER_INVENTORY_SIZE);
@@ -177,6 +177,20 @@ namespace Entities {
             Entity airstrike = Explosive<PrototypeIDs::Airstrike>::make(ecs, position, size, TextureIDs::Grenade, airstrikeExplosion)();
             Entities::throwEntity(*ecs, airstrike, target, 0.2f);
             return airstrike;
+        }
+    };
+
+    struct TextBox : PrototypeDecl<PrototypeIDs::TextBox> {
+        TextBox(PrototypeManager& manager) : PrototypeDecl(manager) {
+            setName("textbox");
+        }
+
+        static EntityMaker& make(EntityBuilder ecs, Vec2 position, const EC::Text& textComponent) {
+            auto& e = ecs.New(ID);
+            e.Add(EC::Position(position));
+            e.Add(EC::ViewBox::BottomLeft(textComponent.box.size));
+            e.Add(textComponent);
+            return e;
         }
     };
 //}

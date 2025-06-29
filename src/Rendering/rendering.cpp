@@ -32,7 +32,7 @@ void renderWater(RenderContext& ren, const Camera& camera, Vec2 min, Vec2 max, f
     glm::vec3 p2 = {max.x, max.y, z};
     glm::vec4 color = {1.0, 1.0, 1.0, 1.0};
     float scale = 2.0;
-    shader.setFloat("scale", camera.worldScale());
+    //shader.setFloat("scale", camera.worldScale());
     if (camera.worldScale() < 12.0f) {
         //scale *= 12.0f / camera.worldScale();
     }

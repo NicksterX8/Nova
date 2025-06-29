@@ -1,5 +1,6 @@
 #include "PlayerControls.hpp"
 #include "Game.hpp"
+#include "utils/vectors_and_rects.hpp"
 
 MouseState getMouseState() {
     float mouseX,mouseY;
@@ -87,11 +88,8 @@ std::vector<GameAction> PlayerControls::handleClick(const SDL_MouseButtonEvent& 
             } else {
                 // World click
                 ItemStack* heldItemStack = game->state->player.heldItemStack.get();
-
                 auto& itemMgr = game->state->itemManager;
-
                 if (game->state->player.isHoldingItem()) {
-
                     if (itemMgr.entityHas<ITC::Placeable>(heldItemStack->item)) {
                         placeItem(heldItemStack, mouseWorldPos);
                     }
@@ -106,7 +104,6 @@ std::vector<GameAction> PlayerControls::handleClick(const SDL_MouseButtonEvent& 
                             }
                         }
                     }
-
                 }
 
                 // find entity to select
@@ -163,17 +160,17 @@ void PlayerControls::clickOnEntity(Entity clickedEntity) {
         *selectedEntity = clickedEntity;
     }
     
-    if (ecs.EntityHas<EC::Render, EC::EntityTypeEC>(*selectedEntity)) {
-        auto e = *selectedEntity;
-        const char* name = ecs.Get<EC::EntityTypeEC>(e)->name;
-        LogInfo("name: %s | id: %d", name, e.id);
-        auto* box = ecs.Get<EC::CollisionBox>(e);
-        auto* position = ecs.Get<EC::Position>(e);
-        if (box && position) {
-            LogInfo("position: %.1f,%.1f", position->x, position->y);
-            LogInfo("size: %.1f,%.1f", box->box.size.x, box->box.size.y);
-        }
+    auto e = *selectedEntity;
+    auto* prototype = ecs.getPrototype(e);
+    const char* name = prototype->name.c_str();
+    LogInfo("name: %s | id: %d", name, e.id);
+    auto* box = ecs.Get<EC::CollisionBox>(e);
+    auto* position = ecs.Get<EC::Position>(e);
+    if (box && position) {
+        LogInfo("position: %.1f,%.1f", position->x, position->y);
+        LogInfo("size: %.1f,%.1f", box->box.size.x, box->box.size.y);
     }
+
     if (ecs.EntityHas<EC::Grabbable, EC::ItemStack>(*selectedEntity)) {
         ItemStack itemGrabbed = ecs.Get<EC::ItemStack>(*selectedEntity)->item;
         game->state->player.inventory()->addItemStack(itemGrabbed);
@@ -244,12 +241,7 @@ void PlayerControls::handleKeydown(const SDL_KeyboardEvent& event) {
             }
         break;} 
         case 'h': {
-            static bool wireframeModeEnabled = false;
-            if (!wireframeModeEnabled)
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            else
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            wireframeModeEnabled ^= 1;
+            
         break;}
     }
 
@@ -337,8 +329,6 @@ std::vector<GameAction> PlayerControls::handleEvent(const SDL_Event* event) {
 void PlayerControls::doPlayerMovementTick() {
     if (enteringText) return; // dont move player while typing... duh
 
-    Global.playerMovement = {0.0f, 0.0f};
-
     int sidewaysInput = keyboard.keyState[SDL_SCANCODE_D] - keyboard.keyState[SDL_SCANCODE_A];
     int updownInput = keyboard.keyState[SDL_SCANCODE_W] - keyboard.keyState[SDL_SCANCODE_S];
     int rotationInput = keyboard.keyState[SDL_SCANCODE_Q] - keyboard.keyState[SDL_SCANCODE_E];
@@ -352,10 +342,9 @@ void PlayerControls::doPlayerMovementTick() {
             glm::vec2 movement = glm::vec2(
                 moveVector.x * cos(angle) - moveVector.y * sin(angle),
                 moveVector.x * sin(angle) + moveVector.y * cos(angle)
-            ) * PLAYER_SPEED;
+            ) * game->state->player.getSpeed();
 
             movePlayer(movement);
-            Global.playerMovement = movement;
         }
         
         playerRotation->degrees += rotationInput * PLAYER_ROTATION_SPEED;
@@ -367,6 +356,85 @@ void PlayerControls::doPlayerMovementTick() {
     }
 }
 
+bool circleCollidingRect(Vec2 circleCenter, float circleRadius, Box rect, Vec2* delta = nullptr) {
+    Vec2 halfExtents = rect.size / 2.0f;
+    Vec2 rectCenter = rect.min + halfExtents;
+    Vec2 difference = circleCenter - rectCenter;
+    Vec2 clamped = glm::clamp(difference, -halfExtents, halfExtents);
+    Vec2 closest = rectCenter + clamped; // closest point on rect
+    difference = closest - circleCenter;
+    if (delta) {
+        *delta = difference;
+    }
+    return glm::length(difference) < circleRadius;
+}
+
+namespace Direction {
+    enum {
+        UP,
+        RIGHT,
+        DOWN,
+        LEFT,
+        Vertical = 1
+    };
+}
+
+int VectorDirection(glm::vec2 target)
+{
+    constexpr glm::vec2 compass[] = {
+        glm::vec2(0.0f, 1.0f),	// up
+        glm::vec2(1.0f, 0.0f),	// right
+        glm::vec2(0.0f, -1.0f),	// down
+        glm::vec2(-1.0f, 0.0f)	// left
+    };
+    float max = 0.0f;
+    unsigned int best_match = -1;
+    Vec2 norm = glm::normalize(target);
+    for (unsigned int i = 0; i < 4; i++)
+    {
+        float dot_product = glm::dot(norm, compass[i]);
+        if (dot_product > max)
+        {
+            max = dot_product;
+            best_match = i;
+        }
+    }
+    return (int)best_match;
+}
+
+Vec2 circleCollidingRect(Vec2 circleCenter, float circleRadius, Box rect, Vec2 movement) {
+    Vec2 halfExtents = rect.size / 2.0f;
+    Vec2 rectCenter = rect.min + halfExtents;
+    Vec2 difference = circleCenter - rectCenter;
+    Vec2 clamped = glm::clamp(difference, -halfExtents, halfExtents);
+    Vec2 closest = rectCenter + clamped; // closest point on rect
+
+
+
+    difference = closest - circleCenter;
+    Vec2 adjust = {0,0};
+    float distance = glm::length(difference);
+
+    if (distance < circleRadius) {
+        auto direction = VectorDirection(difference);
+        Vec2 penetration = circleRadius - Vec2{abs(difference.x), abs(difference.y)};
+        if (direction == Direction::LEFT || direction == Direction::RIGHT) {
+            adjust.x += penetration.x * (Direction::LEFT  == direction);
+            adjust.x -= penetration.x * (Direction::RIGHT == direction);
+        } else {
+            adjust.y -= penetration.y * (Direction::UP   == direction);
+            adjust.y += penetration.y * (Direction::DOWN == direction);
+        }
+    }
+    // Vec2 collisionMargin = difference -  * distance;
+    // if (distance < circleRadius) {
+    //     if (movement.x > 0.0f) {
+    //         adjust.x = 
+    //     }
+    // }w
+    return adjust;
+}
+
 void PlayerControls::movePlayer(Vec2 movement) {
     Player* player = &game->state->player;
     auto* oldPlayerPos = game->state->player.get<World::EC::Dynamic>();
@@ -374,8 +442,72 @@ void PlayerControls::movePlayer(Vec2 movement) {
         LogError("no dynamic position component on player!");
         return;
     }
+
+    float collisionRadius = PLAYER_DIAMETER / 2.0f;
+
     Vec2 oldPos = oldPlayerPos->pos;
-    oldPlayerPos->pos += movement;
+    Vec2 newPos = oldPos + movement;
+
+    Vec2 circleCenter = newPos + collisionRadius;
+    Vec2 potentialPosition = newPos + collisionRadius;
+
+    Vec2 min = glm::min(oldPos, newPos);
+    Vec2 max = glm::max(oldPos, newPos);
+    
+    max += collisionRadius*2.0f;
+
+    IVec2 minTile = vecFloori(min);
+    IVec2 maxTile = vecCeili(max);
+
+    Vec2 change = {0, 0};
+    for (int x = minTile.x; x <= maxTile.x; x++) {
+        for (int y = minTile.y; y <= maxTile.y; y++) {
+            Tile* tile = getTileAtPosition(game->state->chunkmap, Vec2{x, y});
+            if (TileTypeData[tile->type].flags & TileTypes::Solid) {
+                // Vec2 tileCenter = Vec2{x + 0.5f, y + 0.5f};
+                // Vec2 delta = tileCenter - circleCenter;
+                // Vec2 clamped = glm::clamp(delta, {-0.5f, -0.5f}, {0.5f, 0.5f});
+                // Vec2 closest = tileCenter + clamped; // closest point on tile
+                // delta = closest - circleCenter;
+                // bool collision = glm::length(delta) < collisionRadius;
+                // if (collision) {
+                //     float angle = atan2(delta.y, delta.x);
+                //     Vec2 sincos = get_sincosf(angle);
+                //     change = sincos * delta;
+                //     tile->type = TileTypes::Sand;
+                // }
+                // Vec2 delta;
+                // if (circleCollidingRect(circleCenter, collisionRadius, {Vec2{x, y}, Vec2({1, 1})}, &delta)) {
+                //     LogInfo("colliding");
+                //     float angle = atan2(delta.y, delta.x);
+                //     Vec2 sincos = get_sincosf(angle);
+                //     if (movement.x > 0.0f) {
+                        
+                //     }
+                //     change = -(delta + collisionRadius);
+
+                //     change = circleCollidingRect(circleCenter, collisionRadius, {Vec2{x, y}, Vec2({1, 1})}, movement);
+                //     goto end;
+                // }
+
+                Vec2 nearestPoint = glm::clamp(potentialPosition, {x, y}, {x+1, y+1});
+                Vec2 nearestPointDelta = nearestPoint - potentialPosition;
+                float length = glm::length(nearestPointDelta);
+                float overlap = collisionRadius - length;
+                if (overlap > 0.0f) {
+                    Vec2 norm;
+                    if (length == 0.0f) {
+                        norm = {0, 1};
+                    } else {
+                        norm = glm::normalize(nearestPointDelta);
+                    }
+                    potentialPosition -= norm * overlap;
+                }
+            }
+        }
+    }
+
+    oldPlayerPos->pos = potentialPosition - collisionRadius;
 }
 
 void PlayerControls::placeItem(ItemStack* item, Vec2 at) {

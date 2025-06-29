@@ -27,7 +27,7 @@ static_assert(CHUNKSIZE > 0, "Chunks can't be empty");
 
 #define BASE_UNIT_SCALE 32.0f
 
-const float PLAYER_SPEED = 0.15f;
+const float PLAYER_SPEED = 0.11f;
 const float PLAYER_ROTATION_SPEED = 1.0f;
 
 #define TARGET_FPS 60

@@ -534,6 +534,7 @@ int Game::init() {
         Vec2 pos = {(float)randomInt(-400, 400), (float)randomInt(-400, 400)};
         // do placing collision checks
         auto tree = World::Entities::Tree::make(state->ecs, pos, {4, 4}).make();
+        World::entityCreated(state, tree);
         (void)tree;
     }
 
@@ -545,6 +546,17 @@ int Game::init() {
         state->ecs->Get<World::EC::Render>(tree())->textures[1].layer = i;
         state->ecs->Get<World::EC::Render>(tree())->textures[0].layer = i;
     }
+
+    World::Entities::TextBox::make(state->ecs, {10, -5}, World::EC::Text{
+        .message = "This is an example of a text box!",
+        .rendering = TextRenderingSettings{
+            .color = {0, 255, 55, 255},
+            .font = Fonts->get("debug")
+        },
+        .formatting = TextFormattingSettings{
+            .align = TextAlignment::TopCenter
+        },
+    });
 
     this->playerControls = new PlayerControls(this);
     SDL_FPoint mousePos = SDL::getMousePixelPosition();

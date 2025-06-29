@@ -11,22 +11,17 @@ ChunkData::ChunkData(Chunk* chunk, IVec2 position) {
 void generateChunk(ChunkData* chunkdata) {
     if (!chunkdata) return;
     Chunk& chunk = *chunkdata->chunk;
+    float r = fmod(chunkdata->position.x, 4.0f) / 4.0f * 0.2f;
     for (int row = 0; row < CHUNKSIZE; row++) {
         for (int col = 0; col < CHUNKSIZE; col++) {
-            TileType tileType = TileTypes::Grass;
-            
-            switch(rand() % 4) {
-            case 0:
-                tileType = TileTypes::GreyFloor;
-                break;
-            case 1:
+            TileType tileType = TileTypes::Space;
+            r += (float)rand() / RAND_MAX;
+            if (r < 0.2f) {
                 tileType = TileTypes::Water;
-                break;
-            case 2:
-                tileType = TileTypes::GreyFloorOverhang;
-                break;
-            default:
-                break;
+            } else if (r < 0.4f) {
+                tileType = TileTypes::GreyFloor;
+            } else {
+                tileType = TileTypes::Space;
             }
             
             chunk[row][col] = Tile(tileType);

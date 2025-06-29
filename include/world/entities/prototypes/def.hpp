@@ -10,6 +10,7 @@ namespace World {
                 Grenade,
                 Airstrike,
                 Player,
+                TextBox,
                 ItemStack,
                 Tree,
                 TransportBelt,

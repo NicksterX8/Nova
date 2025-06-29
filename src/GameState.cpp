@@ -85,10 +85,11 @@ void GameState::init(const TextureManager* textureManager) {
 
     ItemStack startInventory[] = {
         ItemStack(items::Prototypes::SandGun::make(itemManager)),
-        ItemStack(items::Prototypes::Grenade::make(itemManager), 67),
+        ItemStack(items::Prototypes::Grenade::make(itemManager), 60),
         ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::Grass), 64),
         ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::Sand), 24),
-        ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::TransportBelt), 200),
+        ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::TransportBelt), 64),
+        ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::GreyFloor), 192)
     };
 
     Inventory* playerInventory = player.inventory();

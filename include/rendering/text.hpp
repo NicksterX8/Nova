@@ -258,18 +258,12 @@ struct TextFormattingSettings {
     float sizeOffsetScale = 0.0f; // never actually used currently. maybe remove??
     bool wrapOnWhitespace = true;
 
-    TextFormattingSettings() = default;
-
-    // TextFormattingSettings(
-    //     TextAlignment alignment, float maxWidth = INFINITY, float maxHeight = INFINITY)
-    //     : align(alignment), maxWidth(maxWidth), maxHeight(maxHeight) {}
-
 private:
     using Self = TextFormattingSettings;
 public:
 
     static Self Default() {
-        return Self();
+        return Self{};
     }
 };
 
@@ -308,22 +302,6 @@ struct TextRenderingSettings {
     const Font* font = nullptr;
     SDL_Color color = {0,0,0,255};
     glm::vec2 scale = glm::vec2(-1.0f);
-    bool orderMatters = false;
-
-    /*
-    TextRenderingSettings() = default;
-
-    TextRenderingSettings(const Font* font, SDL_Color color, glm::vec2 scale = glm::vec2(-1.0f))
-    : font(font), color(color), scale(scale) {}
-
-    TextRenderingSettings(const Font* font, glm::vec2 scale = glm::vec2(-1.0f))
-    : font(font), scale(scale) {}
-
-    TextRenderingSettings(SDL_Color color, glm::vec2 scale = glm::vec2(-1.0f))
-    : color(color), scale(scale) {}
-
-    TextRenderingSettings(glm::vec2 scale) : scale(scale) {}
-    */
 };
 
 struct TextRenderLayout {

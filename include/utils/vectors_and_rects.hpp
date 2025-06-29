@@ -8,6 +8,7 @@
 #include <array>
 
 using Vec2 = glm::vec2;
+using DVec2 = glm::dvec2;
 using IVec2 = glm::ivec2;
 
 struct IVec2Hash {
@@ -22,7 +23,7 @@ struct IVec2Hash {
 using Rect = SDL_Rect;
 using FRect = SDL_FRect;
 
-inline bool pointInRect(glm::vec2 p, FRect rect) {
+inline bool pointInRect(Vec2 p, FRect rect) {
     return (
            p.x > rect.x
         && p.y > rect.y
@@ -31,7 +32,7 @@ inline bool pointInRect(glm::vec2 p, FRect rect) {
     );
 }
 
-inline bool pointInRect(glm::vec2 p, Rect rect) {
+inline bool pointInRect(Vec2 p, Rect rect) {
     return (
            p.x > (float)rect.x
         && p.y > (float)rect.y
@@ -107,8 +108,49 @@ inline IVec2 vecFloori(Vec2 vec) {
     return {(int)floor(vec.x), (int)floor(vec.y)};
 }
 
+inline Vec2 vecCeil(Vec2 vec) {
+    return {ceil(vec.x), ceil(vec.y)};
+}
+
+inline IVec2 vecCeili(Vec2 vec) {
+    return {(int)ceil(vec.x), (int)ceil(vec.y)};
+}
+
 inline Box* rectAsBox(FRect* box) {
     return (Box*)box;
+}
+
+// Check for GNU C compiler or compatible (like Clang) on a non-Windows system
+#if defined(__GNUC__) && !defined(_WIN32)
+#define HAVE_SINCOSF 1
+#endif
+
+// returns the cos(angle) in x, sin(angle) in y. uses builtin sincos if available
+// single precision floating point
+inline Vec2 get_sincosf(float angle) {
+    #ifdef HAVE_SINCOSF
+        Vec2 vec;
+        __sincosf(angle, &vec.y, &vec.x);
+        return vec;
+    #else
+        float s = sin(angle);
+        float c = cos(angle);
+        return {c, s};
+    #endif
+}
+
+// returns the cos(angle) in x, sin(angle) in y. uses builtin sincos if available
+// double precision floating point
+inline DVec2 get_sincosd(double angle) {
+    #ifdef HAVE_SINCOSF
+        DVec2 vec;
+        __sincos(angle, &vec.y, &vec.x);
+        return vec;
+    #else
+        double s = sin(angle);
+        double c = cos(angle);
+        return {c, s};
+    #endif
 }
 
 #endif
