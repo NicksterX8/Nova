@@ -10,7 +10,7 @@ radius(radius), damage(damage), life(life), particleCount(particleCount) {
 }
 
 void Nametag::setName(const char* name) {
-    assert(strlen(name) < MAX_ENTITY_NAME_LENGTH && "entity name too long");
+    assert(strlen(name) < MAX_ENTITY_NAMETAG_LENGTH && "entity name too long");
     strcpy(this->name, name);
 }
 
