@@ -5,7 +5,7 @@
 #include "../sdl_gl.hpp"
 #include "Shader.hpp"
 #include "shaders.hpp"
-#include "text.hpp"
+#include "text/rendering.hpp"
 #include "My/HashMap.hpp"
 #include "My/Vec.hpp"
 #include "renderers.hpp"

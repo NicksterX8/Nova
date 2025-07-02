@@ -3,7 +3,7 @@
 
 #include "rendering/textures.hpp"
 #include "utils/vectors_and_rects.hpp"
-#include "rendering/text.hpp"
+#include "rendering/text/text.hpp"
 #include "actions.hpp"
 #include "ECS/componentMacros.hpp"
 

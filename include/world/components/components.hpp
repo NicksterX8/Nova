@@ -6,7 +6,7 @@
 #include "items/items.hpp"
 #include "ECS/Entity.hpp"
 #include "ECS/componentMacros.hpp"
-#include "rendering/text.hpp"
+#include "rendering/text/text.hpp"
 
 #define BEGIN_COMPONENT(name) struct name {\
     constexpr static ComponentID ID = ComponentIDs::name;\

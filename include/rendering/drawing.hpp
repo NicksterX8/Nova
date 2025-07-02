@@ -6,7 +6,7 @@
 #include "../sdl.hpp"
 #include "../Camera.hpp"
 #include "utils.hpp"
-#include "text.hpp"
+#include "text/rendering.hpp"
 #include "context.hpp"
 #include "GUI/Gui.hpp"
 #include "rendering/gui.hpp"

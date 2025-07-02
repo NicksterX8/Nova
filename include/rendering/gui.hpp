@@ -1,7 +1,7 @@
 #ifndef RENDERING_GUI_INCLUDED
 #define RENDERING_GUI_INCLUDED
 
-#include "text.hpp"
+#include "text/rendering.hpp"
 #include "utils.hpp"
 #include "renderers.hpp"
 #include "shaders.hpp"

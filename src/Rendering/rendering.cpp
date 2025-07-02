@@ -316,7 +316,6 @@ Font* makeFont(const char* name, const char* font_filename, FT_UInt height, bool
     };
     auto font = newFont(
         My::str_add(FileSystem.assets.get("fonts/"), font_filename), height, sdf, 
-        ASCII_FIRST_STANDARD_CHAR, ASCII_LAST_STANDARD_CHAR+1,
         1.0f, fontFormatting,
         texUnit, sdf ? shaders.get(Shaders::SDF) : shaders.get(Shaders::Text));
     fonts.add(name, font);
@@ -336,7 +335,6 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
         FileSystem.assets.get("fonts/HelloGraduationSans.ttf"),
         32,
         false,
-        firstChar, endChar,
         1,
         fontFormatting,
         TextureUnit::Font0,
@@ -346,7 +344,6 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
         FileSystem.assets.get("fonts/Cascadia.ttf"),
         32, // size
         true, // use sdfs?
-        firstChar, endChar, // first char (space), last char
         1, // scale
         fontFormatting, // formatting settings
         TextureUnit::Font1,
@@ -356,7 +353,6 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
         FileSystem.assets.get("fonts/Papyrus.ttf"),
         32,
         true,
-        32, 127,
         1,
         fontFormatting,
         TextureUnit::Font2,
@@ -367,8 +363,6 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
         FileSystem.assets.get("fonts/factorio-fonts/TitilliumWeb-SemiBold.ttf"),
         12,
         false,
-        firstChar,
-        endChar,
         1,
         fontFormatting,
         TextureUnit::Font3,

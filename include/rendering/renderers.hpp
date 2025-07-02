@@ -7,7 +7,7 @@
 #include "llvm/ArrayRef.h"
 #include "rendering/utils.hpp"
 #include "textures.hpp"
-#include "text.hpp"
+#include "text/rendering.hpp"
 
 struct ColorVertex {
     glm::vec3 position;

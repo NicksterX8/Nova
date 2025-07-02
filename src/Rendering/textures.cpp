@@ -2,6 +2,7 @@
 #include "sdl_gl.hpp"
 #include "utils/Log.hpp"
 #include "rendering/context.hpp"
+#include "rendering/TexturePacker.hpp"
 
 void copyTexture(Texture dst, Texture src, glm::ivec2 dstOffset) {
     assert(src.pixelSize == dst.pixelSize); // need same format to copy

@@ -3,7 +3,7 @@
 
 #include "components.hpp"
 #include "ecs-gui.hpp"
-#include "rendering/text.hpp"
+#include "rendering/text/text.hpp"
 #include "rendering/context.hpp"
 #include "PlayerControls.hpp"
 #include "actions.hpp"
