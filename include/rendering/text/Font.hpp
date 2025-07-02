@@ -82,7 +82,7 @@ struct Font {
 
     Font() = default;
 
-    void load(FT_UInt height, Shader shader, bool useSDFs = false);
+    bool load(FT_UInt height, Shader shader, bool useSDFs = false);
 
     bool loaded() const {
         return face != nullptr;
