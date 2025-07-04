@@ -32,6 +32,7 @@ inline GLuint loadFontAtlasTexture(Texture atlas, GLint minFilter, GLint magFilt
 inline bool isWhitespace(char c) {
     switch (c) {
     case ' ':
+    case '\0':
     case '\t':
     case '\n':
         return true;
@@ -46,7 +47,7 @@ inline bool isWhitespace(char c) {
 FT_Face newFontFace(const char* filepath, FT_UInt height);
 
 struct Font {
-    static constexpr char MaxChar = 127;
+    static constexpr char MaxChar = ASCII_LAST_STANDARD_CHAR;
 
     struct FormattingSettings {
         float tabSpaces = 4.0f; // The width of a tab relative to the size of a space
@@ -59,7 +60,7 @@ struct Font {
         glm::vec<2, uint16_t> positions[ArraySize];
         glm::vec<2, uint16_t> sizes[ArraySize];
         glm::vec<2,  int16_t> bearings[ArraySize];
-                    uint16_t   advances[ArraySize];
+                       float  advances[ArraySize];
     };
 
     FT_Face face = nullptr;
@@ -94,37 +95,37 @@ struct Font {
         return formatting.lineSpacing * height();
     }
 
-    FT_UInt ascender() const {
+    float ascender() const {
         assert(face);
-        return face->size->metrics.ascender >> 6;
+        return face->size->metrics.ascender / 64.0f;
     }
 
     // negative value
-    FT_Int descender() const {
+    float descender() const {
         assert(face);
-        return face->size->metrics.descender >> 6;
+        return face->size->metrics.descender / 64.0f;
     }
 
-    FT_UInt height() const {
+    float height() const {
         return ascender() - descender();
     }
 
-    glm::ivec2 position(char c) const {
+    glm::u16vec2 position(char c) const {
         assert(c >= 0);
         return characters->positions[c];
     }
 
-    glm::ivec2 size(char c) const {
+    glm::u16vec2 size(char c) const {
         assert(c >= 0);
         return characters->sizes[c];
     }
 
-    glm::ivec2 bearing(char c) const {
+    glm::i16vec2 bearing(char c) const {
         assert(c >= 0);
         return characters->bearings[c];
     }
 
-    unsigned int advance(char c) const {
+    float advance(char c) const {
         assert(c >= 0 && c <= MaxChar);
         return characters->advances[c];
     }

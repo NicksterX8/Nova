@@ -39,10 +39,19 @@ struct TextRenderBatch {
 
 struct GlyphVertex {
     glm::vec2 pos;
-    glm::vec2 texCoord;
+    glm::vec2 texPos;
     SDL_Color color;
     glm::vec2 scale;
 };
+
+// struct GlyphVertex {
+//     glm::vec2 pos;
+//     glm::vec2 size;
+//     glm::vec2 texMin;
+//     glm::vec2 texMax;
+//     glm::vec2 scale;
+//     SDL_Color color;
+// };
 
 // param bufferSize: size of verticesOut buffer in number of glyph vertices
 void renderBatch(const TextRenderBatch* batch, GlyphVertex* verticesOut, int bufferSize);
@@ -67,8 +76,6 @@ struct TextRenderer {
     glm::vec4 defaultColor = {0, 0, 0, 255};
 
     constexpr static int maxBatchSize = 5000;
-
-    static_assert(sizeof(GlyphVertex) == sizeof(glm::vec2) + sizeof(TexCoord) + sizeof(SDL_Color) + sizeof(glm::vec2), "no struct padding");
 
     static TextRenderer init(const Font* defaultFont, My::Vec<TextRenderBatch>* buffer);
 

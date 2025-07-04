@@ -21,7 +21,7 @@ void generateChunk(ChunkData* chunkdata) {
             } else if (r < 0.4f) {
                 tileType = TileTypes::GreyFloor;
             } else {
-                tileType = TileTypes::Space;
+                tileType = TileTypes::Grass;
             }
             
             chunk[row][col] = Tile(tileType);

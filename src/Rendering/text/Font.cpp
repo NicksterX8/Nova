@@ -96,8 +96,7 @@ bool Font::load(FT_UInt pixelHeight, Shader shader, bool useSDFs) {
             }
         }
 
-        assert(slot->advance.x >= 0 && slot->advance.x >> 6 <= UINT16_MAX);
-        characters->advances[c]  = (uint16_t)(slot->advance.x >> 6);
+        characters->advances[c]  = slot->advance.x / 64.0f;
         characters->bearings[c]  = glm::vec<2,  int16_t>{slot->bitmap_left, slot->bitmap_top};
         characters->sizes[c]     = glm::vec<2, uint16_t>{slot->bitmap.width, slot->bitmap.rows};
         characters->positions[c] = packTexture(&textureAtlas, Texture{slot->bitmap.buffer, characters->sizes[c], pixelSize}, {1, 1});

@@ -48,6 +48,7 @@ TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength
 
     const Font* font = renderSettings.font ? renderSettings.font : this->defaultFont;
     if (!font || !font->face) {
+        LogError("Render with no font!");
         return RenderResult::BadRender(pos);
     }
 
@@ -70,8 +71,6 @@ TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength
         glm::vec2 unscaledPos = pos/scale;
         glm::vec2 scaledSize = layout.size * scale;
         glm::vec2 scaledOffset = layout.offset * scale;
-
-        unscaledPos += formatSettings.sizeOffsetScale * scaledSize;
 
         
         maxSize.x = MAX(maxSize.x, scaledSize.x);

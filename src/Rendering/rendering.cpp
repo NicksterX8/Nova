@@ -715,7 +715,6 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     auto settings = TextRenderingSettings{.color = {255, 0, 0, 255}};
     settings.font = ren.fonts.get("World");
 
-
     ren.worldGuiRenderer.flush(ren.shaders, worldTransform);
     ren.worldGuiRenderer.text->render("HI", {5, 5});
     ren.worldGuiRenderer.text->render("This is roboto", {-5, -5},

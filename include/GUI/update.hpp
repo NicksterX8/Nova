@@ -190,26 +190,15 @@ inline Element buildHotbar(GuiManager& gui) {
 }
 
 inline void initGui(GuiManager& gui) {
-    /*
-    auto box = boxElement(gui, Box{{120.0f, 20.0f}, {300.0f, 300.0f}}, {0, 0, 255, 255});
-    auto box2 = boxElement(gui, Box{{20.0f, 20.0f}, {250.0f, 250.0f}}, {0, 255, 0, 255});
-    gui.addComponent(box2, EC::ChildOf{box});
-    auto box3 = boxElement(gui, Box{{20.0f, 20.0f}, {210.0f, 210.0f}}, {255, 0, 0, 255});
-    gui.addComponent(box3, EC::ChildOf{box2});
-    auto fun = funButton(gui, {30, 20}, {100, 300}, SDL_Color{0,100,255,255}, TextAlignment::BottomLeft, Actions::MakeTheSkyBlue);
-    auto fun2 = funButton(gui, {500, 20}, {300, 300}, SDL_Color{0,100,255,255}, TextAlignment::MiddleCenter, Actions::MakeTheSkyBlue);
-    auto fun3 = funButton(gui, {30, 500}, {300, 300}, SDL_Color{0,100,255,255}, TextAlignment::TopRight, Actions::MakeTheSkyBlue);
-    gui.addComponent(fun, EC::ChildOf{box3});
-    */
 
     auto bar = buildHotbar(gui);
     auto console = buildConsole(gui);
     auto testTextBox = textBox(gui, gui.screen, Box{Vec2(100), Vec2(200)}, "This is some really awesome text and stuff");
     //auto halfBox = boxElement(gui, {Vec2(0.0f), Vec2(50.0f)}, {150, 0, 0, 255});
     //gui.addComponent(halfBox, EC::SizeConstraint{.relativeSize = Vec2(0.5, 0.2)});
-    auto t2 = textBox(gui, gui.screen, Box{Vec2(0, 400), Vec2(350)}, "This is some really awesome text and stuff fjdsfi i i i i i i i i i i i i i i i i i i I hate you");
-    auto t3 = textBox(gui, gui.screen, Box{Vec2(1500), Vec2(800)}, "This is some really awesome text and stuff");
-    gui.getComponent<EC::Text>(t2)->formatSettings.align = TextAlignment::MiddleCenter;
+    //auto t2 = textBox(gui, gui.screen, Box{Vec2(0, 400), Vec2(350)}, "This is some really awesome text and stuff fjdsfi i i i i i i i i i i i i i i i i i i I hate you");
+    auto t3 = textBox(gui, gui.screen, Box{Vec2(1000), Vec2(800)}, "This is some really awesome text and stuff");
+    //gui.getComponent<EC::Text>(t2)->formatSettings.align = TextAlignment::MiddleCenter;
     gui.getComponent<EC::Text>(t3)->formatSettings.align = TextAlignment::BottomRight;
 
     auto b = button(gui, 

@@ -3,12 +3,13 @@
 
 #include "Font.hpp"
 
-enum class HoriAlignment : Uint16 {
+enum class HoriAlignment : Uint8 {
     Left=0,
     Center=1,
-    Right=2
+    Right=2,
+    None = Left
 };
-enum class VertAlignment : Uint16 {
+enum class VertAlignment : Uint8 {
     Top=0,
     Middle=1,
     Bottom=2
@@ -17,6 +18,11 @@ enum class VertAlignment : Uint16 {
 struct TextAlignment {
     HoriAlignment horizontal;
     VertAlignment vertical;
+    bool _justify = false;
+
+    bool justify() const {
+        return _justify;
+    }
 
     #define ALIGNMENT_CONST_DECL const static TextAlignment
 
@@ -29,6 +35,9 @@ struct TextAlignment {
     ALIGNMENT_CONST_DECL BottomLeft;
     ALIGNMENT_CONST_DECL BottomCenter;
     ALIGNMENT_CONST_DECL BottomRight;
+    ALIGNMENT_CONST_DECL JustifyTop;
+    ALIGNMENT_CONST_DECL JustifyMiddle;
+    ALIGNMENT_CONST_DECL JustifyBottom;
 
     #undef ALIGNMENT_CONST_DECL
 };
@@ -58,7 +67,6 @@ struct TextFormattingSettings {
     TextAlignment align = TextAlignment::TopLeft;
     float maxWidth = INFINITY;
     float maxHeight = INFINITY;
-    float sizeOffsetScale = 0.0f; // never actually used currently. maybe remove??
     bool wrapOnWhitespace = true;
 
 private:
