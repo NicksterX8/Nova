@@ -28,6 +28,7 @@ set(SRC_FILES
     ${SD}/My/Vec.cpp
     ${SD}/My/HashMap.cpp
     ${SD}/GUI/Gui.cpp
+    ${SD}/GUI/update.cpp
     ${SD}/items/items.cpp
     ${SD}/items/prototypes/prototypes.cpp
     ${SD}/Chunks.cpp

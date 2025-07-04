@@ -7,8 +7,6 @@
 
 #include "ECS/system.hpp"
 
-#include "GUI/Gui.hpp"
-
 namespace GUI {
 
 #define ADDC(element, componentName, value)
@@ -52,7 +50,7 @@ inline Element button(GuiManager& gui, Box box, SDL_Color backgroundColor, const
         .formatSettings = TextFormattingSettings{
             .align = TextAlignment::MiddleCenter},
         .renderSettings = TextRenderingSettings{
-            .color = textColor, .scale = Vec2(1)}
+            .color = textColor, .scale = 1.0f}
     });
     gui.addComponent(e, EC::Border{
         .color = {60, 60, 60, 255},
@@ -108,6 +106,9 @@ inline Element buildConsole(GuiManager& gui) {
     return console;
 }
 
+void updateHotbar(Game* game, Element hotbarElement);
+void updateHotbarSlot(Game* game, Element slotElement);
+
 inline Element buildHotbar(GuiManager& gui) {
     float scale = 1;
 
@@ -147,6 +148,9 @@ inline Element buildHotbar(GuiManager& gui) {
     gui.addComponent(bar, EC::AlignmentConstraint{.alignment = TextAlignment::BottomCenter});
     gui.addComponent(bar, EC::Background({backgroundColor}));
     gui.addComponent(bar, EC::Border({borderColor, Vec2(0), Vec2(borderSize)}));
+    gui.addComponent(bar, EC::Update{
+        .update = updateHotbar
+    });
 
     // slots
     float innerMargin = 2 * scale;
@@ -158,7 +162,7 @@ inline Element buildHotbar(GuiManager& gui) {
         auto slot = gui.newElement(ElementTypes::Normal, bar);
         snprintf(name.name, 64, "hotbar-slot-%d", s);
         gui.addComponent(slot, name);
-        gui.addComponent(slot, EC::Numbered{s});
+        gui.addComponent(slot, EC::HotbarSlot{.slot = s});
 
         Box hotbarSlot = {
             {offset, borderSize},
@@ -181,9 +185,12 @@ inline Element buildHotbar(GuiManager& gui) {
             .formatSettings = TextFormattingSettings{
                 .align = TextAlignment::BottomLeft},
             .renderSettings = TextRenderingSettings{
-                .color = {255,255,255,255}, .scale = Vec2(textScale)}
+                .color = {255,255,255,255}, .scale = textScale}
         });
         gui.addComponent(slot, EC::Button{selectHotbarSlot});
+        gui.addComponent(slot, EC::Update{
+            .update = updateHotbarSlot
+        });
     }
 
     return bar;

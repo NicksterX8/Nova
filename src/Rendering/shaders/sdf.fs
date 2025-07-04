@@ -5,10 +5,11 @@ in vec4 TextColor;
 
 out vec4 FragColor;
 
+uniform sampler2D text;
+
 uniform float thickness;
 uniform float soft;
 uniform float outlineDistance;
-uniform sampler2D text;
 uniform float smoothing;
 uniform vec4 outlineColor;
 

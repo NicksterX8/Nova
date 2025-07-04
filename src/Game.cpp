@@ -516,7 +516,7 @@ int Game::init() {
     LogInfo("starting render init");  
     renderInit(*renderContext);
 
-    this->gui->init(renderContext->guiRenderer);
+    this->gui->init(renderContext->guiRenderer, this);
 
     this->state = new GameState();
 

@@ -1,5 +1,7 @@
 #include "rendering/text/formatting.hpp"
 
+namespace Text {
+
 const TextAlignment TextAlignment::TopLeft       = {HoriAlignment::Left,   VertAlignment::Top};
 const TextAlignment TextAlignment::TopCenter     = {HoriAlignment::Center, VertAlignment::Top};
 const TextAlignment TextAlignment::TopRight      = {HoriAlignment::Right,  VertAlignment::Top};
@@ -209,46 +211,6 @@ CharacterLayoutData formatText(const Font* font, const char* text, int textLengt
 }
 */
 
-using Char = char;
-using CharIndex = Sint16;
-
-// returns count of visible characters output in charactersOut
-// int getVisibleCharacters(const Uint16* fontAdvances, const Char* text, int textLength, Char* charactersOut, Sint32* charAdvancesOut) {
-//     for (const Char* c = text; c < text + textLength; c++) {
-//         if (*c != '\n' && *c != '\t' && *c != ' ') {
-//             charAdvancesOut
-//         }
-//     }
-// }
-
-struct Word {
-    CharIndex start;
-    CharIndex length;
-
-    float advance;
-    float size;
-
-    bool linebreak;
-    bool endOfSegment;
-
-    Word(CharIndex startIndex, CharIndex length, float advance, float size, bool linebreak, bool endOfSegment) : start(startIndex), length(length), advance(advance), size(size), linebreak(linebreak), endOfSegment(endOfSegment) {}
-
-    CharIndex end() const {
-        return start + length;
-    }
-
-    // does the word contain any visible characters or just whitespace
-    bool visible() const {
-        return length > 0;
-    }
-};
-
-struct Segment {
-    Vec2 offset;
-    float scale;
-    TextFormattingSettings formatting;
-};
-
 // returns number visible characters outputted
 // charsOut must have atleast enough space to fit strlen(text) chars
 int parseTextToWords(const Font* font, const Char* text, int textLength, llvm::SmallVector<Word>* wordsOut, Char* charsOut) {
@@ -261,25 +223,29 @@ int parseTextToWords(const Font* font, const Char* text, int textLength, llvm::S
     float wordSize = 0.0f;
     CharIndex wordLength = 0;
     for (CharIndex c = 0; c < textLength; c++) {
-        float cAdvance = advances[text[c]];
-        if (isWhitespace(text[c])) {
-            Word word{(CharIndex)(c - wordLength), wordLength, wordAdvance + cAdvance, wordSize, text[c] == '\n', text[c] == '\0'};
+        Char ch = text[c];
+        if (!font->hasChar(ch)) {
+            ch = UnsupportedChar;
+        }
+        float cAdvance = advances[ch];
+        if (isWhitespace(ch)) {
+            Word word{(CharIndex)(c - wordLength), wordLength, wordAdvance + cAdvance, wordSize, ch == '\n'};
             wordsOut->push_back(word);
             wordLength = 0;
             wordAdvance = 0;
             wordSize = 0;
         } else {
             wordLength++;
-            auto cSize = font->size(text[c]).x;
+            auto cSize = font->size(ch).x;
             wordSize = wordAdvance + cSize; // before advance is advanced
             wordAdvance += cAdvance;
-            charsOut[charCount++] = text[c];
+            charsOut[charCount++] = ch;
         }
     }
     // get any leftover chars
     if (wordLength > 0) {
         CharIndex c = (CharIndex)textLength - 1; // last char
-        Word word{(CharIndex)(textLength - wordLength), wordLength, wordAdvance, wordSize, text[c] == '\n', text[c] == '\0'};
+        Word word{(CharIndex)(textLength - wordLength), wordLength, wordAdvance, wordSize, text[c] == '\n'};
         wordsOut->push_back(word);
     }
 
@@ -292,28 +258,27 @@ struct Line {
     float width;
 };
 
-void parseWordsToLines(const Font* font, const Char* text, ArrayRef<Word> words, ArrayRef<Segment> segments, llvm::SmallVector<Line>* linesOut, int* segmentLineCounts, float* segmentWidths) {
-    assert(font && text && linesOut);
+// returns the bounding size of the resulting lines
+Vec2 parseWordsToLines(const Font* font, float maxWidth, ArrayRef<Word> words, llvm::SmallVector<Line>* linesOut) {
+    assert(font && linesOut);
+
+    if (words.empty()) return {0,0};
     
     float lineAdvance = 0.0f;
     int lineWordCount = 0;
     
-    int segmentCount = 0;
-    int segmentLineCount = 0;
-    float segmentWidth = 0.0f;
+    float highestWidth = 0.0f;
     bool breakAfterWord = false;
     for (int w = 0; w < words.size(); w++) {
         auto& word = words[w];
-        float maxWidth = segments[segmentCount].formatting.maxWidth * segments[segmentCount].scale;
         if ((lineAdvance + word.size >= maxWidth || breakAfterWord) && lineWordCount > 0) {
             float width = lineAdvance - words[w-1].advance + words[w-1].size;
-            segmentWidth = std::max(segmentWidth, width);
+            highestWidth = std::max(highestWidth, width);
             linesOut->push_back(Line{
                 .startWord = w - lineWordCount,
                 .wordCount = lineWordCount,
                 .width = width // swap last words advance and size. we know words[w-1] exists because lineWordCount > 0
             });
-            segmentLineCount++;
             // reset line, then add word
             lineWordCount = 1;
             lineAdvance = word.advance;
@@ -322,26 +287,25 @@ void parseWordsToLines(const Font* font, const Char* text, ArrayRef<Word> words,
             lineAdvance += word.advance;
         }
 
-        if (word.endOfSegment) {
-            segmentLineCounts[segmentCount] = segmentLineCount;
-            segmentLineCount = 0;
-            segmentWidths[segmentCount] = segmentWidth;
-            segmentWidth = 0.0f;
-            segmentCount++;
-        }
-        breakAfterWord = word.linebreak || word.endOfSegment;
+        breakAfterWord = word.linebreak;
     }
     // get any left over words if they exist
     if (lineWordCount > 0) {
         float width = lineAdvance - words.back().advance + words.back().size;
-        segmentWidths[segmentCount] = std::max(segmentWidth, width);
+        highestWidth = std::max(highestWidth, width);
         linesOut->push_back(Line{
             .startWord = (int)words.size() - lineWordCount,
             .wordCount = lineWordCount,
             .width = width
         });
-        segmentLineCounts[segmentCount] = segmentLineCount + 1;
     }
+
+    const float lineOffset = font->linePixelSpacing();
+    const float lineHeight = font->height(); // i think?
+
+    // line count must be > 0 if words are > 0
+    float height = (linesOut->size() - 1) * lineOffset + (linesOut->size() * lineHeight);
+    return { highestWidth, height };
 }
 
 struct FormattingOptions {
@@ -350,87 +314,63 @@ struct FormattingOptions {
     TextAlignment align;
 };
 
-void formatLines(const Font* font, const Char* text,
-    ArrayRef<Word> words, ArrayRef<Line> lines,
-    ArrayRef<Segment> segments, ArrayRef<int> segmentLineCounts,
+void formatLines(const Font* font, const Char* text, const TextFormattingSettings& formatting,
+    ArrayRef<Word> words, ArrayRef<Line> lines, Vec2 position, float scale,
     Vec2* outCharPositions)
 {
-    llvm::SmallVector<Vec2> segmentBounds(segments.size(), {0, 0});
-
     const float* advances = font->characters->advances;
     const float lineOffset = font->linePixelSpacing();
-    const float lineHeight = font->height(); // i think?
+    const float lineHeight = font->height();
+
+    auto align = formatting.align;
         
     int charIndex = 0;
 
-    for (int segment = 0,l = 0; segment < segments.size(); segment++) {
-        int segmentLineCount = segmentLineCounts[segment];
-        const float segmentHeight = (segmentLineCount - 1) * lineOffset + lineHeight;
-        auto align = segments[segment].formatting.align;
-        float vertAlignmentOffset = ((float)align.vertical) * 0.5f * segmentHeight;
-        Vec2 segmentOrigin = segments[segment].offset; segmentOrigin.y += vertAlignmentOffset;
-        for (int segmentLine = 0; segmentLine < segmentLineCount; segmentLine++,l++) {
-            auto& line = lines[l];
-            if (align.justify()) {
-                // TODO: justify
-                LogError("UNIMPLEMENTED: justify");
-            } else {
-                Vec2 linePos = segmentOrigin;
-                linePos.x -= (float)align.horizontal * 0.5f * line.width;
-                linePos.y -= lineOffset * segmentLine;
-                float wordAdvance = 0.0f;
-                for (int w = line.startWord; w < line.startWord + line.wordCount; w++) {
-                    auto& word = words[w];
-                    float charAdvance = wordAdvance;
-                    for (CharIndex c = word.start; c < word.end(); c++) {
-                        outCharPositions[charIndex++] = {charAdvance + linePos.x, linePos.y};
-                        charAdvance += advances[text[c]];
-                    }
-                    wordAdvance += word.advance;
+    const float textHeight = (lines.size() - 1) * lineOffset + lineHeight;
+    
+    float vertAlignmentOffset = (2.0f - (float)align.vertical) * 0.5f * textHeight;
+    Vec2 origin = {position.x, position.y + vertAlignmentOffset};
+    for (int l = 0; l < lines.size(); l++) {
+        auto& line = lines[l];
+        if (align.justify()) {
+            // TODO: justify
+            LogError("UNIMPLEMENTED: justify");
+        } else {
+            float horiAlignmentOffset = (float)align.horizontal * 0.5f * line.width;
+            Vec2 linePos = Vec2{origin.x - horiAlignmentOffset, origin.y - lineOffset * l} / scale;
+            float wordAdvance = 0.0f;
+            for (int w = line.startWord; w < line.startWord + line.wordCount; w++) {
+                auto& word = words[w];
+                float charAdvance = wordAdvance;
+                for (CharIndex c = word.start; c < word.end(); c++) {
+                    outCharPositions[charIndex++] = Vec2{charAdvance + linePos.x, linePos.y};
+                    charAdvance += advances[text[c]];
                 }
+                wordAdvance += word.advance;
             }
         }
     }
 }
 
-struct FormatResult {
-    Box boundingBox;
-};
-
 // return: output box 
-void formatNew(const Font* font, const Char* text, int textLength, ArrayRef<Segment> segments, FormatResult* segmentResults, Char* charsOut, Vec2* charPositionsOut) {
+FormatResult formatText(const Font* font, const Char* text, int textLength,
+    const TextFormattingSettings& formatting, Vec2 position, float scale,
+    My::Vec<Char>* charsOut, My::Vec<Vec2>* charPositionsOut)
+{
     llvm::SmallVector<Word> words;
-    int charCount = parseTextToWords(font, text, textLength, &words, charsOut);
+    int charCount = parseTextToWords(font, text, textLength, &words, charsOut->require(textLength));
+    charsOut->size -= textLength - charCount;
 
+    float unscaledMaxWidth = formatting.maxWidth / scale;
     llvm::SmallVector<Line> lines;
-    llvm::SmallVector<int> segmentLineCounts(segments.size(), 0);
-    llvm::SmallVector<float> segmentMaxWidths(segments.size(), 0.0f);
-    parseWordsToLines(font, text, words, segments, &lines, segmentLineCounts.data(), segmentMaxWidths.data());
+    Vec2 bounds = parseWordsToLines(font, unscaledMaxWidth, words, &lines);
 
-    formatLines(font, text, words, lines, segments, segmentLineCounts, charPositionsOut);
-    const float lineOffset = font->linePixelSpacing();
-    const float lineHeight = font->height(); // i think?
-    for (int i = 0; i < segments.size(); i++) {
-        const float segmentHeight = (segmentLineCounts[i] - 1) * lineOffset + lineHeight;
-        segmentResults[i].boundingBox = Box{
-            {0, 0},
-            {segmentMaxWidths[i], segmentHeight}
-        };
-    }
+    formatLines(font, text, formatting, words, lines, position, scale, charPositionsOut->require(charCount));
+
+    return {
+        Box{position, bounds},
+        charCount
+    };
 }
 
-CharacterLayoutData formatText(const Font* font, const char* text, int textLength, TextFormattingSettings settings, glm::vec2 scale) {
-    Segment segment;
-    segment.scale = scale.x;
-    segment.offset = {0, 0};
-    segment.formatting = settings;
-    CharacterLayoutData layoutData;
-    layoutData.characters.resize(textLength);
-    layoutData.characterOffsets.resize(textLength);
-    llvm::SmallVector<FormatResult> segmentResults(1);
-    formatNew(font, text, textLength, ArrayRef(segment), segmentResults.data(), layoutData.characters.data(), layoutData.characterOffsets.data());
-    layoutData.size = segmentResults[0].boundingBox.size * scale.x;
-    //layoutData.origin
-
-    return layoutData;
 }

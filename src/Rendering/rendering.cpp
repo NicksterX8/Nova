@@ -343,20 +343,20 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
     Font* debugFont = newFont(
         FileSystem.assets.get("fonts/Cascadia.ttf"),
         32, // size
-        true, // use sdfs?
+        false, // use sdfs?
         1, // scale
         fontFormatting, // formatting settings
         TextureUnit::Font1,
-        shaders.get(Shaders::SDF)
+        shaders.get(Shaders::Text)
     );
     Font* worldFont = newFont(
         FileSystem.assets.get("fonts/Papyrus.ttf"),
         32,
-        true,
+        false,
         1,
         fontFormatting,
         TextureUnit::Font2,
-        shaders.get(Shaders::SDF)
+        shaders.get(Shaders::Text)
     );
 
     Font* guiFont = newFont(
@@ -395,7 +395,7 @@ void renderInit(RenderContext& ren) {
 
     ren.guiTextRenderer = TextRenderer::init(Fonts->get("Debug"), nullptr);
     ren.worldTextRenderer = TextRenderer::init(Fonts->get("World"), nullptr);
-    ren.worldTextRenderer.defaultRendering.scale = Vec2(1/32.0f);
+    ren.worldTextRenderer.defaultRendering.scale = 1/BASE_UNIT_SCALE;
     GL::logErrors();
 
     /* Init misc. renderers */

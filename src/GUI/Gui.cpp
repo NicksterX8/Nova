@@ -45,7 +45,7 @@ void Gui::drawConsole(GuiRenderer& renderer) {
         };
         TextRenderingSettings logRenderingSettings {
             .font = Fonts->get("Debug"),
-            .scale = Vec2(0.5f)
+            .scale = 0.5f
         };
         float messageSpacing = logRenderingSettings.font->height() * 0.25f;
         Vec2 pos = logViewEc->absolute.min;
@@ -82,7 +82,7 @@ void Gui::drawConsole(GuiRenderer& renderer) {
     float terminalFontScale = 0.75;
     TextRenderingSettings terminalTextRenderSettings{
         .color = terminalTextColor,
-        .scale = Vec2(terminalFontScale),
+        .scale = terminalFontScale,
         .font = terminalFont
     };
 
@@ -90,48 +90,49 @@ void Gui::drawConsole(GuiRenderer& renderer) {
     if (showTerminal) {
         manager.unhideElement(consoleTerminal);
 
-        Vec2* characterPositions = Alloc<Vec2>(activeMessage.size());
-        auto textRect = renderer.renderText(activeMessage.c_str(), terminalViewEc->absolute.min, terminalTextFormatting, terminalTextRenderSettings, terminalViewEc->level, characterPositions).rect;
+        // TODO: reimplement cursor
+        Vec2* characterPositions = nullptr;
+        auto textRect = renderer.renderText(activeMessage.c_str(), terminalViewEc->absolute.min, terminalTextFormatting, terminalTextRenderSettings, terminalViewEc->level).rect;
         terminalViewEc->box = *rectAsBox(&textRect);
         if (terminalViewEc->box.size.y < terminalFont->height() * terminalFontScale) {
             terminalViewEc->box.size.y = terminalFont->height() * terminalFontScale;
         }
 
-        Vec2 selectedCharPos = terminalViewEc->absolute.min;
-        int selectedCharIndex = console.selectedCharIndex;
+        // Vec2 selectedCharPos = terminalViewEc->absolute.min;
+        // int selectedCharIndex = console.selectedCharIndex;
         
-        // in the middle case
-        if (selectedCharIndex >= 0 && selectedCharIndex < activeMessage.size()) {
-            selectedCharPos = characterPositions[selectedCharIndex];
-            if (selectedCharIndex > 0) {
-                selectedCharPos = characterPositions[selectedCharIndex-1];
-                selectedCharPos.x += terminalFont->advance(activeMessage.back()) * terminalFontScale;
-            }
-        // end case
-        } else if (activeMessage.size() > 0 && selectedCharIndex == activeMessage.size()) {
-            selectedCharPos = characterPositions[activeMessage.size()-1];
-            selectedCharPos.x += terminalFont->advance(activeMessage.back()) * terminalFontScale;
-        }
-        // for case where message is empty
-        if (activeMessage.size() > 0) {
-            selectedCharPos.y += terminalFont->descender() * terminalFontScale;
-        }
+        // // in the middle case
+        // if (selectedCharIndex >= 0 && selectedCharIndex < activeMessage.size()) {
+        //     selectedCharPos = characterPositions[selectedCharIndex];
+        //     if (selectedCharIndex > 0) {
+        //         selectedCharPos = characterPositions[selectedCharIndex-1];
+        //         selectedCharPos.x += terminalFont->advance(activeMessage.back()) * terminalFontScale;
+        //     }
+        // // end case
+        // } else if (activeMessage.size() > 0 && selectedCharIndex == activeMessage.size()) {
+        //     selectedCharPos = characterPositions[activeMessage.size()-1];
+        //     selectedCharPos.x += terminalFont->advance(activeMessage.back()) * terminalFontScale;
+        // }
+        // // for case where message is empty
+        // if (activeMessage.size() > 0) {
+        //     selectedCharPos.y += terminalFont->descender() * terminalFontScale;
+        // }
 
-        Box cursor = {
-            selectedCharPos,
-            {renderer.pixels(2.0f), terminalFont->height() * terminalFontScale}
-        };
+        // Box cursor = {
+        //     selectedCharPos,
+        //     {renderer.pixels(2.0f), terminalFont->height() * terminalFontScale}
+        // };
         
-        // render cursor
-        constexpr double flashDelay = 0.5;
-        static double timeTilFlash = flashDelay;
-        constexpr double flashDuration = 0.5;
-        timeTilFlash -= Metadata->frame.deltaTime / 1000.0; // subtract time in seconds from time
-        double secondsSinceCursorMove = Metadata->seconds() - console.timeLastCursorMove;
-        if (secondsSinceCursorMove < flashDuration) timeTilFlash = -secondsSinceCursorMove;
-        if (timeTilFlash < 0.0) {
-            renderer.colorRect(cursor, terminalTextColor, terminalViewEc->level);
-        }
+        // // render cursor
+        // constexpr double flashDelay = 0.5;
+        // static double timeTilFlash = flashDelay;
+        // constexpr double flashDuration = 0.5;
+        // timeTilFlash -= Metadata->frame.deltaTime / 1000.0; // subtract time in seconds from time
+        // double secondsSinceCursorMove = Metadata->seconds() - console.timeLastCursorMove;
+        // if (secondsSinceCursorMove < flashDuration) timeTilFlash = -secondsSinceCursorMove;
+        // if (timeTilFlash < 0.0) {
+        //     renderer.colorRect(cursor, terminalTextColor, terminalViewEc->level);
+        // }
     } else {
         manager.hideElement(consoleTerminal);
     }
@@ -158,7 +159,7 @@ void Gui::drawHeldItemStack(GuiRenderer& renderer, const ItemManager& itemManage
         TextFormattingSettings{
             .align = TextAlignment::BottomLeft}, 
         TextRenderingSettings{
-            .font = Fonts->get("Gui"), .color = {0,0,0,255}, .scale = Vec2(textScale)});
+            .font = Fonts->get("Gui"), .color = {0,0,0,255}, .scale = textScale});
     }
 }
 
@@ -291,29 +292,9 @@ void Gui::renderElements(GuiRenderer& renderer, const PlayerControls& playerCont
         auto* view = gui.getComponent<EC::ViewBox>(e);
         Box entityBox = view->absolute;
         auto* textComponent = gui.getComponent<EC::Text>(e);
-        Vec2 pos;
-        switch (textComponent->formatSettings.align.vertical) {
-        case VertAlignment::Bottom:
-            pos.y = entityBox.min.y;
-            break;
-        case VertAlignment::Middle:
-            pos.y = entityBox.min.y + entityBox.size.y / 2.0f;
-            break;
-        case VertAlignment::Top:
-            pos.y = entityBox.min.y + entityBox.size.y;
-            break;
-        }
-        switch (textComponent->formatSettings.align.horizontal) {
-        case HoriAlignment::Left:
-            pos.x = entityBox.min.x;
-            break;
-        case HoriAlignment::Center:
-            pos.x = entityBox.min.x + entityBox.size.x / 2.0f;
-            break;
-        case HoriAlignment::Right:
-            pos.x = entityBox.min.x + entityBox.size.x;
-            break;
-        }
+
+        Vec2 alignmentOffset = Text::getAlignmentOffset(textComponent->formatSettings.align, entityBox.size);
+        Vec2 pos = entityBox.min + alignmentOffset;
 
         entityBox.min = pos;
         

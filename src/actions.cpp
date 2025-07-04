@@ -5,7 +5,7 @@
 namespace GUI {
 // gui actions
 void selectHotbarSlot(Game* g, Element e) {
-    int slot = g->gui->manager.getComponent<EC::Numbered>(e)->number;
+    int slot = g->gui->manager.getComponent<EC::HotbarSlot>(e)->slot;
     auto* playerInventory = g->state->player.inventory();
     if (!playerInventory) {
         return;

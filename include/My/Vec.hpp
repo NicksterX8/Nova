@@ -305,6 +305,26 @@ public:
         return &data[this->size - size];
     }
 
+    /* Shrink the vector capacity by count number of elements, if possible.
+     * If count is greater than capacity - size, count will be set to capacity - size
+     */
+    void shrink(int count) {
+        count = std::min(count, capacity - size);
+        if (count > 0) {
+            data = (T*)allocator.Realloc(data, capacity - count);
+            capacity -= count;
+        }
+    }
+
+    /* Shrink capacity to size
+     */
+    int shrinkToFit() {
+        if (capacity > size) {
+            data = (T*)allocator.Realloc(data, size);
+            capacity = size;
+        }
+    }
+
     void insertAt(int index, const T* values, int count) {
         T* at = &data[index];
         if (size + count > capacity) {

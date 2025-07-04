@@ -277,7 +277,7 @@ struct RenderBackgroundSystem : ISystem {
         auto quadsBd = makeTempGroupArray<BorderQuads>(borderGroup);
 
         auto bufferBordersJob = Do(
-            Schedule(borderGroup, InitializeArrayJob(levelsBd, GuiNullRenderLevel)))
+            Schedule(borderGroup, InitializeArrayJob(levelsBd, -3)))
         .Then({
             Schedule(borderGroup, GetViewLevelsJob(levelsBd)),
             Schedule(borderGroup, BorderQuadsJob(quadsBd))
@@ -288,8 +288,6 @@ struct RenderBackgroundSystem : ISystem {
 
         Conflict(bufferBordersJob, bufferQuadsJob);
     }
-
-    void BeforeExecution() {}
 };
 
 JOB_PARALLEL_FOR(MakeTextureQuadsJob) {
@@ -348,6 +346,42 @@ struct RenderTexturesSystem : ISystem {
             Schedule(textureGroup, GetViewLevelsJob(levels)),
             Schedule(textureGroup, MakeTextureQuadsJob(quads, &guiRenderer->guiAtlas))
         });
+    }
+};
+
+struct DoElementUpdatesJob : IJobMainThread<DoElementUpdatesJob> {
+    Game* game;
+
+    DoElementUpdatesJob(Game* game)
+    : IJobMainThread<DoElementUpdatesJob>(true), game(game) {}
+
+    ComponentArray<const EC::Update> updates;
+    EntityArray elements;
+    
+    void Init(JobData& data) {
+        data.getComponentArray(updates);
+        data.getEntityArray(elements);
+    }
+
+    void Execute(int N) {
+        updates[N].update(game, elements[N]);
+    }
+};
+
+struct DoElementUpdatesSystem : ISystem {
+    ComponentGroup<
+        ReadOnly<EC::Update>
+    > group;
+
+private:
+    Game* game;
+public:
+
+    DoElementUpdatesSystem(SystemManager& manager, Game* game)
+    : ISystem(manager), game(game) {}
+
+    void ScheduleJobs() {
+        Schedule(group, DoElementUpdatesJob(game));
     }
 };
 

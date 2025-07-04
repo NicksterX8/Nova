@@ -1,23 +1,22 @@
 #version 330 core
 layout (location = 0) in vec2 aPos;
 layout (location = 1) in vec2 aTexCoord;
-layout (location = 2) in vec4 aColor;
+layout (location = 2) in vec2 aSize;
 layout (location = 3) in vec2 aScale;
+layout (location = 4) in vec4 aColor;
 
-out vec2 TexCoord;
-out vec4 TextColor;
-
-uniform mat4 transform;
+out VS_OUT {
+    vec2 Pos;
+    vec2 TexCoord;
+    vec2 Size;
+    vec2 Scale;
+    vec4 Color;
+} vs_out;
 
 void main() {
-    mat4 t = transform;
-    vec4 scale = vec4(aScale, 1.0, 1.0);
-    mat4 trans;
-    trans[0] = transform[0] * scale;
-    trans[1] = transform[1] * scale;
-    trans[2] = transform[2] * scale;
-    trans[3] = transform[3];
-    gl_Position = trans * vec4(aPos, 0.0, 1.0);
-    TexCoord  = aTexCoord;
-    TextColor = aColor;
+    vs_out.Pos = aPos;
+    vs_out.TexCoord = aTexCoord;
+    vs_out.Size = aSize;
+    vs_out.Scale = aScale;
+    vs_out.Color = aColor;
 }

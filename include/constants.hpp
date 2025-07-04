@@ -10,7 +10,7 @@
 #define WINDOW_TITLE "Faketorio"
 
 #define USE_SECONDARY_WINDOW 0
-#define WINDOW_HIGH_DPI 1
+#define WINDOW_HIGH_DPI 0
 
 #define USE_MULTITHREADING 1
 #define CACHE_LINE_SIZE 128

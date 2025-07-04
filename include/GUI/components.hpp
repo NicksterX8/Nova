@@ -36,7 +36,7 @@ text
 namespace ComponentIDs {
     #define GUI_REGULAR_COMPONENTS_LIST Name, SimpleTexture, Numbered, Background, \
         Border, ViewBox, Hidden, MaxSize, MinSize, Button, Text, ChildOf, Hover, \
-        SizeConstraint, AlignmentConstraint, StackConstraint
+        SizeConstraint, AlignmentConstraint, StackConstraint, Update, HotbarSlot
     #define GUI_PROTO_COMPONENTS_LIST PlaceholderPr 
     #define GUI_COMPONENTS_LIST GUI_REGULAR_COMPONENTS_LIST, GUI_PROTO_COMPONENTS_LIST
     GEN_IDS(ComponentIDs, ComponentID, GUI_COMPONENTS_LIST, Count);
@@ -120,6 +120,16 @@ END_COMPONENT(Text)
 BEGIN_COMPONENT(Numbered)
     int number = -1;
 END_COMPONENT(Numbered)
+
+BEGIN_COMPONENT(HotbarSlot)
+    Sint32 slot = -1;
+    char text[16] = {'\0'};
+END_COMPONENT(HotbarSlot)
+
+// function to execute every tick
+BEGIN_COMPONENT(Update)
+    GuiAction update;
+END_COMPONENT(Update)
 
 BEGIN_COMPONENT(SizeConstraint)
     Vec2 maxSize = Vec2(INFINITY);

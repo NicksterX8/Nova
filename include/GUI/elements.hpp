@@ -34,7 +34,7 @@ inline Element funButton(GuiManager& gui, Vec2 pos, Vec2 size, SDL_Color backgro
         TextFormattingSettings{.align = textAlign},
         TextRenderingSettings{
             .color = {255,255,255,255},
-            .scale = Vec2(0.3f)
+            .scale = 0.3f
         }
     }));
     gui.addComponent(e, EC::Hover({

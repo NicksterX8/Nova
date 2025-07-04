@@ -142,7 +142,7 @@ void Draw::drawFpsCounter(GuiRenderer& renderer, float fps, float tps, RenderOpt
     
     auto fpsRenderInfo = renderer.text->render(fpsCounter, {0, options.size.y}, 
         TextFormattingSettings{.align = TextAlignment::TopLeft}, 
-        TextRenderingSettings{.color = color, .scale = glm::vec2(1)});
+        TextRenderingSettings{.color = color, .scale = 1});
 
     {
         static char tpsCounter[128];
@@ -169,7 +169,7 @@ void Draw::drawFpsCounter(GuiRenderer& renderer, float fps, float tps, RenderOpt
         float offset = fpsRenderInfo.rect.x + fpsRenderInfo.rect.w + 2 * font->advance(' ');
         renderer.text->render(tpsCounter, {offset, options.size.y}, 
             TextFormattingSettings{.align = TextAlignment::TopLeft}, 
-            TextRenderingSettings{.color = color, .scale = glm::vec2(1.0f)});
+            TextRenderingSettings{.color = color, .scale = 1.0f});
     }
 }
 
@@ -296,6 +296,8 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
             {4, 4}, {0,0,0,255},
             TextFormattingSettings{.align = TextAlignment::MiddleCenter}, TextRenderingSettings{.color = {0,0,0,255}}, 10);
     }
+
+    renderFontComponents(Fonts->get("debug"), {500, 500}, guiRenderer);
 
     guiRenderer.flush(ren.shaders, screenTransform);
     

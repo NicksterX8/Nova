@@ -1,9 +1,12 @@
-#pragma once
+#ifndef FONT_INCLUDED
+#define FONT_INCLUDED
 
 #include "freetype.hpp"
 #include "sdl_gl.hpp"
 #include "rendering/Shader.hpp"
 #include "rendering/textures.hpp"
+
+namespace Text {
 
 // a texture will be bound on the current active texture unit
 inline GLuint loadFontAtlasTexture(Texture atlas, GLint minFilter, GLint magFilter) {
@@ -29,7 +32,12 @@ inline GLuint loadFontAtlasTexture(Texture atlas, GLint minFilter, GLint magFilt
     return textureID;
 }
 
-inline bool isWhitespace(char c) {
+using Char = char;
+using CharIndex = Sint16;
+
+constexpr Char UnsupportedChar = '#';
+
+inline bool isWhitespace(Char c) {
     switch (c) {
     case ' ':
     case '\0':
@@ -57,7 +65,7 @@ struct Font {
     struct AtlasCharacterData {
         static constexpr char ArraySize = MaxChar;
         /* Arrays of character atlas data. Index with char value directly like this: positions['a'] */
-        glm::vec<2, uint16_t> positions[ArraySize];
+        glm::vec<2, uint16_t> atlasPositions[ArraySize];
         glm::vec<2, uint16_t> sizes[ArraySize];
         glm::vec<2,  int16_t> bearings[ArraySize];
                        float  advances[ArraySize];
@@ -78,7 +86,6 @@ struct Font {
     TextureUnit textureUnit = TextureUnit::Null;
 
     FT_UInt baseHeight = 0; // the height of the font face before any scaling. The true height is this * scale
-
     float currentScale = 0.0f;
 
     Font() = default;
@@ -93,6 +100,10 @@ struct Font {
 
     FT_UInt linePixelSpacing() const {
         return formatting.lineSpacing * height();
+    }
+
+    static bool hasChar(Char c) {
+        return c >= ASCII_FIRST_STANDARD_CHAR && c <= ASCII_LAST_STANDARD_CHAR;
     }
 
     float ascender() const {
@@ -111,22 +122,22 @@ struct Font {
     }
 
     glm::u16vec2 position(char c) const {
-        assert(c >= 0);
-        return characters->positions[c];
+        assert(c >= ASCII_FIRST_STANDARD_CHAR && c <= ASCII_LAST_STANDARD_CHAR && "char out of font range!");
+        return characters->atlasPositions[c];
     }
 
     glm::u16vec2 size(char c) const {
-        assert(c >= 0);
+        assert(c >= ASCII_FIRST_STANDARD_CHAR && c <= ASCII_LAST_STANDARD_CHAR && "char out of font range!");
         return characters->sizes[c];
     }
 
     glm::i16vec2 bearing(char c) const {
-        assert(c >= 0);
+        assert(c >= ASCII_FIRST_STANDARD_CHAR && c <= ASCII_LAST_STANDARD_CHAR && "char out of font range!");
         return characters->bearings[c];
     }
 
     float advance(char c) const {
-        assert(c >= 0 && c <= MaxChar);
+        assert(c >= ASCII_FIRST_STANDARD_CHAR && c <= ASCII_LAST_STANDARD_CHAR && "char out of font range!");
         return characters->advances[c];
     }
 
@@ -177,3 +188,9 @@ struct Font {
 };
 
 Font* newFont(const char* fontfile, FT_UInt baseHeight, bool useSDFs, float scale, Font::FormattingSettings formatting, TextureUnit textureUnit, Shader shader);
+
+}
+
+using Text::Font;
+
+#endif

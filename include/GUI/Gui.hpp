@@ -17,6 +17,8 @@ struct GuiRenderer;
 namespace GUI {
 
 struct Console {
+    using Char = Text::Char;
+
     enum class MessageType {
         Default,
         Command,
@@ -149,17 +151,27 @@ struct Console {
         moveCursor(activeMessage.size());
     }
 
-    void enterChar(char c) {
-        int index = MAX(MIN(selectedCharIndex, activeMessage.size()), 0);
-        activeMessage.insert(index, 1, c);
-        moveCursor(selectedCharIndex + 1);
+    bool allowedCharacter(Char c) const {
+        return c >= ASCII_FIRST_STANDARD_CHAR && c <= ASCII_LAST_STANDARD_CHAR;
     }
 
-    void enterText(const char* text) {
+    void enterText(const Char* text) {
         if (!text) return;
-        int index = MAX(MIN(selectedCharIndex, activeMessage.size()), 0);
+
         int textLen = strlen(text);
-        activeMessage.insert(index, text);
+        llvm::SmallVector<Char, 32> textBuf(textLen+1);
+        memcpy(textBuf.data(), text, textLen+1);
+
+        // make sure all characters are ascii
+        for (int c = 0; c < textLen; c++) {
+            if (!allowedCharacter(text[c])) {
+                textBuf[c] = Text::UnsupportedChar;
+            }
+        }
+
+        int index = MAX(MIN(selectedCharIndex, activeMessage.size()), 0);
+        
+        activeMessage.insert(index, textBuf.data());
         moveCursor(selectedCharIndex + textLen);
     }
 
@@ -206,7 +218,7 @@ struct Console {
             }
             break;
         case SDLK_TAB:
-            enterChar('\t');
+            enterText("\t");
             break;
         case SDLK_UP:
             recallPastMessage();
@@ -251,17 +263,20 @@ struct Gui {
         Systems::RenderBackgroundSystem* renderBackgroundSys;
         Systems::SizeConstraintSystem* sizeConstraintSystem;
         Systems::RenderTexturesSystem* textureSys;
+        Systems::DoElementUpdatesSystem* updateSys;
 
-        void init(Systems::SystemManager& manager, GuiRenderer& renderer) {
+        void init(Systems::SystemManager& manager, GuiRenderer& renderer, Game* game) {
             auto* treeTraversal = new Systems::IBarrier(manager);
             auto* startRendering = new Systems::IBarrier(manager);
             auto* elementsComplete = new Systems::IBarrier(manager);
 
+            updateSys = new Systems::DoElementUpdatesSystem(manager, game);
             renderBackgroundSys = new Systems::RenderBackgroundSystem(manager, &renderer);
             sizeConstraintSystem = new Systems::SizeConstraintSystem(manager);
             textureSys = new Systems::RenderTexturesSystem(manager, &renderer);
 
-            sizeConstraintSystem->orderAfter(treeTraversal);
+            updateSys->orderAfter(treeTraversal);
+            sizeConstraintSystem->orderAfter(updateSys);
             elementsComplete->orderAfter(sizeConstraintSystem);
             startRendering->orderAfter(elementsComplete);
             renderBackgroundSys->orderAfter(startRendering);
@@ -281,7 +296,7 @@ struct Gui {
 
     Gui() {}
 
-    void init(GuiRenderer& renderer) {
+    void init(GuiRenderer& renderer, Game* game) {
         using namespace GUI::EC;
         constexpr static auto componentInfoArray = ECS::getComponentInfoList<GUI_COMPONENTS_LIST>();
         manager = GUI::GuiManager(ArrayRef(componentInfoArray), GUI::ElementTypes::Count);
@@ -289,57 +304,14 @@ struct Gui {
         makeGuiPrototypes(manager);
         initGui(manager);
 
-        systems.init(manager.systemManager, renderer);
+        systems.init(manager.systemManager, renderer, game);
         ECS::System::setupSystems(manager.systemManager);
     }
 
     void renderElements(GuiRenderer& renderer, const PlayerControls& playerControls);
 
-    void updateHotbar(const Player& player, const ItemManager& itemManager) {
-        auto hotbarElement = manager.getNamedElement("hotbar");
-
-        auto* inventory = player.inventory();
-        if (!inventory) {
-            manager.hideElement(hotbarElement);
-            return;
-        } else {
-            manager.unhideElement(hotbarElement);
-        }
-
-        static char slotText[64][9];
-
-        // my hotbar
-        for (int i = 0; i < player.numHotbarSlots; i++) {
-            char slotName[64];
-            snprintf(slotName, 64, "hotbar-slot-%d", i);
-            Element slot = manager.getNamedElement(slotName);
-
-            ItemStack stack = inventory->get(i);
-
-            auto textureEc = manager.getComponent<EC::SimpleTexture>(slot);
-            auto textEc = manager.getComponent<EC::Text>(slot);
-
-            auto* displayIec = itemManager.getComponent<ITC::Display>(stack.item);
-            ItemQuantity stackSize = items::getStackSize(stack.item, itemManager);
-
-            if (textureEc) {
-                textureEc->texture = displayIec ? displayIec->inventoryIcon : TextureIDs::Null;
-            }
-
-            if (textEc) {
-                if (stack.quantity != 0 && stackSize != 1) {
-                    auto str = string_format("%d", stack.quantity);
-                    strcpy(slotText[i], str.c_str());
-                } else {
-                    strcpy(slotText[i], "");
-                }
-                textEc->text = slotText[i];
-            }
-        }
-    }
-
     std::vector<GameAction> updateGuiState(const GameState* gameState, const PlayerControls& playerControls) {
-        updateHotbar(gameState->player, gameState->itemManager);
+        
         return GUI::update(manager, playerControls);
     }
 

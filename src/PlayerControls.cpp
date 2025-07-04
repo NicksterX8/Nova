@@ -162,8 +162,11 @@ void PlayerControls::clickOnEntity(Entity clickedEntity) {
     
     auto e = *selectedEntity;
     auto* prototype = ecs.getPrototype(e);
-    const char* name = prototype->name.c_str();
-    LogInfo("name: %s | id: %d", name, e.id);
+    if (prototype) {
+        const char* name = prototype->name.c_str();
+        LogInfo("name: %s | id: %d", name, e.id);
+    }
+    
     auto* box = ecs.Get<EC::CollisionBox>(e);
     auto* position = ecs.Get<EC::Position>(e);
     if (box && position) {

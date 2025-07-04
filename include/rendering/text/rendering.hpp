@@ -7,10 +7,12 @@
 #include "formatting.hpp"
 #include "rendering/utils.hpp"
 
+namespace Text {
+
 struct TextRenderingSettings {
     const Font* font = nullptr;
     SDL_Color color = {0,0,0,255};
-    glm::vec2 scale = glm::vec2(-1.0f);
+    float scale = -1.0f;
 };
 
 struct TextRenderLayout {
@@ -20,62 +22,43 @@ struct TextRenderLayout {
 };
 
 struct TextRenderBatch {
-    const Font* font;
-    struct CharacterDimensions {
-        glm::vec<2, uint16_t> size;
-        glm::vec<2,  int16_t> bearing;
-    };
-    My::Vec<CharacterDimensions> dimensions;
-    My::Vec<SDL_Color> colors;
-    My::Vec<glm::vec2> scales;
+    TextRenderingSettings settings;
 
-    // all characters use the same color
-    bool uniformColor() const { return colors.size == 1; }
-    // characters use the same scale
-    bool uniformScale() const { return scales.size == 1; }
-
-    TextRenderLayout layout;
+    int charBufIndex;
+    int charPosBufIndex;
+    int charCount;
 };
 
 struct GlyphVertex {
     glm::vec2 pos;
+    
     glm::vec2 texPos;
-    SDL_Color color;
+    glm::vec2 size;
+
     glm::vec2 scale;
+    SDL_Color color;
 };
-
-// struct GlyphVertex {
-//     glm::vec2 pos;
-//     glm::vec2 size;
-//     glm::vec2 texMin;
-//     glm::vec2 texMax;
-//     glm::vec2 scale;
-//     SDL_Color color;
-// };
-
-// param bufferSize: size of verticesOut buffer in number of glyph vertices
-void renderBatch(const TextRenderBatch* batch, GlyphVertex* verticesOut, int bufferSize);
-// maxBatchSize: in number of characters
-void flushTextBatches(MutableArrayRef<TextRenderBatch> buffer, const GlModel& model, const glm::mat4& transform, int maxBatchSize);
 
 struct TextRenderer {
     using FormattingSettings = TextFormattingSettings;
     using RenderingSettings = TextRenderingSettings;
 
-    const Font* defaultFont = nullptr;
+    GlModel model = {0,0,0};
 
     My::Vec<TextRenderBatch>* buffer;
-    // index with character index found by subtracting font->firstChar from char,
-    // like this: characterTexCoords['a' - font->firstChar]
+
+    My::Vec<Char> charBuffer;
+    My::Vec<Vec2> charPosBuffer;
+
     using TexCoord = glm::vec2;
 
-    float texCoordScale = NAN;
     FormattingSettings defaultFormatting;
     RenderingSettings defaultRendering;
-    GlModel model = {0,0,0};
     glm::vec4 defaultColor = {0, 0, 0, 255};
+    
+    
 
-    constexpr static int maxBatchSize = 5000;
+    constexpr static int maxBatchSize = 1024;
 
     static TextRenderer init(const Font* defaultFont, My::Vec<TextRenderBatch>* buffer);
 
@@ -92,28 +75,34 @@ struct TextRenderer {
         }
     };
 
-    inline RenderResult render(const char* text, glm::vec2 pos, glm::vec2* outCharPositions = nullptr) {
-        return render(text, pos, defaultFormatting, defaultRendering, outCharPositions);
+    inline RenderResult render(const char* text, glm::vec2 pos) {
+        return render(text, pos, defaultFormatting, defaultRendering);
     }
 
-    inline RenderResult render(const char* text, glm::vec2 pos, const TextFormattingSettings& formatSettings, glm::vec2* outCharPositions = nullptr) {
-        return render(text, strlen(text), pos, formatSettings, defaultRendering, outCharPositions);
+    inline RenderResult render(const char* text, glm::vec2 pos, const TextFormattingSettings& formatSettings) {
+        return render(text, strlen(text), pos, formatSettings, defaultRendering);
     }
 
-    inline RenderResult render(const char* text, glm::vec2 pos, const TextRenderingSettings& renderSettings, glm::vec2* outCharPositions = nullptr) {
-        return render(text, strlen(text), pos, defaultFormatting, renderSettings, outCharPositions);
+    inline RenderResult render(const char* text, glm::vec2 pos, const TextRenderingSettings& renderSettings) {
+        return render(text, strlen(text), pos, defaultFormatting, renderSettings);
     }
 
-    inline RenderResult render(const char* text, glm::vec2 pos, const TextFormattingSettings& formatSettings, const TextRenderingSettings& renderSettings, glm::vec2* outCharPositions = nullptr) {
-        return render(text, text ? strlen(text) : 0, pos, formatSettings, renderSettings, outCharPositions);
+    inline RenderResult render(const char* text, glm::vec2 pos, const TextFormattingSettings& formatSettings, const TextRenderingSettings& renderSettings) {
+        return render(text, text ? strlen(text) : 0, pos, formatSettings, renderSettings);
     }
 
-    RenderResult render(const char* text, int textLength, glm::vec2 pos, const TextFormattingSettings& formatSettings, RenderingSettings renderSettings, glm::vec2* outCharPositions = nullptr);
+    RenderResult render(const char* text, int textLength, Vec2 pos, const TextFormattingSettings& formatSettings, RenderingSettings renderSettings);
 
-    void flush(const glm::mat4& transform) {
-        if (!buffer) return;
-        flushTextBatches(MutableArrayRef<TextRenderBatch>(buffer->data, buffer->size), model, transform, maxBatchSize);
-        buffer->clear();
+    // param bufferSize: size of verticesOut buffer in number of glyph vertices
+    void renderBatch(const TextRenderBatch* batch, GlyphVertex* verticesOut, int bufferSize);
+
+    // maxBatchSize: in number of characters
+    void flushBuffer(const glm::mat4& transform);
+
+    void clearBuffers() {
+        // empty buffers
+        this->charBuffer.size = 0;
+        this->charPosBuffer.size = 0;
     }
 
     void destroy() {
@@ -122,5 +111,11 @@ struct TextRenderer {
         this->model.destroy();
     }
 };
+
+}
+
+using Text::TextRenderer;
+using Text::TextRenderBatch;
+using Text::TextRenderingSettings;
 
 #endif

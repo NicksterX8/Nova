@@ -3,6 +3,29 @@
 
 #include "Font.hpp"
 
+namespace Text {
+
+struct Word {
+    CharIndex start;
+    CharIndex length;
+
+    float advance;
+    float size;
+
+    bool linebreak;
+
+    Word(CharIndex startIndex, CharIndex length, float advance, float size, bool linebreak) : start(startIndex), length(length), advance(advance), size(size), linebreak(linebreak) {}
+
+    CharIndex end() const {
+        return start + length;
+    }
+
+    // does the word contain any visible characters or just whitespace
+    bool visible() const {
+        return length > 0;
+    }
+};
+
 enum class HoriAlignment : Uint8 {
     Left=0,
     Center=1,
@@ -88,6 +111,18 @@ struct CharacterLayoutData {
     llvm::SmallVector<glm::vec2> whitespaceCharacterOffsets;
 };
 
-CharacterLayoutData formatText(const Font* font, const char* text, int textLength, TextFormattingSettings settings, glm::vec2 scale);
+struct FormatResult {
+    Box boundingBox;
+    int visibleCharCount;
+};
+
+FormatResult formatText(const Font* font, const Char* text, int textLength,
+    const TextFormattingSettings& formatting, Vec2 position, float scale,
+    My::Vec<Char>* charsOut, My::Vec<Vec2>* charPositionsOut);
+
+}
+
+using Text::TextAlignment;
+using Text::TextFormattingSettings;
 
 #endif

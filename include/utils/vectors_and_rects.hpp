@@ -120,6 +120,10 @@ inline Box* rectAsBox(FRect* box) {
     return (Box*)box;
 }
 
+inline FRect* boxAsRect(Box* rect) {
+    return (FRect*)rect;
+}
+
 // Check for GNU C compiler or compatible (like Clang) on a non-Windows system
 #if defined(__GNUC__) && !defined(_WIN32)
 #define HAVE_SINCOSF 1

@@ -126,9 +126,9 @@ struct GuiRenderer {
         text->render(command);
     }
     */
-    TextRenderer::RenderResult renderText(const char* message, glm::vec2 pos, const TextFormattingSettings& formatSettings, const TextRenderingSettings& renderSettings, GuiRenderLevel level = UseDefaultLevel, Vec2* characterPositions = nullptr) {
+    TextRenderer::RenderResult renderText(const char* message, glm::vec2 pos, const TextFormattingSettings& formatSettings, const TextRenderingSettings& renderSettings, GuiRenderLevel level = UseDefaultLevel) {
         setTextLevel(level);
-        return text->render(message, pos, formatSettings, renderSettings, characterPositions);
+        return text->render(message, pos, formatSettings, renderSettings);
     }
 
     // texture will only be rendered if it's a gui type texture
@@ -206,10 +206,10 @@ struct GuiRenderer {
         rectOutline(box.min, box.max(), color, strokeIn, strokeOut, level);
     }
 
-    TextRenderer::RenderResult boxedText(const char* message, Box boundingBox, TextFormattingSettings formatting, TextRenderingSettings renderSettings, GuiRenderLevel level = UseDefaultLevel, Vec2* characterPositions = nullptr) {
+    TextRenderer::RenderResult boxedText(const char* message, Box boundingBox, TextFormattingSettings formatting, TextRenderingSettings renderSettings, GuiRenderLevel level = UseDefaultLevel) {
         formatting.maxWidth = MIN(formatting.maxWidth, boundingBox.size.x);
         formatting.maxHeight = MIN(formatting.maxHeight, boundingBox.size.y);
-        return renderText(message, boundingBox.min, formatting, renderSettings, level, characterPositions);
+        return renderText(message, boundingBox.min, formatting, renderSettings, level);
     }
 
     TextRenderer::RenderResult textBox(const char* message, Box box, Vec2 padding,
@@ -233,8 +233,9 @@ struct GuiRenderer {
             setQuadLevel(i);
             quad->flush(quadShader, transform, guiAtlas.unit);
             setTextLevel(i);
-            text->flush(transform);
+            text->flushBuffer(transform);
         }
+        text->clearBuffers();
     }
 
     void destroy() {
