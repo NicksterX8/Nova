@@ -74,8 +74,6 @@ int main(int argc, char** argv) {
     initLogging();
     initPaths();
     gLogger.init(FileSystem.save.get("log.txt"));
-
-    LogInfo("Argc: %d", argc);
     
     SDL_Rect windowRect = {
         0,
@@ -88,7 +86,7 @@ int main(int argc, char** argv) {
     
     if (Global.multithreadingEnabled) {
         int numCores = SDL_GetNumLogicalCPUCores();
-        int numThreadsToPool = MIN(numCores - 1, 5);
+        int numThreadsToPool = MIN(numCores - 1, 3);
         Global.threadManager = ThreadManager(numThreadsToPool);
     }
 

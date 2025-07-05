@@ -3,12 +3,13 @@ cmake_minimum_required(VERSION 3.23.3)
 set(CMAKE_BUILD_TYPE Debug)
 project(faketorio VERSION 1.0)
 # -Wextra -pedantic
+
 add_compile_options(-g -Wall -std=c++17
     -Wno-macro-redefined -Wno-unused-variable -Wno-char-subscripts -Wno-comment
-    -Wliteral-conversion
+    -Wliteral-conversion -fsanitize=address
 )
 
-add_link_options(-framework OpenGL)
+add_link_options(-framework OpenGL -fsanitize=address)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(SD src)

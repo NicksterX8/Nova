@@ -151,8 +151,8 @@ struct Console {
         moveCursor(activeMessage.size());
     }
 
-    bool allowedCharacter(Char c) const {
-        return c >= ASCII_FIRST_STANDARD_CHAR && c <= ASCII_LAST_STANDARD_CHAR;
+    static bool allowedCharacter(Char c) {
+        return Font::hasChar(c);
     }
 
     void enterText(const Char* text) {

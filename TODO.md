@@ -1,5 +1,9 @@
 # TODO
 
+top priority:
+separate function for making lines/words when wrap on whitespace is false
+
+
 what happens when prototype components are used in methods like EntityManager::add? nothing good
 
 new hash maps (robin hood thing)

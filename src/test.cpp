@@ -13,6 +13,7 @@
 #include <chrono>
 #include <type_traits>
 #include <array>
+#include "fixedSizeAllocator.h"
 
 #define COMBINE1(X,Y) X##Y  // helper macro
 #define COMBINE(X,Y) COMBINE1(X,Y)
@@ -260,6 +261,10 @@ void func(TestS* ptr) {
     value[0];
 }
 
+struct CustomAllocator {
+
+};
+
 int main() {
     Baby baby;
 
@@ -267,6 +272,11 @@ int main() {
     Job* job = &testJob;
 
     TestS t = TestS(5);
+
+    std::vector<int, hmcgr::StackFirstFitAllocator<int, 128>> vec;
+
+
+
 
     func(&t);
     

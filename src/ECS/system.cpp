@@ -45,12 +45,6 @@ void calculateJobStagesFromSource(ISystem* system, int* stages, JobHandle source
     }
 }
 
-// TODO:
-template<typename T>
-struct StackAllocate {
-
-};
-
 void calculateJobStages(ISystem* system, TinyPtrVectorVector<ISystem::ScheduledJob>* jobsByStage) {
     llvm::SmallVector<int, 8> stages(system->jobs.size(), -1);
     for (int i = 0; i < system->jobs.size(); i++) {
@@ -126,6 +120,29 @@ struct JobThreadTask {
 template<typename T>
 using SharedQueue = moodycamel::ConcurrentQueue<T>;
 
+class AtomicCountDown {
+    std::atomic<int> counter;
+public:
+    AtomicCountDown() {}
+
+    AtomicCountDown(int countDownFrom) : counter(countDownFrom) {}
+
+    void add(int count) {
+        counter.fetch_add(count, std::memory_order_relaxed);
+    }
+
+    int decrement() {
+        int countBefore = counter.fetch_sub(1, std::memory_order_relaxed);
+        assert(countBefore > 0);
+        return countBefore;
+    }
+
+    // stall (spin lock) until the counter reaches 0
+    void wait() {
+        while (counter.load(std::memory_order_relaxed) != 0) {}
+    }
+};
+
 struct ThreadData {
     struct PerThread {
         int threadNumber;
@@ -133,16 +150,17 @@ struct ThreadData {
     };
     PerThread personal;
     struct SharedData {
-        SharedQueue<JobThreadTask>* taskQueue;
-        bool quit = false;
+        SharedQueue<JobChunk>* taskQueue;
+        std::atomic<bool> quit;
+        AtomicCountDown tasksToComplete;
     };
     SharedData* shared;
 };
 
-int executeJobTask(ThreadData* threadData, const JobThreadTask& task) {
+int executeJobTask(ThreadData* threadData, const JobChunk& task) {
     int threadNumber = threadData->personal.threadNumber;
     EntityCommandBuffer* chunkCommandBuffer = &threadData->personal.commandBuffer;
-    executeJobChunkConcurrent(task.chunk, chunkCommandBuffer);
+    executeJobChunkConcurrent(task, chunkCommandBuffer);
 
     return 0;
 }
@@ -150,12 +168,16 @@ int executeJobTask(ThreadData* threadData, const JobThreadTask& task) {
 int jobThreadFunc(void* dataPtr) {
     ThreadData* threadData = (ThreadData*)dataPtr;
     auto& queue = threadData->shared->taskQueue;
-    JobThreadTask task;
-    while (!threadData->shared->quit) {
+    JobChunk task;
+    while (!threadData->shared->quit.load(std::memory_order_relaxed)) {
         if (queue->try_dequeue(task)) {
             int taskSuccess = executeJobTask(threadData, task);
+            int counter = threadData->shared->tasksToComplete.decrement();
+            if (counter == 1) {
+                
+            }
         } else {
-            break;
+            
         }
     }
     return 0;
@@ -184,6 +206,40 @@ void ECS::System::cleanupSystems(SystemManager& sysManager) {
 
 void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<ISystem::ScheduledJob>& jobs) {
     bool allowParallelization = sysManager.allowParallelization;
+
+    llvm::SmallVector<Threads::ThreadID, 8> threads;
+    llvm::SmallVector<ThreadData, 8> perThreadData;
+
+    auto concurrentQueue = SharedQueue<JobChunk>();
+
+    ThreadData::SharedData* sharedThreadData = new ThreadData::SharedData {
+        .taskQueue = &concurrentQueue,
+        .quit = false,
+        .tasksToComplete = {0}
+    };
+
+    // determine how many threads we should use
+    // TODO: DEBUG: high thread count
+    int idealThreadCount = 4;
+    idealThreadCount = MIN(idealThreadCount, Global.threadManager.unusedThreads());
+
+    if (idealThreadCount > 0 && allowParallelization) {
+        threads.reserve(idealThreadCount);
+        perThreadData.resize(idealThreadCount, ThreadData{
+            .shared = sharedThreadData,
+        });
+
+        for (int i = 0; i < idealThreadCount; i++) {
+            perThreadData[i].personal.threadNumber = i;
+            Threads::ThreadID thread = Global.threadManager.openThread(jobThreadFunc, &perThreadData[i]);
+            if (thread) {
+                threads.push_back(thread);
+            } else {
+                // no point trying to keep opening threads after it already failed
+                break;
+            }
+        }
+    }
 
     int entitiesInTask = 0;
     for (int stage = jobs.size() - 1; stage >= 0; stage--) {
@@ -242,52 +298,16 @@ void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<ISystem:
             }
         }
 
-        // determine how many threads we should use
-        // TODO: DEBUG: high thread count
-        int idealThreadCount = (int)ceil(jobThreadChunks.size() / 4.0f); // using incredibly high number for testing
-        idealThreadCount = MIN(idealThreadCount, Global.threadManager.unusedThreads());
-
-        llvm::SmallVector<Threads::ThreadID, 8> threads;
-        llvm::SmallVector<ThreadData, 8> perThreadData;
-
-        auto concurrentQueue = SharedQueue<JobThreadTask>();
-        if (idealThreadCount > 0 && allowParallelization) {
-            std::vector<JobThreadTask> tasks;
-            tasks.reserve(jobThreadChunks.size());
-            for (int i = 0; i < jobThreadChunks.size(); i++) {
-                tasks.push_back(JobThreadTask{jobThreadChunks[i]});
-            }
-
-            // add tasks to queue
-            concurrentQueue.enqueue_bulk(tasks.data(), tasks.size());
-
-            ThreadData::SharedData sharedThreadData = ThreadData::SharedData {
-                .taskQueue = &concurrentQueue,
-                .quit = false
-            };
-            
-            threads.reserve(idealThreadCount);
-            perThreadData.resize(idealThreadCount, ThreadData{
-                .shared = &sharedThreadData,
-            });
-            for (int i = 0; i < idealThreadCount; i++) {
-                perThreadData[i].personal.threadNumber = i;
-                Threads::ThreadID thread = Global.threadManager.openThread(jobThreadFunc, &perThreadData[i]);
-                if (thread) {
-                    threads.push_back(thread);
-                } else {
-                    // no point trying to keep opening threads after it already failed
-                    break;
-                }
-            }
-        }
-
         if (threads.size() == 0 && !jobThreadChunks.empty()) {
             // give up on multithreading
             // make main thread run all chunks regardless of if they can be parallelized
             // add all job thread chunks to main thread chunks
             mainThreadChunks.insert(mainThreadChunks.end(), jobThreadChunks.begin(), jobThreadChunks.end());
             jobThreadChunks.clear();
+        } else {
+            // add tasks to queue
+            sharedThreadData->tasksToComplete.add(jobThreadChunks.size());
+            concurrentQueue.enqueue_bulk(jobThreadChunks.data(), jobThreadChunks.size());
         }
 
         // do main thread jobs after we have queued up job thread jobs
@@ -297,9 +317,9 @@ void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<ISystem:
             executeJobChunk(chunk, chunk.job, &sysManager.unexecutedCommands);
         }
 
-        // wait for threads to finish jobs
+        // wait for tasks to finish
+        sharedThreadData->tasksToComplete.wait();
         for (int i = 0; i < threads.size(); i++) {
-            int ret = Global.threadManager.waitThread(threads[i]);
             // add thread command buffer to unexecuted command list
             sysManager.unexecutedCommands.combine(perThreadData[i].personal.commandBuffer);
         }
@@ -311,6 +331,13 @@ void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<ISystem:
             executeJobChunk(chunk, chunk.job, &sysManager.unexecutedCommands);
         }
     }
+
+    for (int i = 0; i < threads.size(); i++) {
+        sharedThreadData->quit.store(true);
+        Global.threadManager.waitThread(threads[i]);
+    }
+
+    delete sharedThreadData;
 }
 
 void ECS::System::executeSystem(SystemManager& sysManager, ISystem* system) {

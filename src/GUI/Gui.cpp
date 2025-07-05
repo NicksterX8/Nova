@@ -94,8 +94,8 @@ void Gui::drawConsole(GuiRenderer& renderer) {
         Vec2* characterPositions = nullptr;
         auto textRect = renderer.renderText(activeMessage.c_str(), terminalViewEc->absolute.min, terminalTextFormatting, terminalTextRenderSettings, terminalViewEc->level).rect;
         terminalViewEc->box = *rectAsBox(&textRect);
-        if (terminalViewEc->box.size.y < terminalFont->height() * terminalFontScale) {
-            terminalViewEc->box.size.y = terminalFont->height() * terminalFontScale;
+        if (terminalViewEc->box.size.y < terminalFont->height()) {
+            terminalViewEc->box.size.y = terminalFont->height();
         }
 
         // Vec2 selectedCharPos = terminalViewEc->absolute.min;

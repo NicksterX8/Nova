@@ -59,30 +59,23 @@ static_assert(sizeof(SmallVector<char, 0>) ==
 
 /// Report that MinSize doesn't fit into this vector's size type. Throws
 /// std::length_error or calls report_fatal_error.
-[[noreturn]] static void report_size_overflow(size_t MinSize, size_t MaxSize);
+static void report_size_overflow(size_t MinSize, size_t MaxSize);
 static void report_size_overflow(size_t MinSize, size_t MaxSize) {
-  /*
   std::string Reason = "SmallVector unable to grow. Requested capacity (" +
                        std::to_string(MinSize) +
                        ") is larger than maximum value for size type (" +
                        std::to_string(MaxSize) + ")";
-  */
+  assert(0);
 }
 
 /// Report that this vector is already at maximum capacity. Throws
 /// std::length_error or calls report_fatal_error.
-[[noreturn]] static void report_at_maximum_capacity(size_t MaxSize);
+static void report_at_maximum_capacity(size_t MaxSize);
 static void report_at_maximum_capacity(size_t MaxSize) {
-  /*
   std::string Reason =
       "SmallVector capacity unable to grow. Already at maximum size " +
       std::to_string(MaxSize);
-#ifdef LLVM_ENABLE_EXCEPTIONS
-  throw std::length_error(Reason);
-#else
-  report_fatal_error(Twine(Reason));
-#endif
-*/
+  assert(0);
 }
 
 // Note: Moving this function into the header may cause performance regression.

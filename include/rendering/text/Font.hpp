@@ -63,7 +63,7 @@ struct Font {
     };
 
     struct AtlasCharacterData {
-        static constexpr char ArraySize = MaxChar;
+        static constexpr char ArraySize = MaxChar+1;
         /* Arrays of character atlas data. Index with char value directly like this: positions['a'] */
         glm::vec<2, uint16_t> atlasPositions[ArraySize];
         glm::vec<2, uint16_t> sizes[ArraySize];
@@ -103,7 +103,7 @@ struct Font {
     }
 
     static bool hasChar(Char c) {
-        return c >= ASCII_FIRST_STANDARD_CHAR && c <= ASCII_LAST_STANDARD_CHAR;
+        return (c >= ASCII_FIRST_STANDARD_CHAR && c <= ASCII_LAST_STANDARD_CHAR) || c == '\t' || c == '\n';
     }
 
     float ascender() const {

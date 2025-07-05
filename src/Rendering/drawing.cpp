@@ -142,7 +142,7 @@ void Draw::drawFpsCounter(GuiRenderer& renderer, float fps, float tps, RenderOpt
     
     auto fpsRenderInfo = renderer.text->render(fpsCounter, {0, options.size.y}, 
         TextFormattingSettings{.align = TextAlignment::TopLeft}, 
-        TextRenderingSettings{.color = color, .scale = 1});
+        TextRenderingSettings{.font = font, .color = color, .scale = 1});
 
     {
         static char tpsCounter[128];
@@ -169,7 +169,7 @@ void Draw::drawFpsCounter(GuiRenderer& renderer, float fps, float tps, RenderOpt
         float offset = fpsRenderInfo.rect.x + fpsRenderInfo.rect.w + 2 * font->advance(' ');
         renderer.text->render(tpsCounter, {offset, options.size.y}, 
             TextFormattingSettings{.align = TextAlignment::TopLeft}, 
-            TextRenderingSettings{.color = color, .scale = 1.0f});
+            TextRenderingSettings{.font = font, .color = color, .scale = 1.0f});
     }
 }
 
@@ -228,7 +228,13 @@ void renderFontComponents(const Font* font, glm::vec2 p, GuiRenderer& renderer) 
     //renderer.rectOutline(bounds, {0, 255, 0, 100}, 2.0f, 2.0f);
     //renderer.colorRect(addBorder(bounds, glm::vec2(0.0f)), {255, 0, 0, 100});
 
-    auto result = renderer.text->render("This is some words!", {100, 400}, TextFormattingSettings{.align = TextAlignment::TopLeft}, TextRenderingSettings{.font = font});
+    auto result3 = renderer.text->render("This is some!\nThis is some words a\n three now! \n4\n\t5\t\n6\t", renderer.options.size * 0.5f, TextFormattingSettings{.align = TextAlignment::MiddleCenter}, TextRenderingSettings{.font = font, .scale = 2.0f});
+    renderer.colorRect(result3.rect, {100, 0, 0, 105});
+
+    auto result2 = renderer.text->render("This is some words!\nLine number 2!!\n three now! \n4\n\t5\t\n6\t", renderer.options.size, TextFormattingSettings{.align = TextAlignment::TopRight}, TextRenderingSettings{.font = font, .scale = 0.5f});
+    renderer.colorRect(result2.rect, {100, 0, 0, 105});
+
+    auto result = renderer.text->render("This is one line", {100, 400}, TextFormattingSettings{.align = TextAlignment::BottomLeft}, TextRenderingSettings{.font = font});
     renderer.colorRect(result.rect, {100, 0, 0, 105});
     unsigned int advance = font->advance('T');
     //auto ascender = font->ascender();
@@ -289,6 +295,8 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
     //textRenderer.setFont(&ren.font);
     Draw::drawFpsCounter(guiRenderer, (float)Metadata->fps(), (float)Metadata->tps(), guiRenderer.options);
 
+    renderFontComponents(Fonts->get("Debug"), {500, 500}, guiRenderer);
+
     if (Global.paused) {
         guiRenderer.textBox("Paused.",
             Box::Centered({guiRenderer.options.size / 2.0f}, {400, 400}),
@@ -296,8 +304,6 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
             {4, 4}, {0,0,0,255},
             TextFormattingSettings{.align = TextAlignment::MiddleCenter}, TextRenderingSettings{.color = {0,0,0,255}}, 10);
     }
-
-    renderFontComponents(Fonts->get("debug"), {500, 500}, guiRenderer);
 
     guiRenderer.flush(ren.shaders, screenTransform);
     

@@ -551,7 +551,7 @@ int Game::init() {
         .message = "This is an example of a text box!",
         .rendering = TextRenderingSettings{
             .color = {0, 255, 55, 255},
-            .font = Fonts->get("debug")
+            .font = Fonts->get("Debug")
         },
         .formatting = TextFormattingSettings{
             .align = TextAlignment::TopCenter

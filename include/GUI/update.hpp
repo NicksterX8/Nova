@@ -200,13 +200,13 @@ inline void initGui(GuiManager& gui) {
 
     auto bar = buildHotbar(gui);
     auto console = buildConsole(gui);
-    auto testTextBox = textBox(gui, gui.screen, Box{Vec2(100), Vec2(200)}, "This is some really awesome text and stuff");
+    //auto testTextBox = textBox(gui, gui.screen, Box{Vec2(100), Vec2(200)}, "This is some really awesome text and stuff");
     //auto halfBox = boxElement(gui, {Vec2(0.0f), Vec2(50.0f)}, {150, 0, 0, 255});
     //gui.addComponent(halfBox, EC::SizeConstraint{.relativeSize = Vec2(0.5, 0.2)});
     //auto t2 = textBox(gui, gui.screen, Box{Vec2(0, 400), Vec2(350)}, "This is some really awesome text and stuff fjdsfi i i i i i i i i i i i i i i i i i i I hate you");
-    auto t3 = textBox(gui, gui.screen, Box{Vec2(1000), Vec2(800)}, "This is some really awesome text and stuff");
+    //auto t3 = textBox(gui, gui.screen, Box{Vec2(1000), Vec2(800)}, "This is some really awesome text and stuff");
     //gui.getComponent<EC::Text>(t2)->formatSettings.align = TextAlignment::MiddleCenter;
-    gui.getComponent<EC::Text>(t3)->formatSettings.align = TextAlignment::BottomRight;
+    //gui.getComponent<EC::Text>(t3)->formatSettings.align = TextAlignment::BottomRight;
 
     auto b = button(gui, 
         Box{{700, 100}, {100, 100}},

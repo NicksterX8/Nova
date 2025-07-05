@@ -272,7 +272,7 @@ Vec2 parseWordsToLines(const Font* font, float maxWidth, ArrayRef<Word> words, l
     for (int w = 0; w < words.size(); w++) {
         auto& word = words[w];
         if ((lineAdvance + word.size >= maxWidth || breakAfterWord) && lineWordCount > 0) {
-            float width = lineAdvance - words[w-1].advance + words[w-1].size;
+            float width = lineAdvance;
             highestWidth = std::max(highestWidth, width);
             linesOut->push_back(Line{
                 .startWord = w - lineWordCount,
@@ -291,7 +291,7 @@ Vec2 parseWordsToLines(const Font* font, float maxWidth, ArrayRef<Word> words, l
     }
     // get any left over words if they exist
     if (lineWordCount > 0) {
-        float width = lineAdvance - words.back().advance + words.back().size;
+        float width = lineAdvance;
         highestWidth = std::max(highestWidth, width);
         linesOut->push_back(Line{
             .startWord = (int)words.size() - lineWordCount,
@@ -304,7 +304,7 @@ Vec2 parseWordsToLines(const Font* font, float maxWidth, ArrayRef<Word> words, l
     const float lineHeight = font->height(); // i think?
 
     // line count must be > 0 if words are > 0
-    float height = (linesOut->size() - 1) * lineOffset + (linesOut->size() * lineHeight);
+    float height = (linesOut->size() - 1) * lineOffset + lineHeight;
     return { highestWidth, height };
 }
 
@@ -314,13 +314,14 @@ struct FormattingOptions {
     TextAlignment align;
 };
 
+// returns bottom left corner of bounding box
 void formatLines(const Font* font, const Char* text, const TextFormattingSettings& formatting,
     ArrayRef<Word> words, ArrayRef<Line> lines, Vec2 position, float scale,
     Vec2* outCharPositions)
 {
     const float* advances = font->characters->advances;
-    const float lineOffset = font->linePixelSpacing();
-    const float lineHeight = font->height();
+    const float lineOffset = font->linePixelSpacing() * scale;
+    const float lineHeight = font->height() * scale;
 
     auto align = formatting.align;
         
@@ -328,7 +329,7 @@ void formatLines(const Font* font, const Char* text, const TextFormattingSetting
 
     const float textHeight = (lines.size() - 1) * lineOffset + lineHeight;
     
-    float vertAlignmentOffset = (2.0f - (float)align.vertical) * 0.5f * textHeight;
+    float vertAlignmentOffset = ((float)align.vertical) * 0.5f * textHeight - font->ascender() * scale;
     Vec2 origin = {position.x, position.y + vertAlignmentOffset};
     for (int l = 0; l < lines.size(); l++) {
         auto& line = lines[l];
@@ -337,7 +338,7 @@ void formatLines(const Font* font, const Char* text, const TextFormattingSetting
             LogError("UNIMPLEMENTED: justify");
         } else {
             float horiAlignmentOffset = (float)align.horizontal * 0.5f * line.width;
-            Vec2 linePos = Vec2{origin.x - horiAlignmentOffset, origin.y - lineOffset * l} / scale;
+            Vec2 linePos = Vec2{(origin.x) / scale - horiAlignmentOffset, (origin.y - lineOffset * l) / scale};
             float wordAdvance = 0.0f;
             for (int w = line.startWord; w < line.startWord + line.wordCount; w++) {
                 auto& word = words[w];
@@ -363,12 +364,13 @@ FormatResult formatText(const Font* font, const Char* text, int textLength,
 
     float unscaledMaxWidth = formatting.maxWidth / scale;
     llvm::SmallVector<Line> lines;
-    Vec2 bounds = parseWordsToLines(font, unscaledMaxWidth, words, &lines);
+    Vec2 boundSize = parseWordsToLines(font, unscaledMaxWidth, words, &lines) * scale;
 
     formatLines(font, text, formatting, words, lines, position, scale, charPositionsOut->require(charCount));
 
+    Vec2 bottomLeft = position - getAlignmentOffset(formatting.align, boundSize);
     return {
-        Box{position, bounds},
+        Box{bottomLeft, boundSize},
         charCount
     };
 }

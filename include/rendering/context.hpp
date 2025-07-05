@@ -61,7 +61,10 @@ struct FontManager {
     const Font* get(const char* fontName) const {
         auto it = fonts.find(fontName);
         if (it != fonts.end()) return it->second;
-        else return nullptr;
+        else {
+            LogError("Font not found with name \"%s\".", fontName);
+            return nullptr;
+        }
     }
 
     void destroy() {
