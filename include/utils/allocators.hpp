@@ -63,11 +63,23 @@ private:
     T* _data;
     A* _allocator;
 public:
-    StackAllocate(size_t size, A* allocator) : _allocator(allocator) {
+    StackAllocateWithAllocator(size_t size, A* allocator) : _allocator(allocator) {
         if (size <= NumStackElements) {
             _data = stackElements.data();
         } else {
-            _data = _allocator->Alloc<T>(size);
+            _data = _allocator->template Alloc<T>(size);
+        }
+    }
+
+    StackAllocateWithAllocator(size_t size, const T& initValue, A* allocator) : _allocator(allocator) {
+        if (size <= NumStackElements) {
+            _data = stackElements.data();
+        } else {
+            _data = _allocator->template Alloc<T>(size);
+        }
+
+        for (int i = 0; i < size; i++) {
+            _data[i] = initValue;
         }
     }
 
@@ -75,7 +87,7 @@ public:
         return _data;
     }
 
-    ~StackAllocate() {
+    ~StackAllocateWithAllocator() {
         if (_data != stackElements.data()) {
             _allocator->Free(_data);
         }
