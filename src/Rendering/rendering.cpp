@@ -458,10 +458,10 @@ void renderQuit(RenderContext& ren) {
     ren.worldTextRenderer.destroy();
     ren.worldGuiRenderer.destroy();
 
-    quitFreetype();
-
     /* Fonts quit */
     ren.fonts.destroy();
+
+    quitFreetype();
 
     /* Shaders quit */
     ren.shaders.destroy();

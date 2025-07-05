@@ -127,12 +127,13 @@ struct Font {
     }
 
     glm::u16vec2 size(char c) const {
-        assert(c >= ASCII_FIRST_STANDARD_CHAR && c <= ASCII_LAST_STANDARD_CHAR && "char out of font range!");
+        // tab and newline are allowed (they give {0, 0})
+        assert(c <= ASCII_LAST_STANDARD_CHAR && "char out of font range!");
         return characters->sizes[c];
     }
 
     glm::i16vec2 bearing(char c) const {
-        assert(c >= ASCII_FIRST_STANDARD_CHAR && c <= ASCII_LAST_STANDARD_CHAR && "char out of font range!");
+            assert(c >= ASCII_FIRST_STANDARD_CHAR && c <= ASCII_LAST_STANDARD_CHAR && "char out of font range!");
         return characters->bearings[c];
     }
 
