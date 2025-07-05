@@ -242,7 +242,6 @@ struct PureJob {
 struct IJob : PureJob {
     static constexpr int NullStage = -1;
 
-    int stage = NullStage;
     int realSize = -1; // in bytes
 
     IJob(JobInitPtr init, JobExePtr execute, bool parallelizable, bool mainThread, bool blocking) {

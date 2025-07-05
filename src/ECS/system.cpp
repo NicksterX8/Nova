@@ -1,11 +1,14 @@
 #include "ECS/system.hpp"
 #include "llvm/SmallVector.h"
+#include "llvm/TinyPtrVector.h"
 #include "global.hpp"
 #include "moodycamel/concurrentqueue.h"
 
 using namespace ECS;
 using namespace ECS::System;
 
+template<typename EltT>
+using TinyPtrVectorVector = llvm::SmallVector<llvm::TinyPtrVector<EltT*>>;
 
 int ECS::System::findEligiblePools(const IComponentGroup& group, const ECS::EntityManager& entityManager, std::vector<ArchetypePool*>* eligiblePools) {
     int eligibleEntities = 0;
@@ -23,33 +26,44 @@ int ECS::System::findEligiblePools(const IComponentGroup& group, const ECS::Enti
     return eligibleEntities;
 }
 
-int calculateJobStagesFromSource(ISystem* system, IJob* source, JobHandle sourceHandle, int stage, int* highestOfALL) {
-    int highestStage = stage;
-    auto& dependencies = system->jobDependencies[sourceHandle];
-    for (JobHandle dependentOnSource : dependencies) {
-        IJob* job = system->jobs[dependentOnSource].job;
-        if (highestStage < job->stage) {
-            highestStage = job->stage;
-        }
-        if (job->stage <= stage) {
-            calculateJobStagesFromSource(system, job, dependentOnSource, stage + 1, highestOfALL);
+
+
+void calculateJobStagesFromSource(ISystem* system, int* stages, JobHandle source, int stage) {
+    stages[source] = stage;
+
+    // check for loops
+    if (stage > 50) {
+        LogError("Job dependency loop detected!");
+        return;
+    }
+
+    auto& dependencies = system->jobDependencies[source];
+    for (JobHandle sourceDependentOn : dependencies) {
+        if (stages[sourceDependentOn] < stage + 1) {
+            calculateJobStagesFromSource(system, stages, sourceDependentOn, stage + 1);
         }
     }
-    source->stage = highestStage;
-    *highestOfALL = MAX(*highestOfALL, highestStage);
-    return highestStage;
 }
 
-// returns highest stage
-int calculateJobStages(ISystem* system) {
-    int highestStage = -1;
+// TODO:
+template<typename T>
+struct StackAllocate {
+
+};
+
+void calculateJobStages(ISystem* system, TinyPtrVectorVector<ISystem::ScheduledJob>* jobsByStage) {
+    llvm::SmallVector<int, 8> stages(system->jobs.size(), -1);
     for (int i = 0; i < system->jobs.size(); i++) {
         IJob* job = system->jobs[i].job;
-        if (job->stage == IJob::NullStage) {
-            calculateJobStagesFromSource(system, job, i, 0, &highestStage);
+        if (stages[i] == -1) {
+            calculateJobStagesFromSource(system, stages.data(), i, 0);
         }
     }
-    return highestStage;
+
+    for (int i = 0; i < system->jobs.size(); i++) {
+        if (jobsByStage->size() <= stages[i]) jobsByStage->resize(stages[i]+1);
+        (*jobsByStage)[stages[i]].push_back(&system->jobs[i]);
+    }
 }
 
 int calculateSystemStages(ISystem* source, int stage) {
@@ -66,32 +80,11 @@ int calculateSystemStages(ISystem* source, int stage) {
     return highestStage;
 }
 
-struct JobDistributor {
-    static constexpr ThreadManager& threadManager = Global.threadManager;
-
-    std::vector<JobChunk> chunksToExecute;
-    using ThreadID = Threads::ThreadID;
-    std::vector<ThreadID> threads;
-
-    void init() {
-        
-    }
-
-    /*
-        input: a list of jobChunks that can all be executed in any order
-
-        completes when all job chunks complete
-
-        each thread needs it's own copy of the job so they can each
-        have their own entity command buffer and component arrays references
-    */
-};
-
 // do a clone of the job using UB if you know the size of the actual derived job
 // must be freed with uglyCloneFree()
 IJob* uglyClone(const IJob* job, int jobSize) {
     void* mem = SDL_aligned_alloc(CACHE_LINE_SIZE, jobSize);
-    memcpy(mem, (void*)job, jobSize);
+    memcpy(mem, job, jobSize);
     return (IJob*)mem;
 }
 
@@ -189,12 +182,12 @@ void ECS::System::cleanupSystems(SystemManager& sysManager) {
     }
 }
 
-void runSystemJobs(SystemManager& sysManager, ArrayRef<ISystem::ScheduledJob> jobs) {
+void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<ISystem::ScheduledJob>& jobs) {
     bool allowParallelization = sysManager.allowParallelization;
 
     int entitiesInTask = 0;
-    int jobIndex = 0;
-    for (int stage = jobs[0].job->stage; jobIndex < jobs.size(); stage--) {
+    for (int stage = jobs.size() - 1; stage >= 0; stage--) {
+        auto& stageJobList = jobs[stage];
 
         // break jobs up into chunks
         std::vector<JobChunk> jobThreadChunks;
@@ -202,13 +195,9 @@ void runSystemJobs(SystemManager& sysManager, ArrayRef<ISystem::ScheduledJob> jo
         std::vector<JobChunk> blockingChunks; // chunks that can only be run when no other jobs are running
         
         // split jobs into chunks while the stage is the same
-        for (; jobIndex < jobs.size(); jobIndex++) {
-            auto& scheduledJob = jobs[jobIndex];
-            if (scheduledJob.job->stage < stage) {
-                break;
-            }
-            IJob* job = scheduledJob.job;
-            const IComponentGroup& group = scheduledJob.group;
+        for (auto scheduledJob : stageJobList) {
+            IJob* job = scheduledJob->job;
+            const IComponentGroup& group = scheduledJob->group;
             std::vector<ArchetypePool*> eligiblePools;
             int totalJobEntities = findEligiblePools(group, *sysManager.entityManager, &eligiblePools);
 
@@ -334,13 +323,12 @@ void ECS::System::executeSystem(SystemManager& sysManager, ISystem* system) {
     system->BeforeExecution();
 
     system->ScheduleJobs();
-    if (!system->jobs.empty()) {
-        int highestStage = calculateJobStages(system);
-        std::sort(system->jobs.begin(), system->jobs.end(), [](auto& lhs, auto& rhs){
-            return lhs.job->stage >= rhs.job->stage;
-        });
+    int numJobs = system->jobs.size();
+    if (numJobs > 0) {
+        TinyPtrVectorVector<ISystem::ScheduledJob> stageJobs;
+        calculateJobStages(system, &stageJobs);
 
-        runSystemJobs(sysManager, system->jobs);
+        runSystemJobs(sysManager, stageJobs);
 
         system->clearJobs();
     }

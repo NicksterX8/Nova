@@ -237,7 +237,7 @@ struct RenderBackgroundSystem : ISystem {
     : ISystem(manager), guiRenderer(guiRenderer) {}
 
 
-    void ScheduleJobsOld() {
+    void ScheduleJobsO() {
         auto levelsBg = makeTempGroupArray<GuiRenderLevel>(backgroundGroup);
         Schedule(backgroundGroup, InitializeArrayJob<GuiRenderLevel>(levelsBg, GuiNullRenderLevel));
         auto quadsBg = makeTempGroupArray<QuadRenderer::Quad>(backgroundGroup);
@@ -277,8 +277,8 @@ struct RenderBackgroundSystem : ISystem {
         auto quadsBd = makeTempGroupArray<BorderQuads>(borderGroup);
 
         auto bufferBordersJob = Do(
-            Schedule(borderGroup, InitializeArrayJob(levelsBd, -3)))
-        .Then({
+            Schedule(borderGroup, InitializeArrayJob(levelsBd, -3))
+        ).Then({
             Schedule(borderGroup, GetViewLevelsJob(levelsBd)),
             Schedule(borderGroup, BorderQuadsJob(quadsBd))
         })

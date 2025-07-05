@@ -16,10 +16,10 @@
 #define LLVM_ADT_POINTERUNION_H
 
 //#include "llvm/ADT/DenseMapInfo.h"
-#include "PointerIntPair.h"
-//#include "llvm/ADT/STLExtras.h"
-//#include "llvm/Support/Casting.h"
-#include "PointerLikeTypeTraits.h"
+#include "llvm/PointerIntPair.h"
+#include "llvm/STLExtras.h"
+#include "llvm/Casting.h"
+#include "llvm/PointerLikeTypeTraits.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>

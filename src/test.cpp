@@ -243,16 +243,32 @@ struct Baby : Mama<Baby> {
     }
 };
 
+struct TestS {
+    TestS(int x) {}
+    
+    TestS(const TestS& other) {
+        printf("Running copy constructor\n");
+    }
+
+    void operator[](int x) {
+
+    }
+};
+
+void func(TestS* ptr) {
+    TestS value = *ptr;
+    value[0];
+}
+
 int main() {
     Baby baby;
 
     TestJob testJob;
     Job* job = &testJob;
 
-    int x = 5;
-    if (true, &x) {
+    TestS t = TestS(5);
 
-    }
+    func(&t);
     
     return 0;
 }
