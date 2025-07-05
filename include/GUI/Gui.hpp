@@ -11,6 +11,7 @@
 #include "update.hpp"
 #include "GUI/ecs-gui.hpp"
 #include "systems/basic.hpp"
+#include "utils/allocators.hpp"
 
 struct GuiRenderer;
 
@@ -159,7 +160,7 @@ struct Console {
         if (!text) return;
 
         int textLen = strlen(text);
-        llvm::SmallVector<Char, 32> textBuf(textLen+1);
+        StackAllocate<Char, 32> textBuf(textLen+1);
         memcpy(textBuf.data(), text, textLen+1);
 
         // make sure all characters are ascii

@@ -3,6 +3,7 @@
 #include "llvm/TinyPtrVector.h"
 #include "global.hpp"
 #include "moodycamel/concurrentqueue.h"
+#include "utils/allocators.hpp"
 
 using namespace ECS;
 using namespace ECS::System;
@@ -46,7 +47,7 @@ void calculateJobStagesFromSource(ISystem* system, int* stages, JobHandle source
 }
 
 void calculateJobStages(ISystem* system, TinyPtrVectorVector<ISystem::ScheduledJob>* jobsByStage) {
-    llvm::SmallVector<int, 8> stages(system->jobs.size(), -1);
+    StackAllocate<int, 14> stages(system->jobs.size(), -1);
     for (int i = 0; i < system->jobs.size(); i++) {
         IJob* job = system->jobs[i].job;
         if (stages[i] == -1) {
