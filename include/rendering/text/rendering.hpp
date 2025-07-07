@@ -31,8 +31,8 @@ struct TextRenderBatch {
 
 struct GlyphVertex {
     glm::vec2 pos;
-    
     glm::vec2 texPos;
+    GLfloat fontID;
     glm::vec2 size;
 
     glm::vec2 scale;
@@ -56,7 +56,7 @@ struct TextRenderer {
     RenderingSettings defaultRendering;
     glm::vec4 defaultColor = {0, 0, 0, 255};
     
-    
+    glm::mat4 transform;
 
     constexpr static int maxBatchSize = 1024;
 
@@ -94,10 +94,12 @@ struct TextRenderer {
     RenderResult render(const char* text, int textLength, Vec2 pos, const TextFormattingSettings& formatSettings, RenderingSettings renderSettings);
 
     // param bufferSize: size of verticesOut buffer in number of glyph vertices
-    void renderBatch(const TextRenderBatch* batch, GlyphVertex* verticesOut, int bufferSize);
+    void renderBatch(const TextRenderBatch* batch, int batchIndex, int count, GlyphVertex* verticesOut, int bufferSize);
+
+    int flushBufferType(bool sdfs);
 
     // maxBatchSize: in number of characters
-    void flushBuffer(const glm::mat4& transform);
+    void flushBuffer();
 
     void clearBuffers() {
         // empty buffers

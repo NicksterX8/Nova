@@ -248,9 +248,11 @@ void PlayerControls::handleKeydown(const SDL_KeyboardEvent& event) {
         break;}
     }
 
-    for (int i = 1; i <= (int)game->state->player.numHotbarSlots; i++) {
-        if (event.key == i + '0') {
-            game->state->player.selectHotbarSlot(i - 1);
+    if (!enteringText) {
+        for (int i = 1; i <= (int)game->state->player.numHotbarSlots; i++) {
+            if (event.key == i + '0') {
+                game->state->player.selectHotbarSlot(i - 1);
+            }
         }
     }
     

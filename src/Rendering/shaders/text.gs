@@ -5,16 +5,18 @@ layout (triangle_strip, max_vertices = 4) out;
 in VS_OUT {
     vec2 Pos;
     vec2 TexCoord;
+    float  FontID;
     vec2 Size;
     vec2 Scale;
     vec4 Color;
 } gs_in[];
 
 out vec2 TexCoord;
+out float  FontID;
 out vec4 TextColor;
 
 uniform mat4 transform;
-uniform vec2 texSize;
+uniform vec2 fontTextureSizes[16];
 
 mat4 trans;
 
@@ -28,6 +30,9 @@ void main() {
     vec2 size     = gs_in[0].Size;
     vec2 texCoord = gs_in[0].TexCoord;
 
+    float fontID = gs_in[0].FontID;
+    vec2 texSize = fontTextureSizes[int(fontID)];
+
     vec2 texMin = (texCoord + vec2(0.01, 0.01)) / texSize;
     vec2 texMax = (texCoord + size - vec2(0.01, 0.01)) / texSize;
 
@@ -38,6 +43,7 @@ void main() {
     trans[3] = transform[3];
 
     TextColor = gs_in[0].Color;
+    FontID = fontID;
 
     TexCoord = vec2(texMin.x, texMin.y);
     make_vertex(pos, vec2(0.0, size.y));

@@ -49,7 +49,7 @@ struct Console {
     int recallIndex = -1; // going through the log, to retype and old message, this index is for seeing what message its on. -1 means not using the log history currently
     int selectedCharIndex = 0;
 
-    #define CONSOLE_LOG_NEW_MESSAGE_OPEN_DURATION 4.0 // seconds
+    #define CONSOLE_LOG_NEW_MESSAGE_OPEN_DURATION 6.0 // seconds
     double timeLastMessageSent = NAN;
     double timeLastCursorMove = NAN;
 

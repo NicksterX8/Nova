@@ -80,7 +80,7 @@ GLuint compileShader(GLenum shaderType, const char* sourcePath) {
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-        LogError("Failed to compile %s shader! Shader info log: %s\n -------------------------------------------------", shaderName, infoLog);
+        LogError("Failed to compile %s shader!\nFile: %s . Shader info log: %s\n -------------------------------------------------", shaderName, sourcePath, infoLog);
         glDeleteShader(shader);
         return 0;
     }
@@ -125,7 +125,7 @@ ShaderProgram loadShaderProgram(const char* vertexPath, const char* fragmentPath
     glGetProgramiv(id, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(id, 1024, NULL, infoLog);
-        LogError("Failed to link shader program! Program info log: %s\n -------------------------------------------------", infoLog);
+        LogError("Failed to link shader program!\nVertex shader file: %s\nProgram info log: %s\n -------------------------------------------------", vertexPath, infoLog);
         glDeleteShader(program.vertex.id);
         glDeleteShader(program.fragment.id);
         glDeleteShader(program.geometry.id);
@@ -153,18 +153,18 @@ int reloadShaderProgram(ShaderProgram* program) {
 
 GLint Shader::getUniformLocation(const char* name) const {
     if (!this->id) {
-        //LogError("Attempted to use uninitialized shader!");
+        LogError("Attempted to use uninitialized shader!");
         return 0;
     }
     
     if (this->id != usedShader) {
-        LogError("Attempted to use shader %d before calling shader.use()!. Switching shaders...", this->id);
+        LogWarn("Used shader %d before calling shader.use()!. Switching shaders...", this->id);
         this->use();
     }
 
     GLint loc = glGetUniformLocation(id, name);
     if (loc == -1) {
-        // LogError("Failed to get uniform location for \"%s\"", name);
+        LogError("Failed to get uniform location for \"%s\"", name);
         // spams and gives unnecessary errors for optimized out uniforms
     }
     return loc;

@@ -40,7 +40,7 @@ void Gui::drawConsole(GuiRenderer& renderer) {
         
         TextFormattingSettings logFormatting{
             .align = TextAlignment::BottomLeft,
-            .maxWidth = 300,
+            .maxWidth = ConsoleLogWidth,
             .wrapOnWhitespace = false
         };
         TextRenderingSettings logRenderingSettings {

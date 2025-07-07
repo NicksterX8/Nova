@@ -291,11 +291,10 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
     textShader.setMat4("transform", screenTransform);
 
     gui->draw(guiRenderer, {0, 0, guiRenderer.options.size.x, guiRenderer.options.size.y}, &state->player, state->itemManager, playerControls);
-
-    //textRenderer.setFont(&ren.font);
+    
     Draw::drawFpsCounter(guiRenderer, (float)Metadata->fps(), (float)Metadata->tps(), guiRenderer.options);
 
-    renderFontComponents(Fonts->get("Debug"), {500, 500}, guiRenderer);
+    // renderFontComponents(Fonts->get("Debug"), {500, 500}, guiRenderer);
 
     if (Global.paused) {
         guiRenderer.textBox("Paused.",

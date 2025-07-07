@@ -13,7 +13,6 @@
 #include <chrono>
 #include <type_traits>
 #include <array>
-#include "fixedSizeAllocator.h"
 
 #define COMBINE1(X,Y) X##Y  // helper macro
 #define COMBINE(X,Y) COMBINE1(X,Y)
@@ -261,24 +260,42 @@ void func(TestS* ptr) {
     value[0];
 }
 
-struct CustomAllocator {
+template<typename T>
+struct BaseX {
+    void funca() {
+        printf("base funca\n");
+        static_cast<T*>(this)->funcb();
+    }
 
+    void funcb() {
+        printf("base funcb\n");
+    }
 };
 
+struct DA : BaseX<DA> {
+    void funcb() {
+        printf("child func b\n");
+    }
+
+    void onlyMe() {
+
+    }
+};
+
+// Primary template: default to false
+template <typename, typename = void>
+struct has_foo : std::false_type { };
+
+// Specialization: valid if noexcept(declval<T>().foo()) is well-formed
+template <typename T>
+struct has_foo<T, std::__void_t<decltype(noexcept(std::declval<T>().foo(0)))>> : std::true_type { };
+
+struct A { void foo(int x) = delete; };
+struct B { void foo(int x) {} };
+
 int main() {
-    Baby baby;
+    std::cout << has_foo<A>::value << '\n';  // 0 — safe!
+    std::cout << has_foo<B>::value << '\n';  // 1
 
-    TestJob testJob;
-    Job* job = &testJob;
-
-    TestS t = TestS(5);
-
-    std::vector<int, hmcgr::StackFirstFitAllocator<int, 128>> vec;
-
-
-
-
-    func(&t);
-    
     return 0;
 }

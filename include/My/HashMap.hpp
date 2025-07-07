@@ -288,6 +288,9 @@ public:
     bool rehash(int newBucketCount) {
         // Can't rehash down to smaller than current size or initial size
         newBucketCount = std::max(newBucketCount, size);
+        if (newBucketCount == 0) {
+            return true;
+        }
 
         // Build a new set of buckets, keys, and values
         void* newMemory = MY_malloc(newBucketCount * (sizeof(Bucket) + sizeof(K) + sizeof(V)));
@@ -308,7 +311,7 @@ public:
             size_t hash = b->hash;
             int bucketStart = hash % (unsigned)newBucketCount;
 
-            int targetBucketIndex;
+            int targetBucketIndex = 0;
             for (int j = bucketStart; j < newBucketCount; j++) {
                 if (newBuckets[j].state != Bucket_Filled) {
                     targetBucketIndex = j;

@@ -273,11 +273,8 @@ int setConstantShaderUniforms(RenderContext& ren) {
     tilemap.setInt("tex", TextureUnit::MyTextureAtlas);
     tilemap.setVec2("texSize", ren.textureAtlas.size);
     tilemap.setFloat("height", World::getLayerHeight(RenderLayer::Tilemap));
-    
-    mgr.use(Shaders::Text).setInt("text", TextureUnit::Font0);
 
     auto sdf = mgr.use(Shaders::SDF);
-    sdf.setInt("text", TextureUnit::Font1);
     sdf.setFloat("smoothing", 0.01f);
     sdf.setFloat("outlineDistance", 0.5f);
     sdf.setVec4("outlineColor", glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -309,7 +306,7 @@ int createShaders(ShaderManager& mgr) {
     return GL::logErrors();
 }
 
-Font* makeFont(const char* name, const char* font_filename, FT_UInt height, bool sdf, TextureUnit texUnit, FontManager& fonts, const ShaderManager& shaders) {
+Font* makeFont(const char* name, const char* font_filename, FT_UInt height, bool sdf, TextureUnit texUnit, FontManager& fonts) {
     Font::FormattingSettings fontFormatting = {
         .lineSpacing = 1.0f,
         .tabSpaces = 5.0f
@@ -317,7 +314,7 @@ Font* makeFont(const char* name, const char* font_filename, FT_UInt height, bool
     auto font = newFont(
         My::str_add(FileSystem.assets.get("fonts/"), font_filename), height, sdf, 
         1.0f, fontFormatting,
-        texUnit, sdf ? shaders.get(Shaders::SDF) : shaders.get(Shaders::Text));
+        texUnit);
     fonts.add(name, font);
     return font;
 }
@@ -337,8 +334,7 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
         false,
         1,
         fontFormatting,
-        TextureUnit::Font0,
-        shaders.get(Shaders::Text)
+        TextureUnit::Font0
     );
     Font* debugFont = newFont(
         FileSystem.assets.get("fonts/Cascadia.ttf"),
@@ -346,17 +342,15 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
         false, // use sdfs?
         1, // scale
         fontFormatting, // formatting settings
-        TextureUnit::Font1,
-        shaders.get(Shaders::Text)
+        TextureUnit::Font1
     );
     Font* worldFont = newFont(
         FileSystem.assets.get("fonts/Papyrus.ttf"),
         32,
-        false,
+        true,
         1,
         fontFormatting,
-        TextureUnit::Font2,
-        shaders.get(Shaders::Text)
+        TextureUnit::Font2
     );
 
     Font* guiFont = newFont(
@@ -365,10 +359,9 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
         false,
         1,
         fontFormatting,
-        TextureUnit::Font3,
-        shaders.get(Shaders::Text)
+        TextureUnit::Font3
     );
-    Font* screensdf = makeFont("tester", "Roboto-Regular.ttf", 24, true, TextureUnits::Font4, fonts, shaders);
+    Font* screensdf = makeFont("tester", "Roboto-Regular.ttf", 24, true, TextureUnits::Font4, fonts);
 
     fonts.add("Default", defaultFont);
     fonts.add("Debug", debugFont);
@@ -380,6 +373,7 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
 }
 
 void renderInit(RenderContext& ren) {
+    gShaderManager = &ren.shaders;
     createShaders(ren.shaders);
 
     /* Init textures */
@@ -655,8 +649,10 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     ren.shaders.use(Shaders::Quad).setMat4("transform", screenTransform);
     ren.shaders.use(Shaders::Tilemap).setMat4("transform", worldTransform);
     ren.shaders.use(Shaders::Water).setMat4("transform", worldTransform);
-    auto textureShader = ren.shaders.use(Shaders::Texture);
-    textureShader.setMat4("transform", screenTransform);
+    ren.shaders.use(Shaders::Texture).setMat4("transform", screenTransform);
+
+    ren.worldTextRenderer.transform = worldTransform;
+    ren.guiTextRenderer.transform = screenTransform;
 
     /* Start Rendering */
     /* First pass */

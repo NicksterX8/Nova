@@ -18,9 +18,11 @@ void makeItemPrototypes(ItemManager& im) {
     using namespace items;
     auto& pm = im.prototypes;
 
-    auto tile = new Prototypes::Tile(pm);
-    auto grenade = new Prototypes::Grenade(pm);
-    auto sandGun = new Prototypes::SandGun(pm);
+    auto* allocator = &im.prototypeAllocator;
+
+    auto tile = New(Prototypes::Tile(pm), allocator);
+    auto grenade = New(Prototypes::Grenade(pm), allocator);
+    auto sandGun = New(Prototypes::SandGun(pm), allocator);
 
     ItemPrototype* prototypes[] = {
         tile, grenade, sandGun
@@ -32,13 +34,15 @@ void makeItemPrototypes(ItemManager& im) {
 }
 
 void makeEntityPrototypes(EntityWorld& ecs) {
+    auto* allocator = &GlobalAllocators.gameScratchAllocator;
     auto& pm = ecs.em.prototypes;
-    using namespace World::Entities;
-    auto player = new World::Entities::Player(pm);
-    auto itemStack = new World::Entities::ItemStack(pm);
-    auto monster = new World::Entities::Monster(pm);
-    auto spider = new Spider(pm);
-    auto grenade = new World::Entities::Grenade(pm);
+    using namespace World;
+    #define MAKE_PROTOTYPE(constructor) New(Entities::constructor, allocator)
+    auto player = MAKE_PROTOTYPE(Player(pm));
+    auto itemStack = MAKE_PROTOTYPE(ItemStack(pm));
+    auto monster = MAKE_PROTOTYPE(Monster(pm));
+    auto spider = MAKE_PROTOTYPE(Spider(pm));
+    auto grenade = MAKE_PROTOTYPE(Grenade(pm));
 
     ItemPrototype* prototypes[] = {
         player, itemStack, monster, spider, grenade

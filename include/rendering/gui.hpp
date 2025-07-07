@@ -229,11 +229,14 @@ struct GuiRenderer {
         auto quadShader = shaders.use(Shaders::Quad);
         quadShader.setVec2("texSize", glm::vec2(guiAtlas.size));
 
+        useShader(Shaders::Text).setMat4("transform", transform);
+        useShader(Shaders::SDF).setMat4("transform", transform);
+
         for (int i = 0; i < GuiNumLevels; i++) {
             setQuadLevel(i);
             quad->flush(quadShader, transform, guiAtlas.unit);
             setTextLevel(i);
-            text->flushBuffer(transform);
+            text->flushBuffer();
         }
         text->clearBuffers();
     }

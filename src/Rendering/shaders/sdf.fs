@@ -1,11 +1,10 @@
 #version 330 core
 
 in vec2 TexCoord;
+in float FontID;
 in vec4 TextColor;
 
 out vec4 FragColor;
-
-uniform sampler2D text;
 
 uniform float thickness;
 uniform float soft;
@@ -16,6 +15,8 @@ uniform vec4 outlineColor;
 uniform vec2 shadowOffset; // Between 0 and spread / textureSize
 uniform float shadowSmoothing; // Between 0 and 0.5
 uniform vec4 shadowColor;
+
+uniform sampler2D fontTextures[16];
 
 void main() {   
     /*
@@ -35,7 +36,7 @@ void main() {
 
     FragColor = vec4(TextColor.xyz, TextColor.w * a);
     */
-    float d = texture(text, TexCoord).r;
+    float d = texture(fontTextures[int(FontID)], TexCoord).r;
     float outlineFactor = smoothstep(0.5 - smoothing, 0.5 + smoothing, d);
     vec4 color = mix(outlineColor, TextColor, outlineFactor);
     float alpha = smoothstep(outlineDistance - smoothing, outlineDistance + smoothing, d);
@@ -48,5 +49,4 @@ void main() {
     FragColor = mix(shadow, textColor, textColor.a);
     */
     FragColor = vec4(color.rgb, color.a * alpha);
-    
 }

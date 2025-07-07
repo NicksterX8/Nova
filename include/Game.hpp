@@ -18,6 +18,7 @@
 #include "ECS/system.hpp"
 #include "world/systems/movement.hpp"
 #include "global.hpp"
+#include "utils/allocators.hpp"
 
 struct Game;
 
@@ -69,7 +70,13 @@ struct Game {
     Mode mode;
 private:
     bool m_paused;
+    using EssentialAllocator = ScratchAllocator<Mallocator>;
 public:
+    EssentialAllocator essentialAllocator;
+    BlockAllocator<2048, 4> blockAllocator;
+    
+
+    
 
     bool isPaused() const {
         return m_paused;
@@ -86,12 +93,16 @@ public:
     }
 
     Game(SDLContext sdlContext):
-    sdlCtx(sdlContext), metadata(TARGET_FPS, TICKS_PER_SECOND, ENABLE_VSYNC) {
+    sdlCtx(sdlContext), metadata(TARGET_FPS, TICKS_PER_SECOND, ENABLE_VSYNC),
+    essentialAllocator((1ULL << 15), &mallocator), blockAllocator(&mallocator) {
         Metadata = &metadata;
 
-        debug = new DebugClass();
+        trackAllocator("Essential Allocator", &essentialAllocator);
+        trackAllocator("Medium allocator", &blockAllocator);
+
+        debug = New(DebugClass(), &blockAllocator);
         Debug = debug;
-        debug->debugging = DEBUG;
+        debug->debugging = 1;
 
         state = NULL;
         gui = NULL;

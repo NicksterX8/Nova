@@ -1,5 +1,7 @@
 # TODO
 
+make vector that takes allocator template and parameter
+
 what happens when prototype components are used in methods like EntityManager::add? nothing good
 
 new hash maps (robin hood thing)

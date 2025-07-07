@@ -73,7 +73,7 @@ struct ShaderManager {
         return shader;
     }
 
-    void update(glm::mat4 screenTransform, glm::mat4 worldTransform) {
+    void update(glm::mat4 screenTransform, glm::mat4 worldTransform) const {
         use(Shaders::Text).setMat4("transform", screenTransform);
         use(Shaders::SDF).setMat4("transform", worldTransform);
     }
@@ -84,5 +84,15 @@ struct ShaderManager {
         }
     }
 };
+
+extern const ShaderManager* gShaderManager;
+
+inline Shader useShader(ShaderID shaderID) {
+    return gShaderManager->use(shaderID);
+}
+
+inline Shader getShader(ShaderID shader) {
+    return gShaderManager->get(shader);
+}
 
 #endif

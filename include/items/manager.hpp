@@ -4,6 +4,7 @@
 #include "Item.hpp"
 #include "ECS/EntityManager.hpp"
 #include "components/components.hpp"
+#include "utils/GlobalAllocators.hpp"
 
 namespace items {
 
@@ -31,12 +32,12 @@ struct InventoryAllocator {
 
 struct ItemManager : ECS::EntityManager {
     InventoryAllocator inventoryAllocator;
+    GameStructureAllocator prototypeAllocator{1024, &GlobalAllocators.gameBlockAllocator};
 
     ItemManager() {}
 
     ItemManager(ECS::ComponentInfoRef componentInfo, int numPrototypes)
-     : ECS::EntityManager(componentInfo, numPrototypes),
-       inventoryAllocator() {
+     : ECS::EntityManager(componentInfo, numPrototypes) {
 
     }
 

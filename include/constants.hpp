@@ -53,7 +53,6 @@ namespace RenderLayers {
 
 using RenderLayer = RenderLayers::Layers;
 
-#define DEBUG 1
 #define BOUNDS_CHECKS 1
 
 #endif

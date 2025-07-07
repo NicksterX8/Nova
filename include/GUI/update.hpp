@@ -62,13 +62,15 @@ inline Element button(GuiManager& gui, Box box, SDL_Color backgroundColor, const
     return e;
 }
 
+constexpr float ConsoleLogWidth = 400.0f;
+
 inline Element buildConsole(GuiManager& gui) {
     float scale = 1;
 
     SDL_Color terminalBackgroundColor = {30, 30, 30, 205};
     SDL_Color logBackgroundColor = {90, 90, 90, 150};
 
-    float maxLogWidth = 300 * scale;
+    float maxLogWidth = ConsoleLogWidth * scale;
 
     // make papa console
     auto console = gui.newElement(ElementTypes::Normal, gui.screen);
@@ -95,7 +97,7 @@ inline Element buildConsole(GuiManager& gui) {
     auto log = gui.newElement(ElementTypes::Normal, console);
     gui.addName(log, "console-log");
     gui.addComponent(log, EC::ViewBox{
-        .box = {{0,0},{300,0}}
+        .box = {{0,0},{ConsoleLogWidth,0}}
     });
     gui.addComponent(log, EC::Background{logBackgroundColor});
     gui.addComponent(log, EC::SizeConstraint{

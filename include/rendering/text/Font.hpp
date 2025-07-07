@@ -78,8 +78,6 @@ struct Font {
     GLuint atlasTexture = 0;
     glm::ivec2 atlasSize = {0, 0};
 
-    Shader shader = {};
-
     FormattingSettings formatting;
 
     bool usingSDFs = false;
@@ -88,9 +86,11 @@ struct Font {
     FT_UInt baseHeight = 0; // the height of the font face before any scaling. The true height is this * scale
     float currentScale = 0.0f;
 
+    int id;
+
     Font() = default;
 
-    bool load(FT_UInt height, Shader shader, bool useSDFs = false);
+    bool load(FT_UInt height, bool useSDFs = false);
 
     bool loaded() const {
         return face != nullptr;
@@ -175,7 +175,7 @@ struct Font {
 
     void scale(float scale) {
         if (scale == currentScale) return;
-        load(baseHeight * scale, shader, usingSDFs);
+        load(baseHeight * scale, usingSDFs);
     }
 
     bool hasKerning() const {
@@ -188,7 +188,7 @@ struct Font {
     }
 };
 
-Font* newFont(const char* fontfile, FT_UInt baseHeight, bool useSDFs, float scale, Font::FormattingSettings formatting, TextureUnit textureUnit, Shader shader);
+Font* newFont(const char* fontfile, FT_UInt baseHeight, bool useSDFs, float scale, Font::FormattingSettings formatting, TextureUnit textureUnit);
 
 }
 

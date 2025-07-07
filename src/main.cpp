@@ -16,6 +16,8 @@
 #include "memory.hpp"
 #include "physics/physics.hpp"
 
+#include "llvm/Allocator.h"
+
 #ifdef DEBUG
     //#include "Testing.hpp"
 #endif

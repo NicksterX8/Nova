@@ -6,6 +6,7 @@
 #include "My/String.hpp"
 #include "utils/vectors_and_rects.hpp"
 #include "threads.hpp"
+#include "utils/GlobalAllocators.hpp"
 
 struct GlobalsType {
     unsigned int debugTexture = 0;
@@ -16,6 +17,10 @@ struct GlobalsType {
 
     bool multithreadingEnabled = USE_MULTITHREADING;
     ThreadManager threadManager;
+
+    GlobalsType() {
+        
+    }
 };
 
 extern GlobalsType Global;

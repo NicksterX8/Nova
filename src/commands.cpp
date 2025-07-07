@@ -483,6 +483,25 @@ namespace Commands {
         return RES_ERROR("Invalid target to focus on.");
     }
 
+    Result logAllocatorStats(Args args, Game* game) {
+        for (auto allocator : GlobalAllocators.allocators) {
+            auto allocatorStats = allocator->getAllocatorStats();
+            std::string output = "---Allocator---\n";
+            auto name = allocator->getName();
+            if (name) {
+                output += string_format("Name: %s\n", name);
+            }
+            if (!allocatorStats.name.empty())
+                output += string_format("Type: %s\n", allocatorStats.name.c_str());
+            if (!allocatorStats.allocated.empty())
+                output += string_format("%s\n", allocatorStats.allocated.c_str());
+            if (!allocatorStats.used.empty())
+                output += string_format("%s", allocatorStats.used.c_str());
+            LogInfo("%s", output.c_str());
+        }
+        return RES_SUCCESS("");
+    }
+
     Result getTick(Args args, int nothing) {
         REQUIRE(0);
         (void)nothing;
@@ -554,6 +573,7 @@ void setCommands(Game* game) {
     REG_COMMAND(pause, game);
     REG_COMMAND(resume, game);
     REG_COMMAND(toggleWireframeMode, 0);
+    REG_COMMAND(logAllocatorStats, game);
 }
 
 CommandInput processMessage(std::string message, ArrayRef<Command> possibleCommands) {

@@ -1,5 +1,6 @@
 #include "rendering/text/Font.hpp"
 #include "rendering/TexturePacker.hpp"
+#include "rendering/shaders.hpp"
 
 namespace Text {
 
@@ -20,8 +21,12 @@ FT_Face newFontFace(const char* filepath, FT_UInt height) {
     return face;
 }
 
-Font* newFont(const char* fontfile, FT_UInt baseHeight, bool useSDFs, float scale, Font::FormattingSettings formatting, TextureUnit textureUnit, Shader shader) {
+Font* newFont(const char* fontfile, FT_UInt baseHeight, bool useSDFs, float scale, Font::FormattingSettings formatting, TextureUnit textureUnit) {
+    static int IDCounter = 0;
+    
     Font* f = new Font();
+
+    f->id = IDCounter++;
     
     f->baseHeight = baseHeight;
 
@@ -42,12 +47,28 @@ Font* newFont(const char* fontfile, FT_UInt baseHeight, bool useSDFs, float scal
     }
 
     f->characters = Alloc<Font::AtlasCharacterData>();
-    f->load(_height, shader, useSDFs);
+    f->load(_height, useSDFs);
 
     return f;
 }
 
-bool Font::load(FT_UInt pixelHeight, Shader shader, bool useSDFs) {
+void updateTextShaderFont(ShaderID shaderID, Font* font) {
+    auto shader = useShader(shaderID);
+    int id = font->id;
+    char textureUniformName[64];
+    snprintf(textureUniformName, 64, "fontTextures[%d]", id);
+    shader.setInt(textureUniformName, font->textureUnit);
+    char sizeUniformName[64];
+    snprintf(sizeUniformName, 64, "fontTextureSizes[%d]", id);
+    shader.setVec2(sizeUniformName, font->atlasSize);
+}
+
+void fontLoaded(Font* font) {
+    updateTextShaderFont(Shaders::Text, font);
+    updateTextShaderFont(Shaders::SDF, font);
+}
+
+bool Font::load(FT_UInt pixelHeight, bool useSDFs) {
     if (!this->face) {
         LogError("Font has no face!");
         return false;
@@ -61,7 +82,6 @@ bool Font::load(FT_UInt pixelHeight, Shader shader, bool useSDFs) {
     this->_height = pixelHeight;
     this->currentScale = (float)pixelHeight / (float)baseHeight;
     this->usingSDFs = useSDFs;
-    this->shader = shader;
 
     constexpr int nChars = (int)ASCII_LAST_STANDARD_CHAR - (int)ASCII_FIRST_STANDARD_CHAR + 1;
 
@@ -127,6 +147,9 @@ bool Font::load(FT_UInt pixelHeight, Shader shader, bool useSDFs) {
     
     if (!this->atlasTexture) {
         LogError("Font atlas texture failed to generate!");
+    } else {
+        // let game/shaders know a font was loaded/changed
+        fontLoaded(this);
     }
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4); // re enable default byte-alignment restriction

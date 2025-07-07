@@ -505,20 +505,17 @@ int Game::update() {
 int Game::init() {
     LogInfo("Starting game init");
 
-    this->gui = new Gui();
+    this->gui = New<Gui>(&essentialAllocator);
     
-    /* Init Items */
-    
-
     this->debug->console = &this->gui->console;
 
-    this->renderContext = new RenderContext(sdlCtx.primary.window, sdlCtx.primary.glContext);
-    LogInfo("starting render init");  
+    this->renderContext = New(RenderContext(sdlCtx.primary.window, sdlCtx.primary.glContext), &essentialAllocator);
+    LogInfo("starting render init");
     renderInit(*renderContext);
 
     this->gui->init(renderContext->guiRenderer, this);
 
-    this->state = new GameState();
+    this->state = New(GameState(), &essentialAllocator);
 
     this->state->init(&renderContext->textures);
 
@@ -558,7 +555,7 @@ int Game::init() {
         },
     });
 
-    this->playerControls = new PlayerControls(this);
+    this->playerControls = New(PlayerControls(this), &essentialAllocator);
     SDL_FPoint mousePos = SDL::getMousePixelPosition();
     this->lastUpdateMouseState = {
         .position = {mousePos.x, mousePos.y},
@@ -575,8 +572,6 @@ int Game::init() {
     this->cameraFocus = {CameraEntityFocus{this->state->player.entity, true}};
 
     setCommands(this);
-
-    //resizeRenderBuffer(renderContext->framebuffer, {screenWidth+1, screenHeight});
 
     return 0;
 }
@@ -595,9 +590,6 @@ void Game::quit() {
 void Game::destroy() {
     LogInfo("destroying game");
     Debug = nullptr;
-    delete this->debug;
-    delete this->playerControls;
-    delete this->renderContext;
 }
 
 int Game::start() {

@@ -7,6 +7,7 @@ project(faketorio VERSION 1.0)
 add_compile_options(-g -Wall -std=c++17
     -Wno-macro-redefined -Wno-unused-variable -Wno-char-subscripts -Wno-comment
     -Wliteral-conversion -fsanitize=address
+    -DDEBUG
 )
 
 add_link_options(-framework OpenGL -fsanitize=address)
@@ -26,6 +27,7 @@ set(SRC_FILES
     ${SD}/utils/Metadata.cpp
     ${SD}/utils/Debug.cpp
     ${SD}/utils/FileSystem.cpp
+    ${SD}/utils/GlobalAllocators.cpp
     ${SD}/My/Vec.cpp
     ${SD}/My/HashMap.cpp
     ${SD}/GUI/Gui.cpp
@@ -40,9 +42,10 @@ set(SRC_FILES
     ${SD}/GameState.cpp
     ${SD}/rendering/context.cpp
     ${SD}/rendering/textures.cpp
+    ${SD}/rendering/shaders.cpp
     ${SD}/rendering/text/Font.cpp
     ${SD}/rendering/text/formatting.cpp
-    ${SD}/rendering/text/rendering.cpp
+    ${SD}/rendering/text/text-rendering.cpp
     ${SD}/rendering/text/freetype.cpp
     ${SD}/rendering/drawing.cpp
     ${SD}/rendering/utils.cpp

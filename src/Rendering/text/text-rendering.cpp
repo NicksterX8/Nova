@@ -1,4 +1,5 @@
 #include "rendering/text/rendering.hpp"
+#include "rendering/shaders.hpp"
 
 namespace Text {
 
@@ -14,6 +15,7 @@ TextRenderer TextRenderer::init(const Font* defaultFont, My::Vec<TextRenderBatch
     const static GlVertexFormat vertexFormat = GlMakeVertexFormat(0, {
         {2, GL_FLOAT, sizeof(GLfloat)}, // pos
         {2, GL_FLOAT, sizeof(GLfloat)}, // texcoord
+        {1, GL_FLOAT, sizeof(GLfloat)},
         {2, GL_FLOAT, sizeof(GLfloat)}, // size
         {2, GL_FLOAT, sizeof(GLfloat)}, // scale
         {4, GL_UNSIGNED_BYTE, sizeof(GLubyte), true} // color, normalized
@@ -39,13 +41,9 @@ TextRenderer TextRenderer::init(const Font* defaultFont, My::Vec<TextRenderBatch
     return self;
 }
 
-struct FontRenderer {
-    const Font* font;
-
-
-};
-
 TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength, Vec2 position, const TextFormattingSettings& formatSettings, TextRenderingSettings renderSettings) {
+    if (!text || textLength == 0) return RenderResult::BadRender(position);
+    
     if (!renderSettings.font) {
         if (!defaultRendering.font) {
             LogError("No font to use for render!");
@@ -65,6 +63,8 @@ TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength
         formatSettings, position, renderSettings.scale,
         &charBuffer, &charPosBuffer);
 
+    if (formatResult.visibleCharCount == 0) return *boxAsRect(&formatResult.boundingBox);
+
     const TextRenderBatch renderBatch = {
         .settings = renderSettings,
         .charBufIndex = charBufIndex,
@@ -77,8 +77,8 @@ TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength
     };
 }
 
-void TextRenderer::renderBatch(const TextRenderBatch* batch, GlyphVertex* verticesOut, int bufferSize) {
-    if (!verticesOut || !batch) {
+void TextRenderer::renderBatch(const TextRenderBatch* batch, int batchIndex, int count, GlyphVertex* verticesOut, int bufferSize) {
+    if (!verticesOut || !batch || batch->charCount == 0) {
         return;
     }
 
@@ -87,17 +87,19 @@ void TextRenderer::renderBatch(const TextRenderBatch* batch, GlyphVertex* vertic
         LogError("No font in batch!");
     }
     
-    const auto count = batch->charCount;
+    assert(batchIndex + count <= batch->charCount && "Count beyond batch size");
     assert(count <= bufferSize && "Batch too large!");
     const Char* characters = &charBuffer[batch->charBufIndex];
     const Vec2* characterPositions = &charPosBuffer[batch->charPosBufIndex];
 
     const SDL_Color color = batch->settings.color;
     const glm::vec2 scale = glm::vec2(batch->settings.scale);
+    const GLfloat fontID = (float)batch->settings.font->id;
 
     for (size_t i = 0; i < count; i++) {
-        char c = characters[i];
-        Vec2 offset = characterPositions[i];
+        int charIndex = i + batchIndex;
+        char c = characters[charIndex];
+        Vec2 offset = characterPositions[charIndex];
 
         auto bearing = font->bearing(c);
         auto characterSize = font->size(c);
@@ -110,6 +112,7 @@ void TextRenderer::renderBatch(const TextRenderBatch* batch, GlyphVertex* vertic
         const GlyphVertex vertex = {
             {x, y}, // position
             texCoord, 
+            fontID,
             characterSize,
             scale,
             color
@@ -119,26 +122,52 @@ void TextRenderer::renderBatch(const TextRenderBatch* batch, GlyphVertex* vertic
     }
 }
 
-void TextRenderer::flushBuffer(const glm::mat4& transform) {
-    if (!buffer) return;
+int TextRenderer::flushBufferType(bool sdfs) {
+    Shader shader;
+    if (sdfs) {
+        shader = getShader(Shaders::SDF);
+    } else {
+        shader = getShader(Shaders::Text);
+    }
+    shader.use();
+
+    auto* vertexBuffer = (GlyphVertex*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+    int totalChars = 0;
+    int bufferedChars = 0;
+    for (int i = 0; i < buffer->size; i++) {
+        auto* batch = &(*buffer)[i];
+        if (batch->settings.font->usingSDFs == sdfs) {
+            int batchCharsRendered = 0;
+            while (batchCharsRendered < batch->charCount) {
+                int charsToRender = std::min(maxBatchSize - bufferedChars, batch->charCount - batchCharsRendered); 
+                renderBatch(batch, batchCharsRendered, charsToRender, vertexBuffer + bufferedChars, maxBatchSize);
+                bufferedChars += charsToRender;
+                if (bufferedChars == maxBatchSize) {
+                    glUnmapBuffer(GL_ARRAY_BUFFER);
+                    glDrawArrays(GL_POINTS, 0, maxBatchSize);
+                    vertexBuffer = (GlyphVertex*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+                    totalChars += maxBatchSize;
+                    bufferedChars = 0;
+                }
+                batchCharsRendered += charsToRender;
+            }
+        }
+    }
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+    if (bufferedChars > 0) {
+        glDrawArrays(GL_POINTS, 0, bufferedChars);
+        totalChars += bufferedChars;
+    }
+    return totalChars;
+}
+
+void TextRenderer::flushBuffer() {
+    if (!buffer || buffer->empty()) return;
 
     glBindVertexArray(model.vao);
     glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
-
-    for (int i = 0; i < buffer->size; i++) {
-        auto* batch = &(*buffer)[i];
-        Shader textShader = batch->settings.font->shader;
-        textShader.use();
-        textShader.setMat4("transform", transform);
-        textShader.setInt("text", batch->settings.font->textureUnit);
-        textShader.setVec2("texSize", batch->settings.font->atlasSize);
-
-        auto* vertexBuffer = (GlyphVertex*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-        renderBatch(batch, vertexBuffer, maxBatchSize);
-        glUnmapBuffer(GL_ARRAY_BUFFER);
-
-        glDrawArrays(GL_POINTS, 0, batch->charCount);
-    }
+    flushBufferType(true);
+    flushBufferType(false);
     GL::logErrors();
     buffer->clear();
 }
