@@ -104,28 +104,26 @@ public:
 
 extern Logger gLogger;
 
-#define MAX_LOG_MESSAGE_LENGTH 2048
+#define MAX_LOG_MESSAGE_LENGTH 512
 
-void logAt(const char* file, int line, LogCategory category, LogPriority priority, const char* fmt, ...);
-void logInternal(LogCategory category, LogPriority priority, const char* prefix, const char* fmt, ...);
-void logInternal2(LogCategory category, LogPriority priority, const char* prefix, const char* prefix2, const char* fmt, ...);
-void logInternal3(LogCategory category, LogPriority priority, const char* file, const char* function, int line, const char* fmt, ...);
+void logInternal(LogCategory category, LogPriority priority, const char* fmt, ...);
+void logInternalWithPrefix(LogCategory category, LogPriority priority, const char* prefix, const char* fmt, ...);
+void logOnceInternal(LogCategory category, LogPriority priority, char* lastMessage, const char* fmt, ...);
 
-#define Log(priority_enum_name, ...) SDL_LogMessage((int)Log.category, (SDL_LogPriority)LogPriority::priority_enum_name, __VA_ARGS__);
+#define _FUNCTION_ __FUNCTION__
+#define LOG_LOCATION __FILE__ ":" TOSTRING(__LINE__)
 
 #define LogLocBase(category, priority, ...) logInternal(__FILE__ ":" TOSTRING(__LINE__) " - ", category, priority, __VA_ARGS__)
 #define LogLocGory(category_enum_name, priority_enum_name, ...) logAt(__FILE__, __LINE__, LogCategory::category_enum_name, LogPriority::priority_enum_name, __VA_ARGS__)
 #define LogLoc(priority_enum_name, ...) LogLocBase(Log.category, LogPriority::priority_enum_name, __VA_ARGS__)
-//#define Log(...) LogBase(Log.category, LogPriority::Info, __VA_ARGS__)
 
-#define LogCritical(...) logInternal(gLogger.category, LogPriority::Critical, "", __VA_ARGS__)
-#define LogError(...) logInternal3(gLogger.category, LogPriority::Error, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define LogWarn(...) logInternal3(gLogger.category, LogPriority::Warn, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define LogInfo(...) logInternal(gLogger.category, LogPriority::Info, "", __VA_ARGS__)
-#define LogDebug(...) logInternal(gLogger.category, LogPriority::Debug, "", __VA_ARGS__)
+#define LogCritical(...) logInternal(gLogger.category, LogPriority::Critical, __VA_ARGS__)
+#define LogError(...) logInternal(gLogger.category, LogPriority::Error, LOG_LOCATION " - " __VA_ARGS__)
+#define LogWarn(...) logInternal(gLogger.category, LogPriority::Warn, __FILE__ ":" TOSTRING(__LINE__) " - " __VA_ARGS__)
+#define LogInfo(...) logInternal(gLogger.category, LogPriority::Info, __VA_ARGS__)
+#define LogDebug(...) logInternal(gLogger.category, LogPriority::Debug, __VA_ARGS__)
 
-#define LOCATION __FILE__ ":" __FUNCTION__ ":" TOSTRING(__LINE__)
-
+#define LogOnce(priority, ...) { thread_local char COMBINE(_lastMessage, __LINE__)[256]; logOnceInternal(gLogger.category, LogPriority::priority, COMBINE(_lastMessage, __LINE__), __FILE__, __LINE__, __VA_ARGS__); }
 
 #undef LOG_PRIORITY
 

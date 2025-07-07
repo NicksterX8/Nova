@@ -293,9 +293,11 @@ struct has_foo<T, std::__void_t<decltype(noexcept(std::declval<T>().foo(0)))>> :
 struct A { void foo(int x) = delete; };
 struct B { void foo(int x) {} };
 
+#define MAC(a, ...) int x = a;
+
 int main() {
     std::cout << has_foo<A>::value << '\n';  // 0 — safe!
     std::cout << has_foo<B>::value << '\n';  // 1
-
+    MAC(0)
     return 0;
 }

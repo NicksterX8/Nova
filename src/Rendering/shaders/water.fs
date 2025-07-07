@@ -63,7 +63,7 @@ void main() {
     
     float noise = fractalNoise(uv);
     
-    vec4 color = vec4(0,0,iTime * 0,1);
+    vec4 color = vec4(0,0,0,1);
 
     if (noise < 0.05) {
         color = vec4(1,1,1,1);

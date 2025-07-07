@@ -20,6 +20,7 @@ namespace Shaders {
 }
 
 using ShaderID = Shaders::Shader; // Not the same as opengl shader program id
+constexpr ShaderID NullShaderID = (ShaderID)-1;
 
 struct ShaderManager {
     Shader shaders[(int)Shaders::Count] = {{}};
@@ -45,7 +46,7 @@ struct ShaderManager {
                 return (ShaderID)i;
             }
         }
-        return (ShaderID)-1;
+        return NullShaderID;
     }
 
     Shader use(ShaderID shaderID) const {
@@ -78,6 +79,15 @@ struct ShaderManager {
         use(Shaders::SDF).setMat4("transform", worldTransform);
     }
 
+    const char* getName(ShaderID shaderID) const {
+        if (shaderID < 0 || shaderID >= Shaders::Count) {
+            LogError("Tried to get invalid shader id! Id: %d", shaderID);
+            return nullptr;
+        }
+        auto& data = shaderData[(int)shaderID];
+        return data.name.c_str();
+    }
+
     void destroy() {
         for (auto shader : shaders) {
             shader.destroy();
@@ -91,8 +101,21 @@ inline Shader useShader(ShaderID shaderID) {
     return gShaderManager->use(shaderID);
 }
 
-inline Shader getShader(ShaderID shader) {
-    return gShaderManager->get(shader);
+inline Shader getShader(ShaderID shaderID) {
+    return gShaderManager->get(shaderID);
+}
+
+inline const char* getShaderName(ShaderID shaderID) {
+    return gShaderManager->getName(shaderID);
+}
+
+inline ShaderID getShaderIDFromProgramID(GLuint programID) {
+    for (int i = 0; i < Shaders::Count; i++) {
+        if (gShaderManager->shaders[i].id == programID) {
+            return (ShaderID)i;
+        }
+    }
+    return NullShaderID;
 }
 
 #endif

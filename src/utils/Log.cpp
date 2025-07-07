@@ -76,57 +76,14 @@ void Logger::logOutputFunction(void* arg, int category, SDL_LogPriority priority
 
 Logger gLogger;
 
-void logAt(const char* file, int line, LogCategory category, LogPriority priority, const char* fmt, ...) {
-    if (!gLogger.initialized) {
-        printf("Logger not initalized yet!");
-        return;
-    }
-    
+void logInternal(LogCategory category, LogPriority priority, const char* fmt, ...) {
     va_list ap;
-    char message[MAX_LOG_MESSAGE_LENGTH];
-
     va_start(ap, fmt);
-    vsnprintf(message, MAX_LOG_MESSAGE_LENGTH, fmt, ap);
-    SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s:%d - %s", file, line, message);
+    SDL_LogMessageV((int)category, (SDL_LogPriority)priority, fmt, ap);
     va_end(ap);
 }
 
-void logInternal(LogCategory category, LogPriority priority, const char* prefix, const char* fmt, ...) {
-    if (!gLogger.initialized) {
-        printf("Logger not initalized yet!");
-        return;
-    }
-    
-    va_list ap;
-    char message[MAX_LOG_MESSAGE_LENGTH];
-
-    va_start(ap, fmt);
-    vsnprintf(message, MAX_LOG_MESSAGE_LENGTH, fmt, ap);
-    SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s%s", prefix, message);
-    va_end(ap);
-}
-
-void logInternal2(LogCategory category, LogPriority priority, const char* prefix1, const char* prefix2, const char* fmt, ...) {
-    if (!gLogger.initialized) {
-        printf("Logger not initalized yet!");
-        return;
-    }
-    
-    va_list ap;
-    char message[MAX_LOG_MESSAGE_LENGTH];
-
-    va_start(ap, fmt);
-    vsnprintf(message, MAX_LOG_MESSAGE_LENGTH, fmt, ap);
-    SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s%s%s", prefix1, prefix2, message);
-    va_end(ap);
-}
-
-void logInternal3(LogCategory category, LogPriority priority, const char* file, const char* function, int line, const char* fmt, ...) {
-    if (!gLogger.initialized) {
-        printf("Logger not initalized yet!");
-        return;
-    }
-    
+void logInternalWithPrefix(LogCategory category, LogPriority priority, const char* prefix, const char* fmt, ...) {
     va_list ap;
     char message[MAX_LOG_MESSAGE_LENGTH];
 
@@ -134,7 +91,23 @@ void logInternal3(LogCategory category, LogPriority priority, const char* file, 
     vsnprintf(message, MAX_LOG_MESSAGE_LENGTH, fmt, ap);
     // Format: FILE:LINE:FUNCTION - MESSAGE
     // The FILE:LINE format is useful because in VSCode you can command click on it to bring you to the file.
-    SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s:%d:%s - %s", file, line, function, message);
+    SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s%s", prefix, message);
+    va_end(ap);
+}
+
+void logOnceInternal(LogCategory category, LogPriority priority, char* lastMessage, const char* fmt, ...) {
+    va_list ap;
+    char message[MAX_LOG_MESSAGE_LENGTH];
+
+    va_start(ap, fmt);
+    vsnprintf(message, 256, fmt, ap);
+
+    if (strcmp(message, lastMessage) == 0) {
+        // same as last, don't print
+    } else {
+        SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s", message);
+        strcpy(lastMessage, message);
+    }
     va_end(ap);
 }
 

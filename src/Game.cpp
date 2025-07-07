@@ -433,6 +433,8 @@ void focusCamera(Camera* camera, const CameraFocus* focus, const EntityWorld* ec
 }
 
 int Game::update() {
+
+    DO_ONCE(LogInfo("Whats up?"));
     
     double targetTPS = (double)Metadata->tick.targetUpdatesPerSecond;
     double fixedFrametime = 1000.0 / targetTPS;
@@ -503,9 +505,9 @@ int Game::update() {
 }
 
 int Game::init() {
-    LogInfo("Starting game init");
+    LogInfo("Game init start");
 
-    this->gui = New<Gui>(&essentialAllocator);
+    this->gui = New(Gui(), &essentialAllocator);
     
     this->debug->console = &this->gui->console;
 
@@ -573,6 +575,8 @@ int Game::init() {
 
     setCommands(this);
 
+    LogInfo("Game init end");
+
     return 0;
 }
 
@@ -583,8 +587,7 @@ void Game::quit() {
     renderQuit(*renderContext);
 
     double secondsElapsed = metadata.end();
-    LogInfo("Time elapsed: %.1f", secondsElapsed);
-    // GameSave::save()
+    LogInfo("Quit. Time elapsed: %.1f", secondsElapsed);
 }
 
 void Game::destroy() {

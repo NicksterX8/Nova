@@ -93,6 +93,7 @@ int main(int argc, char** argv) {
     }
 
     tests();
+    LogError("Function: %s", __FUNCTION__);
 
     Game* game = new Game(sdlCtx);
     Mem::init(

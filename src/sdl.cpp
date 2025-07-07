@@ -80,7 +80,7 @@ SDLContext initSDL(const char* windowTitle, SDL_Rect windowRect) {
     int displayCount = 0;
     SDL_DisplayID* displays = SDL_GetDisplays(&displayCount);
     
-    if (DEBUG && displayCount > 1) {
+    if (displayCount > 1) {
         primaryWindowDisplay = displays[1];
 
         if (USE_SECONDARY_WINDOW) {

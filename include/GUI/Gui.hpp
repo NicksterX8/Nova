@@ -58,6 +58,8 @@ struct Console {
 
     constexpr static SDL_Color activeTextColor = {255, 255, 255, 255};
 
+    Console() {}
+
     bool messageIsActive() const {
         return !activeMessage.empty();
     }
