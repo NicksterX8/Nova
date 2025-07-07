@@ -10,6 +10,7 @@
 #include "Entity.hpp"
 #include "Signature.hpp"
 #include "ComponentInfo.hpp"
+#include "utils/Allocator.hpp"
 
 template <size_t I, typename Tuple>
 constexpr size_t element_offset() {
@@ -50,6 +51,7 @@ struct Archetype {
     int32_t numComponents;
     Signature signature;
     uint16_t* sizes;
+    uint16_t* alignments;
     ComponentID* componentIDs;
     int32_t sumSize; // size of all components added
 
@@ -73,6 +75,7 @@ static Archetype makeArchetype(Signature signature, ComponentInfoRef componentTy
         .signature = signature,
         .componentIndices = {-1},
         .sizes = Alloc<uint16_t>(count),
+        .alignments = Alloc<uint16_t>(count),
         .componentIDs = Alloc<ComponentID>(count),
         .numComponents = (int)count,
         .sumSize = 0
@@ -85,6 +88,7 @@ static Archetype makeArchetype(Signature signature, ComponentInfoRef componentTy
     signature.forEachSet([&](auto componentID){
         auto componentSize = (uint16_t)componentTypeInfo.get(componentID).size;
         archetype.sizes[index] = componentSize;
+        archetype.alignments[index] = componentTypeInfo.get(componentID).alignment;
         archetype.sumSize += componentSize;
         archetype.componentIDs[index] = componentID;
         archetype.componentIndices[componentID] = index++;
@@ -139,17 +143,20 @@ struct ArchetypePool {
     int addNew(Entity entity) {
         if (size + 1 > capacity) {
             int newCapacity = (capacity * 2 > size) ? capacity * 2 : size + 1;
-            char* newBuffer = Alloc<char>(newCapacity * archetype.sumSize);
+            // TODO: URGENT: this is horrible
+            char* newBuffer = Alloc<char>(newCapacity * archetype.sumSize + 100);
             if (newBuffer) {
                 int offset = 0;
                 for (int i = 0; i < archetype.numComponents; i++) {
                     auto oldComponentBufferSize = archetype.sizes[i] * capacity;
                     auto newComponentBufferSize = archetype.sizes[i] * newCapacity;
 
-                    memcpy(newBuffer + offset, buffer + bufferOffsets[i], oldComponentBufferSize);
+                    size_t alignmentOffset = getAlignmentOffset(offset, archetype.alignments[i]);
+                    if (buffer)
+                        memcpy(newBuffer + offset + alignmentOffset, buffer + bufferOffsets[i], oldComponentBufferSize);
 
-                    bufferOffsets[i] = offset;
-                    offset += newComponentBufferSize;
+                    bufferOffsets[i] = offset + alignmentOffset;
+                    offset += newComponentBufferSize + alignmentOffset;
                 }
 
                 buffer = newBuffer;

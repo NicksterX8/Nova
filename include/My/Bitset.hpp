@@ -108,22 +108,22 @@ public:
     }
 
     constexpr void set(uint32_t position) {
-        uint32_t position64 = position / IntegerBits;
-        IntegerT digit = 1 << (position - (position64 * IntegerBits));
-        bits[position64] |= digit;
-    }
-
-    constexpr void flipBit(uint32_t position) {
-        uint32_t position64 = position / IntegerBits;
-        IntegerT digit = 1 << (position - (position64 * IntegerBits));
-        bits[position64] ^= digit;
+        uint32_t word = position / IntegerBits;
+        IntegerT digit = (IntegerT)1 << (position - (word * IntegerBits));
+        bits[word] |= digit;
     }
 
     constexpr void set(uint32_t position, bool value) {
-        uint32_t position64 = position / IntegerBits;
-        uint32_t modulus = (position - (position64 * IntegerBits));
-        IntegerT digit = (uint64_t)value << (uint64_t)modulus;
-        bits[position64] = (bits[position64] & ~((uint64_t)1 << (uint64_t)modulus)) | digit; // disabling part
+        uint32_t word = position / IntegerBits;
+        uint32_t modulus = (position - (word * IntegerBits));
+        IntegerT digit = (IntegerT)value << modulus;
+        bits[word] = (bits[word] & ~((IntegerT)1 << modulus)) | digit; // disabling part
+    }
+
+    constexpr void flipBit(uint32_t position) {
+        uint32_t word = position / IntegerBits;
+        IntegerT digit = (IntegerT)1 << (position - (word * IntegerBits));
+        bits[word] ^= digit;
     }
 
     constexpr bool empty() const {

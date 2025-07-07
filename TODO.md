@@ -1,5 +1,7 @@
 # TODO
 
+redo component pool allocation and archetype thing, its a mess
+
 make vector that takes allocator template and parameter
 
 what happens when prototype components are used in methods like EntityManager::add? nothing good
@@ -30,11 +32,6 @@ text rendering is extremely slow right now? or at least the console. probably ma
 actual (new):
 fix scrolling up/down with keys on console
 more text features (copying & pasting??) (prolly not, not necessary)
-
-
-better code:
-int_fastN_t
--fsanitize=signed-integer-overflow
 
 ## Big picture
 - Move stuff to .cpp files 

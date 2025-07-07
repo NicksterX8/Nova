@@ -69,14 +69,11 @@ struct Game {
     GameEntitySystems systems;
     Mode mode;
 private:
-    bool m_paused;
+    bool m_paused = false;
     using EssentialAllocator = ScratchAllocator<Mallocator>;
 public:
     EssentialAllocator essentialAllocator;
     BlockAllocator<2048, 4> blockAllocator;
-    
-
-    
 
     bool isPaused() const {
         return m_paused;

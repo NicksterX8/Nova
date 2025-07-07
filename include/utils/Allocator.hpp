@@ -9,10 +9,13 @@
 
 #define ADDRESS_SANITIZER_BUILD LLVM_ADDRESS_SANITIZER_BUILD
 
-// void* alignPtr(void* ptr, size_t alignment) {
-//     size_t offset = alignment - ((uintptr_t)ptr % alignment);
-//     return (char*)ptr + offset;
-// }
+inline size_t getAlignedOffset(size_t offset, size_t align) {
+    return ((offset + align - 1) & ~(align - 1U));
+}
+
+inline size_t getAlignmentOffset(size_t offset, size_t align) {
+    return getAlignedOffset(offset, align) - offset;
+}
 
 // align the pointer to a given alignment, rounding up
 inline void* alignPtr(void* ptr, size_t align) {
