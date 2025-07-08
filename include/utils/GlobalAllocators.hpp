@@ -12,8 +12,8 @@ AbstractAllocator* trackAllocator(std::string_view name, Allocator* allocator);
 
 // Allocators for global use ONLY ON MAIN THREAD
 struct GlobalAllocatorsType {
-    BlockAllocator<1024, 4> gameBlockAllocator{};
-    GameStructureAllocator gameScratchAllocator{4096, &gameBlockAllocator};
+    BlockAllocator<4096, 8> gameBlockAllocator{};
+    GameStructureAllocator gameScratchAllocator{16 * 1024, &gameBlockAllocator};
     llvm::BumpPtrAllocatorImpl<decltype(gameBlockAllocator)> bumpPtr{&gameBlockAllocator};
 
     std::vector<AbstractAllocator*> allocators;

@@ -30,23 +30,11 @@ void generateChunk(ChunkData* chunkdata) {
 }
 
 void ChunkMap::init() {
-    map = InternalChunkMap::WithBuckets(32);
-    chunkList = ChunkBucketArray::WithBuckets(1);
-    //chunkdataList = ChunkDataBucketArray::WithBuckets(1);
-    
-    // pre-cache atleast one chunk so there's no special cases when a chunk has not yet been cached
-    /*
-    cachedChunkCoord = IVec2{0, 0};
-    auto chunkdata = newChunkAt(cachedChunkCoord);
-    if (!chunkdata) {
-        LogCrash(CrashReason::MemoryFail, "Failed to reserve new chunk in chunkmap");
-    }
-    cachedChunk = chunkdata->chunk;
-    */
+    map = InternalChunkMap::WithBuckets(128);
+    chunkList = ChunkBucketArray::WithBuckets(128);
 }
 
 void ChunkMap::destroy() {
-    //chunkdataList.destroy();
     chunkList.destroy();
     map.destroy();
 }
@@ -56,12 +44,6 @@ void ChunkMap::destroy() {
 * Returns NULL if the chunk couldn't be found.
 */
 ChunkData* ChunkMap::get(IVec2 chunkPosition) const {
-    /*
-    ChunkData** maybeChunkdata = map.lookup(chunkPosition);
-    if (maybeChunkdata) return *maybeChunkdata;
-    return nullptr;
-    */
-
     return map.lookup(chunkPosition);
 }
 
@@ -99,35 +81,13 @@ ChunkData* ChunkMap::getOrMakeNew(IVec2 position) {
 
 Tile* getTileAtPosition(const ChunkMap& chunkmap, Vec2 position) {
     IVec2 chunkPosition = toChunkPosition(position);
-    /*
-    if (chunkPosition != chunkmap.cachedChunkCoord) {
-        ChunkData* chunkdata = chunkmap.get(position);
-        if (!chunkdata) return nullptr;
-        chunkmap.cachedChunk = chunkdata->chunk;
-        chunkmap.cachedChunkCoord = chunkPosition;
-    }
-    */
     ChunkData* chunkdata = chunkmap.get(chunkPosition);
     if (!chunkdata) return nullptr;
     int tileX = (int)floor(position.x - (chunkPosition.x * CHUNKSIZE));
     int tileY = (int)floor(position.y - (chunkPosition.y * CHUNKSIZE));
     return &(*chunkdata->chunk)[tileY][tileX]; // when chunkdata is not null, chunkdata->chunk should never be null
 }
-/*
-Tile* getTileAtPosition(const ChunkMap& chunkmap, IVec2 position) {
-    IVec2 chunkPosition = toChunkPosition(position);
-    if (chunkPosition != chunkmap.cachedChunkCoord) {
-        ChunkData* chunkdata = chunkmap.get(chunkPosition);
-        if (!chunkdata) return nullptr;  
-        chunkmap.cachedChunk = chunkdata->chunk;
-        chunkmap.cachedChunkCoord = chunkPosition;
-    }
-    // when chunkdata is not null, chunkdata->chunk should never be null
-    int tileX = position.x - chunkPosition.x * CHUNKSIZE;
-    int tileY = position.y - chunkPosition.y * CHUNKSIZE;
-    return &(*chunkmap.cachedChunk)[tileY][tileX];
-}
-*/
+
 int getTiles(const ChunkMap& chunkmap, const IVec2* inTiles, Tile* outTiles, int count) {
     int numMissedTiles = 0;
     for (int i = 0; i < count; i++) {

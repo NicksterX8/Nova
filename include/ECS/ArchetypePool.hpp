@@ -227,9 +227,8 @@ struct ArchetypalComponentManager {
     My::DenseSparseSet<EntityID, EntityData, 
         Uint16, MaxEntityID> entityData;
 
-    ArchetypalComponentManager() {}
-
-    ArchetypalComponentManager(ComponentInfoRef componentInfo) : componentInfo(componentInfo) {
+    void init(ComponentInfoRef componentInfo) {
+        this->componentInfo = componentInfo;
         validComponents = {0};
         for (int i = 0; i < componentInfo.size(); i++) {
             if (!componentInfo.get(i).prototype)

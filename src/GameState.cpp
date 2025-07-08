@@ -20,9 +20,9 @@ void makeItemPrototypes(ItemManager& im) {
 
     auto* allocator = &im.prototypeAllocator;
 
-    auto tile = New(Prototypes::Tile(pm), allocator);
-    auto grenade = New(Prototypes::Grenade(pm), allocator);
-    auto sandGun = New(Prototypes::SandGun(pm), allocator);
+    auto tile = allocator->New<Prototypes::Tile>(pm);
+    auto grenade = allocator->New<Prototypes::Grenade>(pm);
+    auto sandGun = allocator->New<Prototypes::SandGun>(pm);
 
     ItemPrototype* prototypes[] = {
         tile, grenade, sandGun
@@ -37,12 +37,12 @@ void makeEntityPrototypes(EntityWorld& ecs) {
     auto* allocator = &GlobalAllocators.gameScratchAllocator;
     auto& pm = ecs.em.prototypes;
     using namespace World;
-    #define MAKE_PROTOTYPE(constructor) New(Entities::constructor, allocator)
-    auto player = MAKE_PROTOTYPE(Player(pm));
-    auto itemStack = MAKE_PROTOTYPE(ItemStack(pm));
-    auto monster = MAKE_PROTOTYPE(Monster(pm));
-    auto spider = MAKE_PROTOTYPE(Spider(pm));
-    auto grenade = MAKE_PROTOTYPE(Grenade(pm));
+    #define MAKE_PROTOTYPE(constructor) allocator->New<Entities::constructor>(pm)
+    auto player = MAKE_PROTOTYPE(Player);
+    auto itemStack = MAKE_PROTOTYPE(ItemStack);
+    auto monster = MAKE_PROTOTYPE(Monster);
+    auto spider = MAKE_PROTOTYPE(Spider);
+    auto grenade = MAKE_PROTOTYPE(Grenade);
 
     ItemPrototype* prototypes[] = {
         player, itemStack, monster, spider, grenade
@@ -54,6 +54,10 @@ void makeEntityPrototypes(EntityWorld& ecs) {
 }
 
 void GameState::init(const TextureManager* textureManager) {
+    auto& scratch = GlobalAllocators.gameScratchAllocator;
+    // auto scratch = ScratchMemory::allocate(GlobalAllocators.gameScratchAllocator, 1024);
+    trackAllocator("GameState::scratch", &scratch);
+
     /* Init Chunkmap */
     chunkmap.init();
     int chunkRadius = 4;
@@ -70,7 +74,8 @@ void GameState::init(const TextureManager* textureManager) {
     }
 
     /* Init ECS */
-    ecs = EntityWorld::init(&chunkmap);
+    ecs = scratch.New<EntityWorld>();
+    ecs->init(&chunkmap, ecs);
     makeEntityPrototypes(*ecs);
     World::setEventCallbacks(*ecs, chunkmap);
 
@@ -78,7 +83,7 @@ void GameState::init(const TextureManager* textureManager) {
     {
         using namespace items::ITC;
         static constexpr auto itemComponentInfo = ECS::getComponentInfoList<ITEM_COMPONENTS_LIST>();
-        itemManager = ItemManager(ArrayRef(itemComponentInfo), ItemTypes::Count);
+        itemManager.init(ArrayRef(itemComponentInfo), ItemTypes::Count);
     }
 
     makeItemPrototypes(itemManager);
@@ -105,7 +110,7 @@ void GameState::init(const TextureManager* textureManager) {
 void GameState::destroy() {
     chunkmap.destroy();
     ecs->destroy();
-    delete ecs;
+    scratch.deallocate(ecs);
 }
 
 llvm::SmallVector<IVec2> raytraceDDA(const Vec2 start, const Vec2 end) {

@@ -1,5 +1,7 @@
 # TODO
 
+better error handling, error codes. instead of just logging everything directly
+
 make so vector is only allocated if it has something in it. makes checks simpler. or maybe not cause then you wouldn't be able to reserve ever. nvm
 append/insert/push_back(multiple)
 methods are kinda slow... optimize

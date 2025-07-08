@@ -27,4 +27,33 @@ namespace World {
         componentValues.clear();
     }
 
+    void EntityWorld::init(ChunkMap* chunkmap, EntityWorld* pointerToThis) {
+        deferringEvents = false;
+        this->chunkmap = chunkmap;
+        using namespace EC;
+        using namespace EC::Proto;
+        static constexpr auto infoList = ECS::getComponentInfoList<WORLD_COMPONENT_LIST>();
+        em.init(ArrayRef(infoList), World::Entities::PrototypeIDs::Count);
+        entityMakerBuffer = GlobalAllocators.gameScratchAllocator.allocate<char>(1024);
+        entityMaker = EntityMaker(pointerToThis);
+    }
+
+    ECS::EntityVersion EntityWorld::GetEntityVersion(ECS::EntityID id) const {
+        assert(id <= NullEntity.id);
+        auto* data = em.components.getEntityData(id);
+        if (data)
+            return data->version;
+        return NullEntity.version;
+    }
+
+    void EntityWorld::Set(Entity entity, ECS::ComponentID componentID, void* value) {
+        assert(value);
+        void* component = em.getComponent(entity, componentID);
+        if (component) {
+            memcpy(component, value, em.getComponentSize(componentID));
+        } else {
+            LogError("Failed to set component, it could not be found.");
+        }
+    }
+
 }

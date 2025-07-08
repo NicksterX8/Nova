@@ -97,7 +97,7 @@ public:
         trackAllocator("Essential Allocator", &essentialAllocator);
         trackAllocator("Medium allocator", &blockAllocator);
 
-        debug = New(DebugClass(), &blockAllocator);
+        debug = blockAllocator.New<DebugClass>();
         Debug = debug;
         debug->debugging = 1;
 

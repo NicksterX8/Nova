@@ -10,27 +10,23 @@
 
 namespace ECS {
 
-struct ComponentManager : ArchetypalComponentManager {
-    ComponentManager() = default;
-    ComponentManager(ComponentInfoRef info) : ArchetypalComponentManager(info) {}
-};
-
+using ComponentManager = ArchetypalComponentManager;
 
 struct EntityManager {
     ComponentManager components;
     PrototypeManager prototypes;
 
 private:
-    bool* stateLocked = new bool(false);
-
-    EntityCommandBuffer* commandBuffer = nullptr;
+    bool* stateLocked;
+    EntityCommandBuffer* commandBuffer;
 public:
 
-    EntityManager() = default;
-
-    EntityManager(ComponentInfoRef componentInfo, int numPrototypes)
-     : components(componentInfo), prototypes(componentInfo, numPrototypes) {} 
-
+    void init(ComponentInfoRef componentInfo, int numPrototypes) {
+        components.init(componentInfo);
+        prototypes.init(componentInfo, numPrototypes);
+        stateLocked = new bool(false);
+        commandBuffer = nullptr;
+    }
 
     const ComponentInfo& getComponentInfo(ComponentID component) const {
         return components.getComponentInfo(component);
@@ -375,6 +371,8 @@ public:
         components.destroy();
         prototypes.destroy();
     }
+
+    ComponentID getComponentIdFromName(const char* name) const;
 };
 
 }

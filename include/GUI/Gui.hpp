@@ -361,7 +361,7 @@ struct Gui {
     void init(GuiRenderer& renderer, Game* game) {
         using namespace GUI::EC;
         constexpr static auto componentInfoArray = ECS::getComponentInfoList<GUI_COMPONENTS_LIST>();
-        manager = GUI::GuiManager(ArrayRef(componentInfoArray), GUI::ElementTypes::Count);
+        manager.init(ArrayRef(componentInfoArray), GUI::ElementTypes::Count);
         manager.systemManager.entityManager = &manager;
         makeGuiPrototypes(manager);
         initGui(manager);

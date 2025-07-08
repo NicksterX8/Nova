@@ -34,11 +34,8 @@ struct ItemManager : ECS::EntityManager {
     InventoryAllocator inventoryAllocator;
     GameStructureAllocator prototypeAllocator{1024, &GlobalAllocators.gameBlockAllocator};
 
-    ItemManager() {}
-
-    ItemManager(ECS::ComponentInfoRef componentInfo, int numPrototypes)
-     : ECS::EntityManager(componentInfo, numPrototypes) {
-
+    void init(ECS::ComponentInfoRef componentInfo, int numPrototypes) {
+        ECS::EntityManager::init(componentInfo, numPrototypes);
     }
 
     Item newItem(ItemType type) {

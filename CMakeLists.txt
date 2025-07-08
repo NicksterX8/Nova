@@ -58,6 +58,7 @@ set(SRC_FILES
     ${SD}/world/entities/methods.cpp
     ${SD}/world/EntityWorld.cpp
     ${SD}/ECS/system.cpp
+    ${SD}/ECS/EntityManager.cpp
     ${SD}/physics/physics.cpp
 )
 

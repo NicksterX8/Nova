@@ -39,13 +39,9 @@ inline void addChildNode(GuiTreeNode* node, ElementID child) {
 }
 
 struct GuiManager : ECS::EntityManager {
-
-    Element screen = NullElement;
-
+    Element screen;
     My::HashMap<ElementID, GuiTreeNode> treeMap;
-
-    Element hoveredElement = NullElement;
-
+    Element hoveredElement;
     ECS::System::SystemManager systemManager;
 
     GuiTreeNode* getTreeNode(ElementID elementID) const {
@@ -67,10 +63,11 @@ struct GuiManager : ECS::EntityManager {
         Free(node->children);
     }
 
-    GuiManager() {}
-
-    GuiManager(ECS::ComponentInfoRef componentInfo, int numPrototypes)
-     : ECS::EntityManager(componentInfo, numPrototypes), treeMap(32) {
+    void init(ECS::ComponentInfoRef componentInfo, int numPrototypes) {
+        screen = NullElement;
+        hoveredElement = NullElement;
+        treeMap = decltype(treeMap)(32);
+        ECS::EntityManager::init(componentInfo, numPrototypes);
         screen = ECS::EntityManager::newEntity(ElementTypes::Normal);
         treeMap.insert(screen.id, GuiTreeNode(screen, NullElement.id));
 

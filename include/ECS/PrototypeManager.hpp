@@ -15,9 +15,8 @@ struct PrototypeManager {
     std::unordered_map<std::string, Prototype*> namedPrototypes;
     My::BucketArray<char, 1024> componentAllocator = My::BucketArray<char, 1024>::Empty();
 
-    PrototypeManager() = default;
-
-    PrototypeManager(ComponentInfoRef componentInfo, int numPrototypes) : componentInfo(componentInfo) {
+    void init(ComponentInfoRef componentInfo, int numPrototypes) {
+        this->componentInfo = componentInfo;
         validComponents = {0};
         for (int i = 0; i < componentInfo.size(); i++) {
             if (componentInfo.get(i).prototype)

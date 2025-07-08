@@ -507,18 +507,17 @@ int Game::update() {
 int Game::init() {
     LogInfo("Game init start");
 
-    this->gui = New(Gui(), &essentialAllocator);
+    this->gui = essentialAllocator.New<Gui>();
     
     this->debug->console = &this->gui->console;
 
-    this->renderContext = New(RenderContext(sdlCtx.primary.window, sdlCtx.primary.glContext), &essentialAllocator);
+    this->renderContext = essentialAllocator.New<RenderContext>(sdlCtx.primary.window, sdlCtx.primary.glContext);
     LogInfo("starting render init");
     renderInit(*renderContext);
 
     this->gui->init(renderContext->guiRenderer, this);
 
-    this->state = New(GameState(), &essentialAllocator);
-
+    this->state = essentialAllocator.New<GameState>();
     this->state->init(&renderContext->textures);
 
     this->systems.ecsRenderSystems.entityManager = &this->state->ecs->em;
@@ -557,7 +556,7 @@ int Game::init() {
         },
     });
 
-    this->playerControls = New(PlayerControls(this), &essentialAllocator);
+    this->playerControls = essentialAllocator.New<PlayerControls>(this);
     SDL_FPoint mousePos = SDL::getMousePixelPosition();
     this->lastUpdateMouseState = {
         .position = {mousePos.x, mousePos.y},

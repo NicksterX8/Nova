@@ -25,42 +25,25 @@ private:
     using ValueParamT = FastestParamType<T>;
 public:
 
+    Vec() = default;
+
     // inits to empty
-    Vec(Allocator allocator)
-    : data(nullptr), size(0), capacity(0), allocator(allocator) {}
+    template<typename AllocT>
+    Vec(AllocT&& allocator)
+    : data(nullptr), size(0), capacity(0), allocator(std::forward<AllocT&&>(allocator)) {}
 
-    Vec(Allocator allocator, int startCapacity) : size(0), capacity(startCapacity), allocator(allocator) {
-        if (startCapacity > 0) {
-            data = this->allocator.get().template allocate<T>(startCapacity);
-        } else {
-            data = nullptr;
-        }
-    }
-
-    inline static Self WithCapacity(Allocator* allocator, int capacity) {
+    inline static Self WithCapacity(Allocator&& allocator, int capacity) {
         return Self(allocator, capacity);
     }
 
     /* Create a vector with the given size and copy the given data to the vector
      */
-    Vec(Allocator allocator, const T* _data, int _size) : allocator(allocator) {
+    template<typename AllocT>
+    Vec(AllocT&& allocator, const T* _data, int _size) : allocator(std::forward<AllocT&&>(allocator)) {
         data = this->allocator.get().template allocate<T>(_size);
         memcpy(data, _data, _size * sizeof(T));
         size = _size;
         capacity = _size;
-    }
-
-    static Self Filled(Allocator allocator, int size, ValueParamT value) {
-        assert(size >= 0 && "cannot have negative size");
-        Self self;
-        self.allocator = allocator;
-        self.data = self.allocator.get().template allocate<T>(size);
-        for (int i = 0; i < size; i++) {
-            memcpy(&self[i], &value, sizeof(T));
-        }
-        self.size = size;
-        self.capacity = size;
-        return self;
     }
 
     inline T* get(int index) const {

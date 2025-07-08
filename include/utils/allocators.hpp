@@ -8,6 +8,7 @@
 template<size_t BlockSize, size_t BlocksPerAlloc, typename Allocator = Mallocator>
 class BlockAllocator : public AllocatorBase<BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>> {
     using Base = AllocatorBase<BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>>;
+    using Me = BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>;
     static_assert(BlockSize > 0 && BlocksPerAlloc > 0, "Block size or blocks per alloc too small!");
 
     struct Chunk {
@@ -31,6 +32,8 @@ public:
     BlockAllocator(Allocator allocator, size_t allocateBlocks) : allocator(allocator) {
         allocateNewBlocks(allocateBlocks);
     }
+
+    BlockAllocator(const Me& other) = delete;
 
     void* allocateMultipleBlocks(size_t neededBlocks) {
         for (int i = (int)freeChunks.size()-1; i >= 0; i--) {
@@ -203,7 +206,7 @@ public:
         int allocatedBlocks = countAllocatedBlocks();
         std::string allocated;
     #ifndef NDEBUG
-        allocated = string_format("%zu bytes allocated. Wasted bytes: %zu",
+        allocated = string_format("%zu bytes allocated. Wasted bytes in blocks: %zu",
             bytesAllocated, BlockSize * allocatedBlocks - bytesAllocated);
     #else
         allocated = string_format("%d allocated blocks of size %zu = %zu bytes",
@@ -222,60 +225,36 @@ public:
     }
 };
 
-template<typename Allocator = Mallocator>
-class ScratchAllocator : public AllocatorBase<ScratchAllocator<Allocator>> {
-    using Base = AllocatorBase<ScratchAllocator<Allocator>>;
-    using Me = ScratchAllocator<Allocator>;
-    void* end;
-    void* current;
+struct ScratchMemory : public AllocateMethods<ScratchMemory> {
     void* start;
-    AllocatorHolder<Allocator> allocator;
-public:
-    ScratchAllocator(size_t size) {
-        create(size);
+    void* current;
+    void* end;
+
+    ScratchMemory() : start(nullptr), current(nullptr), end(nullptr) {}
+
+    ScratchMemory(void* start, void* end) : start(start), current(start), end(end) {}
+
+    ScratchMemory(void* start, size_t size) : start(start), current(start), end((char*)start + size) {}
+
+    template<typename Allocator>
+    static ScratchMemory allocate(Allocator& allocator, size_t size) {
+        return ScratchMemory(allocator.allocate(size, 1), size);
     }
 
-    ScratchAllocator(size_t size, Allocator allocator) : allocator(allocator) {
-        create(size);
+    template<typename Allocator>
+    static void deallocate(Allocator& allocator, const ScratchMemory& memory) {
+        allocator.deallocate(memory.start, memory.allocationSize(), 1);
     }
 
-    ScratchAllocator(const Me& other) : allocator(other.allocator) {
-        assert(other.current == other.start && "cannot copy scratch constructor that has allocations");
-        create(other.allocationSize());
+    // allocate scratch memory with malloc of a given size. must call ScratchMemory::free when finished
+    static ScratchMemory malloc(size_t size) {
+        return ScratchMemory(::malloc(size), size);
     }
 
-    // ScratchAllocator(Me&& moved) {
-    //     end = moved.end;
-    //     current = moved.current;
-    //     start = moved.start;
-    //     allocator = std::move(moved.allocator);
-
-    //     moved.start = nullptr;
-    //     moved.current = nullptr;
-    //     moved.end = nullptr;
-    // }
-private:
-    void create(size_t size) {
-        start = allocator.get().allocate(size, 1);
-        assert(start);
-        __asan_poison_memory_region(start, size);
-        current = start;
-        end = (char*)start + size;
+    // free memory created with ScratchMemory::malloc
+    static void free(ScratchMemory& memory) {
+        ::free(memory.start);
     }
-public:
-
-    // // instead of this class allocating memory, use an already allocated block of memory.
-    // // The caller is still responsible for freeing this allocation, as this class
-    // // has no way of knowing how to free it
-    // static ScratchAllocator UsingMemory(void* allocation, size_t allocationSize) {
-    //     return ScratchAllocator(allocation, allocationSize);
-    // }
-    
-    size_t allocationSize() const {
-        return (uintptr_t)end - (uintptr_t)start;
-    }
-
-    using Base::allocate;
 
     void* allocate(size_t size, size_t alignment) {
         void* ptr = alignPtr(current, alignment);
@@ -285,25 +264,11 @@ public:
         return ptr;
     }
 
-    void deallocate(void* ptr, size_t size, size_t alignment) {
-        // can not deallocate
-        // act like we did though for sanitizers
-        __asan_poison_memory_region(ptr, size);
-    }
-
     void reset() {
         // poision everything
         __asan_poison_memory_region(start, (uintptr_t)current - (uintptr_t)start);
 
         current = start;
-    }
-
-    void deallocateAll() {
-        __asan_poison_memory_region(start, (uintptr_t)current - (uintptr_t)start);
-        allocator.get().deallocate(start, allocationSize(), 1);
-        start = nullptr;
-        current = nullptr;
-        end = nullptr;
     }
 
     size_t getAllocatedMemory() const {
@@ -312,6 +277,81 @@ public:
 
     size_t spaceRemaining() const {
         return (uintptr_t)end - (uintptr_t)current;
+    }
+
+    size_t allocationSize() const {
+        return (uintptr_t)end - (uintptr_t)start;
+    }
+};
+
+template<typename Allocator = Mallocator>
+class ScratchAllocator : ScratchMemory, public AllocatorBase<ScratchAllocator<Allocator>> {
+    using Memory = ScratchMemory;
+    using Base = AllocatorBase<ScratchAllocator<Allocator>>;
+    using Me = ScratchAllocator<Allocator>;
+    AllocatorHolder<Allocator> allocator;
+public:
+    ScratchAllocator() = default;
+
+    ScratchAllocator(size_t size) {
+        init(size);
+    }
+
+    template<typename AllocT>
+    ScratchAllocator(size_t size, AllocT&& allocator) : allocator(std::forward<AllocT&&>(allocator)) {
+        init(size);
+    }
+
+    // ScratchAllocator(const Me& other) : allocator(other.allocator) {
+    //     assert(other.current)
+
+    //     assert(other.current == other.start && "cannot copy scratch constructor that has allocations");
+    //     create(other.allocationSize());
+    // }
+
+    ScratchAllocator(const Me& other) = delete;
+
+    ScratchAllocator(Me&& moved) {
+        start = moved.start;
+        current = moved.current;
+        end = moved.end;
+
+        moved.start = nullptr;
+        moved.current = nullptr;
+        moved.end = nullptr;
+    }
+
+    void init(size_t size) {
+        assert(start == nullptr && "Scratch allocator already initialized!");
+        start = allocator.get().allocate(size, 1);
+        assert(start);
+        __asan_poison_memory_region(start, size);
+        current = start;
+        end = (char*)start + size;
+    }
+
+    using Memory::allocate;
+    using Memory::reset;
+    using Memory::getAllocatedMemory;
+    using Memory::allocationSize;
+    using Memory::spaceRemaining;
+
+    using Base::New;
+    using Base::allocate;
+    using Base::deallocate;
+
+    void deallocate(void* ptr, size_t size, size_t alignment) {
+        // can not deallocate
+        // act like we did though for sanitizers
+        __asan_poison_memory_region(ptr, size);
+    }
+
+    void deallocateAll() {
+        __asan_poison_memory_region(start, (uintptr_t)current - (uintptr_t)start);
+        allocator.get().deallocate(start, allocationSize(), 1);
+        start = nullptr;
+        current = nullptr;
+        end = nullptr;
     }
 
     ~ScratchAllocator() {

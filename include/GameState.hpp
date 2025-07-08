@@ -17,6 +17,7 @@ struct GameState {
     ECS::System::SystemManager* ecsSystems;
     Player player;
     ItemManager itemManager;
+    ScratchAllocator<> scratch;
 
     void init(const TextureManager* textureManager);
     void destroy();

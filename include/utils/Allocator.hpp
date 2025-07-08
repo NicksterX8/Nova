@@ -29,10 +29,32 @@ inline const void* alignPtr(const void* ptr, size_t align) {
     return (void*)((ptrValue + align - 1) & ~(align - 1U));
 }
 
+template<typename Derived>
+struct AllocateMethods {
+    template<typename T>
+    T* allocate(size_t count = 1) {
+        return (T*)static_cast<Derived*>(this)->allocate(count * sizeof(T), alignof(T));
+    }
+
+    template<typename T, typename... Args>
+    T* New(Args&... args) {
+        T* mem = allocate<T>(1);
+        new (mem) T(args...);
+        return mem;
+    }
+
+    template<typename T>
+    T* New(const T& value) {
+        T* mem = allocate<T>(1);
+        new (mem) T(value);
+        return mem;
+    }
+};
+
 class AllocatorI {};
 
 template<typename Derived>
-class AllocatorBase : AllocatorI {
+class AllocatorBase : AllocatorI, public AllocateMethods<Derived> {
     // Required to define to be an allocator:
     // void* allocate(size_t size, size_t alignment)
     // void deallocate(void* ptr, size_t size, size_t alignment)
@@ -41,6 +63,9 @@ class AllocatorBase : AllocatorI {
     // getAllocatorStats() recommended
 
 public:
+
+    using AllocateMethods<Derived>::allocate;
+    using AllocateMethods<Derived>::New;
 
     void* reallocate(void* ptr, size_t oldSize, size_t newSize, size_t alignment) {
         void* newPtr = static_cast<Derived*>(this)->allocate(newSize, alignment);
@@ -52,13 +77,13 @@ public:
 
     /* Convenience methods for type allocations */
 
-    template<typename T>
-    T* allocate(size_t count) {
-        return (T*)static_cast<Derived*>(this)->allocate(count * sizeof(T), alignof(T));
-    }
+    // template<typename T>
+    // T* allocate(size_t count = 1) {
+    //     return (T*)static_cast<Derived*>(this)->allocate(count * sizeof(T), alignof(T));
+    // }
 
     template<typename T>
-    void deallocate(T* ptr, size_t count) {
+    void deallocate(T* ptr, size_t count = 1) {
         static_cast<Derived*>(this)->deallocate(ptr, count * sizeof(T), alignof(T));
     }
 
@@ -69,20 +94,7 @@ public:
 
     /* initialization + allocation */
 
-    template<typename T>
-    T* New(const T& value) {
-        T* mem = (T*)static_cast<Derived*>(this)->allocate(sizeof(T), alignof(T));
-        new (mem) T(value);
-        return mem;
-    }
 
-    // default construct
-    template<typename T>
-    T* New() {
-        T* mem = allocate<T>(1);
-        new (mem) T();
-        return mem;
-    }
 };
 
 struct AllocatorStats {
@@ -163,21 +175,6 @@ public:
     }
 };
 
-template<typename, typename = void>
-struct HasAllocateT : std::false_type {};
-template<typename Allocator>
-struct HasAllocateT<Allocator, std::void_t<decltype(noexcept(std::declval<Allocator>().allocate(0, 0)))>> : std::true_type {};
-
-template<typename, typename = void>
-struct HasDeallocateT : std::false_type {};
-template<typename Allocator>
-struct HasDeallocateT<Allocator, std::void_t<decltype(noexcept(std::declval<Allocator>().deallocate(nullptr, 0, 0)))>> : std::true_type {};
-
-template<typename, typename = void>
-struct HasAllocatorStatsT : std::false_type {};
-template<typename Allocator>
-struct HasAllocatorStatsT<Allocator, std::void_t<decltype(noexcept(std::declval<Allocator>().getAllocatorStats()))>> : std::true_type {};
-
 
 template<typename Allocator>
 class AbstractAllocatorImpl : public AbstractAllocator {
@@ -186,33 +183,19 @@ public:
     AbstractAllocatorImpl(Allocator* realAllocator) : AbstractAllocator(realAllocator) {}
 
     void* allocate(size_t size, size_t alignment) override {
-        if constexpr (HasAllocateT<Allocator>::value) {
-            return static_cast<Allocator*>(realAllocator)->allocate(size, alignment);
-        } else {
-            return nullptr;
-        }
+        return static_cast<Allocator*>(realAllocator)->allocate(size, alignment);
     }
 
     void deallocate(void* ptr, size_t size, size_t alignment) override {
-        if constexpr (HasDeallocateT<Allocator>::value) {
-            static_cast<Allocator*>(realAllocator)->deallocate(ptr, size, alignment);
-        }
+        static_cast<Allocator*>(realAllocator)->deallocate(ptr, size, alignment);
     }
 
     void* reallocate(void* ptr, size_t oldSize, size_t newSize, size_t alignment) override {
-        if constexpr (HasAllocateT<Allocator>::value && HasDeallocateT<Allocator>::value) {
-            return static_cast<Allocator*>(realAllocator)->reallocate(ptr, oldSize, newSize, alignment);
-        } else {
-            return nullptr;
-        }
+        return static_cast<Allocator*>(realAllocator)->reallocate(ptr, oldSize, newSize, alignment);
     }
 
     AllocatorStats getAllocatorStats() const override {
-        if constexpr (HasAllocatorStatsT<Allocator>::value) {
-            return static_cast<Allocator*>(realAllocator)->getAllocatorStats();
-        } else {
-            return {};
-        }
+        return static_cast<Allocator*>(realAllocator)->getAllocatorStats();
     }
 
     ~AbstractAllocatorImpl() {}

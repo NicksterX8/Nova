@@ -86,31 +86,22 @@ protected:
     EventCallback callbacksOnAdd[EC::ComponentIDs::Count];
     EventCallback callbacksBeforeRemove[EC::ComponentIDs::Count];
 
-    bool deferringEvents = false;
+    bool deferringEvents;
     struct DeferredEvent {
         ECS::Entity entity;
         EventCallback callback;
     };
     llvm::SmallVector<DeferredEvent, 3> deferredEvents;
 
-    char* entityMakerBuffer = new char[1024];
+    char* entityMakerBuffer;
     EntityMaker entityMaker;
 
     ChunkMap* chunkmap;
+
 public:
-
-    static EntityWorld* init(ChunkMap* chunkmap) {
-        EntityWorld* ecs = new EntityWorld();
-        ecs->chunkmap = chunkmap;
-        using namespace EC;
-        using namespace EC::Proto;
-        static constexpr auto infoList = ECS::getComponentInfoList<WORLD_COMPONENT_LIST>();
-        ecs->em = ECS::EntityManager(ArrayRef(infoList), World::Entities::PrototypeIDs::Count);
-        ecs->entityMaker = EntityMaker(ecs);
-        return ecs;
-    }
-
     EntityWorld() {}
+
+    void init(ChunkMap* chunkmap, EntityWorld* pointerToThis);
 
     EntityWorld(const EntityWorld& copy) = delete;
 
@@ -201,13 +192,7 @@ public:
      * In the case that the entity with the id given does not exist,
      * ECS::NULL_ENTITY_VERSION will be returned
      */
-    ECS::EntityVersion GetEntityVersion(ECS::EntityID id) const {
-        assert(id <= NullEntity.id);
-        auto* data = em.components.getEntityData(id);
-        if (data)
-            return data->version;
-        return NullEntity.version;
-    }
+    ECS::EntityVersion GetEntityVersion(ECS::EntityID id) const;
 
     /* Get the number of entities currently in existence.
      * This is equivalent to the size of the main entity list.
@@ -251,15 +236,7 @@ public:
         return component;
     }
 
-    void Set(Entity entity, ECS::ComponentID componentID, void* value) {
-        assert(value);
-        void* component = em.getComponent(entity, componentID);
-        if (component) {
-            memcpy(component, value, em.getComponentSize(componentID));
-        } else {
-            LogError("Failed to set component, it could not be found.");
-        }
-    }
+    void Set(Entity entity, ECS::ComponentID componentID, void* value);
 
     /* Add a component of the type to the entity, immediately initializing the value to param startValue.
      * Triggers the relevant 'onAdd' event directly after adding and setting start value if not currently deferring events,
@@ -412,7 +389,6 @@ public:
      * As such, version comparisons may not work as expected.
      */
     inline void ForEach(std::function<bool(ECS::Signature)> query, std::function<void(Entity entity)> callback) const {
-        // TODO:
         em.forEachEntity(query, callback);
     }
 
@@ -426,18 +402,11 @@ public:
      * Return true to break and stop iterating
      */
     inline void ForEach_EarlyReturn(std::function<bool(ECS::Signature)> query, std::function<bool(Entity entity)> callback) const {
-        // TODO:
         em.forEachEntity_EarlyReturn(query, callback);
     }
 
     ECS::ComponentID GetComponentIdFromName(const char* name) const {
-        for (ECS::ComponentID id = 0; id < EC::ComponentIDs::Count; id++) {
-            ;
-            if (My::streq(em.components.getComponentInfo(id).name, name)) {
-                return id;
-            }
-        }
-        return ECS::NullComponentID;
+        return em.getComponentIdFromName(name);
     }
 
     template<typename T>
