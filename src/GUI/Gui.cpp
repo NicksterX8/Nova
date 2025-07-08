@@ -51,14 +51,15 @@ void Gui::drawConsole(GuiRenderer& renderer) {
         Vec2 pos = logViewEc->absolute.min;
         for (int i = console.log.size()-1; i >= 0; i--) {
             const Console::LogMessage& message = console.log[i];
-            logRenderingSettings.color = message.color;
-            std::string text;
-            if (message.copyNumber > 0) {
-                text = string_format("(%d) %s", message.copyNumber + 1, message.text.c_str());
+            Console::Text text = console.getText(message);
+            
+            TextRenderer::RenderResult result;
+            if (text.colors.size() == 1) {
+                logRenderingSettings.color = message.colors.getSingleValue();
+                result = renderer.renderText(text.text.c_str(), pos, logFormatting, logRenderingSettings, logViewEc->level);
             } else {
-                text = message.text;
+                result = renderer.renderColoredText(text.text.c_str(), text.colors, pos, logFormatting, logRenderingSettings, logViewEc->level);
             }
-            auto result = renderer.renderText(text.c_str(), pos, logFormatting, logRenderingSettings, logViewEc->level);
             pos.y += result.rect.h + messageSpacing;
             // check if message will be visible on screen
             if (pos.y >= renderer.options.size.y) break;

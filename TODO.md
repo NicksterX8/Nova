@@ -1,5 +1,10 @@
 # TODO
 
+make so vector is only allocated if it has something in it. makes checks simpler. or maybe not cause then you wouldn't be able to reserve ever. nvm
+append/insert/push_back(multiple)
+methods are kinda slow... optimize
+move out stuff to parent class for less code gen and perhaps reusability
+
 redo component pool allocation and archetype thing, its a mess
 
 make vector that takes allocator template and parameter
@@ -13,8 +18,6 @@ Makes making entities easy and efficient. Can also be used to make large numbers
 
 shared components? do i need? do more research - prolly not
 
-fix text formatting
-
 stuff:
 Items need to be stored canonically so there is only one ecs element per unique item type + variations. Item elements aren't just made willy nilly
 
@@ -26,8 +29,6 @@ entities aren't put into chunk entity list when created
 fix alignment for archetype pools
 now: atomic structures / multithreading
 optimize for components with no members (std::is_empty)
-
-text rendering is extremely slow right now? or at least the console. probably mainly that
 
 actual (new):
 fix scrolling up/down with keys on console

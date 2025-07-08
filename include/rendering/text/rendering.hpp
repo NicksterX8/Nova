@@ -6,27 +6,24 @@
 #include "Font.hpp"
 #include "formatting.hpp"
 #include "rendering/utils.hpp"
+#include "My/TinyValVector.hpp"
 
 namespace Text {
 
+
 struct TextRenderingSettings {
     const Font* font = nullptr;
-    SDL_Color color = {0,0,0,255};
+    SDL_Color color = {0, 0, 0, 255};
     float scale = -1.0f;
-};
-
-struct TextRenderLayout {
-    glm::vec2 origin;
-    My::Vec<char> characters;
-    My::Vec<glm::vec2> characterOffsets;
 };
 
 struct TextRenderBatch {
     TextRenderingSettings settings;
 
-    int charBufIndex;
-    int charPosBufIndex;
-    int charCount;
+    int charBufIndex = -1;
+    int charPosBufIndex = -1;
+    int charColorBufIndex = -1;
+    int charCount = -1;
 };
 
 struct GlyphVertex {
@@ -49,6 +46,7 @@ struct TextRenderer {
 
     My::Vec<Char> charBuffer;
     My::Vec<Vec2> charPosBuffer;
+    My::Vec<SDL_Color> charColorBuffer;
 
     using TexCoord = glm::vec2;
 
@@ -65,7 +63,7 @@ struct TextRenderer {
     struct RenderResult {
         FRect rect; // rect that text will be rendered to
 
-        RenderResult() {}
+        RenderResult() : rect({NAN, NAN, NAN, NAN}) {}
 
         RenderResult(FRect outputRect)
          : rect(outputRect) {}
@@ -91,10 +89,19 @@ struct TextRenderer {
         return render(text, text ? strlen(text) : 0, pos, formatSettings, renderSettings);
     }
 
-    RenderResult render(const char* text, int textLength, Vec2 pos, const TextFormattingSettings& formatSettings, RenderingSettings renderSettings);
+    RenderResult render(const char* text, int textLength, glm::vec2 pos, const TextFormattingSettings& formatSettings, RenderingSettings renderSettings, ArrayRef<SDL_Color> colors = {});
+
+    RenderResult renderColored(const char* text, int textLength, ArrayRef<SDL_Color> colors,
+        glm::vec2 pos, const TextFormattingSettings& formatSettings, 
+        RenderingSettings renderSettings)
+    {
+        return render(text, textLength, pos, formatSettings, renderSettings, colors);
+    }
 
     // param bufferSize: size of verticesOut buffer in number of glyph vertices
-    void renderBatch(const TextRenderBatch* batch, int batchIndex, int count, GlyphVertex* verticesOut, int bufferSize);
+    void renderBatchMonocolor(const TextRenderBatch* batch, int batchIndex, int count, GlyphVertex* verticesOut, int bufferSize);
+
+    void renderBatchMulticolor(const TextRenderBatch* batch, int batchIndex, int count, GlyphVertex* verticesOut, int bufferSize);
 
     int flushBufferType(bool sdfs);
 
@@ -105,6 +112,7 @@ struct TextRenderer {
         // empty buffers
         this->charBuffer.size = 0;
         this->charPosBuffer.size = 0;
+        this->charColorBuffer.size = 0;
     }
 
     void destroy() {

@@ -91,7 +91,7 @@ public:
 
     Game(SDLContext sdlContext):
     sdlCtx(sdlContext), metadata(TARGET_FPS, TICKS_PER_SECOND, ENABLE_VSYNC),
-    essentialAllocator((1ULL << 15), &mallocator), blockAllocator(&mallocator) {
+    essentialAllocator((1ULL << 15)), blockAllocator() {
         Metadata = &metadata;
 
         trackAllocator("Essential Allocator", &essentialAllocator);

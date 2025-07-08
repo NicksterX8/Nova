@@ -34,6 +34,7 @@ inline GLuint loadFontAtlasTexture(Texture atlas, GLint minFilter, GLint magFilt
 
 using Char = char;
 using CharIndex = Sint16;
+using CharString = std::basic_string<Char>;
 
 constexpr Char UnsupportedChar = '#';
 
@@ -47,6 +48,26 @@ inline bool isWhitespace(Char c) {
     default:
         return false;
     }
+}
+
+inline bool isVisible(Char c) {
+    return !isWhitespace(c);
+}
+
+inline int visibleChars(const Char* chars, int length) {
+    const Char* end = chars + length;
+    int visibleCount = 0;
+    while (chars != end) {
+        if (isVisible(*chars)) {
+            visibleCount++;
+        }
+        chars++;
+    }
+    return visibleCount;
+}
+
+inline int visibleChars(const CharString& string) {
+    return visibleChars(string.data(), string.size());
 }
 
 #define ASCII_FIRST_STANDARD_CHAR ' '

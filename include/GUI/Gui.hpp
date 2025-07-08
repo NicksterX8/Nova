@@ -14,6 +14,10 @@
 #include "utils/allocators.hpp"
 
 struct GuiRenderer;
+template<typename T, size_t Align>
+struct alignas(Align) AlignedStruct : T {
+    AlignedStruct(const T& val) : T(val) {}
+};
 
 namespace GUI {
 
@@ -28,20 +32,72 @@ struct Console {
         NumTypes
     };
 
-    constexpr static SDL_Color typeColors[(int)MessageType::NumTypes] = {
+    constexpr static SDL_Color TypeColors[(int)MessageType::NumTypes] = {
         {230, 230, 230, 255},
-        {220, 220, 60, 255},
         {200, 200, 50, 255},
+        {150, 150, 30, 255},
+        {220, 200, 200, 255}
+    };
+
+    constexpr static const char* TypePrefixes[(int)MessageType::NumTypes] = {
+        "",
+        "",
+        "",
+        "ERROR: "
+    };
+
+    constexpr static SDL_Color TypePrefixColors[(int)MessageType::NumTypes] = {
+        {},
+        {},
+        {},
         {255, 0, 0, 255}
     };
 
+    using Colors = TinyValVector<SDL_Color>;
+
     struct LogMessage {
         std::string text;
-        SDL_Color color;
+        Colors colors;
         MessageType type;
         bool playerEntered = false;
         int copyNumber = 0;
     };
+
+    struct Text {
+        std::string text;
+        Colors colors;
+    };
+
+    Text getText(const LogMessage& message) const {
+        std::string text;
+        text.reserve(message.text.size() + 10);
+        SDL_Color typeColor = TypeColors[(int)message.type];
+        bool useColors = message.colors.size() == message.text.size();
+        Colors colors;
+        colors.reserve(message.text.size() + 10); // for prefixes and stuff
+
+        // copy number
+        if (message.copyNumber > 0) {
+            auto copyNumberStr = string_format("(%d) ", message.copyNumber);
+            text += copyNumberStr;
+            colors.append(copyNumberStr.size(), {255, 255, 255, 255});
+        }
+        // prefix
+        auto prefix = TypePrefixes[(int)message.type];
+        colors.append(strlen(prefix), TypePrefixColors[(int)message.type]);
+        text += prefix;
+        // message
+        text += message.text;
+        // colors.append(colors.size() + message.text.size(), message.colors);
+        if (useColors) {
+            colors.append(message.colors);
+        } else {
+            // fill all remaining with typeColor
+            colors.resize(text.size(), typeColor);
+        }
+        
+        return {text, colors};
+    }
 
     std::vector<LogMessage> log;
 
@@ -73,21 +129,24 @@ struct Console {
         recallIndex = -1;
     }
 
-    void newMessage(const char* text, MessageType type) {
+    void newMessage(const char* text, MessageType type, ArrayRef<SDL_Color> characterColors = {}) {
         bool playerEntered = type == MessageType::Default || type == MessageType::Command;
+        int len = strlen(text);
+        Colors colors;
+        if (characterColors.empty()) {
+            colors = TypeColors[(int)type];
+        } else {
+            colors = characterColors;
+        }
         LogMessage message = {
-            .text = text,
-            .color = typeColors[(int)type],
+            .text = std::string(text, len),
+            .colors = colors,
             .type = type,
             .playerEntered = playerEntered
         };
         if (log.size() > 0) {
-        LogMessage& lastMessage = log.back();
+            LogMessage& lastMessage = log.back();
             if (lastMessage.text == message.text
-                && lastMessage.color.r == message.color.r
-                && lastMessage.color.g == message.color.g
-                && lastMessage.color.b == message.color.b
-                && lastMessage.color.a == message.color.a
                 && lastMessage.playerEntered == message.playerEntered)
             {
                 lastMessage.copyNumber += 1;
@@ -168,7 +227,7 @@ struct Console {
         // make sure all characters are ascii
         for (int c = 0; c < textLen; c++) {
             if (!allowedCharacter(text[c])) {
-                textBuf[c] = Text::UnsupportedChar;
+                textBuf[c] = ::Text::UnsupportedChar;
             }
         }
 

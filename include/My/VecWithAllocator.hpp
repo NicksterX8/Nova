@@ -1,6 +1,8 @@
 #ifndef ALLOCATOR_VEC_INCLUDED
 #define ALLOCATOR_VEC_INCLUDED
 
+namespace My {
+
 namespace AllocatorADT {
 
 /* A simple vector implementation for POD ONLY types!
@@ -16,25 +18,20 @@ struct Vec {
     T* data;
     int size;
     int capacity;
-    Allocator* allocator;
+    AllocatorHolder<Allocator> allocator;
 
 private: 
-    using Self = Vec<T, AllocatorT>;
+    using Self = Vec<T, Allocator>;
     using ValueParamT = FastestParamType<T>;
 public:
 
-    // does not initialize data
-    Vec() {
-#ifndef NDEBUG
-        data = (T*)(1); // pointer that can't be null checked but should still crash on dereference
-        size = 0x7ff8dead; // sentinel value that should mess everything up when used
-        capacity = 0x7ff8dead; // sentinel value that should mess everything up when used
-#endif
-    }
+    // inits to empty
+    Vec(Allocator allocator)
+    : data(nullptr), size(0), capacity(0), allocator(allocator) {}
 
-    Vec(Allocator* allocator, int startCapacity) : size(0), capacity(startCapacity), allocator(allocator) {
+    Vec(Allocator allocator, int startCapacity) : size(0), capacity(startCapacity), allocator(allocator) {
         if (startCapacity > 0) {
-            data = allocator->template allocate<T>(startCapacity);
+            data = this->allocator.get().template allocate<T>(startCapacity);
         } else {
             data = nullptr;
         }
@@ -44,27 +41,20 @@ public:
         return Self(allocator, capacity);
     }
 
-    Vec(Allocator* allocator, T* _data, int _size, int _capacity)
-    : data(_data), size(_size), capacity(_capacity), allocator(allocator) {}
-
-    static Self Empty(Allocator* allocator) {
-        return Self{allocator, nullptr, 0, 0};
-    }
-
     /* Create a vector with the given size and copy the given data to the vector
      */
-    Vec(Allocator* allocator, const T* _data, int _size) : allocator(allocator) {
-        data = allocator->template allocate<T>(_size);
+    Vec(Allocator allocator, const T* _data, int _size) : allocator(allocator) {
+        data = this->allocator.get().template allocate<T>(_size);
         memcpy(data, _data, _size * sizeof(T));
         size = _size;
         capacity = _size;
     }
 
-    static Self Filled(Allocator* allocator, int size, ValueParamT value) {
+    static Self Filled(Allocator allocator, int size, ValueParamT value) {
         assert(size >= 0 && "cannot have negative size");
         Self self;
         self.allocator = allocator;
-        self.data = allocator.template allocate<T>(size);
+        self.data = self.allocator.get().template allocate<T>(size);
         for (int i = 0; i < size; i++) {
             memcpy(&self[i], &value, sizeof(T));
         }
@@ -97,7 +87,7 @@ public:
         //return vec_push((Generic::Vec*)this, sizeof(T), &val);
         if (size+1 > capacity) {
             int newCapacity = capacity*2 > size+1 ? capacity*2 : size+1;
-            data = allocator->reallocate<T>(data, newCapacity);
+            data = allocator.get().reallocate(data, capacity, newCapacity);
             capacity = newCapacity;
         }
         memcpy(data + size, &val, sizeof(T));
@@ -112,7 +102,7 @@ public:
             T* newData = allocator->template allocate<T>((size_t)newCapacity);
             memcpy(&newData[0], values, (size_t)count * sizeof(T));
             memcpy(&newData[count], data, (size_t)size * sizeof(T));
-            allocator.Free(data);
+            allocator.get().deallocate(data, capacity);
             data = newData;
             size += count;
             capacity = newCapacity;
@@ -185,7 +175,7 @@ public:
      * When the new capacity couldn't be allocated, -1 will be returned
      */
     void reallocate(int newCapacity) {
-        data = allocator->reallocate(data, newCapacity);
+        data = allocator->reallocate(data, capacity, newCapacity);
         size = (size < newCapacity) ? size : newCapacity;
         capacity = newCapacity;
     }
@@ -198,10 +188,7 @@ public:
     }
 
     void destroy() {
-        allocator->deallocate(data, size);
-        data = nullptr;
-        size = 0;
-        capacity = 0;
+        clear();
     }
 
     T& back() const {
@@ -225,20 +212,14 @@ public:
         size--;
     }
 
-    bool push(const T* elements, int count) {
-        /*
-        if (reserveAtleast(size + count)) {
-            memcpy(&data[size], elements, count * sizeof(T));
-            size += count;
-            return true;
-        }
-        return false;
-        */
-        return Generic::vec_push((Generic::Vec*)this, sizeof(T), elements, count);
+    void push(const T* elements, int count) {
+        reserve(size + count);
+        memcpy(&data[size], elements, count * sizeof(T));
+        size += count;
     }
 
-    bool push(ArrayRef<T> array) {
-        return Generic::vec_push((Generic::Vec*)this, sizeof(T), array.data(), array.size());
+    void push(ArrayRef<T> array) {
+        push(array.data(), array.size());
     }
 
     /* Reserve space for \p size elements at the back and increase the vector's size by that amount, leaving the elements in those spaces unitialized.
@@ -257,7 +238,7 @@ public:
     void shrink(int count) {
         count = std::min(count, capacity - size);
         if (count > 0) {
-            data = allocator->reallocate(data, capacity - count);
+            data = allocator->reallocate(data, capacity, capacity - count);
             capacity -= count;
         }
     }
@@ -266,7 +247,7 @@ public:
      */
     int shrinkToFit() {
         if (capacity > size) {
-            data = allocator->reallocate(data, size);
+            data = allocator->reallocate(data, capacity, size);
             capacity = size;
         }
     }
@@ -276,7 +257,7 @@ public:
         if (size + count > capacity) {
             // reallocate. Fortunately this makes the algorithm a lot simpler. just copy the new values in, then the old values
             int newCapacity = MAX(size + count, capacity*2);
-            T* newData = allocator->allocate<T>(newCapacity);
+            T* newData = allocator->template allocate<T>(newCapacity);
             // copy old data before index to range 0 - index
             memcpy(&newData[0], &data[0], index * sizeof(T));
             // copy values to range index - index + count
@@ -305,8 +286,8 @@ public:
     }
 
     template<typename T2>
-    Vec<T2> cast() const {
-        return Vec<T2>(data, size, capacity);
+    Vec<T2, Allocator> cast() const {
+        return Vec<T2, Allocator>(data, size, capacity);
     }
 
     using iterator = T*; // no iterator bs, just pointer
@@ -318,6 +299,8 @@ public:
 }
 
 template<typename T, typename A>
-using AllocatorVec = AllocatorADT::Vec<T, A>;
+using VecWithAllocator = AllocatorADT::Vec<T, A>;
+
+}
 
 #endif

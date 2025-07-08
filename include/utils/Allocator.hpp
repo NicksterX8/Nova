@@ -23,6 +23,12 @@ inline void* alignPtr(void* ptr, size_t align) {
     return (void*)((ptrValue + align - 1) & ~(align - 1U));
 }
 
+// align the pointer to a given alignment, rounding up
+inline const void* alignPtr(const void* ptr, size_t align) {
+    uintptr_t ptrValue = (uintptr_t)ptr;
+    return (void*)((ptrValue + align - 1) & ~(align - 1U));
+}
+
 class AllocatorI {};
 
 template<typename Derived>
@@ -83,6 +89,25 @@ struct AllocatorStats {
     std::string name;
     std::string allocated; // used by clients. ACTUALLY being used
     std::string used; // used by the allocator
+};
+
+template <typename Allocator>
+class AllocatorHolder : Allocator {
+public:
+    AllocatorHolder() = default;
+    AllocatorHolder(const Allocator &allocator) : Allocator(allocator) {}
+    AllocatorHolder(Allocator &&allocator) : Allocator(static_cast<Allocator &&>(allocator)) {}
+    Allocator &get() { return *this; }
+    const Allocator &get() const { return *this; }
+};
+
+template <typename Allocator>
+class AllocatorHolder<Allocator*> {
+    Allocator *allocator;
+public:
+    AllocatorHolder(Allocator* allocator) : allocator(allocator) {}
+    Allocator &get() { return *allocator; }
+    const Allocator &get() const { return *allocator; }
 };
 
 /* Polymorphic allocator made from any allocator base */
@@ -219,11 +244,11 @@ public:
         free(ptr);
     }
 
-    using Base::deallocate;
-
     void deallocate(void* ptr, size_t size, size_t alignment) {
         free(ptr);
     }
+
+    using Base::deallocate;
 
     void* reallocate(void* ptr, size_t newSize) {
         return realloc(ptr, newSize);

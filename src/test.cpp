@@ -295,9 +295,18 @@ struct B { void foo(int x) {} };
 
 #define MAC(a, ...) int x = a;
 
+struct X {
+    char chrs[9];
+};
+
+union Union {
+    int* ptr;
+    X x;
+};
+
 int main() {
     std::cout << has_foo<A>::value << '\n';  // 0 — safe!
     std::cout << has_foo<B>::value << '\n';  // 1
-    MAC(0)
+    std::cout << "size: %zu" << sizeof(Union);
     return 0;
 }

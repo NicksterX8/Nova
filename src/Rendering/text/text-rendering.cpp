@@ -8,6 +8,7 @@ TextRenderer TextRenderer::init(const Font* defaultFont, My::Vec<TextRenderBatch
     self.buffer = buffer;
     self.charBuffer = My::Vec<Char>::WithCapacity(256);
     self.charPosBuffer = My::Vec<Vec2>::WithCapacity(256);
+    self.charColorBuffer = My::Vec<SDL_Color>::WithCapacity(256);
 
     self.model = GlGenModel();
     self.model.bindAll();
@@ -41,7 +42,7 @@ TextRenderer TextRenderer::init(const Font* defaultFont, My::Vec<TextRenderBatch
     return self;
 }
 
-TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength, Vec2 position, const TextFormattingSettings& formatSettings, TextRenderingSettings renderSettings) {
+TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength, Vec2 position, const TextFormattingSettings& formatSettings, TextRenderingSettings renderSettings, ArrayRef<SDL_Color> colors) {
     if (!text || textLength == 0) return RenderResult::BadRender(position);
     
     if (!renderSettings.font) {
@@ -65,19 +66,77 @@ TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength
 
     if (formatResult.visibleCharCount == 0) return *boxAsRect(&formatResult.boundingBox);
 
-    const TextRenderBatch renderBatch = {
+    TextRenderBatch renderBatch = {
         .settings = renderSettings,
         .charBufIndex = charBufIndex,
         .charPosBufIndex = charPosBufIndex,
         .charCount = formatResult.visibleCharCount
     };
+    if (!colors.empty()) {
+        assert(colors.size() == textLength && "Need one color character!");
+        renderBatch.charColorBufIndex = charColorBuffer.size;
+        SDL_Color* colorBuffer = charColorBuffer.require(formatResult.visibleCharCount);
+        CharIndex charIndex = 0;
+        for (int i = 0; i < textLength; i++) {
+            if (isVisible(text[i]))
+                colorBuffer[charIndex++] = colors[i];
+        }
+    }
+
     buffer->push(renderBatch);
     return {
         *boxAsRect(&formatResult.boundingBox)
     };
 }
 
-void TextRenderer::renderBatch(const TextRenderBatch* batch, int batchIndex, int count, GlyphVertex* verticesOut, int bufferSize) {
+void TextRenderer::renderBatchMulticolor(const TextRenderBatch* batch, int batchIndex, int count, GlyphVertex* verticesOut, int bufferSize) {
+    if (!verticesOut || !batch || batch->charCount == 0) {
+        return;
+    }
+
+    const Font* font = batch->settings.font;
+    if (!font) {
+        LogError("No font in batch!");
+    }
+    
+    assert(batchIndex + count <= batch->charCount && "Count beyond batch size");
+    assert(count <= bufferSize && "Batch too large!");
+    const Char* characters = &charBuffer[batch->charBufIndex];
+    const Vec2* characterPositions = &charPosBuffer[batch->charPosBufIndex];
+    const SDL_Color* characterColors = &charColorBuffer[batch->charColorBufIndex];
+
+    auto& colorVec = batch->settings.color;
+    const glm::vec2 scale = glm::vec2(batch->settings.scale);
+    const GLfloat fontID = (float)batch->settings.font->id;
+
+    for (size_t i = 0; i < count; i++) {
+        int charIndex = i + batchIndex;
+        char c = characters[charIndex];
+        Vec2 offset = characterPositions[charIndex];
+        SDL_Color color = characterColors[charIndex];
+
+        auto bearing = font->bearing(c);
+        auto characterSize = font->size(c);
+
+        GLfloat x  = offset.x + bearing.x;
+        GLfloat y  = offset.y - (characterSize.y - bearing.y);
+
+        const glm::vec2 texCoord  = font->characters->atlasPositions[c];
+
+        const GlyphVertex vertex = {
+            {x, y}, // position
+            texCoord, 
+            fontID,
+            characterSize,
+            scale,
+            color
+        };
+        
+        verticesOut[i] = vertex;
+    }
+}
+
+void TextRenderer::renderBatchMonocolor(const TextRenderBatch* batch, int batchIndex, int count, GlyphVertex* verticesOut, int bufferSize) {
     if (!verticesOut || !batch || batch->charCount == 0) {
         return;
     }
@@ -140,7 +199,10 @@ int TextRenderer::flushBufferType(bool sdfs) {
             int batchCharsRendered = 0;
             while (batchCharsRendered < batch->charCount) {
                 int charsToRender = std::min(maxBatchSize - bufferedChars, batch->charCount - batchCharsRendered); 
-                renderBatch(batch, batchCharsRendered, charsToRender, vertexBuffer + bufferedChars, maxBatchSize);
+                if (batch->charColorBufIndex == -1)
+                    renderBatchMonocolor(batch, batchCharsRendered, charsToRender, vertexBuffer + bufferedChars, maxBatchSize);
+                else
+                    renderBatchMulticolor(batch, batchCharsRendered, charsToRender, vertexBuffer + bufferedChars, maxBatchSize);
                 bufferedChars += charsToRender;
                 if (bufferedChars == maxBatchSize) {
                     glUnmapBuffer(GL_ARRAY_BUFFER);

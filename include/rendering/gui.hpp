@@ -126,9 +126,22 @@ struct GuiRenderer {
         text->render(command);
     }
     */
-    TextRenderer::RenderResult renderText(const char* message, glm::vec2 pos, const TextFormattingSettings& formatSettings, const TextRenderingSettings& renderSettings, GuiRenderLevel level = UseDefaultLevel) {
+    TextRenderer::RenderResult renderText(const char* message, glm::vec2 pos,
+        const TextFormattingSettings& formatSettings, const TextRenderingSettings& renderSettings,
+        GuiRenderLevel level = UseDefaultLevel)
+    {
         setTextLevel(level);
         return text->render(message, pos, formatSettings, renderSettings);
+    }
+
+    TextRenderer::RenderResult renderColoredText(const char* message, ArrayRef<SDL_Color> characterColors, Vec2 pos,
+        const TextFormattingSettings& formatSettings, const TextRenderingSettings& renderSettings, 
+        GuiRenderLevel level = UseDefaultLevel)
+    {
+        if (!message) return TextRenderer::RenderResult::BadRender(pos);
+        int messageLen = strlen(message);
+        setTextLevel(level);
+        return text->renderColored(message, messageLen, characterColors, pos, formatSettings, renderSettings);
     }
 
     // texture will only be rendered if it's a gui type texture

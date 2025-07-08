@@ -4,6 +4,7 @@
 #include "global.hpp"
 #include "moodycamel/concurrentqueue.h"
 #include "utils/allocators.hpp"
+#include "utils/systemInfo.hpp"
 
 using namespace ECS;
 using namespace ECS::System;

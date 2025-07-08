@@ -14,4 +14,10 @@ constexpr size_t sumSizes() {
     return size;
 }
 
+/// @brief Defines the smallest standard unsigned integer type (uint8-uint64) that contains Size number of bytes
+/// @tparam Size minimum number of bytes needed in the integer
+template<size_t Size>
+using SmallestUnsignedInteger = std::conditional_t<Size <= 4, std::conditional_t<Size <= 2, std::conditional_t<Size <= 1, std::conditional_t<Size == 0, void, uint8_t>, uint16_t>, uint32_t>, uint64_t>;
+
+
 #endif

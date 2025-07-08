@@ -577,6 +577,14 @@ int Game::init() {
 
     LogInfo("Game init end");
 
+    constexpr SDL_Color red = {255,0,0,255};
+    constexpr SDL_Color green = {0,255,0,255};
+    constexpr SDL_Color blue = {0,0,255,255};
+    SDL_Color colors[] = {
+        red, green, blue, red, blue, blue, green, green, green, red, blue, green, blue
+    };
+    gui->console.newMessage("This is crazy", GUI::Console::MessageType::Error, colors);
+
     return 0;
 }
 

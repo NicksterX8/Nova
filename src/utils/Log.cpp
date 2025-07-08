@@ -64,8 +64,10 @@ void Logger::logOutputFunction(LogCategory category, LogPriority priority, const
     }
 
     if (Debug && Debug->console) {
-        if (true)
-            Debug->console->newMessage(message, GUI::Console::MessageType::Error);
+        GUI::Console::MessageType messageType = GUI::Console::MessageType::Default;
+        if (priority == LogPriorities::Error)
+            messageType = GUI::Console::MessageType::Error;
+        Debug->console->newMessage(message, messageType);
     }
 }
 

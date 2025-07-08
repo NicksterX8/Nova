@@ -16,7 +16,7 @@ class BlockAllocator : public AllocatorBase<BlockAllocator<BlockSize, BlocksPerA
     };
 
     llvm::SmallVector<Chunk, 6> freeChunks; // = 112 bytes
-    Allocator* allocator; // = 8 bytes
+    AllocatorHolder<Allocator> allocator; // = 8 bytes
     llvm::SmallVector<Chunk, 3> chunks; // = 64 bytes 
 #ifndef NDEBUG
     size_t bytesAllocated = 0;
@@ -24,9 +24,11 @@ class BlockAllocator : public AllocatorBase<BlockAllocator<BlockSize, BlocksPerA
 
     static constexpr size_t BlockAlignment = alignof(std::max_align_t);
 public:
-    BlockAllocator(Allocator* allocator) : allocator(allocator) {}
+    BlockAllocator() = default;
 
-    BlockAllocator(Allocator* allocator, size_t allocateBlocks) : allocator(allocator) {
+    BlockAllocator(Allocator allocator) : allocator(allocator) {}
+
+    BlockAllocator(Allocator allocator, size_t allocateBlocks) : allocator(allocator) {
         allocateNewBlocks(allocateBlocks);
     }
 
@@ -100,7 +102,7 @@ public:
 private:
     // returns a reference to the new free chunk made
     Chunk& allocateNewBlocks(size_t count) {
-        char* memory = (char*)allocator->allocate(count * BlockSize, BlockAlignment);
+        char* memory = (char*)allocator.get().allocate(count * BlockSize, BlockAlignment);
         __asan_poison_memory_region(memory, count * BlockSize);
         Chunk chunk = {
             memory,
@@ -167,7 +169,7 @@ public:
 
     void deallocateAll() {
         for (Chunk& chunk : chunks) {
-            allocator->deallocate(chunk.ptr, chunk.blockCount * BlockSize, BlockAlignment);
+            allocator.get().deallocate(chunk.ptr, chunk.blockCount * BlockSize, BlockAlignment);
         }
         chunks.clear();
         freeChunks.clear();
@@ -220,22 +222,47 @@ public:
     }
 };
 
-template<typename Allocator>
+template<typename Allocator = Mallocator>
 class ScratchAllocator : public AllocatorBase<ScratchAllocator<Allocator>> {
     using Base = AllocatorBase<ScratchAllocator<Allocator>>;
+    using Me = ScratchAllocator<Allocator>;
     void* end;
     void* current;
     void* start;
-    Allocator* allocator;
+    AllocatorHolder<Allocator> allocator;
 public:
+    ScratchAllocator(size_t size) {
+        create(size);
+    }
 
-    ScratchAllocator(size_t size, Allocator* allocator) : allocator(allocator) {
-        start = allocator->allocate(size, 1);
+    ScratchAllocator(size_t size, Allocator allocator) : allocator(allocator) {
+        create(size);
+    }
+
+    ScratchAllocator(const Me& other) : allocator(other.allocator) {
+        assert(other.current == other.start && "cannot copy scratch constructor that has allocations");
+        create(other.allocationSize());
+    }
+
+    // ScratchAllocator(Me&& moved) {
+    //     end = moved.end;
+    //     current = moved.current;
+    //     start = moved.start;
+    //     allocator = std::move(moved.allocator);
+
+    //     moved.start = nullptr;
+    //     moved.current = nullptr;
+    //     moved.end = nullptr;
+    // }
+private:
+    void create(size_t size) {
+        start = allocator.get().allocate(size, 1);
         assert(start);
         __asan_poison_memory_region(start, size);
         current = start;
         end = (char*)start + size;
     }
+public:
 
     // // instead of this class allocating memory, use an already allocated block of memory.
     // // The caller is still responsible for freeing this allocation, as this class
@@ -273,7 +300,7 @@ public:
 
     void deallocateAll() {
         __asan_poison_memory_region(start, (uintptr_t)current - (uintptr_t)start);
-        allocator->deallocate(start, allocationSize(), 1);
+        allocator.get().deallocate(start, allocationSize(), 1);
         start = nullptr;
         current = nullptr;
         end = nullptr;
