@@ -26,7 +26,7 @@ struct GameState {
 /*
 * Get a line of the whole number x,y pairs on the path from start to end, using DDA.
 */
-llvm::SmallVector<IVec2> raytraceDDA(Vec2 start, Vec2 end);
+SmallVector<IVec2> raytraceDDA(Vec2 start, Vec2 end);
 
 void worldLineAlgorithm(Vec2 start, Vec2 end, const std::function<int(IVec2)>& callback);
 

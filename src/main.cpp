@@ -18,9 +18,9 @@
 #include "physics/physics.hpp"
 
 #include "llvm/PointerUnion.h"
-#include "My/ValPtrUnion.hpp"
-#include "My/VecTuple.hpp"
-#include "My/SmallVectorWithAllocator.hpp"
+#include "ADT/ValPtrUnion.hpp"
+#include "ADT/VecTuple.hpp"
+#include "ADT/SmallVector.hpp"
 #include "utils/allocators.hpp"
 
 #ifdef DEBUG
@@ -137,7 +137,7 @@ void testy() {
 
     // SmallVectorWithAllocator<int, ScratchAllocator<>>(std::move(scratch));
 
-    SmallVectorWithAllocator<int> hey;
+    SmallVectorA<int, ScratchAllocator<>&> hey{scratch};
     hey.push_back(5);
     int x3 = hey[0];
     hey.resize(12, 5);

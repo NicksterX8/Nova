@@ -11,15 +11,7 @@
 
 #define LLVM_GNUC_PREREQ(a,b,c) 0
 
-/*
-#include "llvm/ADT/Hashing.h"
-#include "llvm/ADT/None.h"
-#include "llvm/ADT/SmallVector.h"
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/Support/Compiler.h"
-*/
-
-#include "SmallVector.h"
+#include "ADT/SmallVector.hpp"
 #include "Compiler.h"
 
 #include <algorithm>
@@ -345,6 +337,11 @@ namespace llvm {
     /*implicit*/ MutableArrayRef(SmallVectorImpl<T> &Vec)
     : ArrayRef<T>(Vec) {}
 
+    template<typename AllocatorT>
+    /// Construct a MutableArrayRef from a SmallVector.
+    /*implicit*/ MutableArrayRef(WithAllocator::SmallVectorImpl<T, AllocatorT> &Vec)
+    : ArrayRef<T>(Vec) {}
+
     /// Construct a MutableArrayRef from a std::vector.
     /*implicit*/ MutableArrayRef(std::vector<T> &Vec)
     : ArrayRef<T>(Vec) {}
@@ -508,6 +505,18 @@ namespace llvm {
     return Vec;
   }
 
+  /// Construct a ArrayRef from a SmallVector.
+  template <typename T, typename AllocatorT>
+  ArrayRef<T> makeArrayRef(WithAllocator::SmallVectorImpl<T, AllocatorT> &Vec) {
+    return Vec;
+  }
+
+  /// Construct a ArrayRef from a SmallVector.
+  template <typename T, typename AllocatorT, unsigned N>
+  ArrayRef<T> makeArrayRef(WithAllocator::SmallVector<T, AllocatorT, N> &Vec) {
+    return Vec;
+  }
+
   /// Construct an ArrayRef from a std::vector.
   template<typename T>
   ArrayRef<T> makeArrayRef(const std::vector<T> &Vec) {
@@ -557,6 +566,18 @@ namespace llvm {
   /// Construct a MutableArrayRef from a SmallVector.
   template <typename T, unsigned N>
   MutableArrayRef<T> makeMutableArrayRef(SmallVector<T, N> &Vec) {
+    return Vec;
+  }
+
+  /// Construct a MutableArrayRef from a SmallVector.
+  template <typename T, typename AllocatorT>
+  MutableArrayRef<T> makeMutableArrayRef(WithAllocator::SmallVectorImpl<T, AllocatorT> &Vec) {
+    return Vec;
+  }
+
+  /// Construct a MutableArrayRef from a SmallVector.
+  template <typename T, typename AllocatorT, unsigned N>
+  MutableArrayRef<T> makeMutableArrayRef(WithAllocator::SmallVector<T, AllocatorT, N> &Vec) {
     return Vec;
   }
 

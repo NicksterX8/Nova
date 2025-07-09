@@ -73,7 +73,7 @@ const GlVertexFormat& format) {
     glBindVertexArray(model.vao);
     glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
     glBufferData(GL_ARRAY_BUFFER, totalSize, NULL, vertexUsage);
-    llvm::SmallVector<size_t> attributeOffsets(format.attributeCount());
+    SmallVector<size_t> attributeOffsets(format.attributeCount());
     size_t offset = 0;
     for (int i = 0; i < format.attributeCount(); i++) {
         size_t attributeSize = format.attributes[i].size() * vertexCount;

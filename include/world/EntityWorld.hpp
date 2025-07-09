@@ -35,7 +35,7 @@ struct EntityMaker {
         ECS::ComponentID id;
         Uint16 valueBufPos;
     };
-    llvm::SmallVector<ComponentValue> componentValues;
+    SmallVector<ComponentValue> componentValues;
 
     EntityMaker() {}
 
@@ -91,7 +91,7 @@ protected:
         ECS::Entity entity;
         EventCallback callback;
     };
-    llvm::SmallVector<DeferredEvent, 3> deferredEvents;
+    SmallVector<DeferredEvent, 3> deferredEvents;
 
     char* entityMakerBuffer;
     EntityMaker entityMaker;

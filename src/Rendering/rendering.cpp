@@ -137,7 +137,7 @@ int renderTilemap(RenderContext& ren, const Camera& camera, ChunkMap* chunkmap) 
         IVec2 chunkCoord;
     };
 
-    llvm::SmallVector<ChunkPosPair> chunks;
+    SmallVector<ChunkPosPair> chunks;
 
     ren.shaders.use(Shaders::Tilemap);
 

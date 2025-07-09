@@ -6,7 +6,7 @@
 #include "Font.hpp"
 #include "formatting.hpp"
 #include "rendering/utils.hpp"
-#include "My/TinyValVector.hpp"
+#include "ADT/TinyValVector.hpp"
 
 namespace Text {
 

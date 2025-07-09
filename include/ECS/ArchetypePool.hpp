@@ -101,7 +101,7 @@ struct ArchetypePool {
     int capacity;
     Entity* entities; // contained entities
     char* buffer;
-    My::Vec<int> bufferOffsets; // make llvm::SmallVector?
+    My::Vec<int> bufferOffsets; // make SmallVector?
     Archetype archetype;
     
     ArchetypePool(const Archetype& archetype) : archetype(archetype) {

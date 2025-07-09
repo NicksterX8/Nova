@@ -1,5 +1,5 @@
 #include "ECS/system.hpp"
-#include "llvm/SmallVector.h"
+#include "ADT/SmallVector.hpp"
 #include "llvm/TinyPtrVector.h"
 #include "global.hpp"
 #include "moodycamel/concurrentqueue.h"
@@ -10,7 +10,7 @@ using namespace ECS;
 using namespace ECS::System;
 
 template<typename EltT>
-using TinyPtrVectorVector = llvm::SmallVector<llvm::TinyPtrVector<EltT*>>;
+using TinyPtrVectorVector = SmallVector<llvm::TinyPtrVector<EltT*>>;
 
 int ECS::System::findEligiblePools(const IComponentGroup& group, const ECS::EntityManager& entityManager, std::vector<ArchetypePool*>* eligiblePools) {
     int eligibleEntities = 0;
@@ -27,8 +27,6 @@ int ECS::System::findEligiblePools(const IComponentGroup& group, const ECS::Enti
     }
     return eligibleEntities;
 }
-
-
 
 void calculateJobStagesFromSource(ISystem* system, int* stages, JobHandle source, int stage) {
     stages[source] = stage;
@@ -209,8 +207,8 @@ void ECS::System::cleanupSystems(SystemManager& sysManager) {
 void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<ISystem::ScheduledJob>& jobs) {
     bool allowParallelization = sysManager.allowParallelization;
 
-    llvm::SmallVector<Threads::ThreadID, 8> threads;
-    llvm::SmallVector<ThreadData, 8> perThreadData;
+    SmallVector<Threads::ThreadID, 8> threads;
+    SmallVector<ThreadData, 8> perThreadData;
 
     auto concurrentQueue = SharedQueue<JobChunk>();
 

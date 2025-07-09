@@ -2,7 +2,7 @@
 #define UTILS_ALLOCATORS_INCLUDED
 
 #include "utils/Allocator.hpp"
-#include "llvm/SmallVector.h"
+#include "ADT/SmallVector.hpp"
 #include "My/String.hpp"
 
 template<size_t BlockSize, size_t BlocksPerAlloc, typename Allocator = Mallocator>
@@ -17,8 +17,8 @@ class BlockAllocator : private AllocatorHolder<Allocator>, public AllocatorBase<
         size_t blockCount;
     };
 
-    llvm::SmallVector<Chunk, 0> freeChunks; 
-    llvm::SmallVector<Chunk, 0> chunks; 
+    SmallVector<Chunk, 0> freeChunks; 
+    SmallVector<Chunk, 0> chunks; 
 #ifndef NDEBUG
     size_t bytesAllocated = 0;
 #endif

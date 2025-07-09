@@ -105,10 +105,10 @@ struct CharacterLayoutData {
     glm::vec2 size = {0, 0}; // size of the body of output text
     glm::vec2 origin = {0, 0};
     glm::vec2 offset = {0, 0}; // offset to original position
-    llvm::SmallVector<char> characters;
-    llvm::SmallVector<glm::vec2> characterOffsets;
-    llvm::SmallVector<char> whitespaceCharacters;
-    llvm::SmallVector<glm::vec2> whitespaceCharacterOffsets;
+    SmallVector<char> characters;
+    SmallVector<glm::vec2> characterOffsets;
+    SmallVector<char> whitespaceCharacters;
+    SmallVector<glm::vec2> whitespaceCharacterOffsets;
 };
 
 struct FormatResult {

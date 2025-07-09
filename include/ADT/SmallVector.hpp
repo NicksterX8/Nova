@@ -1126,6 +1126,59 @@ SmallVectorImpl<T, AllocatorT> &SmallVectorImpl<T, AllocatorT>::operator=(SmallV
 /// `sizeof(SmallVector<T, 0>)`.
 template <typename T, typename AllocatorT, unsigned N> class SmallVector;
 
+/// Helper class for calculating the default number of inline elements for
+/// `SmallVector<T>`.
+///
+/// This should be migrated to a constexpr function when our minimum
+/// compiler support is enough for multi-statement constexpr functions.
+template <typename T, typename AllocatorT> struct CalculateSmallVectorDefaultInlinedElements {
+  // Parameter controlling the default number of inlined elements
+  // for `SmallVector<T>`.
+  //
+  // The default number of inlined elements ensures that
+  // 1. There is at least one inlined element.
+  // 2. `sizeof(SmallVector<T>) <= kPreferredSmallVectorSizeof` unless
+  // it contradicts 1.
+  static constexpr size_t kPreferredSmallVectorSizeof = 64;
+
+  // static_assert that sizeof(T) is not "too big".
+  //
+  // Because our policy guarantees at least one inlined element, it is possible
+  // for an arbitrarily large inlined element to allocate an arbitrarily large
+  // amount of inline storage. We generally consider it an antipattern for a
+  // SmallVector to allocate an excessive amount of inline storage, so we want
+  // to call attention to these cases and make sure that users are making an
+  // intentional decision if they request a lot of inline storage.
+  //
+  // We want this assertion to trigger in pathological cases, but otherwise
+  // not be too easy to hit. To accomplish that, the cutoff is actually somewhat
+  // larger than kPreferredSmallVectorSizeof (otherwise,
+  // `SmallVector<SmallVector<T>>` would be one easy way to trip it, and that
+  // pattern seems useful in practice).
+  //
+  // One wrinkle is that this assertion is in theory non-portable, since
+  // sizeof(T) is in general platform-dependent. However, we don't expect this
+  // to be much of an issue, because most LLVM development happens on 64-bit
+  // hosts, and therefore sizeof(T) is expected to *decrease* when compiled for
+  // 32-bit hosts, dodging the issue. The reverse situation, where development
+  // happens on a 32-bit host and then fails due to sizeof(T) *increasing* on a
+  // 64-bit host, is expected to be very rare.
+  static_assert(
+      sizeof(T) <= 256,
+      "You are trying to use a default number of inlined elements for "
+      "`SmallVector<T>` but `sizeof(T)` is really big! Please use an "
+      "explicit number of inlined elements with `SmallVector<T, N>` to make "
+      "sure you really want that much inline storage.");
+
+  // Discount the size of the header itself when calculating the maximum inline
+  // bytes.
+  static constexpr size_t PreferredInlineBytes =
+      kPreferredSmallVectorSizeof - sizeof(SmallVector<T, AllocatorT, 0>);
+  static constexpr size_t NumElementsThatFit = PreferredInlineBytes / sizeof(T);
+  static constexpr size_t value =
+      NumElementsThatFit == 0 ? 1 : NumElementsThatFit;
+};
+
 /// This is a 'vector' (really, a variable-sized array), optimized
 /// for the case when the array is small.  It contains some number of elements
 /// in-place, which allows it to avoid heap allocation when the actual number of
@@ -1144,7 +1197,7 @@ template <typename T, typename AllocatorT, unsigned N> class SmallVector;
 /// \see https://llvm.org/docs/ProgrammersManual.html#llvm-adt-smallvector-h
 template <typename T,
           typename AllocatorT,
-          unsigned N = CalculateSmallVectorDefaultInlinedElements<T>::value
+          unsigned N = CalculateSmallVectorDefaultInlinedElements<T, AllocatorT>::value
           >
 class SmallVector : public SmallVectorImpl<T, AllocatorT>, SmallVectorStorage<T, N> {
 public:
@@ -1289,9 +1342,129 @@ namespace std {
 
 } // end namespace std
 
-template<typename T, typename AllocatorT = Mallocator, unsigned N = llvm::CalculateSmallVectorDefaultInlinedElements<T>::value>
-using SmallVectorWithAllocator = llvm::WithAllocator::SmallVector<T, AllocatorT, N>;
 
-#include "SmallVectorWithAllocatorCpp.hpp"
+
+
+// Check that no bytes are wasted and everything is well-aligned.
+namespace {
+// These structures may cause binary compat warnings on AIX. Suppress the
+// warning since we are only using these types for the static assertions below.
+#if defined(_AIX)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Waix-compat"
+#endif
+struct Struct16B {
+  alignas(16) void *X;
+};
+struct Struct32B {
+  alignas(32) void *X;
+};
+#if defined(_AIX)
+#pragma GCC diagnostic pop
+#endif
+}
+
+namespace detail {
+
+// Note: Moving this function into the header may cause performance regression.
+template <class Size_T>
+static size_t getNewCapacity(size_t MinSize, size_t TSize, size_t OldCapacity) {
+  constexpr size_t MaxSize = std::numeric_limits<Size_T>::max();
+
+  // Ensure we can fit the new capacity.
+  // This is only going to be applicable when the capacity is 32 bit.
+  // if (MinSize > MaxSize)
+  //   report_size_overflow(MinSize, MaxSize);
+
+  // Ensure we can meet the guarantee of space for at least one more element.
+  // The above check alone will not catch the case where grow is called with a
+  // default MinSize of 0, but the current capacity cannot be increased.
+  // This is only going to be applicable when the capacity is 32 bit.
+  // if (OldCapacity == MaxSize)
+  //   report_at_maximum_capacity(MaxSize);
+
+  // In theory 2*capacity can overflow if the capacity is 64 bit, but the
+  // original capacity would never be large enough for this to be a problem.
+  size_t NewCapacity = 2 * OldCapacity + 1; // Always grow.
+  return std::min(std::max(NewCapacity, MinSize), MaxSize);
+}
+
+}
+
+template <class Size_T, typename AllocatorT>
+void *llvm::WithAllocator::SmallVectorBase<Size_T, AllocatorT>::replaceAllocation(void *NewElts, size_t TSize,
+                                                 size_t OldCapacity, size_t NewCapacity,
+                                                 size_t VSize) {
+  void *NewEltsReplace = getAllocator().allocate(NewCapacity * TSize, alignof(std::max_align_t));
+  if (VSize)
+    memcpy(NewEltsReplace, NewElts, VSize * TSize);
+  getAllocator().deallocate(NewElts, OldCapacity * TSize, alignof(std::max_align_t));
+  return NewEltsReplace;
+}
+
+// Note: Moving this function into the header may cause performance regression.
+template <class Size_T, typename AllocatorT>
+void *llvm::WithAllocator::SmallVectorBase<Size_T, AllocatorT>::mallocForGrow(void *FirstEl, size_t MinSize,
+                                             size_t TSize,
+                                             size_t &NewCapacity) {
+  NewCapacity = ::detail::getNewCapacity<Size_T>(MinSize, TSize, this->capacity());
+  // Even if capacity is not 0 now, if the vector was originally created with
+  // capacity 0, it's possible for the malloc to return FirstEl.
+  void *NewElts = getAllocator().allocate(NewCapacity * TSize, alignof(std::max_align_t));
+  if (NewElts == FirstEl)
+    NewElts = replaceAllocation(NewElts, TSize, Capacity, NewCapacity);
+  return NewElts;
+}
+
+// Note: Moving this function into the header may cause performance regression.
+template <class Size_T, typename AllocatorT>
+void llvm::WithAllocator::SmallVectorBase<Size_T, AllocatorT>::grow_pod(void *FirstEl, size_t MinSize,
+                                       size_t TSize) {
+  size_t NewCapacity = ::detail::getNewCapacity<Size_T>(MinSize, TSize, this->capacity());
+  void *NewElts;
+  if (BeginX == FirstEl) {
+    NewElts = getAllocator().allocate(NewCapacity * TSize, alignof(std::max_align_t));
+    if (NewElts == FirstEl)
+      NewElts = replaceAllocation(NewElts, TSize, Capacity, NewCapacity);
+
+    // Copy the elements over.  No need to run dtors on PODs.
+    memcpy(NewElts, this->BeginX, size() * TSize);
+  } else {
+    // If this wasn't grown from the inline copy, grow the allocated space.
+    NewElts = getAllocator().reallocate(this->BeginX, this->Capacity * TSize, NewCapacity * TSize, alignof(std::max_align_t));
+    if (NewElts == FirstEl)
+      NewElts = replaceAllocation(NewElts, TSize, Capacity, NewCapacity, size());
+  }
+
+  this->BeginX = NewElts;
+  this->Capacity = NewCapacity;
+}
+
+// template class llvm::WithAllocator::SmallVectorBase<uint32_t, Mallocator>;
+
+// Disable the uint64_t instantiation for 32-bit builds.
+// Both uint32_t and uint64_t instantiations are needed for 64-bit builds.
+// This instantiation will never be used in 32-bit builds, and will cause
+// warnings when sizeof(Size_T) > sizeof(size_t).
+#if SIZE_MAX > UINT32_MAX
+// template class llvm::WithAllocator::SmallVectorBase<uint64_t, Mallocator>;
+
+
+#endif
+
+
+template<typename T, unsigned N = llvm::CalculateSmallVectorDefaultInlinedElements<T>::value>
+using SmallVector = llvm::SmallVector<T, N>;
+
+// Small vector with allocator parameter
+template<typename T, typename AllocatorT, unsigned N = llvm::WithAllocator::CalculateSmallVectorDefaultInlinedElements<T, AllocatorT>::value>
+using SmallVectorA = llvm::WithAllocator::SmallVector<T, AllocatorT, N>;
+
+template<typename T>
+using SmallVectorImpl = llvm::SmallVectorImpl<T>;
+
+// Small vector with allocator parameter
+template<typename T, typename AllocatorT>
+using SmallVectorImplA = llvm::WithAllocator::SmallVectorImpl<T, AllocatorT>;
 
 #endif // LLVM_ADT_SMALLVECTOR_H

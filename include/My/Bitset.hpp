@@ -201,9 +201,7 @@ public:
         }
         return *this;
     }
-
-    #define MUT_METHOD_VERSION(type, method_call) const_cast(static_cast<const type*>(this)->method_call)
-
+    
     constexpr Self operator^(SelfParamT rhs) const {
         Self result;
         for (size_t i = 0; i < nInts; i++) {

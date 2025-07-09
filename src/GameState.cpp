@@ -112,11 +112,11 @@ void GameState::destroy() {
     ecs->destroy();
 }
 
-llvm::SmallVector<IVec2> raytraceDDA(const Vec2 start, const Vec2 end) {
+SmallVector<IVec2> raytraceDDA(const Vec2 start, const Vec2 end) {
     const IVec2 start_i = vecFloori(start);
     const IVec2 end_i = vecFloori(end);
     const int lineLength = (abs(end_i.x - start_i.x) + abs(end_i.y - start_i.y)) + 1;
-    llvm::SmallVector<IVec2> line(lineLength, {}); // make small vector of size lineLength left uninitialized
+    SmallVector<IVec2> line(lineLength, {}); // make small vector of size lineLength left uninitialized
     const Vec2 delta = end - start;
     const Vec2 dir = glm::normalize(delta);
     const Vec2 unitStep = {sqrt(1 + (dir.y / dir.x) * (dir.y / dir.x)), sqrt(1 + (dir.x / dir.y) * (dir.x / dir.y))};

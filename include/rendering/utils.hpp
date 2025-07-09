@@ -40,7 +40,7 @@ GLuint enableVertexAttribs(ArrayRef<GlVertexDetailedAttribute> attributes);
 GLuint enableVertexAttribsSOA(ArrayRef<GlVertexDetailedAttribute> attributes, unsigned int vertexCount);
 
 struct GlVertexFormat {
-    llvm::SmallVector<GlVertexDetailedAttribute, 3> attributes;
+    SmallVector<GlVertexDetailedAttribute, 3> attributes;
 
     constexpr size_t totalSize() const {
         size_t size = 0;
@@ -143,7 +143,7 @@ GlModel makeModel(GlBuffer vertexBuffer, const GlVertexFormat& format);
 
 struct GlModelSOA {
     GlModel model;
-    llvm::SmallVector<size_t> attributeOffsets;
+    SmallVector<size_t> attributeOffsets;
 
     void destroy() {
         model.destroy();

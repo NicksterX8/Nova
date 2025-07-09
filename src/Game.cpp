@@ -17,7 +17,7 @@
 #include "ECS/ArchetypePool.hpp"
 #include "rendering/systems/new.hpp"
 
-#include "llvm/SmallVector.h"
+#include "ADT/SmallVector.hpp"
 #include "llvm/ArrayRef.h"
 
 void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
@@ -44,99 +44,6 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
         controls->addKeyBinding(keyBindings[i]);
     }
 }
-
-/*
-bool canRunConcurrently(
-    ECS::ComponentAccessType* accessArrayA, ECS::ComponentAccessType* accessArrayB,
-    bool AContainsStructuralChanges, bool AMustExecuteAfterStructuralChanges,
-    bool BContainsStructuralChanges, bool BMustExecuteAfterStructuralChanges
-) {
-    using namespace ECS::ComponentAccess;
-    for (int i = 0; i < NUM_COMPONENTS; i++) {
-        const ECS::ComponentAccessType accessA = accessArrayA[i];
-        const ECS::ComponentAccessType accessB = accessArrayB[i];
-        if (accessA & (Write | Remove)) {
-            if (accessB & (Write | Read | Remove | Add | Flag)) {
-                // fail
-                return false;
-            }
-        }
-        else if (accessB & (Write | Remove)) {
-            if (accessA & (Write | Read | Remove | Add | Flag)) {
-                // fail
-                return false;
-            }
-        }
-
-        if ((accessA & Add) && (accessB & (Add | Remove | Write | Read | Flag))) {
-            return false;
-        }
-
-        if ((accessB & Add) && (accessA & (Add | Remove | Write | Read | Flag))) {
-            return false;
-        }
-
-        if (AContainsStructuralChanges) {
-            if (BMustExecuteAfterStructuralChanges) {
-                // fail
-                return false;
-            }
-        }
-
-        if (BContainsStructuralChanges) {
-            if (AMustExecuteAfterStructuralChanges) {
-                // fail
-                return false;
-            }
-        } 
-    }
-
-    return true;
-}
-
-bool canRunConcurrently(ECS::EntitySystem* sysA, ECS::EntitySystem* sysB) {
-    return canRunConcurrently(sysA->sys.componentAccess, sysB->sys.componentAccess,
-        sysA->containsStructuralChanges, sysA->mustExecuteAfterStructuralChanges,
-        sysB->containsStructuralChanges, sysB->mustExecuteAfterStructuralChanges);
-}
-
-void systemJob(ECS::EntitySystem* system) {
-    // Log("starting job for system %p", system);
-    system->Update();
-    // Log("finishing job for system %p", system);
-}
-
-void runConcurrently(EntityWorld* ecs, ECS::EntitySystem* sysA, ECS::EntitySystem* sysB) {
-    if (!canRunConcurrently(sysA, sysB)) {
-        LogCritical("Attempted to run two incompatible systems together concurrently! Running in sequence.");
-        systemJob(sysA);
-        systemJob(sysB);
-        return;
-    }
-
-    std::thread thread2(systemJob, sysA);
-    std::thread thread3(systemJob, sysB);
-
-    thread2.join();
-    thread3.join();
-
-    return;
-}
-
-void playBackCommandBuffer(EntityWorld* ecs, ECS::EntityCommandBuffer* buffer) {
-    //for (auto command : buffer->commands) {
-    //    command(ecs);
-    //}
-    //buffer->commands.clear();
-}
-*/
-/*
-template<class S>
-void runSystem(EntityWorld* ecs) {
-    ecs->System<S>()->Update();
-    playBackCommandBuffer(ecs, ecs->System<S>()->commandBuffer);
-}
-*/
 
 void GameEntitySystems::init(GameState* state, RenderContext* renderContext, Camera& camera) {
     this->renderEntitySys = new World::RenderSystems::RenderEntitySystem(ecsRenderSystems, *renderContext, camera, *state->ecs, state->chunkmap);

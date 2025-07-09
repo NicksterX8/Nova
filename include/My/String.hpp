@@ -7,7 +7,6 @@
 #include "../utils/Log.hpp"
 #include "Vec.hpp"
 #include "Iteration.hpp"
-#include "Exp.hpp"
 
 #include <memory>
 #include <stdexcept>
@@ -15,8 +14,9 @@
 template<typename ... Args>
 std::string string_format( const std::string& format, Args... args) {
     int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'
-    if (size_s <= 0) {
+    if (LLVM_UNLIKELY(size_s <= 0)) {
         LogError("Failed formatting.");
+        return {};
     }
     auto size = (size_t)size_s;
     std::unique_ptr<char[]> buf(new char[size]);

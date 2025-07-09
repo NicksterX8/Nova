@@ -17,7 +17,7 @@ const TextAlignment TextAlignment::JustifyTop    = {HoriAlignment::None,   VertA
 
 // returns number visible characters outputted
 // charsOut must have atleast enough space to fit strlen(text) chars
-int parseTextToWords(const Font* font, const Char* text, int textLength, llvm::SmallVectorImpl<Word>* wordsOut, Char* charsOut) {
+int parseTextToWords(const Font* font, const Char* text, int textLength, SmallVectorImpl<Word>* wordsOut, Char* charsOut) {
     assert(text);
     
     const float* advances = font->characters->advances;
@@ -58,7 +58,7 @@ int parseTextToWords(const Font* font, const Char* text, int textLength, llvm::S
 
 // returns number visible characters outputted
 // charsOut must have atleast enough space to fit strlen(text) chars
-int parseTextToWordsWrap(const Font* font, const Char* text, int textLength, llvm::SmallVectorImpl<Word>* wordsOut, Char* charsOut) {
+int parseTextToWordsWrap(const Font* font, const Char* text, int textLength, SmallVectorImpl<Word>* wordsOut, Char* charsOut) {
     assert(text);
     
     const float* advances = font->characters->advances;
@@ -93,7 +93,7 @@ struct Line {
 };
 
 // returns the bounding size of the resulting lines
-Vec2 parseWordsToLines(const Font* font, float maxWidth, ArrayRef<Word> words, llvm::SmallVectorImpl<Line>* linesOut) {
+Vec2 parseWordsToLines(const Font* font, float maxWidth, ArrayRef<Word> words, SmallVectorImpl<Line>* linesOut) {
     assert(font && linesOut);
 
     if (words.empty()) return {0,0};
@@ -192,7 +192,7 @@ FormatResult formatText(const Font* font, const Char* text, int textLength,
     const TextFormattingSettings& formatting, Vec2 position, float scale,
     My::Vec<Char>* charsOut, My::Vec<Vec2>* charPositionsOut)
 {
-    llvm::SmallVector<Word> words;
+    SmallVector<Word> words;
     int charCount;
     if (formatting.wrapOnWhitespace)
         charCount = parseTextToWords(font, text, textLength, &words, charsOut->require(textLength));
@@ -201,7 +201,7 @@ FormatResult formatText(const Font* font, const Char* text, int textLength,
     charsOut->size -= textLength - charCount;
 
     float unscaledMaxWidth = formatting.maxWidth / scale;
-    llvm::SmallVector<Line> lines;
+    SmallVector<Line> lines;
     Vec2 boundSize = parseWordsToLines(font, unscaledMaxWidth, words, &lines) * scale;
 
     formatLines(font, text, formatting, words, lines, position, scale, charPositionsOut->require(charCount));

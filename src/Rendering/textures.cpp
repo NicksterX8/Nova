@@ -178,8 +178,8 @@ GLuint GlLoadTextureArray(glm::ivec2 size, ArrayRef<SDL_Surface*> images, GLenum
 }
 
 TextureArray makeTextureArray(glm::ivec2 size, TextureManager* textures, TextureType typesIncluded, const char* assetsPath, TextureUnit textureUnit) {
-    llvm::SmallVector<SDL_Surface*> images;
-    llvm::SmallVector<TextureID> ids;
+    SmallVector<SDL_Surface*> images;
+    SmallVector<TextureID> ids;
     TextureMetaData* metadata = textures->metadata.data;
 
     for (TextureID id = TextureIDs::First; id <= TextureIDs::Last; id++) {
@@ -284,8 +284,8 @@ GlSizedTexture GlLoadTextureAtlas(ArrayRef<SDL_Surface*> images, GLint minFilter
 }
 
 TextureAtlas makeTextureAtlas(TextureManager* textures, TextureType typesIncluded, const char* assetsPath, GLint minFilter, GLint magFilter, TextureUnit textureUnit) {
-    llvm::SmallVector<SDL_Surface*> images;
-    llvm::SmallVector<TextureID> ids;
+    SmallVector<SDL_Surface*> images;
+    SmallVector<TextureID> ids;
     TextureMetaData* metadata = textures->metadata.data;
 
     for (TextureID id = TextureIDs::First; id <= TextureIDs::Last; id++) {
