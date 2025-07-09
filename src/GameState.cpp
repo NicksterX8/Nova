@@ -13,6 +13,7 @@
 #include "world/entities/entities.hpp"
 #include "items/manager.hpp"
 #include "items/prototypes/prototypes.hpp"
+#include <utility>
 
 void makeItemPrototypes(ItemManager& im) {
     using namespace items;
@@ -74,8 +75,15 @@ void GameState::init(const TextureManager* textureManager) {
     }
 
     /* Init ECS */
-    ecs = scratch.New<EntityWorld>();
+    //ecs = scratch.New<EntityWorld>();
+    ecs = NEW(EntityWorld(), scratch);
+    int* i = NEW(int(5));
+    auto p = NEW_ARR(EntityWorld[5]);
+    //ecs = scratch.New<EntityWorld>();
     ecs->init(&chunkmap, ecs);
+
+
+
     makeEntityPrototypes(*ecs);
     World::setEventCallbacks(*ecs, chunkmap);
 

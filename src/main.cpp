@@ -33,8 +33,6 @@ void initLogging() {
     SDL_SetLogPriority(LogCategory::Main, SDL_LOG_PRIORITY_INFO);
 }
 
-#define LOG LogInfo
-
 void initPaths() {
     char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
 
@@ -52,99 +50,15 @@ void initPaths() {
         upperPath[std::string(pathbuf).find_last_of('/')+1] = '\0';
 
         FileSystem = FileSystemT(upperPath);
-        LOG("resources path: %s", FileSystem.resources.get());
+        LogInfo("resources path: %s", FileSystem.resources.get());
     }
 
-    LOG("Path to executable: %s\n", pathbuf);
-    LOG("Base path: %s\n", basePath);
+    LogInfo("Path to executable: %s\n", pathbuf);
+    LogInfo("Base path: %s\n", basePath);
 }
 
 void tests() {
     physics_test();
-
-    TinyValVector<uint16_t> tinyVec;
-
-    tinyVec.push_back(7);
-
-    auto* data = tinyVec.data();
-    LogInfo("val: %d", (int)data[0]);
-}
-
-struct Big {
-    int64_t a;
-    double b;
-};
-
-void testy() {
-    Vec2 p = {3.2f, -2.1};
-    // auto u = ValPtrUnionFull<Vec2, Vec2*, ReducedPrecisionXVec2Info>(p);
-
-    // uintptr_t testPointerVal = (uintptr_t)1 << 31;
-    // Vec2* testPtr = (Vec2*)testPointerVal;
-    
-    // auto p2 = u.getValue();
-    // LogInfo("p2: %f, %f", p2.x, p2.y);
-    // LogInfo("is pointer? : %d", u.isPointer());
-    // auto next = u.getValue();
-
-    // Vec2 p3{-20, 5};
-    // u = &p3;
-    // Vec2* pointer = u.getPointer();
-
-    // pointer->x = 5.0f;
-
-    // TinyValVectorFull<Big, BigInfo> tinyVec;
-    // tinyVec.push_back({8008135, 2.345678910});
-
-    TinyValVector<int, 32> tinyIntVec;
-    tinyIntVec.push_back(5);
-    auto i2 = tinyIntVec[0];
-    tinyIntVec.push_back(2);
-
-    constexpr uint8_t FirstVecXMantissaBit = 0;
-
-    TinyValVector<Vec2, FirstVecXMantissaBit> tinyVecVec;
-
-    auto i = tinyIntVec[1];
-    tinyIntVec.reserve(5);
-    tinyIntVec.resize(2, 12);
-    LogInfo("size : %d", tinyIntVec.size());
-
-    TinyValVector<Big, 0, true, true> bigs;
-
-    bigs.push_back({200001, 1.2345678910111213});
-    bigs.push_back({200011, -0.5});
-
-    auto big = bigs[0];
-
-    auto big2 = bigs[1];
-
-
-    VecTuple<int, float> vecTuple{&mallocator};
-    vecTuple.push_back(2, 3.0f);
-    float far[] = {4.0f, 2.3f};
-    int iar[] = {1, 2};
-    vecTuple.append(2, iar, far);
-
-    auto f = vecTuple.get<float>(0);
-
-    auto tuple = vecTuple[0];
-    int x = vecTuple[1].get<int>();
-
-    vecTuple.resize(5);
-
-    ScratchAllocator<> scratch(10000);
-
-    // SmallVectorWithAllocator<int, ScratchAllocator<>>(std::move(scratch));
-
-    SmallVectorA<int, ScratchAllocator<>&> hey{scratch};
-    hey.push_back(5);
-    int x3 = hey[0];
-    hey.resize(12, 5);
-    int x2 = hey[0];
-    int h = hey[5];
-    hey.clear();
-    LogInfo("x: %d", x2);
 }
 
 int main(int argc, char** argv) { 
@@ -182,9 +96,6 @@ int main(int argc, char** argv) {
     }
 
     tests();
-    LogError("Function: %s", __FUNCTION__);
-
-    testy();
 
     Game* game = new Game(sdlCtx);
     Mem::init(

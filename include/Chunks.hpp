@@ -78,8 +78,6 @@ void generateChunk(ChunkData* chunk);
 struct ChunkMap {
     using InternalChunkMap = My::HashMap<IVec2, ChunkData, IVec2Hash>;
     using ChunkBucketArray = My::BucketArray<Chunk, CHUNK_BUCKET_SIZE>;
-    // TODO: try to use a hybrid map so we dont need this bucket array
-    using ChunkDataBucketArray = My::BucketArray<ChunkData, CHUNKDATA_BUCKET_SIZE>;
 
     InternalChunkMap map;
     ChunkBucketArray chunkList;
@@ -108,15 +106,6 @@ struct ChunkMap {
     * The chunk will not be generated, so this shouldn't be used most in most cases.
     */
     ChunkData* getOrMakeNew(IVec2 position);
-
-    void iterateChunkdata(std::function<bool(ChunkData*)> callback) const {
-        // TODO: move this to My::HashMap
-        for (int i = 0; i < map.bucketCount; i++) {
-            if (map.buckets()[i].state == My::Map::Bucket_Filled) {
-                if (callback(&map.values()[i])) break;
-            }
-        }
-    }
 };
 
 Tile* getTileAtPosition(const ChunkMap& chunkmap, Vec2 position);

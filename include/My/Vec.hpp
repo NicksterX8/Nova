@@ -63,20 +63,17 @@ namespace Generic {
  * Should be faster and smaller than std::vector most of the time, 
  * and result in faster compile times
  */ 
-template<typename T, class AllocatorT = DefaultAllocator>
+template<typename T>
 struct Vec {
-    static_assert(std::is_trivially_move_assignable<T>::value && std::is_trivially_move_constructible<T>::value, "vec doesn't support complex types");
+    static_assert(std::is_trivially_move_assignable<T>::value && std::is_trivially_move_constructible<T>::value && std::is_trivially_copy_constructible<T>::value, "vec doesn't support complex types");
     using Type = T;
 
     T* data;
     int size;
     int capacity;
 
-    using Allocator = AllocatorT;
-    static Allocator allocator;
-
 private: 
-    using Self = Vec<T, AllocatorT>;
+    using Self = Vec<T>;
     using ValueParamT = FastestParamType<T>;
 public:
 
@@ -91,7 +88,7 @@ public:
 
     Vec(int startCapacity) : size(0), capacity(startCapacity) {
         if (startCapacity > 0) {
-            data = allocator.template Alloc<T>(startCapacity);
+            data = Alloc<T>(startCapacity);
         } else {
             data = nullptr;
         }
@@ -112,7 +109,7 @@ public:
      * 
      */
     Vec(const T* _data, int _size) {
-        data = allocator.template Alloc<T>(_size);
+        data = Alloc<T>(_size);
         memcpy(data, _data, _size * sizeof(T));
         size = _size;
         capacity = _size;
@@ -121,7 +118,7 @@ public:
     static Self Filled(int size, ValueParamT value) {
         assert(size >= 0 && "cannot have negative size");
         Self self;
-        self.data = allocator.template Alloc<T>(size);
+        self.data = Alloc<T>(size);
         for (int i = 0; i < size; i++) {
             memcpy(&self[i], &value, sizeof(T));
         }
@@ -154,7 +151,7 @@ public:
         //return vec_push((Generic::Vec*)this, sizeof(T), &val);
         if (size+1 > capacity) {
             int newCapacity = capacity*2 > size+1 ? capacity*2 : size+1;
-            data = allocator.template Realloc<T>(data, newCapacity);
+            data = Realloc<T>(data, newCapacity);
             capacity = newCapacity;
         }
         memcpy(data + size, &val, sizeof(T));
@@ -166,10 +163,10 @@ public:
         if (size + count > capacity) {
             // reallocate. Fortunately this makes the algorithm a lot simpler. just copy the new values in, then the old values
             int newCapacity = MAX(size + count, capacity*2);
-            T* newData = allocator.template Alloc<T>((size_t)newCapacity);
+            T* newData = Alloc<T>((size_t)newCapacity);
             memcpy(&newData[0], values, (size_t)count * sizeof(T));
             memcpy(&newData[count], data, (size_t)size * sizeof(T));
-            allocator.Free(data);
+            Free(data);
             data = newData;
             size += count;
             capacity = newCapacity;
@@ -242,20 +239,20 @@ public:
      * When the new capacity couldn't be allocated, -1 will be returned
      */
     void reallocate(int newCapacity) {
-        data = (T*)allocator.Realloc(data, newCapacity);
+        data = (T*)Realloc(data, newCapacity);
         size = (size < newCapacity) ? size : newCapacity;
         capacity = newCapacity;
     }
 
     void clear() {
-        allocator.Free(data);
+        Free(data);
         data = nullptr;
         size = 0;
         capacity = 0;
     }
 
     void destroy() {
-        allocator.Free(data);
+        Free(data);
     }
 
     T& back() const {
@@ -311,7 +308,7 @@ public:
     void shrink(int count) {
         count = std::min(count, capacity - size);
         if (count > 0) {
-            data = (T*)allocator.Realloc(data, capacity - count);
+            data = (T*)Realloc(data, capacity - count);
             capacity -= count;
         }
     }
@@ -320,7 +317,7 @@ public:
      */
     int shrinkToFit() {
         if (capacity > size) {
-            data = (T*)allocator.Realloc(data, size);
+            data = (T*)Realloc(data, size);
             capacity = size;
         }
     }
@@ -330,7 +327,7 @@ public:
         if (size + count > capacity) {
             // reallocate. Fortunately this makes the algorithm a lot simpler. just copy the new values in, then the old values
             int newCapacity = MAX(size + count, capacity*2);
-            T* newData = (T*)allocator.Alloc(newCapacity * sizeof(T));
+            T* newData = (T*)Alloc(newCapacity * sizeof(T));
             // copy old data before index to range 0 - index
             memcpy(&newData[0], &data[0], index * sizeof(T));
             // copy values to range index - index + count
@@ -338,7 +335,7 @@ public:
             // copy old data after index to range index + count -  size + count
             memcpy(&newData[index + count], &data[index], (size - index) * sizeof(T));
 
-            allocator.Free(data);
+            Free(data);
             data = newData;
             size += count;
             capacity = newCapacity;
@@ -369,110 +366,8 @@ public:
     inline T* end() const { return data + size; }
 };
 
-template<typename T, class AllocatorT>
-typename Vec<T, AllocatorT>::Allocator Vec<T, AllocatorT>::allocator = Vec<T, AllocatorT>::Allocator();
-
 static_assert(sizeof(Generic::Vec) == sizeof(Vec<int>), "GenericVec must have same binary layout as normal vec");
 
-template<typename T, int N = 0>
-struct SmallVector {
-    T* data;
-    int size;
-    int capacity;
-    char buffer[N * sizeof(T)];
-
-    T& operator[](int index) {
-        return data[index];
-    }
-};
-
-/*
-template<typename T1, typename T2, size_t BufferSize>
-struct SmallVectorPair {
-    T1* first;
-    T2* second;
-
-    int32_t size;
-    int32_t capacity;
-
-    char buffer1[BufferSize * sizeof(T1)];
-    char buffer1[BufferSize * sizeof(T2)];
-
-    SmallVectorPair() {}
-
-    operator[]() {
-
-    }
-};
-*/
-/*
-thing dont work! prolly not worth doing myself ever. better options!
-template<typename... Ts>
-struct VecTuple {
-    using Size_T = int;
-    using ValueTuple = std::tuple<Ts...>;
-    constexpr static size_t TypeCount = sizeof...(Ts);
-
-    using PointerTuple = std::tuple<Ts* ...>;
-    PointerTuple data;
-    Size_T size;
-    Size_T capacity;
-
-    template<typename T>
-    void reallocateDataTupleMember(Size_T capacity) {
-        std::get<T>(data) = (T*)MY_realloc(std::get<T>(data), capacity * sizeof(T));
-    }
-
-    void reallocateDataTuple(Size_T newCapacity) {
-        FOR_EACH_VAR_TYPE(reallocateDataTupleMember<Ts>(newCapacity));
-    }
-
-    void reallocate(Size_T newCapacity) {
-        reallocateDataTuple(newCapacity);
-        // do other stuff TODO:
-        size = MIN(newCapacity, size);
-        capacity = newCapacity;
-    }
-
-    VecTuple(Size_T startCapacity) : data(PointerTuple()), size(0), capacity(startCapacity) {
-        reallocateDataTuple(startCapacity);
-    }
-
-    #define WITHIN(lo, v, hi) (lo < v && v < hi)
-
-    template<typename T>
-    void setElements(Size_T index, Size_T count, T* list) {
-        memcpy(std::get<T>(data)[index], list, count * sizeof(T));
-    }
-
-    template<typename T>
-    T& get(Size_T i) {
-        assert(0 <= i && i < size && "vec tuple index out of bounds!");
-        return std::get<T>(data)[i];
-    }
-
-    template<typename T>
-    T* getPointer() {
-        return std::get<T>(data);
-    }
-
-    void push(FastestParamType<Ts> ...vals) {
-        if (size+1 > capacity) {
-            reallocate(MAX(size+1, capacity*2));
-        }
-        FOR_EACH_VAR_TYPE(setElements(size, 1, &vals));
-        size++;
-    }
-
-    void push(int count, const Ts* ...lists) {
-        if (size + count > capacity) {
-            reallocate(MAX(size + count, capacity*2));
-        }
-        FOR_EACH_VAR_TYPE(setElements(size, count, lists));
-        size += count;
-    }
-};
-*/
 }
 
 using Vector::Vec;

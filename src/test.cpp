@@ -255,64 +255,20 @@ struct TestS {
     }
 };
 
+void* operator new(size_t size, int var) {
+    return var + (char*)malloc(size + var);
+}
+
+void operator delete(void* pointer, int var) {
+    printf("My deleete var: %d", var);
+    free((char*)pointer - var);
+}
+
 void func(TestS* ptr) {
     TestS value = *ptr;
     value[0];
-}
 
-template<typename T>
-struct BaseX {
-    void funca() {
-        printf("base funca\n");
-        static_cast<T*>(this)->funcb();
-    }
+    int* i = new (5) int(2);
 
-    void funcb() {
-        printf("base funcb\n");
-    }
-};
-
-struct DA : BaseX<DA> {
-    void funcb() {
-        printf("child func b\n");
-    }
-
-    void onlyMe() {
-
-    }
-};
-
-// Primary template: default to false
-template <typename, typename = void>
-struct has_foo : std::false_type { };
-
-// Specialization: valid if noexcept(declval<T>().foo()) is well-formed
-template <typename T>
-struct has_foo<T, std::__void_t<decltype(noexcept(std::declval<T>().foo(0)))>> : std::true_type { };
-
-struct A { void foo(int x) = delete; };
-struct B { void foo(int x) {} };
-
-#define MAC(a, ...) int x = a;
-
-struct X {
-    char chrs[9];
-};
-
-union Union {
-    int* ptr;
-    X x;
-};
-
-#define COMBINE(a, b) a, b
-
-#define MACRO(a, b)
-
-int main() {
-    std::cout << has_foo<A>::value << '\n';  // 0 — safe!
-    std::cout << has_foo<B>::value << '\n';  // 1
-    std::cout << "size: %zu" << sizeof(Union);
-
-    MACRO(1, COMBINE(2, 3));
-    return 0;
+    delete i;
 }

@@ -16,7 +16,7 @@ struct BucketArray {
 private:
     using Self = BucketArray<T, BucketSize, Allocator, BucketAllocator>;
 public:
-    using BucketContainer = Vec<T*, BucketAllocator>;
+    using BucketContainer = Vec<T*>;
     BucketContainer buckets;
     int topBucketSlotsUsed;
 

@@ -45,12 +45,6 @@ struct InheritanceWrapper : Parent {};
 
 using DefaultAllocator = Mem::DefaultAllocator;
 
-struct DynAllocator {
-    void* *(allocate)(size_t);
-    void  *(deallocate)(void*);
-    void* *(reallocate)(void*, size_t);
-};
-
 MY_CLASS_END
 
 #endif

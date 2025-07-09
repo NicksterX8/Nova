@@ -56,14 +56,14 @@ struct AllocateMethods {
     template<typename T, typename... Args>
     T* New(Args&... args) {
         T* mem = allocate<T>(1);
-        new (mem) T(args...);
+        ::new (mem) T(args...); // use ::new for in place new to avoid overloaded version
         return mem;
     }
 
     template<typename T>
     T* New(const T& value) {
         T* mem = allocate<T>(1);
-        new (mem) T(value);
+        ::new (mem) T(value);
         return mem;
     }
 };

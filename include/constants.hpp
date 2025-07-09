@@ -12,7 +12,7 @@
 #define USE_SECONDARY_WINDOW 0
 #define WINDOW_HIGH_DPI 1
 
-#define USE_MULTITHREADING 1
+#define USE_MULTITHREADING 0
 
 #define GetTicks SDL_GetTicks
 #define GetPerformanceCounter SDL_GetPerformanceCounter
