@@ -20,7 +20,7 @@
 #include "llvm/PointerUnion.h"
 #include "My/ValPtrUnion.hpp"
 #include "My/VecTuple.hpp"
-#include "My/VecWithAllocator.hpp"
+#include "My/SmallVectorWithAllocator.hpp"
 #include "utils/allocators.hpp"
 
 #ifdef DEBUG
@@ -134,7 +134,17 @@ void testy() {
     vecTuple.resize(5);
 
     ScratchAllocator<> scratch(10000);
-    My::VecWithAllocator<int, ScratchAllocator<>> vecWithAlloc(std::move(scratch));
+
+    // SmallVectorWithAllocator<int, ScratchAllocator<>>(std::move(scratch));
+
+    SmallVectorWithAllocator<int> hey;
+    hey.push_back(5);
+    int x3 = hey[0];
+    hey.resize(12, 5);
+    int x2 = hey[0];
+    int h = hey[5];
+    hey.clear();
+    LogInfo("x: %d", x2);
 }
 
 int main(int argc, char** argv) { 

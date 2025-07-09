@@ -110,7 +110,6 @@ void GameState::init(const TextureManager* textureManager) {
 void GameState::destroy() {
     chunkmap.destroy();
     ecs->destroy();
-    scratch.deallocate(ecs);
 }
 
 llvm::SmallVector<IVec2> raytraceDDA(const Vec2 start, const Vec2 end) {

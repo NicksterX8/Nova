@@ -30,6 +30,23 @@ inline const void* alignPtr(const void* ptr, size_t align) {
 }
 
 template<typename Derived>
+struct DeallocateMethods {
+    template<typename T>
+    void deallocate(T* ptr, size_t count = 1) {
+        static_cast<Derived*>(this)->deallocate(ptr, count * sizeof(T), alignof(T));
+    }
+
+    template<typename T>
+    void Delete(T* ptr, size_t count = 1) {
+        // run destructor
+        for (int i = 0; i < count; i++) {
+            ptr[i].~T();
+        }
+        deallocate(ptr, count);
+    }
+};
+
+template<typename Derived>
 struct AllocateMethods {
     template<typename T>
     T* allocate(size_t count = 1) {
@@ -53,8 +70,9 @@ struct AllocateMethods {
 
 class AllocatorI {};
 
+
 template<typename Derived>
-class AllocatorBase : AllocatorI, public AllocateMethods<Derived> {
+class AllocatorBase : AllocatorI, public AllocateMethods<Derived>, public DeallocateMethods<Derived> {
     // Required to define to be an allocator:
     // void* allocate(size_t size, size_t alignment)
     // void deallocate(void* ptr, size_t size, size_t alignment)
@@ -63,9 +81,7 @@ class AllocatorBase : AllocatorI, public AllocateMethods<Derived> {
     // getAllocatorStats() recommended
 
 public:
-
     using AllocateMethods<Derived>::allocate;
-    using AllocateMethods<Derived>::New;
 
     void* reallocate(void* ptr, size_t oldSize, size_t newSize, size_t alignment) {
         void* newPtr = static_cast<Derived*>(this)->allocate(newSize, alignment);
@@ -77,24 +93,10 @@ public:
 
     /* Convenience methods for type allocations */
 
-    // template<typename T>
-    // T* allocate(size_t count = 1) {
-    //     return (T*)static_cast<Derived*>(this)->allocate(count * sizeof(T), alignof(T));
-    // }
-
-    template<typename T>
-    void deallocate(T* ptr, size_t count = 1) {
-        static_cast<Derived*>(this)->deallocate(ptr, count * sizeof(T), alignof(T));
-    }
-
     template<typename T>
     T* reallocate(T* ptr, size_t oldCount, size_t newCount) {
         return (T*)static_cast<Derived*>(this)->reallocate(ptr, oldCount * sizeof(T), newCount * sizeof(T), alignof(T));
     }
-
-    /* initialization + allocation */
-
-
 };
 
 struct AllocatorStats {
@@ -103,24 +105,26 @@ struct AllocatorStats {
     std::string used; // used by the allocator
 };
 
+
 template <typename Allocator>
-class AllocatorHolder : Allocator {
+class AllocatorHolder : public Allocator {
 public:
     AllocatorHolder() = default;
     AllocatorHolder(const Allocator &allocator) : Allocator(allocator) {}
     AllocatorHolder(Allocator &&allocator) : Allocator(static_cast<Allocator &&>(allocator)) {}
-    Allocator &get() { return *this; }
-    const Allocator &get() const { return *this; }
+    Allocator &getAllocator() { return *this; }
+    const Allocator &getAllocator() const { return *this; }
 };
 
 template <typename Allocator>
-class AllocatorHolder<Allocator*> {
-    Allocator *allocator;
+class AllocatorHolder<Allocator&> {
+    Allocator &allocator;
 public:
-    AllocatorHolder(Allocator* allocator) : allocator(allocator) {}
-    Allocator &get() { return *allocator; }
-    const Allocator &get() const { return *allocator; }
+    AllocatorHolder(Allocator& allocator) : allocator(allocator) {}
+    Allocator &getAllocator() { return allocator; }
+    const Allocator &getAllocator() const { return allocator; }
 };
+
 
 /* Polymorphic allocator made from any allocator base */
 class AbstractAllocator {

@@ -304,9 +304,15 @@ union Union {
     X x;
 };
 
+#define COMBINE(a, b) a, b
+
+#define MACRO(a, b)
+
 int main() {
     std::cout << has_foo<A>::value << '\n';  // 0 — safe!
     std::cout << has_foo<B>::value << '\n';  // 1
     std::cout << "size: %zu" << sizeof(Union);
+
+    MACRO(1, COMBINE(2, 3));
     return 0;
 }

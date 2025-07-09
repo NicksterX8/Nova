@@ -5,16 +5,17 @@
 #include "llvm/Allocator.h"
 #include <vector>
 
-using GameStructureAllocator = ScratchAllocator<BlockAllocator<1024, 4>*>;
-
 template<typename Allocator>
 AbstractAllocator* trackAllocator(std::string_view name, Allocator* allocator);
 
+using GameBlockAllocator = BlockAllocator<4096, 8>;
+// using GameStructureAllocator = ScratchAllocator<GameBlockAllocator*>;
+
 // Allocators for global use ONLY ON MAIN THREAD
 struct GlobalAllocatorsType {
-    BlockAllocator<4096, 8> gameBlockAllocator{};
-    GameStructureAllocator gameScratchAllocator{16 * 1024, &gameBlockAllocator};
-    llvm::BumpPtrAllocatorImpl<decltype(gameBlockAllocator)> bumpPtr{&gameBlockAllocator};
+    GameBlockAllocator gameBlockAllocator{};
+    ScratchAllocator<GameBlockAllocator&> gameScratchAllocator{16 * 1024, gameBlockAllocator};
+    llvm::BumpPtrAllocatorImpl<GameBlockAllocator> bumpPtr{&gameBlockAllocator};
 
     std::vector<AbstractAllocator*> allocators;
 
@@ -27,6 +28,8 @@ struct GlobalAllocatorsType {
 };
 
 extern GlobalAllocatorsType GlobalAllocators;
+
+using GameStructureAllocator = decltype(GlobalAllocators.gameScratchAllocator);
 
 template<typename Allocator>
 AbstractAllocator* trackAllocator(std::string_view name, Allocator* allocator) {

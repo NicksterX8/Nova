@@ -6,9 +6,10 @@
 #include "My/String.hpp"
 
 template<size_t BlockSize, size_t BlocksPerAlloc, typename Allocator = Mallocator>
-class BlockAllocator : public AllocatorBase<BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>> {
+class BlockAllocator : private AllocatorHolder<Allocator>, public AllocatorBase<BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>> {
     using Base = AllocatorBase<BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>>;
     using Me = BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>;
+    using AllocatorHolderT = AllocatorHolder<Allocator>;
     static_assert(BlockSize > 0 && BlocksPerAlloc > 0, "Block size or blocks per alloc too small!");
 
     struct Chunk {
@@ -16,9 +17,8 @@ class BlockAllocator : public AllocatorBase<BlockAllocator<BlockSize, BlocksPerA
         size_t blockCount;
     };
 
-    llvm::SmallVector<Chunk, 6> freeChunks; // = 112 bytes
-    AllocatorHolder<Allocator> allocator; // = 8 bytes
-    llvm::SmallVector<Chunk, 3> chunks; // = 64 bytes 
+    llvm::SmallVector<Chunk, 0> freeChunks; 
+    llvm::SmallVector<Chunk, 0> chunks; 
 #ifndef NDEBUG
     size_t bytesAllocated = 0;
 #endif
@@ -27,13 +27,12 @@ class BlockAllocator : public AllocatorBase<BlockAllocator<BlockSize, BlocksPerA
 public:
     BlockAllocator() = default;
 
-    BlockAllocator(Allocator allocator) : allocator(allocator) {}
-
-    BlockAllocator(Allocator allocator, size_t allocateBlocks) : allocator(allocator) {
-        allocateNewBlocks(allocateBlocks);
-    }
+    
+    BlockAllocator(Allocator allocator) : AllocatorHolderT(allocator) {}
 
     BlockAllocator(const Me& other) = delete;
+
+    using AllocatorHolderT::getAllocator;;
 
     void* allocateMultipleBlocks(size_t neededBlocks) {
         for (int i = (int)freeChunks.size()-1; i >= 0; i--) {
@@ -105,7 +104,7 @@ public:
 private:
     // returns a reference to the new free chunk made
     Chunk& allocateNewBlocks(size_t count) {
-        char* memory = (char*)allocator.get().allocate(count * BlockSize, BlockAlignment);
+        char* memory = (char*)getAllocator().allocate(count * BlockSize, BlockAlignment);
         __asan_poison_memory_region(memory, count * BlockSize);
         Chunk chunk = {
             memory,
@@ -117,6 +116,7 @@ private:
     }
 public:
     using Base::allocate;
+    using Base::New;
 
     void deallocate(void* ptr, size_t size, size_t /* alignment */) {
         size_t blocks = (size + BlockSize - 1) / BlockSize;
@@ -172,7 +172,7 @@ public:
 
     void deallocateAll() {
         for (Chunk& chunk : chunks) {
-            allocator.get().deallocate(chunk.ptr, chunk.blockCount * BlockSize, BlockAlignment);
+            getAllocator().deallocate(chunk.ptr, chunk.blockCount * BlockSize, BlockAlignment);
         }
         chunks.clear();
         freeChunks.clear();
@@ -225,10 +225,14 @@ public:
     }
 };
 
-struct ScratchMemory : public AllocateMethods<ScratchMemory> {
+struct ScratchMemory : public AllocatorBase<ScratchMemory> {
+private:
+    using Base = AllocatorBase<ScratchMemory>;
+protected:
     void* start;
     void* current;
     void* end;
+public:
 
     ScratchMemory() : start(nullptr), current(nullptr), end(nullptr) {}
 
@@ -256,12 +260,20 @@ struct ScratchMemory : public AllocateMethods<ScratchMemory> {
         ::free(memory.start);
     }
 
+    using Base::allocate;
+
     void* allocate(size_t size, size_t alignment) {
         void* ptr = alignPtr(current, alignment);
         current = (char*)ptr + size;
         __asan_unpoison_memory_region(ptr, size);
         assert(current <= end && "Out of space!");
         return ptr;
+    }
+
+    void deallocate(void* ptr, size_t size, size_t alignment) {
+        // can not deallocate
+        // act like we did though for sanitizers
+        __asan_poison_memory_region(ptr, size);
     }
 
     void reset() {
@@ -285,29 +297,21 @@ struct ScratchMemory : public AllocateMethods<ScratchMemory> {
 };
 
 template<typename Allocator = Mallocator>
-class ScratchAllocator : ScratchMemory, public AllocatorBase<ScratchAllocator<Allocator>> {
-    using Memory = ScratchMemory;
-    using Base = AllocatorBase<ScratchAllocator<Allocator>>;
+class ScratchAllocator : public ScratchMemory, private AllocatorHolder<Allocator> {
+    using Base = ScratchMemory;
     using Me = ScratchAllocator<Allocator>;
-    AllocatorHolder<Allocator> allocator;
 public:
+    using AllocatorHolder<Allocator>::getAllocator;
+
     ScratchAllocator() = default;
 
     ScratchAllocator(size_t size) {
         init(size);
     }
 
-    template<typename AllocT>
-    ScratchAllocator(size_t size, AllocT&& allocator) : allocator(std::forward<AllocT&&>(allocator)) {
+    ScratchAllocator(size_t size, Allocator allocator) : AllocatorHolder<Allocator>(allocator) {
         init(size);
     }
-
-    // ScratchAllocator(const Me& other) : allocator(other.allocator) {
-    //     assert(other.current)
-
-    //     assert(other.current == other.start && "cannot copy scratch constructor that has allocations");
-    //     create(other.allocationSize());
-    // }
 
     ScratchAllocator(const Me& other) = delete;
 
@@ -323,32 +327,21 @@ public:
 
     void init(size_t size) {
         assert(start == nullptr && "Scratch allocator already initialized!");
-        start = allocator.get().allocate(size, 1);
+        start = getAllocator().allocate(size, 1);
         assert(start);
         __asan_poison_memory_region(start, size);
         current = start;
         end = (char*)start + size;
     }
 
-    using Memory::allocate;
-    using Memory::reset;
-    using Memory::getAllocatedMemory;
-    using Memory::allocationSize;
-    using Memory::spaceRemaining;
-
     using Base::New;
+    using Base::reallocate;
     using Base::allocate;
     using Base::deallocate;
 
-    void deallocate(void* ptr, size_t size, size_t alignment) {
-        // can not deallocate
-        // act like we did though for sanitizers
-        __asan_poison_memory_region(ptr, size);
-    }
-
     void deallocateAll() {
         __asan_poison_memory_region(start, (uintptr_t)current - (uintptr_t)start);
-        allocator.get().deallocate(start, allocationSize(), 1);
+        getAllocator().deallocate(start, allocationSize(), 1);
         start = nullptr;
         current = nullptr;
         end = nullptr;

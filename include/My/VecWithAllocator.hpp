@@ -11,39 +11,29 @@ namespace AllocatorADT {
  * and result in faster compile times
  */ 
 template<typename T, typename Allocator>
-struct Vec {
+struct Vec : private AllocatorHolder<Allocator> {
     static_assert(std::is_trivially_move_assignable<T>::value && std::is_trivially_move_constructible<T>::value, "vec doesn't support complex types");
     using Type = T;
 
     T* data;
     int size;
     int capacity;
-    AllocatorHolder<Allocator> allocator;
+    using AllocatorHolderT = AllocatorHolder<Allocator>;
 
 private: 
     using Self = Vec<T, Allocator>;
     using ValueParamT = FastestParamType<T>;
 public:
+    using AllocatorHolderT::getAllocator;
 
     Vec() = default;
 
-    // inits to empty
     template<typename AllocT>
-    Vec(AllocT&& allocator)
-    : data(nullptr), size(0), capacity(0), allocator(std::forward<AllocT&&>(allocator)) {}
+    Vec(AllocT allocator)
+    : AllocatorHolderT(std::forward<AllocT&&>(allocator)), data(nullptr), size(0), capacity(0) {}
 
     inline static Self WithCapacity(Allocator&& allocator, int capacity) {
         return Self(allocator, capacity);
-    }
-
-    /* Create a vector with the given size and copy the given data to the vector
-     */
-    template<typename AllocT>
-    Vec(AllocT&& allocator, const T* _data, int _size) : allocator(std::forward<AllocT&&>(allocator)) {
-        data = this->allocator.get().template allocate<T>(_size);
-        memcpy(data, _data, _size * sizeof(T));
-        size = _size;
-        capacity = _size;
     }
 
     inline T* get(int index) const {
@@ -70,10 +60,10 @@ public:
         //return vec_push((Generic::Vec*)this, sizeof(T), &val);
         if (size+1 > capacity) {
             int newCapacity = capacity*2 > size+1 ? capacity*2 : size+1;
-            data = allocator.get().reallocate(data, capacity, newCapacity);
+            data = getAllocator().reallocate(data, capacity, newCapacity);
             capacity = newCapacity;
         }
-        memcpy(data + size, &val, sizeof(T));
+        data[size] = val;
         ++size;
     }
 
@@ -82,10 +72,10 @@ public:
         if (size + count > capacity) {
             // reallocate. Fortunately this makes the algorithm a lot simpler. just copy the new values in, then the old values
             int newCapacity = MAX(size + count, capacity*2);
-            T* newData = allocator->template allocate<T>((size_t)newCapacity);
-            memcpy(&newData[0], values, (size_t)count * sizeof(T));
-            memcpy(&newData[count], data, (size_t)size * sizeof(T));
-            allocator.get().deallocate(data, capacity);
+            T* newData = getAllocator().template allocate<T>((size_t)newCapacity);
+            std::copy(values, values + count, newData);
+            std::copy(data, data + size, newData + count);
+            getAllocator().deallocate(data, capacity);
             data = newData;
             size += count;
             capacity = newCapacity;
@@ -96,12 +86,12 @@ public:
             while (elementsMoved < size) {
                 int elementsLeftToMove = size - elementsMoved;
                 int batchSize = elementsLeftToMove < count ? elementsLeftToMove : count;
-                memcpy(&data[elementsMoved], &data[size - elementsMoved - 1], (size_t)batchSize * sizeof(T));
+                std::copy(&data[size - elementsMoved - 1], &data[size - elementsMoved - 1] &data[elementsMoved], &data[size - elementsMoved - 1], (size_t)batchSize * sizeof(T));
                 elementsMoved += batchSize;
             }
 
             // copy new elements into now unused space at beginning
-            memcpy(&data[0], values, (size_t)count * sizeof(T));
+            std::copy(values, values + count, data);
             size += count;
         }
     }
@@ -158,13 +148,13 @@ public:
      * When the new capacity couldn't be allocated, -1 will be returned
      */
     void reallocate(int newCapacity) {
-        data = allocator->reallocate(data, capacity, newCapacity);
+        data = getAllocator().eallocate(data, capacity, newCapacity);
         size = (size < newCapacity) ? size : newCapacity;
         capacity = newCapacity;
     }
 
     void clear() {
-        allocator->deallocate(data, size);
+        getAllocator().deallocate(data, size);
         data = nullptr;
         size = 0;
         capacity = 0;
@@ -221,7 +211,7 @@ public:
     void shrink(int count) {
         count = std::min(count, capacity - size);
         if (count > 0) {
-            data = allocator->reallocate(data, capacity, capacity - count);
+            data = getAllocator().reallocate(data, capacity, capacity - count);
             capacity -= count;
         }
     }
@@ -230,7 +220,7 @@ public:
      */
     int shrinkToFit() {
         if (capacity > size) {
-            data = allocator->reallocate(data, capacity, size);
+            data = getAllocator().reallocate(data, capacity, size);
             capacity = size;
         }
     }
@@ -240,7 +230,7 @@ public:
         if (size + count > capacity) {
             // reallocate. Fortunately this makes the algorithm a lot simpler. just copy the new values in, then the old values
             int newCapacity = MAX(size + count, capacity*2);
-            T* newData = allocator->template allocate<T>(newCapacity);
+            T* newData = getAllocator().template allocate<T>(newCapacity);
             // copy old data before index to range 0 - index
             memcpy(&newData[0], &data[0], index * sizeof(T));
             // copy values to range index - index + count
@@ -248,7 +238,7 @@ public:
             // copy old data after index to range index + count -  size + count
             memcpy(&newData[index + count], &data[index], (size - index) * sizeof(T));
 
-            allocator->deallocate(data, size);
+            getAllocator().deallocate(data, size);
             data = newData;
             size += count;
             capacity = newCapacity;
