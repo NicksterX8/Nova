@@ -6,6 +6,10 @@
 #include <stdio.h>
 #include "common-macros.hpp"
 
+namespace GUI {
+    struct Console;
+};
+
 namespace LogCategories {
 enum LogCategory {
     Main = SDL_LOG_CATEGORY_CUSTOM,
@@ -39,9 +43,11 @@ public:
     bool initialized = false;
     LogCategory category = LogCategory::Main; // The log category to use when logging, default is main
     bool useEscapeCodes = false; // Use ansi escape codes for colors and bolding when logging to console
-    bool logToConsole = true;
     char logOutputFilepath[512] = {'\0', };
     FILE* outputFile = NULL;
+    bool logToConsole = true;
+    // different than terminal
+    GUI::Console* gameConsoleOutput;
 
     static void logOutputFunction(void* logger, int category, SDL_LogPriority priority, const char *message);
 

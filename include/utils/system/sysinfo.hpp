@@ -6,6 +6,8 @@ constexpr bool SystemIsLittleEndian = !SystemIsBigEndian;
 
 #define CACHE_LINE_SIZE 128
 
+#define MACOS 1
+
 
 
 #endif

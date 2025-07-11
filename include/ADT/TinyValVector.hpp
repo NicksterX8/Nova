@@ -3,7 +3,7 @@
 
 #include "llvm/PointerUnion.h"
 #include "ValPtrUnion.hpp"
-#include "utils/systemInfo.hpp"
+#include "utils/system/sysinfo.hpp"
 
 template<typename T, uint8_t UnusedBitIndex, bool UnusedBitState = false, bool AssertBitUnused = false>
 class TinyValVectorFull : ValPtrUnion<T, llvm::SmallVector<T, 0>*, UnusedBitIndex, UnusedBitState, AssertBitUnused> {

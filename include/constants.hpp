@@ -11,6 +11,9 @@
 
 #define USE_SECONDARY_WINDOW 0
 #define WINDOW_HIGH_DPI 1
+#define TARGET_FPS 240
+#define TICKS_PER_SECOND 60
+#define ENABLE_VSYNC 1
 
 #define USE_MULTITHREADING 0
 
@@ -28,10 +31,6 @@ static_assert(CHUNKSIZE > 0, "Chunks can't be empty");
 
 const float PLAYER_SPEED = 0.11f;
 const float PLAYER_ROTATION_SPEED = 1.0f;
-
-#define TARGET_FPS 60
-#define TICKS_PER_SECOND 60
-#define ENABLE_VSYNC 0
 
 const float PLAYER_DIAMETER = 0.8f;
 

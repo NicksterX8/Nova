@@ -469,6 +469,9 @@ struct ISystem {
     }
 
     void clearJobs() {
+        for (auto& job : jobs) {
+            delete job.job;
+        }
         jobs.clear();
         jobDependencies.clear();
     }

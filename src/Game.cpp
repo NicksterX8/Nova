@@ -28,7 +28,7 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
     Camera& camera = ctx.camera;
     PlayerControls& playerControls = *ctx.playerControls;
     Vec2& mouseWorldPos = playerControls.mouseWorldPos;
-    DebugClass& debug = *ctx.debug;
+    DebugClass& debug = ctx.debug;
     ItemManager& itemManager = state.itemManager;
 
     KeyBinding* keyBindings[] = {
@@ -343,7 +343,7 @@ int Game::update() {
 
     DO_ONCE(LogInfo("Whats up?"));
     
-    double targetTPS = (double)Metadata->tick.targetUpdatesPerSecond;
+    double targetTPS = (double)TICKS_PER_SECOND;
     double fixedFrametime = 1000.0 / targetTPS;
     constexpr int maxTicks = 3; // per frame
 
@@ -394,12 +394,12 @@ int Game::update() {
         scale
     };
 
-    std::vector<GameAction> guiActions = gui->updateGuiState(state, *playerControls);
+    std::vector<GameAction> guiActions = gui.updateGuiState(state, *playerControls);
     for (auto& action : guiActions) {
         action.function(this);
     }
 
-    render(*renderContext, options, gui, state, camera, *playerControls, mode, true); 
+    render(*renderContext, options, &gui, state, camera, *playerControls, mode, true); 
 
     lastUpdateMouseState = mouse;
     lastUpdatePlayerTargetPos = playerControls->mouseWorldPos;
@@ -411,20 +411,26 @@ int Game::update() {
     return 0; 
 }
 
-int Game::init() {
+int Game::init(SDLContext sdlContext) {
+    this->metadata = MetadataTracker(TARGET_FPS, TICKS_PER_SECOND, ENABLE_VSYNC);
+    Metadata = &this->metadata;
+    // metadata.start(); // have to call this so logging knows what time it is
+
     LogInfo("Game init start");
+    this->mode = Unstarted;
 
-    this->gui = essentialAllocator.New<Gui>();
+    this->debug.debugging = true;
+    this->debug.console = &this->gui.console;
+    Debug = &this->debug;
     
-    this->debug->console = &this->gui->console;
-
-    this->renderContext = essentialAllocator.New<RenderContext>(sdlCtx.primary.window, sdlCtx.primary.glContext);
+    this->renderContext = new RenderContext(sdlCtx.primary.window, sdlCtx.primary.glContext);
+    // this->renderContext = NEW(RenderContext(sdlCtx.primary.window, sdlCtx.primary.glContext), essentialAllocator);
     LogInfo("starting render init");
     renderInit(*renderContext);
 
-    this->gui->init(renderContext->guiRenderer, this);
+    this->gui.init(renderContext->guiRenderer, this);
 
-    this->state = essentialAllocator.New<GameState>();
+    this->state = NEW(GameState());
     this->state->init(&renderContext->textures);
 
     this->systems.ecsRenderSystems.entityManager = &this->state->ecs->em;
@@ -463,7 +469,7 @@ int Game::init() {
         },
     });
 
-    this->playerControls = essentialAllocator.New<PlayerControls>(this);
+    this->playerControls = NEW(PlayerControls(this));
     SDL_FPoint mousePos = SDL::getMousePixelPosition();
     this->lastUpdateMouseState = {
         .position = {mousePos.x, mousePos.y},
@@ -489,7 +495,7 @@ int Game::init() {
     SDL_Color colors[] = {
         red, green, blue, red, blue, blue, green, green, green, red, blue, green, blue
     };
-    gui->console.newMessage("This is crazy", GUI::Console::MessageType::Error, colors);
+    gui.console.newMessage("This is crazy", GUI::Console::MessageType::Error, colors);
 
     return 0;
 }
@@ -516,7 +522,7 @@ int Game::start() {
     mode = Playing;
 
     if (metadata.vsyncEnabled) {
-        metadata.frame.targetUpdatesPerSecond = 60;
+        metadata.frame.targetUpdatesPerSecond = 60.0f;
     } else {
         metadata.frame.targetUpdatesPerSecond = TARGET_FPS;
     }

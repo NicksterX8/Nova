@@ -46,7 +46,8 @@ SDL_Window* createWindow(const char* windowTitle, SDL_Rect windowRect, const cha
 }
 
 SDLContext initSDL(const char* windowTitle, SDL_Rect windowRect) {
-    bool vsync = true;
+    bool vsync = ENABLE_VSYNC;
+    bool useAdaptiveVsync = false; // if using vsync - not using rn because i'm not sure if its good on mac or not
     auto windowIconPath = FileSystem.assets.get("bad-factorio-logo.png");
 
     int sdlSubsystemsNeeded[5] = {
@@ -125,15 +126,26 @@ SDLContext initSDL(const char* windowTitle, SDL_Rect windowRect) {
         }
         SDL_GL_MakeCurrent(context.primary.window, context.primary.glContext);
     }
+    
+    if (vsync) {
+        if (useAdaptiveVsync && SDL_GL_SetSwapInterval(-1)) {
+            LogInfo("Using adaptive vsync");
+        } else {
+            LogInfo("Using static vsync");
+            SDL_GL_SetSwapInterval(1); // wait till display update
+        }
+    } else {
+        SDL_GL_SetSwapInterval(0); // swap frames immediately
+    }
 
     SDL::pixelScale = SDL::getPixelScale(context.primary.window);
 
     SDL_Log("SDL Window Context initialized.");
 
-    if (vsync)
-        SDL_GL_SetSwapInterval(1); // wait till display update
-    else
-        SDL_GL_SetSwapInterval(0); // swap frames immediately
+    // if (vsync)
+    //     SDL_GL_SetSwapInterval(1); 
+    // else
+    //     SDL_GL_SetSwapInterval(0); 
 
     return context;
 }

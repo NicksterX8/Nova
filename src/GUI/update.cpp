@@ -4,7 +4,7 @@
 namespace GUI {
 
 void updateHotbar(Game* g, Element hotbarElement) {
-    auto& manager = g->gui->manager;
+    auto& manager = g->gui.manager;
     auto* inventory = g->state->player.inventory();
     if (!inventory) {
         manager.hideElement(hotbarElement);
@@ -18,7 +18,7 @@ void updateHotbarSlot(Game* game, Element slot) {
     auto* playerInventory = game->state->player.inventory();
     if (!playerInventory) return;
 
-    auto& manager = game->gui->manager;
+    auto& manager = game->gui.manager;
     auto* slotComponent = manager.getComponent<EC::HotbarSlot>(slot);
     ItemStack stack = playerInventory->get(slotComponent->slot);
 

@@ -96,9 +96,9 @@ namespace Commands {
         auto value = args.get();
 
         if (value == "1" || value == "true" || value == "y" || value == "True") {
-            game->debug->settings[settingName] = 1;
+            game->debug.settings[settingName] = 1;
         } else {
-            game->debug->settings[settingName] = 0;
+            game->debug.settings[settingName] = 0;
         }
 
         return RES_SUCCESS("Setting changed.");
@@ -567,7 +567,7 @@ void setCommands(Game* game) {
     REG_COMMAND(setCameraFocus, &game->cameraFocus, ecs);
     REG_COMMAND(getTick, 0);
     REG_COMMAND(commands, 0);
-    REG_COMMAND(clear, &game->gui->console);
+    REG_COMMAND(clear, &game->gui.console);
     REG_COMMAND(setDebugSetting, game);
     REG_COMMAND(setUniform, ren->shaders);
     REG_COMMAND(pause, game);

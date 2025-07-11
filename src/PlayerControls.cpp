@@ -47,7 +47,7 @@ PlayerControls::PlayerControls(Game* game) : camera(game->camera), game(game) {
 
 bool PlayerControls::pixelInWorld(glm::vec2 pixel) {
     bool clickInDisplay = pointInRect(pixel, camera.displayViewport);
-    bool clickOnGui = game->gui->pointInArea(pixel);
+    bool clickOnGui = game->gui.pointInArea(pixel);
     return clickInDisplay && !clickOnGui;
 }
 
@@ -60,10 +60,10 @@ std::vector<GameAction> PlayerControls::handleClick(const SDL_MouseButtonEvent& 
 
     bool mouseClickedOnNewGui = false;
 
-    GUI::Element hoveredGuiElement = game->gui->manager.hoveredElement;
+    GUI::Element hoveredGuiElement = game->gui.manager.hoveredElement;
     if (hoveredGuiElement != GUI::NullElement) {
         mouseClickedOnNewGui = true;
-        if (auto* button = game->gui->manager.getComponent<GUI::EC::Button>(hoveredGuiElement)) {
+        if (auto* button = game->gui.manager.getComponent<GUI::EC::Button>(hoveredGuiElement)) {
             actions.push_back(guiActionToGameAction(button->onClick, hoveredGuiElement));
         }
     }
@@ -73,7 +73,7 @@ std::vector<GameAction> PlayerControls::handleClick(const SDL_MouseButtonEvent& 
     //SDL_Point mousePos = {(int)(event.x * SDL::pixelScale), (int)(event.y * SDL::pixelScale)};
     //Vec2 worldPos = camera.pixelToWorld(mousePos.x, mousePos.y);
     bool clickInDisplay = pointInRect(mousePos, camera.displayViewport);
-    bool clickOnGui = game->gui->pointInArea(mousePos) || mouseClickedOnNewGui;
+    bool clickOnGui = game->gui.pointInArea(mousePos) || mouseClickedOnNewGui;
     bool clickInWorld = clickInDisplay && !clickOnGui;
     Tile* selectedTile = getTileAtPosition(game->state->chunkmap, mouseWorldPos);
     if (event.button == SDL_BUTTON_LEFT) {
@@ -130,7 +130,7 @@ void PlayerControls::leftMouseHeld(const MouseState& mouse) {
     Vec2 mousePos = mouse.position;
     if (pointInRect(mousePos, camera.displayViewport)) {
         glm::vec2 relMousePos = {mousePos.x - camera.displayViewport.x, mousePos.y - camera.displayViewport.y};
-        if (!game->gui->pointInArea(relMousePos)) {
+        if (!game->gui.pointInArea(relMousePos)) {
             // do something
         }
     }
@@ -187,7 +187,7 @@ void PlayerControls::playerMouseTargetMoved(const MouseState& mouseState, const 
 
     if (mouseState.buttons & SDL_BUTTON_LMASK) {
         // only do it if the isnt in the gui either currently or previously
-        if (!game->gui->pointInArea(mouseState.position)) {
+        if (!game->gui.pointInArea(mouseState.position)) {
             auto line = raytraceDDA(prevWorldPos, newWorldPos);
             StackAllocate<Tile, 8> tiles{line.size()};
             getTiles(game->state->chunkmap, line.data(), tiles.data(), line.size());
@@ -211,7 +211,7 @@ void PlayerControls::handleKeydown(const SDL_KeyboardEvent& event) {
     const SDL_Keycode keycode = event.key;
     const SDL_Scancode scancode = event.scancode;
 
-    auto commandInput = game->gui->console.handleKeypress(keycode, gCommands, enteringText);
+    auto commandInput = game->gui.console.handleKeypress(keycode, gCommands, enteringText);
     if (commandInput)
         handleCommandInput(commandInput);
 
@@ -276,7 +276,7 @@ void PlayerControls::handleCommandInput(CommandInput commandInput) {
             message = std::string(messageBuf);
         }
 
-        game->gui->console.newMessage(message.c_str(), GUI::Console::MessageType::CommandResult);
+        game->gui.console.newMessage(message.c_str(), GUI::Console::MessageType::CommandResult);
     }
 }
 
@@ -320,7 +320,7 @@ std::vector<GameAction> PlayerControls::handleEvent(const SDL_Event* event) {
     case SDL_EVENT_TEXT_INPUT: {
         const char* text = event->text.text;
         if (enteringText) {
-            game->gui->console.enterText(text);
+            game->gui.console.enterText(text);
         }
         break;
     }

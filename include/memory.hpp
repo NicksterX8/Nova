@@ -14,46 +14,19 @@ void* _malloc(size_t size);
 void  _free(void* ptr);
 void* _realloc(void* ptr, size_t size);
 
-/* Variations */
-
-struct MemoryBlock {
-    void* ptr;
-    size_t size;
-};
-
-// TODO: get rid of this because it is a static constructor
-extern std::function<void()> needMemoryCallback;
-extern std::function<void()> memoryFailCallback;
-
-using AllocCallback = std::function<MemoryBlock()>;
-
-// \param required whether the memory is required to be allocated or NULL can be returned
-MemoryBlock failedToAlloc(bool required, AllocCallback callback);
 
 /* Debug versions */
 
-void* debug_malloc(void *malloc_func(size_t), size_t size, const char* file, int line);
-void debug_free(void free_func(void*), void* ptr, const char* file, int line) noexcept;
+void* debug_malloc(size_t size, const char* file, int line);
+void debug_free(void* ptr, const char* file, int line) noexcept;
 
 } // namespace Mem
 
 // new never returns null
-void* operator new(size_t size, const char* file, int line);
-void operator delete(void* ptr, const char* file, int line) noexcept;
+// void* operator new(size_t size, const char* file, int line);
+// void operator delete(void* ptr, const char* file, int line) noexcept;
 
 namespace Mem {
-
-void handler(int sig);
-
-inline void init(std::function<void()> _needMemoryCallback, std::function<void()> _memoryFailCallback) {
-   needMemoryCallback = _needMemoryCallback;
-   memoryFailCallback = _memoryFailCallback;
-   signal(SIGSTOP, handler);
-}
-
-inline void quit() {
-    // nothing yet
-}
 
 /* Interface */
 
@@ -200,15 +173,17 @@ void* operator new[](size_t size, AlignWrapper align, Allocator& allocator) {
 }
 
 inline void* operator new(size_t size, AlignWrapper align, const char* file, int line) {
-    LogDebug("%s:%d New", file, line);
+    LogInfo("%s:%d New", file, line);
     return malloc(size);
 }
 
 template<typename Allocator>
 void* operator new(size_t size, AlignWrapper align, const char* file, int line, Allocator& allocator) {
-    LogDebug("%s:%d New", file, line);
+    LogInfo("%s:%d New", file, line);
     return allocator.allocate(size, align.align);
 }
+
+#define ALLOCATION_DEBUG_LOCATION 1
 
 #ifndef ALLOCATION_DEBUG_LOCATION
     #define NEW(constructor, ...) new (AlignWrapper{alignof(decltype(constructor))}, ##__VA_ARGS__) constructor

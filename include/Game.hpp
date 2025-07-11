@@ -56,26 +56,43 @@ struct GameEntitySystems {
 
 struct Game {
     SDLContext sdlCtx;
-    GameState* state;
+    GameState* state = nullptr;
     Camera camera;
     CameraFocus cameraFocus;
-    Gui* gui;
-    PlayerControls* playerControls;
+    Gui gui;
+    PlayerControls* playerControls = nullptr;
     MouseState lastUpdateMouseState;
     Vec2 lastUpdatePlayerTargetPos;
-    DebugClass* debug;
+    DebugClass debug;
     MetadataTracker metadata;
-    RenderContext* renderContext;
+    RenderContext* renderContext = nullptr;
     GameEntitySystems systems;
     Mode mode;
 private:
     bool m_paused = false;
-    using EssentialAllocator = ScratchAllocator<Mallocator>;
+    using EssentialAllocator = ScratchAllocator<>;
 public:
     EssentialAllocator essentialAllocator;
     BlockAllocator<2048, 4> blockAllocator;
 
-    bool isPaused() const {
+    Game() {
+
+    }
+
+    int init(SDLContext sdlContext);
+
+    int start();
+
+    void quit();
+
+    void destroy();
+
+    int update();
+
+    // @return 1 for quit game, 0 otherwise
+    int handleEvent(const SDL_Event*);
+
+     bool isPaused() const {
         return m_paused;
     }
 
@@ -89,37 +106,9 @@ public:
         Global.paused = false;
     }
 
-    Game(SDLContext sdlContext):
-    sdlCtx(sdlContext), metadata(TARGET_FPS, TICKS_PER_SECOND, ENABLE_VSYNC),
-    essentialAllocator((1ULL << 15)), blockAllocator() {
-        Metadata = &metadata;
-
-        trackAllocator("Essential Allocator", &essentialAllocator);
-        trackAllocator("Medium allocator", &blockAllocator);
-
-        debug = blockAllocator.New<DebugClass>();
-        Debug = debug;
-        debug->debugging = 1;
-
-        state = NULL;
-        gui = NULL;
-        playerControls = NULL;
-        renderContext = NULL;
-        mode = Unstarted;
+    void setMode(Mode mode) {
+        this->mode = mode;
     }
-
-    int init();
-
-    int start();
-
-    void quit();
-
-    void destroy();
-
-    int update();
-
-    // @return 1 for quit game, 0 otherwise
-    int handleEvent(const SDL_Event*);
 
 #ifdef EMSCRIPTEN
     // update wrapper function to unwrap the void pointer main loop parameter into its properties
@@ -135,10 +124,6 @@ public:
         
     }
 #endif
-
-    void setMode(Mode mode) {
-        this->mode = mode;
-    }
 
 };
 

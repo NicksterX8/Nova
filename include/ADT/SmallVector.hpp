@@ -469,7 +469,7 @@ void SmallVectorTemplateBase<T, AllocatorT, TriviallyCopyable>::takeAllocationFo
     T *NewElts, size_t NewCapacity) {
   // If this wasn't grown from the inline copy, deallocate the old space.
   if (!this->isSmall())
-     getAllocator().deallocate((void*)this->begin(), this->Capacity * sizeof(T), alignof(std::max_align_t));;
+     getAllocator().deallocate((void*)this->begin(), this->Capacity * sizeof(T), alignof(std::max_align_t));
 
   this->BeginX = NewElts;
   this->Capacity = NewCapacity;

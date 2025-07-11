@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "llvm/PointerIntPair.h"
-#include "utils/systemInfo.hpp"
+#include "utils/system/sysinfo.hpp"
 
 template<typename T, typename PtrT, uint8_t UnusedBitIndex = sizeof(T) * 8, bool UnusedBitState = 0, bool AssertBitUnused = false>
 struct ValPtrUnionFull {

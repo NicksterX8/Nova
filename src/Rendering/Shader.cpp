@@ -166,7 +166,7 @@ GLint Shader::getUniformLocation(const char* name) const {
 
     GLint loc = glGetUniformLocation(id, name);
     if (loc == -1) {
-        LogOnce(Error, "Shader::%s - Failed to get uniform location for \"%s\"", getShaderName(getShaderIDFromProgramID(this->id)), name);
+        LogOnce(Warn, "Shader::%s - Failed to get uniform location for \"%s\"", getShaderName(getShaderIDFromProgramID(this->id)), name);
     }
     return loc;
 }

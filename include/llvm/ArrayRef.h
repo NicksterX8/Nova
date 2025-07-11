@@ -90,6 +90,13 @@ namespace llvm {
       : Data(Vec.data()), Length(Vec.size()) {
     }
 
+    /// Construct an ArrayRef from a SmallVector with a custom allocator.
+    template <typename AllocatorT, typename U>
+    /*implicit*/ ArrayRef(
+        const WithAllocator::SmallVectorTemplateCommon<T, AllocatorT, U> &Vec)
+        : Data(Vec.data()), Length(Vec.size()) {
+    }
+
     /// Construct an ArrayRef from a std::vector.
     template<typename A>
     /*implicit*/ ArrayRef(const std::vector<T, A> &Vec)
@@ -133,6 +140,16 @@ namespace llvm {
     template <typename U, typename DummyT>
     /*implicit*/ ArrayRef(
         const SmallVectorTemplateCommon<U *, DummyT> &Vec,
+        std::enable_if_t<std::is_convertible<U *const *, T const *>::value> * =
+            nullptr)
+        : Data(Vec.data()), Length(Vec.size()) {}
+
+    /// Construct an ArrayRef<const T*> from a SmallVector<T*> with a custom
+    /// allocator.
+    template <typename U, typename AllocatorT, typename DummyT>
+    /*implicit*/ ArrayRef(
+        const WithAllocator::SmallVectorTemplateCommon<U *, AllocatorT,
+                                                       DummyT> &Vec,
         std::enable_if_t<std::is_convertible<U *const *, T const *>::value> * =
             nullptr)
         : Data(Vec.data()), Length(Vec.size()) {}
@@ -609,25 +626,26 @@ namespace llvm {
   /// @name ArrayRef Comparison Operators
   /// @{
 
-  template<typename T>
-  inline bool operator==(ArrayRef<T> LHS, ArrayRef<T> RHS) {
-    return LHS.equals(RHS);
-  }
+  // nick w: These seem dangerous and could trick you
+  // template<typename T>
+  // inline bool operator==(ArrayRef<T> LHS, ArrayRef<T> RHS) {
+  //   return LHS.equals(RHS);
+  // }
 
-  template <typename T>
-  inline bool operator==(SmallVectorImpl<T> &LHS, ArrayRef<T> RHS) {
-    return ArrayRef<T>(LHS).equals(RHS);
-  }
+  // template <typename T>
+  // inline bool operator==(SmallVectorImpl<T> &LHS, ArrayRef<T> RHS) {
+  //   return ArrayRef<T>(LHS).equals(RHS);
+  // }
 
-  template <typename T>
-  inline bool operator!=(ArrayRef<T> LHS, ArrayRef<T> RHS) {
-    return !(LHS == RHS);
-  }
+  // template <typename T>
+  // inline bool operator!=(ArrayRef<T> LHS, ArrayRef<T> RHS) {
+  //   return !(LHS == RHS);
+  // }
 
-  template <typename T>
-  inline bool operator!=(SmallVectorImpl<T> &LHS, ArrayRef<T> RHS) {
-    return !(LHS == RHS);
-  }
+  // template <typename T>
+  // inline bool operator!=(SmallVectorImpl<T> &LHS, ArrayRef<T> RHS) {
+  //   return !(LHS == RHS);
+  // }
 
   /// @}
   /* // not necessary and requires hash stuff I don't want to included

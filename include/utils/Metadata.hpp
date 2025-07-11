@@ -22,6 +22,14 @@ struct UpdateMetadata {
     double ups = 0.0; // updates per second
     int oldestTrackedUpdate = 0;
 
+    UpdateMetadata() {
+        memset(this, 0, sizeof(*this));
+    }
+
+    UpdateMetadata(Uint32 targetUpdatesPerSecond)
+    : deltaTime(NAN), currentPerfCount(GetPerformanceCounter()), lastPerfCount(GetPerformanceCounter()),
+    targetUpdatesPerSecond(targetUpdatesPerSecond), updateCount(0) {}
+
     Uint32 update() {
         lastPerfCount = currentPerfCount;
         currentPerfCount = GetPerformanceCounter();
@@ -50,10 +58,6 @@ struct UpdateMetadata {
 
         return ++updateCount;
     }
-
-    UpdateMetadata(Uint32 targetUpdatesPerSecond)
-    : deltaTime(NAN), currentPerfCount(GetPerformanceCounter()), lastPerfCount(GetPerformanceCounter()),
-    targetUpdatesPerSecond(targetUpdatesPerSecond), updateCount(0) {}
 };
 
 
@@ -79,6 +83,8 @@ struct MetadataTracker {
 
 public:
     bool vsyncEnabled;
+
+    MetadataTracker() {}
 
     MetadataTracker(Uint32 targetFps, Uint32 targetTps, bool vsync);
 

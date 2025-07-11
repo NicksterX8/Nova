@@ -39,7 +39,7 @@ struct DebugSettings {
 
 struct DebugClass {
 public:
-    bool debugging = false;
+    bool debugging = true;
 
     DebugSettings settings;
 

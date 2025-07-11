@@ -4,7 +4,7 @@
 #include "global.hpp"
 #include "moodycamel/concurrentqueue.h"
 #include "utils/allocators.hpp"
-#include "utils/systemInfo.hpp"
+#include "utils/system/sysinfo.hpp"
 
 using namespace ECS;
 using namespace ECS::System;
@@ -46,11 +46,11 @@ void calculateJobStagesFromSource(ISystem* system, int* stages, JobHandle source
 }
 
 void calculateJobStages(ISystem* system, TinyPtrVectorVector<ISystem::ScheduledJob>* jobsByStage) {
-    StackAllocate<int, 14> stages(system->jobs.size(), -1);
+    StackAllocate<int, 14> stages{system->jobs.size(), -1};
     for (int i = 0; i < system->jobs.size(); i++) {
         IJob* job = system->jobs[i].job;
         if (stages[i] == -1) {
-            calculateJobStagesFromSource(system, stages.data(), i, 0);
+            calculateJobStagesFromSource(system, stages, i, 0);
         }
     }
 

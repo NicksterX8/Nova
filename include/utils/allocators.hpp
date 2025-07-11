@@ -416,7 +416,7 @@ struct FreelistAllocator {
 // StackElements: The number of elements to allocate on the stack
 template<typename T, size_t StackElements>
 struct StackAllocate {
-    constexpr static size_t NumStackElements = StackElements;
+    constexpr static int NumStackElements = StackElements;
     static_assert(NumStackElements > 0, "Max struct size too small to hold any elements!");
 private:
     std::array<T, NumStackElements> stackElements;
@@ -424,7 +424,10 @@ private:
 
     using Me = StackAllocate<T, StackElements>;
 public:
-    StackAllocate(size_t size) {
+    StackAllocate(size_t size) : StackAllocate((int)size) {}
+    StackAllocate(size_t size, const T& initValue) : StackAllocate((int)size, initValue) {}
+
+    StackAllocate(int size) {
         if (size <= NumStackElements) {
             _data = stackElements.data();
         } else {
@@ -432,7 +435,7 @@ public:
         }
     }
 
-    StackAllocate(size_t size, const T& initValue) {
+    StackAllocate(int size, const T& initValue) {
         if (size <= NumStackElements) {
             _data = stackElements.data();
         } else {
@@ -452,6 +455,10 @@ public:
 
     T& operator[](int index) {
         return _data[index];
+    }
+
+    operator T*() {
+        return _data;
     }
 
     ~StackAllocate() {

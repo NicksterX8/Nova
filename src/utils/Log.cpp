@@ -3,6 +3,12 @@
 #include "GUI/Gui.hpp"
 
 void Logger::logOutputFunction(LogCategory category, LogPriority priority, const char *message) const {
+    if (priority == LogPriority::Debug) {
+        if (!Debug->debugging) {
+            return;
+        }
+    }
+
     const char* fg = "";
     const char* prefix = "";
     char end = '\n';
@@ -34,40 +40,40 @@ void Logger::logOutputFunction(LogCategory category, LogPriority priority, const
 
     int messageLength = strlen(message);
 
-    char* text = Alloc<char>(messageLength + 128);
-    snprintf(text, messageLength+128, "%s%s", prefix, message);
+    StackAllocate<char, 256> text{messageLength + 64};
+    snprintf(text, messageLength+64, "%s%s", prefix, message);
 
-    char* consoleMessage = Alloc<char>(messageLength + 128);
+    StackAllocate<char, 256> consoleMessage{messageLength + 64};
     if (useEscapeCodes)
-        snprintf(consoleMessage, messageLength + 128, "\033[%s;0;%sm%s\033[0m%c", effect, fg, text, end);
+        snprintf(consoleMessage, messageLength + 64, "\033[%s;0;%sm%s\033[0m%c", effect, fg, text.data(), end);
     else
-        snprintf(consoleMessage, messageLength + 128, "%s%c", text, end);
+        snprintf(consoleMessage, messageLength + 64, "%s%c", text.data(), end);
 
     switch (category) {
     using namespace LogCategories;
     case Main:
-        printf("%s", consoleMessage);
+        printf("%s", consoleMessage.data());
         break;
     case Test:
         printf("test message\n");
         break;
     default:
-        printf("%s", consoleMessage);
+        printf("%s", consoleMessage.data());
         break;
     }
 
     if (outputFile) {
-        char* fileMessage = Alloc<char>(messageLength+1);
+        StackAllocate<char, 128> fileMessage{messageLength+1};
         strncpy(fileMessage, message, messageLength);
         fileMessage[messageLength] = '\n';
         fwrite(fileMessage, messageLength+1, 1, outputFile);
     }
 
-    if (Debug && Debug->console) {
+    if (gameConsoleOutput) {
         GUI::Console::MessageType messageType = GUI::Console::MessageType::Default;
         if (priority == LogPriorities::Error)
             messageType = GUI::Console::MessageType::Error;
-        Debug->console->newMessage(message, messageType);
+        gameConsoleOutput->newMessage(message, messageType);
     }
 }
 

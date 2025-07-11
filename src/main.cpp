@@ -12,7 +12,7 @@
 #include "utils/Debug.hpp"
 #include "GameSave/main.hpp"
 #include "global.hpp"
-#include "utils/systemInfo.hpp"
+#include "utils/system/sysinfo.hpp"
 
 #include "memory.hpp"
 #include "physics/physics.hpp"
@@ -23,11 +23,14 @@
 #include "ADT/SmallVector.hpp"
 #include "utils/allocators.hpp"
 
+#include "utils/system/signpost.hpp"
+
 #ifdef DEBUG
     //#include "Testing.hpp"
 #endif
 
-void initLogging() {
+void initLogging(GUI::Console* console) {
+    gLogger.gameConsoleOutput = console;
     SDL_SetLogOutputFunction(Logger::logOutputFunction, &gLogger);
     SDL_SetLogPriorities(SDL_LOG_PRIORITY_ERROR);
     SDL_SetLogPriority(LogCategory::Main, SDL_LOG_PRIORITY_INFO);
@@ -76,7 +79,12 @@ int main(int argc, char** argv) {
         }
     }
 
-    initLogging();
+    Game game;
+    game.essentialAllocator.init(1ULL << 15);
+    trackAllocator("Essential Allocator", &game.essentialAllocator);
+    trackAllocator("Medium allocator", &game.blockAllocator);
+
+    initLogging(nullptr);
     initPaths();
     gLogger.init(FileSystem.save.get("log.txt"));
     
@@ -97,29 +105,18 @@ int main(int argc, char** argv) {
 
     tests();
 
-    Game* game = new Game(sdlCtx);
-    Mem::init(
-        [&]() { // need memory
-            //auto state = game->state;
-            //state->ecs.minmizeMemoryUsage();
-        },
-        [&]() { // failed to get enough memory, crash.
-            logCrash(CrashReason::MemoryFail, "Out of memory!");
-        }
-    );
-
     int code = 0;
-    code = game->init();
+    code = game.init(sdlCtx);
     if (code) {
         LogCrash(CrashReason::GameInitialization, "Couldn't init game. code: %d", code);
     }
-    code = game->start(); // start indefinitely long game loop
+    code = game.start(); // start indefinitely long game loop
     if (code) {
         LogCrash(CrashReason::GameInitialization, "Couldn't start game. code: %d", code);
     }
     // runs after the game loop has ended
-    game->quit();
-    game->destroy();
+    game.quit();
+    game.destroy();
 
     gLogger.destroy();
     FileSystem.destroy();

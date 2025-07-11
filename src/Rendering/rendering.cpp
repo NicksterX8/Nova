@@ -105,6 +105,9 @@ static void renderChunk(RenderContext& ren, const Camera& camera, Chunk* chunk, 
     }
 
     // animations
+    // TODO: OPTIMIZATION: make animations pick animation frame from shader
+    // or even just ban animations from tiles and make it a whole separate thing.
+    // regardless, this can be optimized hugely
     for (int row = 0; row < CHUNKSIZE; row++) {
         for (int col = 0; col < CHUNKSIZE; col++) {
             int index = (row * CHUNKSIZE + col) * 4;
