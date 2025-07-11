@@ -1,13 +1,12 @@
-#ifndef UTILS_ALLOCATOR_INCLUDED
-#define UTILS_ALLOCATOR_INCLUDED
+#ifndef MEMORY_ALLOCATOR_INCLUDED
+#define MEMORY_ALLOCATOR_INCLUDED
 
 #include <stdint.h>
 #include <stddef.h>
 #include <string>
 #include <cassert>
-#include "llvm/Compiler.h"
-
-#define ADDRESS_SANITIZER_BUILD LLVM_ADDRESS_SANITIZER_BUILD
+#include "utils/compiler.hpp"
+#include "My/String.hpp"
 
 inline size_t getAlignedOffset(size_t offset, size_t align) {
     return ((offset + align - 1) & ~(align - 1U));
@@ -33,17 +32,25 @@ template<typename Derived>
 struct DeallocateMethods {
     template<typename T>
     void deallocate(T* ptr, size_t count = 1) {
-        static_cast<Derived*>(this)->deallocate(ptr, count * sizeof(T), alignof(T));
+        static_cast<Derived*>(this)->deallocate((void*)ptr, count * sizeof(T), alignof(T));
     }
 
     template<typename T>
     void Delete(T* ptr, size_t count = 1) {
-        // run destructor
+        // destruct then deallocate
         for (int i = 0; i < count; i++) {
             ptr[i].~T();
         }
         deallocate(ptr, count);
     }
+
+    template<typename T>
+    void DeleteWithSize(T* ptr, size_t size, size_t count = 1) {
+        for (int i = 0; i < count; i++) {
+            ptr[i].~T();
+        }
+        static_cast<Derived*>(this)->deallocate((void*)ptr, count * size, alignof(T));
+    } 
 };
 
 template<typename Derived>
@@ -70,18 +77,21 @@ struct AllocateMethods {
 
 class AllocatorI {};
 
-
 template<typename Derived>
-class AllocatorBase : AllocatorI, public AllocateMethods<Derived>, public DeallocateMethods<Derived> {
+class AllocatorBase : public AllocatorI, public AllocateMethods<Derived>, public DeallocateMethods<Derived> {
     // Required to define to be an allocator:
     // void* allocate(size_t size, size_t alignment)
     // void deallocate(void* ptr, size_t size, size_t alignment)
+    // even if deallocation isn't actually needed, define it because of template allocator usage and preferably poison the memory
     // optional:
     // reallocate(void* ptr, size_t oldSize, size_t newSize, size_t alignment)
+    // static constexpr bool needDeallocate() if deallocate isn't necessary like a scratch allocator
     // getAllocatorStats() recommended
 
 public:
-    using AllocateMethods<Derived>::allocate;
+    static constexpr bool NeedDeallocate() {
+        return true; // default to yes. overrideable by derived if it's not
+    }
 
     void* reallocate(void* ptr, size_t oldSize, size_t newSize, size_t alignment) {
         void* newPtr = static_cast<Derived*>(this)->allocate(newSize, alignment);
@@ -107,13 +117,14 @@ struct AllocatorStats {
 
 
 template <typename Allocator>
-class AllocatorHolder : public Allocator {
+class AllocatorHolder {
+    EMPTY_BASE_OPTIMIZE Allocator allocator;
 public:
     AllocatorHolder() = default;
-    AllocatorHolder(const Allocator &allocator) : Allocator(allocator) {}
-    AllocatorHolder(Allocator &&allocator) : Allocator(static_cast<Allocator &&>(allocator)) {}
-    Allocator &getAllocator() { return *this; }
-    const Allocator &getAllocator() const { return *this; }
+    AllocatorHolder(const Allocator &allocator) : allocator(allocator) {}
+    AllocatorHolder(Allocator &&allocator) : allocator(static_cast<Allocator &&>(allocator)) {}
+    Allocator &getAllocator() { return allocator; }
+    const Allocator &getAllocator() const { return allocator; }
 };
 
 template <typename Allocator>
@@ -125,14 +136,24 @@ public:
     const Allocator &getAllocator() const { return allocator; }
 };
 
+// maybe implement
+// enum class AllocatorType {
+//     Permanent,
+//     Temporary
+// };
 
 /* Polymorphic allocator made from any allocator base */
 class AbstractAllocator {
 protected:
-    void* realAllocator;
+    AllocatorI* realAllocator;
     std::string name;
+    bool deallocNecessary = true;
 public:
-    AbstractAllocator(void* realAllocator) : realAllocator(realAllocator) {}
+    AbstractAllocator(AllocatorI* realAllocator) : realAllocator(realAllocator) {}
+
+    AllocatorI* getPointer() const {
+        return realAllocator;
+    }
 
     virtual void* allocate(size_t size, size_t alignment) {
         assert("No allocate method defined!");
@@ -182,9 +203,11 @@ public:
 
 template<typename Allocator>
 class AbstractAllocatorImpl : public AbstractAllocator {
-
+    
 public:
-    AbstractAllocatorImpl(Allocator* realAllocator) : AbstractAllocator(realAllocator) {}
+    AbstractAllocatorImpl(Allocator* realAllocator) : AbstractAllocator(realAllocator) {
+        deallocNecessary = Allocator::NeedDeallocate();
+    }
 
     void* allocate(size_t size, size_t alignment) override {
         return static_cast<Allocator*>(realAllocator)->allocate(size, alignment);
@@ -201,13 +224,12 @@ public:
     AllocatorStats getAllocatorStats() const override {
         return static_cast<Allocator*>(realAllocator)->getAllocatorStats();
     }
-
-    ~AbstractAllocatorImpl() {}
 };
 
 template<typename Allocator>
-AbstractAllocator* makeAbstract(Allocator* allocator) {
-    AbstractAllocator* abstract = new AbstractAllocatorImpl<Allocator>(allocator);
+AbstractAllocator makeAbstract(Allocator* allocator) {
+    static_assert(sizeof(AbstractAllocatorImpl<Allocator>) == sizeof(AbstractAllocator), "AbstractAllocatorImpl must not have state so we can copy to abstract!");
+    AbstractAllocator abstract = AbstractAllocatorImpl<Allocator>(allocator);
     return abstract;
 }
 
@@ -235,8 +257,6 @@ public:
         free(ptr);
     }
 
-    using Base::deallocate;
-
     void* reallocate(void* ptr, size_t newSize) {
         return realloc(ptr, newSize);
     }
@@ -260,6 +280,5 @@ public:
     }
 };
 
-static Mallocator mallocator;
 
 #endif

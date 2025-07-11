@@ -2,7 +2,7 @@
 #define MY_ALLOCATION_INCLUDED
 
 #include "MyInternals.hpp"
-#include "memory.hpp"
+#include "memory/memory.hpp"
 
 MY_CLASS_START
 

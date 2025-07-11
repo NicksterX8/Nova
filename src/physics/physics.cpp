@@ -1,5 +1,5 @@
 #include "utils/vectors_and_rects.hpp"
-#include "utils/common-macros.hpp"
+#include "utils/compiler.hpp"
 #include <iostream>
 
 bool boxesOverlap(const Boxf* ba, const Boxf* bb) {

@@ -16,7 +16,7 @@
 
 #include "llvm/Compiler.h"
 #include "llvm/type_traits.h"
-#include "utils/Allocator.hpp"
+#include "memory/Allocator.hpp"
 #include "llvm/SmallVector.h"
 
 #include <algorithm>
@@ -129,12 +129,13 @@ protected:
   /// Find the address of the first element.  For this pointer math to be valid
   /// with small-size of 0 for T with lots of alignment, it's important that
   /// SmallVectorStorage is properly-aligned even for small-size of 0.
-  #define TANDALLOCATORTMACRO_ T, AllocatorT
+  #define TANDALLOCATORTMACRO T, AllocatorT
   void *getFirstEl() const {
     return const_cast<void *>(reinterpret_cast<const void *>(
         reinterpret_cast<const char *>(this) +
-        offsetof(SmallVectorAlignmentAndSize<TANDALLOCATORTMACRO_>, FirstEl)));
+        offsetof(SmallVectorAlignmentAndSize<TANDALLOCATORTMACRO>, FirstEl)));
   }
+  #undef TANDALLOCATORTMACRO
   // Space after 'FirstEl' is clobbered, do not add any instance vars after it.
 
   SmallVectorTemplateCommon(size_t Size) : Base(getFirstEl(), Size) {}

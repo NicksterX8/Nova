@@ -5,7 +5,7 @@
 #include <SDL3_image/SDL_image.h>
 #include <string>
 #include <glm/vec2.hpp>
-#include "memory.hpp"
+#include "memory/memory.hpp"
 #include "My/HashMap.hpp"
 #include "My/SparseSets.hpp"
 #include "gl.hpp"

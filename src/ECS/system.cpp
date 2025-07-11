@@ -3,8 +3,9 @@
 #include "llvm/TinyPtrVector.h"
 #include "global.hpp"
 #include "moodycamel/concurrentqueue.h"
-#include "utils/allocators.hpp"
+#include "memory/allocators.hpp"
 #include "utils/system/sysinfo.hpp"
+#include "memory/StackAllocate.hpp"
 
 using namespace ECS;
 using namespace ECS::System;

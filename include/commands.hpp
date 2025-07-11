@@ -5,7 +5,7 @@
 #include <string>
 #include <functional>
 #include "utils/Log.hpp"
-#include "llvm/ArrayRef.h"
+#include "ADT/ArrayRef.hpp"
 
 struct Game;
 

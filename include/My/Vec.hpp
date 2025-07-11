@@ -8,7 +8,7 @@
 #include "std.hpp"
 #include "../constants.hpp"
 #include "Allocation.hpp"
-#include "llvm/ArrayRef.h"
+#include "ADT/ArrayRef.hpp"
 
 MY_CLASS_START
 

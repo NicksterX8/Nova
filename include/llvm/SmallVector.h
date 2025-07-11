@@ -36,6 +36,7 @@
 
 namespace llvm {
 
+// we dont care about malloc failures so we just use regular malloc/realloc
 inline void* safe_malloc(size_t size) {
   return malloc(size);
 }

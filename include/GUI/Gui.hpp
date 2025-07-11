@@ -11,7 +11,8 @@
 #include "update.hpp"
 #include "GUI/ecs-gui.hpp"
 #include "systems/basic.hpp"
-#include "utils/allocators.hpp"
+#include "memory/allocators.hpp"
+#include "memory/StackAllocate.hpp"
 
 struct GuiRenderer;
 template<typename T, size_t Align>
@@ -328,14 +329,15 @@ struct Gui {
         Systems::DoElementUpdatesSystem* updateSys;
 
         void init(Systems::SystemManager& manager, GuiRenderer& renderer, Game* game) {
-            auto* treeTraversal = new Systems::IBarrier(manager);
-            auto* startRendering = new Systems::IBarrier(manager);
-            auto* elementsComplete = new Systems::IBarrier(manager);
+            auto& allocator = GlobalAllocators.gameScratchAllocator;
+            auto* treeTraversal = NEW(Systems::IBarrier(manager), allocator);
+            auto* startRendering = NEW(Systems::IBarrier(manager), allocator);
+            auto* elementsComplete = NEW(Systems::IBarrier(manager), allocator);
 
-            updateSys = new Systems::DoElementUpdatesSystem(manager, game);
-            renderBackgroundSys = new Systems::RenderBackgroundSystem(manager, &renderer);
-            sizeConstraintSystem = new Systems::SizeConstraintSystem(manager);
-            textureSys = new Systems::RenderTexturesSystem(manager, &renderer);
+            updateSys = NEW(Systems::DoElementUpdatesSystem(manager, game), allocator);
+            renderBackgroundSys = NEW(Systems::RenderBackgroundSystem(manager, &renderer), allocator);
+            sizeConstraintSystem = NEW(Systems::SizeConstraintSystem(manager), allocator);
+            textureSys = NEW(Systems::RenderTexturesSystem(manager, &renderer), allocator);
 
             updateSys->orderAfter(treeTraversal);
             sizeConstraintSystem->orderAfter(updateSys);

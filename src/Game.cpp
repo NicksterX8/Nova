@@ -18,7 +18,7 @@
 #include "rendering/systems/new.hpp"
 
 #include "ADT/SmallVector.hpp"
-#include "llvm/ArrayRef.h"
+#include "ADT/ArrayRef.hpp"
 
 void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
     GameState& state = *ctx.state;
@@ -46,8 +46,9 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
 }
 
 void GameEntitySystems::init(GameState* state, RenderContext* renderContext, Camera& camera) {
-    this->renderEntitySys = new World::RenderSystems::RenderEntitySystem(ecsRenderSystems, *renderContext, camera, *state->ecs, state->chunkmap);
-    this->dynamicEntitySys = new World::Systems::DynamicEntitySystem(ecsStateSystems, &state->chunkmap);
+    auto& allocator = GlobalAllocators.gameScratchAllocator;
+    this->renderEntitySys = NEW(World::RenderSystems::RenderEntitySystem(ecsRenderSystems, *renderContext, camera, *state->ecs, state->chunkmap), allocator);
+    this->dynamicEntitySys = NEW(World::Systems::DynamicEntitySystem(ecsStateSystems, &state->chunkmap), allocator);
 
     ECS::System::setupSystems(ecsRenderSystems);
     ECS::System::setupSystems(ecsStateSystems);
@@ -412,9 +413,7 @@ int Game::update() {
 }
 
 int Game::init(SDLContext sdlContext) {
-    this->metadata = MetadataTracker(TARGET_FPS, TICKS_PER_SECOND, ENABLE_VSYNC);
-    Metadata = &this->metadata;
-    // metadata.start(); // have to call this so logging knows what time it is
+    this->sdlCtx = sdlContext;
 
     LogInfo("Game init start");
     this->mode = Unstarted;
@@ -423,14 +422,13 @@ int Game::init(SDLContext sdlContext) {
     this->debug.console = &this->gui.console;
     Debug = &this->debug;
     
-    this->renderContext = new RenderContext(sdlCtx.primary.window, sdlCtx.primary.glContext);
-    // this->renderContext = NEW(RenderContext(sdlCtx.primary.window, sdlCtx.primary.glContext), essentialAllocator);
+    this->renderContext = NEW(RenderContext(sdlCtx.primary.window, sdlCtx.primary.glContext), essentialAllocator);
     LogInfo("starting render init");
     renderInit(*renderContext);
 
     this->gui.init(renderContext->guiRenderer, this);
 
-    this->state = NEW(GameState());
+    this->state = NEW(GameState(), essentialAllocator);
     this->state->init(&renderContext->textures);
 
     this->systems.ecsRenderSystems.entityManager = &this->state->ecs->em;
@@ -469,7 +467,7 @@ int Game::init(SDLContext sdlContext) {
         },
     });
 
-    this->playerControls = NEW(PlayerControls(this));
+    this->playerControls = NEW(PlayerControls(this), essentialAllocator);
     SDL_FPoint mousePos = SDL::getMousePixelPosition();
     this->lastUpdateMouseState = {
         .position = {mousePos.x, mousePos.y},

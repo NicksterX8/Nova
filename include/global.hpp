@@ -6,7 +6,7 @@
 #include "My/String.hpp"
 #include "utils/vectors_and_rects.hpp"
 #include "threads.hpp"
-#include "utils/GlobalAllocators.hpp"
+#include "memory/GlobalAllocators.hpp"
 
 struct GlobalsType {
     unsigned int debugTexture = 0;

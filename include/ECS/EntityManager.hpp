@@ -43,6 +43,7 @@ public:
         commandBuffer = nullptr;
     }
 
+    // TODO: this is horrible... so slow and bad. figure out new solution for foreaches
     bool lock() const {
         if (!*stateLocked) {
             *stateLocked = true;

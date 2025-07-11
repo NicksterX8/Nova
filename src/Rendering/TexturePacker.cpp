@@ -1,5 +1,5 @@
 #include "rendering/TexturePacker.hpp"
-#include "memory.hpp"
+#include "memory/memory.hpp"
 #include "rendering/textures.hpp"
 
 using Node = TexturePackingNode;

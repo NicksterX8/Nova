@@ -1,7 +1,7 @@
 #ifndef VEC_TUPLE_INCLUDED
 #define VEC_TUPLE_INCLUDED
 
-#include "utils/Allocator.hpp"
+#include "memory/Allocator.hpp"
 
 template<typename T0, typename T1, typename Allocator = Mallocator>
 class VecTuple {

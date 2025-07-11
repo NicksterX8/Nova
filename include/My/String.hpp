@@ -5,25 +5,24 @@
 #include <string>
 #include "MyInternals.hpp"
 #include "../utils/Log.hpp"
-#include "Vec.hpp"
 #include "Iteration.hpp"
+#include "memory/StackAllocate.hpp"
 
 #include <memory>
 #include <stdexcept>
 
 template<typename ... Args>
-std::string string_format( const std::string& format, Args... args) {
+std::string string_format(const std::string& format, Args... args) {
     int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'
     if (LLVM_UNLIKELY(size_s <= 0)) {
         LogError("Failed formatting.");
         return {};
     }
     auto size = (size_t)size_s;
-    std::unique_ptr<char[]> buf(new char[size]);
-    std::snprintf(buf.get(), size, format.c_str(), args...);
-    return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
+    StackAllocate<char, 128> buf{size};
+    std::snprintf((char*)buf, size, format.c_str(), args...);
+    return std::string((char*)buf, (char*)buf + size - 1); // We don't want the '\0' inside
 }
-
 
 
 MY_CLASS_START
@@ -171,202 +170,6 @@ inline char* str_add_alloc(const char* str_a, const char* str_b) {
     memcpy(result + lenA, str_b, lenB+1);
     return result;
 }
-
-struct StringSizePair {
-    char* str;
-    int size;
-};
-
-struct StringBuffer {
-    Vec<char> buffer;
-
-    static StringBuffer Empty() {
-        return {Vec<char>::Empty()}; // buffer with 2 nul bytes
-    }
-
-    static StringBuffer WithCapacity(int capacity) {
-        return {Vec<char>::WithCapacity(capacity)};
-    }
-
-    static StringBuffer FromStr(const char* str) {
-        int strSize = strlen(str)+1;
-        auto buffer = Vec<char>::WithCapacity(strSize);
-        buffer.push(str, strSize);
-        return {buffer};
-    }
-
-    inline void destroy() {
-        buffer.destroy();
-    }
-
-    // @param length should be equal to strlen(str)+1 (include nul byte)
-    inline void push(const char* str, int size) {
-        buffer.push(str, size);
-    }
-    inline void push(const char* str) {
-        buffer.push(str, strlen(str)+1);
-    }
-
-    inline void pushFront(const char* str) {
-        buffer.pushFront(str, strlen(str)+1);
-    }
-
-    inline void pushUnterminatedStr(const char* str, int length) {
-        buffer.push(str, length);
-        buffer.push('\0');
-    }
-
-    char* lastStr(int* size=nullptr) const {
-        if (buffer.size == 0) return nullptr; // no string to get
-        char* last = &buffer[buffer.size-1]; // get pointer to first char  behing nul byte
-        // and move backwards from there
-        while (last > buffer.data && *(last-1) != '\0') {
-            last--;
-        }
-        if (size) *size = last - &buffer[buffer.size-1];
-        return last;
-    }
-
-    bool terminates() const {
-        return buffer.back() == '\0';
-    }
-
-    inline void appendToLast(char c) {
-        if (buffer.size == 0) {
-            buffer.push(c);
-        } else {
-            buffer.back() = c; // replace nul byte with char and replace nul byte
-        }
-        buffer.push('\0');
-    }
-
-    inline void appendToLast(const char* str, int size) {
-        if (buffer.size > 0) {
-            buffer.pop(); // pop off nul byte
-        }
-        buffer.push(str, size);
-    }
-
-    void appendToLast(const char* str) {
-        appendToLast(str, strlen(str)+1);
-    }
-
-    inline void popLastChar() {
-        buffer.pop();
-        buffer.back() = '\0';
-    }
-
-    inline void endLastStr() {
-        buffer.push('\0');
-    }
-
-    inline void operator+=(const char* str) {
-        push(str, strlen(str)+1);
-    }
-
-    inline void operator+=(std::string str) {
-        push(str.c_str(), str.size());
-    }
-
-    // returns true if the string buffer is empty, meaning it contains no characters other than the default terminating character.
-    // If the string buffer is empty, it is not safe to pop a character
-    bool empty() const {
-        // needs atleast chars 2 (atleast 1 actual 1 and one nul byte)
-        return buffer.size < 2;
-    }
-
-    struct iterator {
-        char* str;
-
-        static char* forward(char* str) {
-            while (*str != '\0') { ++str; }
-            return ++str;
-        }
-
-        static char* backward(char* str) {
-            str -= 2;
-            while (*str != '\0') { --str; }
-            return ++str;
-        }
-
-        iterator operator--() {
-            str--;
-            while (*str != '\0') { --str; }
-            return *this;
-        }
-
-        iterator operator++() {
-            str++;
-            while (*str != '\0') { ++str; }
-            return *this;
-        }
-
-        char* operator*() const {
-            return str+1;
-        }
-
-        bool operator!=(iterator rhs) const {
-            return str != rhs.str;
-        }
-    };
-
-    template<typename T>
-    void forEachStr(const T& callback) const {
-        char* str = buffer.data;
-        while (str <= &buffer.back()) {
-            callback(str);
-            while (*str != '\0') {str++;}; str++;
-        };
-    }
-
-    template<typename T>
-    void forEachStrReverse(const T& callback) const {
-        char* str = lastStr();
-        if (!str) return;
-        for (;;) {
-            if (callback(str)) return;
-            if (str >= buffer.data + 2) {
-                str -= 2;
-                while (str >= buffer.data && *str != '\0') {str--;}; str++;
-            } else {
-                break;
-            }
-        };
-    }
-
-    template<typename T>
-    void forEachStr(const T& callback, bool direction) const {
-       if (direction) {
-            forEachStr(callback);
-       } else {
-            forEachStrReverse(callback);
-       }
-    }
-
-    /*
-    iterator begin() const { return {buffer.data}; } // pointer to first character past start nul byte
-    iterator end() const { return {buffer.data + buffer.size-1}; / pointer to char past final nul byte / }
-
-    iterator rbegin() const { return {lastStr()-1}; }
-    iterator rend() const { return {buffer.data}; }
-    */
-};
-
-#define FOR_MY_STRING_BUFFER(name, strbuf, code) {\
-    char* name = &strbuf.buffer[0];\
-    while (name <= &strbuf.buffer.back()) {\
-        code;\
-        while (*name != '\0') {name++;}; name++;\
-    };\
-    }
-#define FOR_MY_STRING_BUFFER_REVERSE(name, strbuf, code) {\
-    char* name = strbuf.buffer.data + strbuf.buffer.size-1;\
-    while (name > strbuf.buffer.data) {\
-        if (*(name-1) == '\0') {code;}\
-        name--;\
-    }\
-    if (strbuf.buffer.size > 0) { name = &strbuf[0]; code; }\
-    }
 
 MY_CLASS_END
 

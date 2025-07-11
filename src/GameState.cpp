@@ -75,13 +75,8 @@ void GameState::init(const TextureManager* textureManager) {
     }
 
     /* Init ECS */
-    //ecs = scratch.New<EntityWorld>();
     ecs = NEW(EntityWorld(), scratch);
-    int* i = NEW(int(5));
-    auto p = NEW_ARR(EntityWorld[5]);
-    //ecs = scratch.New<EntityWorld>();
     ecs->init(&chunkmap, ecs);
-
 
 
     makeEntityPrototypes(*ecs);

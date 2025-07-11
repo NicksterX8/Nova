@@ -9,6 +9,9 @@
 #define GAME_TITLE "Faketorio"
 #define WINDOW_TITLE "Faketorio"
 
+#define PATH_TO_SOURCE "/Users/nick/Faketorio/src"
+#define PATH_TO_INCLUDE "/Users/nick/Faketorio/../faketorio/include"
+
 #define USE_SECONDARY_WINDOW 0
 #define WINDOW_HIGH_DPI 1
 #define TARGET_FPS 240
@@ -50,7 +53,5 @@ namespace RenderLayers {
 }
 
 using RenderLayer = RenderLayers::Layers;
-
-#define BOUNDS_CHECKS 1
 
 #endif

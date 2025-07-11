@@ -111,6 +111,8 @@ struct Font {
 
     Font() = default;
 
+    bool init(const char* fontfile, FT_UInt baseHeight, bool useSDFs, float scale, Font::FormattingSettings formatting, TextureUnit textureUnit);
+
     bool load(FT_UInt height, bool useSDFs = false);
 
     bool loaded() const {
@@ -204,12 +206,9 @@ struct Font {
     }
 
     void destroy() {
-
         unload();
     }
 };
-
-Font* newFont(const char* fontfile, FT_UInt baseHeight, bool useSDFs, float scale, Font::FormattingSettings formatting, TextureUnit textureUnit);
 
 }
 

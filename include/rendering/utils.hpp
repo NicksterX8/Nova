@@ -5,6 +5,7 @@
 #include "Shader.hpp"
 #include "../Camera.hpp"
 #include "utils/random.hpp"
+#include "ADT/ArrayRef.hpp"
 
 struct RenderOptions {
     glm::vec2 size; // in pixels

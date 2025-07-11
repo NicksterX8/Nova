@@ -5,6 +5,10 @@
 #include <unordered_map>
 #include "../constants.hpp"
 
+#if DEBUG_LEVEL >= 1
+#define BOUNDS_CHECKS 1
+#endif
+
 namespace GUI {
     struct Console;
 }

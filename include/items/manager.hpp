@@ -4,7 +4,7 @@
 #include "Item.hpp"
 #include "ECS/EntityManager.hpp"
 #include "components/components.hpp"
-#include "utils/GlobalAllocators.hpp"
+#include "memory/GlobalAllocators.hpp"
 
 namespace items {
 

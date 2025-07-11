@@ -1,6 +1,9 @@
 # TODO
 
-use instruments to figure out why rendering lots and lots of chunks is slow
+arena allocator
+better allocator use // for components
+
+settings menu
 
 better error handling, error codes. instead of just logging everything directly
 
@@ -11,14 +14,9 @@ move out stuff to parent class for less code gen and perhaps reusability
 
 redo component pool allocation and archetype thing, its a mess
 
-make vector that takes allocator template and parameter
-
 what happens when prototype components are used in methods like EntityManager::add? nothing good
 
 new hash maps (robin hood thing)
-
-ECS: make entity maker class that is like a command buffer you make and then execute at end of entity creation.
-Makes making entities easy and efficient. Can also be used to make large numbers of entities at once efficiently
 
 shared components? do i need? do more research - prolly not
 

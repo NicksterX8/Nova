@@ -22,10 +22,6 @@ void debug_free(void* ptr, const char* file, int line) noexcept;
 
 } // namespace Mem
 
-// new never returns null
-// void* operator new(size_t size, const char* file, int line);
-// void operator delete(void* ptr, const char* file, int line) noexcept;
-
 namespace Mem {
 
 /* Interface */
@@ -153,12 +149,14 @@ void Delete(T* pointer, size_t count = 1) {
 struct AlignWrapper {
     size_t align;
 };
+      
+class AllocatorI;
+
+void debugNewed(void* pointer, size_t bytes, const char* file, int line, AllocatorI* allocator = nullptr);
+
+void debugDeleted(void* pointer, size_t bytes, const char* file, int line, AllocatorI* allocator = nullptr);
 
 inline void* operator new(size_t size, AlignWrapper align) {
-    return malloc(size);
-}
-
-inline void* operator new[](size_t size, AlignWrapper align) {
     return malloc(size);
 }
 
@@ -167,30 +165,90 @@ void* operator new(size_t size, AlignWrapper align, Allocator& allocator) {
     return allocator.allocate(size, align.align);
 }
 
-template<typename Allocator>
-void* operator new[](size_t size, AlignWrapper align, Allocator& allocator) {
-    return allocator.allocate(size, align.align);
-}
-
 inline void* operator new(size_t size, AlignWrapper align, const char* file, int line) {
-    LogInfo("%s:%d New", file, line);
-    return malloc(size);
+    void* ptr = malloc(size);
+    debugNewed(ptr, size, file, line);
+    return ptr;
 }
 
 template<typename Allocator>
 void* operator new(size_t size, AlignWrapper align, const char* file, int line, Allocator& allocator) {
-    LogInfo("%s:%d New", file, line);
-    return allocator.allocate(size, align.align);
+    void* ptr = allocator.allocate(size, align.align);
+    debugNewed(ptr, size, file, line, (AllocatorI*)(void*)&allocator);
+    return ptr;
 }
 
+template<typename T>
+void deleteArray(T* pointer, size_t count) {
+    for (int i = 0; i < count; i++) {
+        pointer[i].~T();
+    }
+    delete pointer;
+}
+
+template<typename T, typename Allocator>
+void deleteArray(T* pointer, Allocator& allocator, size_t count) {
+    allocator.Delete(pointer, count);
+}
+
+template<typename T, typename Allocator>
+void deleteArray(T* pointer, const char* file, int line, Allocator& allocator, size_t count) {
+    debugDeleted(pointer, sizeof(T) * count, file, line, &allocator);
+    allocator.Delete(pointer, count);
+}
+
+// needed for deleting class from its base class pointer
+template<typename T, typename Allocator>
+void deleteArray(T* pointer, size_t objectSize, Allocator& allocator, size_t count) {
+    allocator.DeleteWithSize(pointer, objectSize, count);
+}
+
+// needed for deleting class from its base class pointer
+template<typename T, typename Allocator>
+void deleteArray(T* pointer, const char* file, int line, size_t objectSize, Allocator& allocator, size_t count) {
+    debugDeleted(pointer, objectSize * count, file, line, &allocator);
+    allocator.DeleteWithSize(pointer, objectSize, count);
+}
+
+template<typename T>
+T* newArray(size_t count) {
+    return new T[count];
+}
+
+template<typename T>
+T* newArray(size_t count, const char* file, int line) {
+    T* ptr = new T[count];
+    debugNewed(ptr, count * sizeof(T), file, line);
+    return ptr;
+}
+
+template<typename T, typename Allocator>
+T* newArray(size_t count, Allocator& allocator) {
+    return allocator.template New<T>(count);
+}
+
+template<typename T, typename Allocator>
+T* newArray(size_t count, const char* file, int line, Allocator& allocator) {
+    T* ptr = allocator.template New<T>(count);
+    debugNewed(ptr, count * sizeof(T), file, line, &allocator);
+    return ptr;
+}
+
+#if MEMORY_DEBUG_LEVEL >= 1
 #define ALLOCATION_DEBUG_LOCATION 1
+#endif
 
 #ifndef ALLOCATION_DEBUG_LOCATION
     #define NEW(constructor, ...) new (AlignWrapper{alignof(decltype(constructor))}, ##__VA_ARGS__) constructor
-    #define NEW_ARR(constructor, ...) new (AlignWrapper{alignof(constructor)}, ##__VA_ARGS__) constructor
+    #define NEW_ARR(type, count, ...) newArray<type>(count)
+    #define DELETE(pointer, ...) deleteArray(pointer, ##__VA_ARGS__, 1)
+    #define DELETE_ARR(pointer, count, ...) deleteArray(pointer, ##__VA_ARGS__, count)
 #else
     #define NEW(constructor, ...) new (AlignWrapper{alignof(decltype(constructor))}, __FILE__, __LINE__, ##__VA_ARGS__) constructor
-    #define NEW_ARR(constructor, ...) new (AlignWrapper{alignof(constructor)}, ##__VA_ARGS__) constructor
+    // #define NEW_ARR(constructor, ...) new (AlignWrapper{alignof(constructor)}, ##__VA_ARGS__) constructor
+    #define NEW_ARR(type, count, ...) newArray<type>(count, __FILE__, __LINE__, ##__VA_ARGS__)
+    #define DELETE(pointer, ...) deleteArray(pointer, __FILE__, __LINE__, ##__VA_ARGS__, 1)
+    #define DELETE_ARR(pointer, count, ...) deleteArray(pointer, __FILE__, __LINE__, ##__VA_ARGS__, count)
 #endif
 
 #endif

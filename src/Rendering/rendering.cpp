@@ -5,7 +5,7 @@
 #include "utils/random.hpp"
 #include "My/Vec.hpp"
 #include "utils/vectors_and_rects.hpp"
-#include "llvm/ArrayRef.h"
+#include "ADT/ArrayRef.hpp"
 #include "global.hpp"
 #include "rendering/drawing.hpp"
 #include "world/functions.hpp"
@@ -314,7 +314,8 @@ Font* makeFont(const char* name, const char* font_filename, FT_UInt height, bool
         .lineSpacing = 1.0f,
         .tabSpaces = 5.0f
     };
-    auto font = newFont(
+    Font* font = NEW(Font());
+    font->init(
         My::str_add(FileSystem.assets.get("fonts/"), font_filename), height, sdf, 
         1.0f, fontFormatting,
         texUnit);
@@ -331,45 +332,38 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
     constexpr char firstChar = ASCII_FIRST_STANDARD_CHAR;
     constexpr char endChar = ASCII_LAST_STANDARD_CHAR+1;
 
-    Font* defaultFont = newFont(
-        FileSystem.assets.get("fonts/HelloGraduationSans.ttf"),
+    Font* defaultFont = makeFont("Default",
+        "HelloGraduationSans.ttf",
         32,
         false,
-        1,
-        fontFormatting,
-        TextureUnit::Font0
+        TextureUnit::Font0,
+        fonts
     );
-    Font* debugFont = newFont(
-        FileSystem.assets.get("fonts/Cascadia.ttf"),
+    Font* debugFont = makeFont("Debug",
+        "Cascadia.ttf",
         32, // size
         false, // use sdfs?
-        1, // scale
-        fontFormatting, // formatting settings
-        TextureUnit::Font1
+        TextureUnit::Font1,
+        fonts
     );
-    Font* worldFont = newFont(
-        FileSystem.assets.get("fonts/Papyrus.ttf"),
+    Font* worldFont = makeFont("World",
+        "Papyrus.ttf",
         32,
         true,
-        1,
-        fontFormatting,
-        TextureUnit::Font2
-    );
-
-    Font* guiFont = newFont(
-        FileSystem.assets.get("fonts/factorio-fonts/TitilliumWeb-SemiBold.ttf"),
+        TextureUnit::Font2,
+        fonts);
+    Font* guiFont = makeFont("Gui",
+        "factorio-fonts/TitilliumWeb-SemiBold.ttf",
         12,
         false,
-        1,
-        fontFormatting,
-        TextureUnit::Font3
-    );
-    Font* screensdf = makeFont("tester", "Roboto-Regular.ttf", 24, true, TextureUnits::Font4, fonts);
-
-    fonts.add("Default", defaultFont);
-    fonts.add("Debug", debugFont);
-    fonts.add("World", worldFont);
-    fonts.add("Gui", guiFont);
+        TextureUnit::Font3,
+        fonts);
+    Font* screensdf = makeFont("TestFont",
+        "Roboto-Regular.ttf",
+        24,
+        true,
+        TextureUnits::Font4,
+        fonts);
 
     float fontScale = 1.0f;
     scaleAllFonts(fonts, SDL::pixelScale * fontScale);
@@ -456,6 +450,11 @@ void renderQuit(RenderContext& ren) {
     ren.worldGuiRenderer.destroy();
 
     /* Fonts quit */
+    for (auto& font : ren.fonts.fonts) {
+        font.second->destroy();
+        // DELETE(font.second, GlobalAllocators.gameScratchAllocator);
+        // dont need to deallocate in scratch allocators
+    }
     ren.fonts.destroy();
 
     quitFreetype();
@@ -717,7 +716,7 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     ren.worldGuiRenderer.flush(ren.shaders, worldTransform);
     ren.worldGuiRenderer.text->render("HI", {5, 5});
     ren.worldGuiRenderer.text->render("This is roboto", {-5, -5},
-        TextRenderingSettings{.font = Fonts->get("tester"), .color = {255, 255, 0, 255}});
+        TextRenderingSettings{.font = Fonts->get("TestFont"), .color = {255, 255, 0, 255}});
     
     //ren.worldTextRenderer.flush(ren.shaders.get(Shaders::Text), worldTransform);
 

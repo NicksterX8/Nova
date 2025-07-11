@@ -6,6 +6,7 @@
 #include "ECS/Entity.hpp"
 #include "ECS/EntityManager.hpp"
 #include "ECS/ArchetypePool.hpp"
+#include "memory/BlockAllocator.hpp"
 
 namespace ECS {
 
@@ -312,6 +313,8 @@ struct SystemManager {
     EntityManager* entityManager = nullptr;
     EntityCommandBuffer unexecutedCommands;
     bool allowParallelization = true;
+    // should be big enough blocks for almost all jobs
+    BlockAllocator<sizeof(IJob) + 32, 8> jobAllocator;
 public:
     SystemManager() {}
 
@@ -384,10 +387,16 @@ struct ISystem {
     std::vector<std::vector<JobHandle>> jobDependencies;
 
     template<typename Job>
+    IJob* newJob(const Job& job) {
+        IJob* jobPtr = NEW(Job(job), systemManager->jobAllocator);
+        jobPtr->realSize = sizeof(Job);
+        return jobPtr;
+    }
+
+    template<typename Job>
     JobHandle Schedule(const IComponentGroup& group, const Job& job, const DependencyList& dependencyList) {
         JobHandle handle = jobs.size();
-        IJob* jobPtr = static_cast<IJob*>(new Job(job));
-        jobPtr->realSize = sizeof(Job);
+        auto jobPtr = newJob(job);
         jobs.push_back({jobPtr, group});
         jobDependencies.push_back({});
         for (JobHandle jobDependency : dependencyList.jobDependencies) {
@@ -398,14 +407,8 @@ struct ISystem {
 
     template<typename Job>
     JobHandle Schedule(const IComponentGroup& group, const Job& job, JobHandle dependency = -1) {
-        Job* jobPtr = new Job(job);
-        return Schedule(group, jobPtr, dependency);
-    }
-
-    template<typename Job>
-    JobHandle Schedule(const IComponentGroup& group, Job* jobPtr, JobHandle dependency = -1) {
+        IJob* jobPtr = newJob(job);
         JobHandle handle = jobs.size();
-        jobPtr->realSize = sizeof(Job);
         jobs.push_back({jobPtr, group});
         jobDependencies.push_back({});
         if (dependency != -1) {
@@ -470,7 +473,7 @@ struct ISystem {
 
     void clearJobs() {
         for (auto& job : jobs) {
-            delete job.job;
+            DELETE(job.job, job.job->realSize, systemManager->jobAllocator);
         }
         jobs.clear();
         jobDependencies.clear();

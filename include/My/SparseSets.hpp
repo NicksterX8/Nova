@@ -3,7 +3,7 @@
 
 #include "MyInternals.hpp"
 #include "Allocation.hpp"
-#include "llvm/ArrayRef.h"
+#include "ADT/ArrayRef.hpp"
 
 #include <stdint.h>
 #include <stddef.h>

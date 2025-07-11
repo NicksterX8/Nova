@@ -2,7 +2,7 @@
 #define ECS_COMPONENT_INFO_INCLUDED
 
 #include <array>
-#include "llvm/ArrayRef.h"
+#include "ADT/ArrayRef.hpp"
 #include "utils/ints.hpp"
 #include "Entity.hpp"
 

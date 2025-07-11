@@ -138,6 +138,8 @@ SDLContext initSDL(const char* windowTitle, SDL_Rect windowRect) {
         SDL_GL_SetSwapInterval(0); // swap frames immediately
     }
 
+    SDL_GL_SetSwapInterval(0);
+
     SDL::pixelScale = SDL::getPixelScale(context.primary.window);
 
     SDL_Log("SDL Window Context initialized.");

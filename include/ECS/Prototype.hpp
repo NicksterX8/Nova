@@ -1,10 +1,10 @@
 #ifndef ECS_PROTOTYPE_INCLUDED
 #define ECS_PROTOTYPE_INCLUDED
 
-#include "llvm/ArrayRef.h"
+#include "ADT/ArrayRef.hpp"
 #include "My/SparseSets.hpp"
 #include "My/Vec.hpp"
-#include "memory.hpp"
+#include "memory/memory.hpp"
 #include "Signature.hpp"
 #include "ComponentInfo.hpp"
 
@@ -155,7 +155,7 @@ struct Prototype {
         auto component = get<C>();
         if (component) {
             *component = value;
-            LogWarn("Component (%s) already attached to this prototype!", componentInfo.get(C::ID).name);
+            LogWarnLoc("Component (%s) already attached to this prototype!", componentInfo.get(C::ID).name);
         } else {
             C* storage = Alloc<C>(1);
             allocations.push(storage);

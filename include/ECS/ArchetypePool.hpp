@@ -2,7 +2,7 @@
 #define ECS_ARCHETYPE_POOL_INCLUDED
 
 #include <array>
-#include "llvm/ArrayRef.h"
+#include "ADT/ArrayRef.hpp"
 #include "My/SparseSets.hpp"
 #include "My/HashMap.hpp"
 #include "My/Bitset.hpp"
@@ -10,7 +10,7 @@
 #include "Entity.hpp"
 #include "Signature.hpp"
 #include "ComponentInfo.hpp"
-#include "utils/Allocator.hpp"
+#include "memory/Allocator.hpp"
 
 template <size_t I, typename Tuple>
 constexpr size_t element_offset() {

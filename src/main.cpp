@@ -14,14 +14,14 @@
 #include "global.hpp"
 #include "utils/system/sysinfo.hpp"
 
-#include "memory.hpp"
+#include "memory/memory.hpp"
 #include "physics/physics.hpp"
 
 #include "llvm/PointerUnion.h"
 #include "ADT/ValPtrUnion.hpp"
 #include "ADT/VecTuple.hpp"
 #include "ADT/SmallVector.hpp"
-#include "utils/allocators.hpp"
+#include "memory/allocators.hpp"
 
 #include "utils/system/signpost.hpp"
 
@@ -84,7 +84,11 @@ int main(int argc, char** argv) {
     trackAllocator("Essential Allocator", &game.essentialAllocator);
     trackAllocator("Medium allocator", &game.blockAllocator);
 
-    initLogging(nullptr);
+    game.metadata = MetadataTracker(TARGET_FPS, TICKS_PER_SECOND, ENABLE_VSYNC);
+    Metadata = &game.metadata;
+    game.metadata.start(); // have to call this so logging knows what time it is
+
+    initLogging(&game.gui.console);
     initPaths();
     gLogger.init(FileSystem.save.get("log.txt"));
     

@@ -1,8 +1,8 @@
-#include "memory.hpp"
+#include "memory/memory.hpp"
 #include <stdio.h>
-#include <execinfo.h>
-#include <signal.h>
 #include <unistd.h>
+#include "constants.hpp"
+#include "memory/GlobalAllocators.hpp"
 
 namespace Mem {
 
@@ -38,4 +38,76 @@ void debug_free(void* ptr, const char* file, int line) noexcept {
     free(ptr);
 }
 
+}
+
+#define TRACK_ALL_ALLOCS MEMORY_DEBUG_LEVEL >= 2
+
+struct TrackedAllocData {
+    AllocatorI* allocator;
+    void* pointer;
+    size_t bytes;
+    const char* file;
+    int line;
+};
+
+// live allocations
+std::unordered_map<void*, TrackedAllocData> trackedAllocs;
+
+void trackAlloc(AllocatorI* allocator, void* pointer, size_t bytes, const char* file, int line) {
+    trackedAllocs.insert({
+        pointer, 
+        {allocator, pointer, bytes, file, line}
+    });
+}
+
+void logAllocError(const TrackedAllocData& dealloc, const TrackedAllocData& alloc) {
+    LogDebug("%s:%d - Error deallocating pointer %p of size %zu. Allocated at: ", dealloc.file, dealloc.line, dealloc.pointer, dealloc.bytes);
+    LogDebug("%s:%d", alloc.file, alloc.line);
+}
+
+void trackDealloc(AllocatorI* allocator, void* pointer, size_t bytes, const char* file, int line) {
+    auto alloc = TrackedAllocData{
+        allocator, pointer, bytes, file, line
+    };
+    auto trackedAllocIt = trackedAllocs.find(pointer);
+    if (UNLIKELY(trackedAllocIt == trackedAllocs.end())) {
+        LogError("%s:%d - Deallocation without matching allocation! Ptr: %p. Size: %zu. Check for double delete or mismatching regular new with DELETE", file, line, pointer, bytes);
+    } else {
+        auto& trackedAlloc = trackedAllocIt->second;
+        if (UNLIKELY(trackedAlloc.allocator != alloc.allocator)) {
+            AbstractAllocator* allocAllocator = findTrackedAllocator(trackedAlloc.allocator);
+            AbstractAllocator* deallocAllocator = findTrackedAllocator(alloc.allocator);
+            // if neither of them are tracked we can't know 
+            if (allocAllocator || deallocAllocator)  {
+                logAllocError(alloc, trackedAlloc);
+                // used different allocator to allocate and deallocate
+                const char* allocAllocatorName = allocAllocator ? allocAllocator->getName() : "Default Allocator";
+                const char* deallocAllocatorName = deallocAllocator ? deallocAllocator->getName() : "Default Allocator";
+                LogError("Allocated pointer with allocator %s and deallocated pointer with allocator %s",
+                    allocAllocatorName, deallocAllocatorName);
+            }
+        }
+        if (UNLIKELY(trackedAlloc.bytes != alloc.bytes)) {
+            logAllocError(alloc, trackedAlloc);
+            // deallocated different number of bytes than allocated
+            LogError("Allocated pointer of %zu bytes and deallocated as %zu bytes", trackedAlloc.bytes, alloc.bytes);
+        }
+
+        // remove it from live allocs
+        trackedAllocs.erase(trackedAllocIt);
+    }
+}
+
+void debugNewed(void* pointer, size_t bytes, const char* file, int line, AllocatorI* allocator) {
+#if TRACK_ALL_ALLOCS
+    trackAlloc(allocator, pointer, bytes, file, line);
+#endif
+    // LogDebug("%s:%d - Allocated %zu bytes at %p", file, line, bytes, pointer);
+}
+
+void debugDeleted(void* pointer, size_t bytes, const char* file, int line, AllocatorI* allocator) {
+#if TRACK_ALL_ALLOCS
+    trackDealloc(allocator, pointer, bytes, file, line);
+#endif
+    // LogDebug("%s:%d - Deallocated %zu bytes at %p", file, line, bytes, pointer);
 }

@@ -63,19 +63,13 @@ struct FontManager {
         auto it = fonts.find(fontName);
         if (it != fonts.end()) return it->second;
         else {
-            LogError("Font not found with name \"%s\".", fontName);
+            LogOnce(Error, "Font not found with name \"%s\".", fontName);
             return nullptr;
         }
     }
 
     void destroy() {
-        for (auto font : fonts) {
-            if (font.second) { 
-                font.second->destroy();
-                delete font.second;
-            }
-        }
-        // idk if i need to delete fonts map
+        
     }
 };
 

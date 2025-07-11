@@ -21,37 +21,6 @@ FT_Face newFontFace(const char* filepath, FT_UInt height) {
     return face;
 }
 
-Font* newFont(const char* fontfile, FT_UInt baseHeight, bool useSDFs, float scale, Font::FormattingSettings formatting, TextureUnit textureUnit) {
-    static int IDCounter = 0;
-    
-    Font* f = new Font();
-
-    f->id = IDCounter++;
-    
-    f->baseHeight = baseHeight;
-
-    FT_UInt _height = baseHeight * scale;
-    f->currentScale = scale;
-
-    f->formatting = formatting;
-    f->textureUnit = textureUnit;
-
-    f->usingSDFs = useSDFs;
-
-    FT_Error err = 0;
-    err = FT_New_Face(freetype, fontfile, 0, &f->face);
-    if (err || !f->face) {
-        LogError("Failed to load font face. Filepath: %s. Error: %s", fontfile, FT_Error_String(err));
-        delete f;
-        return nullptr;
-    }
-
-    f->characters = Alloc<Font::AtlasCharacterData>();
-    f->load(_height, useSDFs);
-
-    return f;
-}
-
 void updateTextShaderFont(ShaderID shaderID, Font* font) {
     auto shader = useShader(shaderID);
     int id = font->id;
@@ -66,6 +35,34 @@ void updateTextShaderFont(ShaderID shaderID, Font* font) {
 void fontLoaded(Font* font) {
     updateTextShaderFont(Shaders::Text, font);
     updateTextShaderFont(Shaders::SDF, font);
+}
+
+bool Font::init(const char* fontfile, FT_UInt baseHeight, bool useSDFs, float scale, Font::FormattingSettings formatting, TextureUnit textureUnit) {
+    static int IDCounter = 0;
+
+    this->id = IDCounter++;
+    
+    this->baseHeight = baseHeight;
+
+    FT_UInt _height = baseHeight * scale;
+    this->currentScale = scale;
+
+    this->formatting = formatting;
+    this->textureUnit = textureUnit;
+
+    this->usingSDFs = useSDFs;
+
+    FT_Error err = 0;
+    err = FT_New_Face(freetype, fontfile, 0, &this->face);
+    if (err || !this->face) {
+        LogError("Failed to load font face. Filepath: %s. Error: %s", fontfile, FT_Error_String(err));
+        return false;
+    }
+
+    this->characters = Alloc<Font::AtlasCharacterData>();
+    this->load(_height, useSDFs);
+
+    return true;
 }
 
 bool Font::load(FT_UInt pixelHeight, bool useSDFs) {

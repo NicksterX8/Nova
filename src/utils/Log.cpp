@@ -1,6 +1,20 @@
 #include "utils/Log.hpp"
 #include "utils/Debug.hpp"
 #include "GUI/Gui.hpp"
+#include "memory/StackAllocate.hpp"
+
+std::string str_trim(std::string string, const char* substr) {
+    size_t substrLen = strlen(substr);
+    size_t pos = string.find(substr);
+    if (pos != std::string::npos) {
+        return string.substr(0, pos) + string.substr(pos + substrLen);
+    }
+    return string; // just do nothing if it's not found
+}
+
+std::string conciseSourceFilename(const char* file) {
+    return str_trim(str_trim(file, PATH_TO_SOURCE "/"), PATH_TO_INCLUDE "/");
+}
 
 void Logger::logOutputFunction(LogCategory category, LogPriority priority, const char *message) const {
     if (priority == LogPriority::Debug) {
@@ -73,7 +87,9 @@ void Logger::logOutputFunction(LogCategory category, LogPriority priority, const
         GUI::Console::MessageType messageType = GUI::Console::MessageType::Default;
         if (priority == LogPriorities::Error)
             messageType = GUI::Console::MessageType::Error;
-        gameConsoleOutput->newMessage(message, messageType);
+        // remove full file paths from console output cause its ugly and unnecessary
+        auto conciseMessage = conciseSourceFilename(message);
+        gameConsoleOutput->newMessage(conciseMessage.c_str(), messageType);
     }
 }
 

@@ -4,7 +4,7 @@
 #include <glm/vec3.hpp>
 #include "gl.hpp"
 #include "Shader.hpp"
-#include "llvm/ArrayRef.h"
+#include "ADT/ArrayRef.hpp"
 #include "rendering/utils.hpp"
 #include "textures.hpp"
 #include "text/rendering.hpp"

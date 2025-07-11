@@ -1,7 +1,8 @@
 #ifndef UTILS_ALLOCATOR_TYPES_INCLUDED
 #define UTILS_ALLOCATOR_TYPES_INCLUDED
 
-#include "utils/allocators.hpp"
+#include "BlockAllocator.hpp"
+#include "ScratchAllocator.hpp"
 #include "llvm/Allocator.h"
 #include <vector>
 
@@ -17,13 +18,13 @@ struct GlobalAllocatorsType {
     ScratchAllocator<GameBlockAllocator&> gameScratchAllocator{16 * 1024, gameBlockAllocator};
     llvm::BumpPtrAllocatorImpl<GameBlockAllocator> bumpPtr{&gameBlockAllocator};
 
-    std::vector<AbstractAllocator*> allocators;
+    // pointers must be stable
+    std::vector<AbstractAllocator> allocators;
 
     GlobalAllocatorsType() {
         trackAllocator("Game block allocator", &gameBlockAllocator);
         trackAllocator("Game scratch allocator", &gameScratchAllocator);
         trackAllocator("Global BumpPtr", &bumpPtr);
-        trackAllocator("mallocator", &mallocator);
     }
 };
 
@@ -33,10 +34,12 @@ using GameStructureAllocator = decltype(GlobalAllocators.gameScratchAllocator);
 
 template<typename Allocator>
 AbstractAllocator* trackAllocator(std::string_view name, Allocator* allocator) {
-    AbstractAllocator* abstract = makeAbstract(allocator);
-    abstract->setName(name);
+    AbstractAllocator abstract = makeAbstract(allocator);
+    abstract.setName(name);
     GlobalAllocators.allocators.push_back(abstract);
-    return abstract;
+    return &GlobalAllocators.allocators.back();
 }
+
+AbstractAllocator* findTrackedAllocator(AllocatorI* allocatorPtr);
 
 #endif

@@ -1,0 +1,14 @@
+#pragma once
+
+#include "llvm/Compiler.h"
+
+#define ADDRESS_SANITIZER_BUILD LLVM_ADDRESS_SANITIZER_BUILD
+
+#define LIKELY(expr) LLVM_LIKELY(expr)
+#define UNLIKELY(expr) LLVM_UNLIKELY(expr)
+
+#define NO_UNIQUE_ADDRESS [[no_unique_address]]
+#define EMPTY_BASE_OPTIMIZE NO_UNIQUE_ADDRESS
+
+#define PRETTY_FUNCTION LLVM_PRETTY_FUNCTION
+#define LOCATION __FILE__ ":" PRETTY_FUNCTION ":" TOSTRING(__LINE__)

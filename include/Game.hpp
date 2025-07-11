@@ -18,7 +18,7 @@
 #include "ECS/system.hpp"
 #include "world/systems/movement.hpp"
 #include "global.hpp"
-#include "utils/allocators.hpp"
+#include "memory/allocators.hpp"
 
 struct Game;
 
