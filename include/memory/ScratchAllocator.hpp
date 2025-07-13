@@ -28,18 +28,6 @@ public:
         allocator.deallocate(memory.start, memory.allocationSize(), 1);
     }
 
-    // allocate scratch memory with malloc of a given size. must call ScratchMemory::free when finished
-    static ScratchMemory malloc(size_t size) {
-        return ScratchMemory(::malloc(size), size);
-    }
-
-    // free memory created with ScratchMemory::malloc
-    static void free(ScratchMemory& memory) {
-        ::free(memory.start);
-    }
-
-    using Base::allocate;
-
     void* allocate(size_t size, size_t alignment) {
         void* ptr = alignPtr(current, alignment);
         current = (char*)ptr + size;
@@ -47,6 +35,8 @@ public:
         assert(current <= end && "Out of space!");
         return ptr;
     }
+
+    using Base::allocate;
 
     void deallocate(void* ptr, size_t size, size_t alignment) {
         // can not deallocate
@@ -79,11 +69,11 @@ public:
 };
 
 template<typename Allocator = Mallocator>
-class ScratchAllocator : public ScratchMemory, private AllocatorHolder<Allocator> {
+class ScratchAllocator : public ScratchMemory {
     using Base = ScratchMemory;
     using Me = ScratchAllocator<Allocator>;
 public:
-    using AllocatorHolder<Allocator>::getAllocator;
+    EMPTY_BASE_OPTIMIZE Allocator allocator;
 
     ScratchAllocator() = default;
 
@@ -91,7 +81,8 @@ public:
         init(size);
     }
 
-    ScratchAllocator(size_t size, Allocator allocator) : AllocatorHolder<Allocator>(allocator) {
+    template<typename AllocT>
+    ScratchAllocator(size_t size, AllocT&& allocator) : allocator(static_cast<AllocT&&>(allocator)) {
         init(size);
     }
 
@@ -109,16 +100,15 @@ public:
 
     void init(size_t size) {
         assert(start == nullptr && "Scratch allocator already initialized!");
-        start = getAllocator().allocate(size, 1);
+        start = allocator.allocate(size, 1);
         assert(start);
-        __asan_poison_memory_region(start, size);
         current = start;
         end = (char*)start + size;
     }
 
     void deallocateAll() {
         __asan_poison_memory_region(start, (uintptr_t)current - (uintptr_t)start);
-        getAllocator().deallocate(start, allocationSize(), 1);
+        allocator.deallocate(start, allocationSize(), 1);
         start = nullptr;
         current = nullptr;
         end = nullptr;

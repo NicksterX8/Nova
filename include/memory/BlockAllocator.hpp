@@ -1,12 +1,12 @@
 #pragma once
 
 #include "ADT/SmallVector.hpp"
+#include "llvm/BitVector.h"
 
 template<size_t BlockSize, size_t BlocksPerAlloc, typename Allocator = Mallocator>
-class BlockAllocator : private AllocatorHolder<Allocator>, public AllocatorBase<BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>> {
+class BlockAllocator : public AllocatorBase<BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>> {
     using Base = AllocatorBase<BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>>;
     using Me = BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>;
-    using AllocatorHolderT = AllocatorHolder<Allocator>;
     static_assert(BlockSize > 0 && BlocksPerAlloc > 0, "Block size or blocks per alloc too small!");
 
     struct Chunk {
@@ -16,6 +16,7 @@ class BlockAllocator : private AllocatorHolder<Allocator>, public AllocatorBase<
 
     SmallVector<Chunk, 0> freeChunks; 
     SmallVector<Chunk, 0> chunks; 
+    EMPTY_BASE_OPTIMIZE Allocator allocator;
 #ifndef NDEBUG
     size_t bytesAllocated = 0;
 #endif
@@ -25,29 +26,27 @@ public:
     BlockAllocator() = default;
 
     
-    BlockAllocator(Allocator allocator) : AllocatorHolderT(allocator) {}
+    BlockAllocator(Allocator allocator) : allocator(allocator) {}
 
     BlockAllocator(const Me& other) = delete;
 
-    using AllocatorHolderT::getAllocator;
-
     void* allocateMultipleBlocks(size_t neededBlocks) {
-        for (int i = (int)freeChunks.size()-1; i >= 0; i--) {
-            Chunk& freeChunk = freeChunks[i];
-            if (freeChunk.blockCount >= neededBlocks) {
-                char* block = freeChunk.ptr;
-                if (freeChunk.blockCount == neededBlocks) {
-                    // remove chunk if empty
-                    // replace used chunk with back most chunk and pop
-                    freeChunks[i] = freeChunks.back();
-                    freeChunks.pop_back();
-                } else {
-                    freeChunk.ptr += BlockSize * neededBlocks;
-                    freeChunk.blockCount -= neededBlocks;
-                }
-                return block;
-            }
-        }
+        // for (int i = (int)freeChunks.size()-1; i >= 0; i--) {
+        //     Chunk& freeChunk = freeChunks[i];
+        //     if (freeChunk.blockCount >= neededBlocks) {
+        //         char* block = freeChunk.ptr;
+        //         if (freeChunk.blockCount == neededBlocks) {
+        //             // remove chunk if empty
+        //             // replace used chunk with back most chunk and pop
+        //             freeChunks[i] = freeChunks.back();
+        //             freeChunks.pop_back();
+        //         } else {
+        //             freeChunk.ptr += BlockSize * neededBlocks;
+        //             freeChunk.blockCount -= neededBlocks;
+        //         }
+        //         return block;
+        //     }
+        // }
         // no free blocks or none were big enough
         // allocate atleast neededBlocks
         size_t blockCount = std::max(BlocksPerAlloc, neededBlocks);
@@ -101,7 +100,7 @@ public:
 private:
     // returns a reference to the new free chunk made
     Chunk& allocateNewBlocks(size_t count) {
-        char* memory = (char*)getAllocator().allocate(count * BlockSize, BlockAlignment);
+        char* memory = (char*)allocator.allocate(count * BlockSize, BlockAlignment);
         __asan_poison_memory_region(memory, count * BlockSize);
         Chunk chunk = {
             memory,
@@ -169,7 +168,7 @@ public:
 
     void deallocateAll() {
         for (Chunk& chunk : chunks) {
-            getAllocator().deallocate(chunk.ptr, chunk.blockCount * BlockSize, BlockAlignment);
+            allocator.deallocate(chunk.ptr, chunk.blockCount * BlockSize, BlockAlignment);
         }
         chunks.clear();
         freeChunks.clear();
@@ -221,3 +220,242 @@ public:
         deallocateAll();
     }
 };
+
+namespace NEW {
+
+// Only alloc sizes <= BlockSize, otherwise make a custom alloc from Allocator
+
+template<size_t BlockSize, size_t BlocksPerAlloc, typename Allocator = Mallocator>
+class BlockAllocator : public AllocatorBase<BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>> {
+    using Base = AllocatorBase<BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>>;
+    using Me = BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>;
+    static_assert(BlockSize > 0 && BlocksPerAlloc > 0, "Block size or blocks per alloc too small!");
+
+    SmallVector<char*, 0> freeBlocks;
+    SmallVector<char*, 0> chunks;
+
+    char* stackFreeBlocks[BlocksPerAlloc];
+    int stackFreeBlockCount = 0;
+    int lastCleanupFreeBlockCount = 0;
+
+    EMPTY_BASE_OPTIMIZE Allocator allocator;
+#ifndef NDEBUG
+    size_t bytesAllocated = 0;
+#endif
+
+    static constexpr size_t BlockAlignment = alignof(std::max_align_t);
+public:
+    BlockAllocator() = default;
+
+    BlockAllocator(Allocator allocator) : allocator(allocator) {}
+
+    BlockAllocator(Allocator allocator, size_t initialBlocks) : allocator(allocator) {
+        allocateChunks((initialBlocks + BlocksPerAlloc - 1) / BlocksPerAlloc);
+    }
+
+    BlockAllocator(const Me& other) = delete;
+
+    void* allocate(size_t size, size_t alignment) {
+        void* ptr;
+        if (LIKELY(size < BlockSize && alignment <= BlockAlignment)) {
+            ptr = allocateBlock();
+        } else {
+            ptr = allocateNonBlock(size, alignment);
+        }
+        __asan_unpoison_memory_region(ptr, size);
+    #ifndef NDEBUG
+        bytesAllocated += size;
+    #endif
+        return ptr;
+    }
+private:
+    char* allocateBlock() {
+        if (UNLIKELY(stackFreeBlockCount == 0)) {
+            if (freeBlocks.size() <= BlocksPerAlloc) {
+                // allocate a chunk to fill stack blocks
+                char* chunk = (char*)allocator.allocate(BlocksPerAlloc * BlockSize, BlockAlignment);
+                chunks.push_back(chunk);
+                for (int i = 0; i < BlocksPerAlloc-1; i++) {
+                    stackFreeBlocks[i] = chunk + BlockSize * i;
+                }
+                stackFreeBlockCount = BlocksPerAlloc-1;
+                return chunk + BlockSize * (BlocksPerAlloc-1);
+            } else { // free blocks has enough space to fill up all stack free blocks + 1 for the current block
+                // use free blocks to fill stack blocks fully for next time, leaving the backmost block for the current block
+                memcpy(stackFreeBlocks, &freeBlocks[freeBlocks.size() - BlocksPerAlloc - 1], BlocksPerAlloc * sizeof(char*));
+                stackFreeBlockCount = BlocksPerAlloc;
+                char* block = freeBlocks.back();
+                freeBlocks.resize(freeBlocks.size() - BlocksPerAlloc - 1);
+                return block;
+            }
+        }
+        return stackFreeBlocks[--stackFreeBlockCount];
+    }
+
+    void* allocateNonBlock(size_t size, size_t alignment) {
+        return allocator.allocate(size, alignment);
+    }
+
+    // returns a reference to the new free chunk made
+    void allocateChunks(size_t count) {
+        char* memory = (char*)allocator.allocate(count * BlocksPerAlloc * BlockSize, BlockAlignment);
+        for (int c = 0; c < count; c++) {
+            char* chunk = memory + c * BlocksPerAlloc * BlockSize;
+            chunks.push_back(chunk);
+            for (int b = 0; b < BlocksPerAlloc; b++)
+                freeBlocks.push_back(chunk + b * BlockSize);
+        }
+    }
+
+    void deallocateNonBlock(void* ptr, size_t size, size_t alignment) {
+        allocator.deallocate(ptr, size, alignment);
+    }
+public:
+
+    void deallocate(void* ptr, size_t size, size_t alignment) {
+        if (size < BlockSize && alignment <= BlockAlignment) {
+            deallocateBlock((char*)ptr);
+        } else {
+            deallocateNonBlock(ptr, size, alignment);
+        }
+
+        __asan_poison_memory_region(ptr, size);
+
+    #ifndef NDEBUG
+        bytesAllocated -= size;
+    #endif
+    }
+private:
+    void deallocateBlock(char* block) {
+        if (stackFreeBlockCount < BlocksPerAlloc) {
+            stackFreeBlocks[stackFreeBlockCount++] = block;
+            return;
+        }
+        freeBlocks.push_back(block);
+        if (shouldCleanupChunks()) {
+            tryCleanupChunks();
+        }
+    }
+
+    void deallocateChunk(char* chunk) {
+        allocator.deallocate(chunk, BlocksPerAlloc * BlockSize, BlockAlignment);
+    }
+public:
+    void deallocateAll() {
+        for (char* chunk : chunks) {
+            allocator.deallocate(chunk, BlocksPerAlloc * BlockSize, BlockAlignment);
+        }
+        chunks.clear();
+        freeBlocks.clear();
+    #ifndef NDEBUG
+        bytesAllocated = 0;
+    #endif
+    }
+
+    void* reallocate(void* ptr, size_t oldSize, size_t newSize, size_t alignment) {
+    #ifndef NDEBUG
+        bytesAllocated += newSize - oldSize;
+    #endif
+        assert(alignment <= BlockAlignment && "Non standard alignments not allowed");
+
+        __asan_poison_memory_region(ptr, oldSize);
+
+        void* newPtr;
+        if (oldSize <= BlockSize) { 
+            // old ptr was block
+            if (newSize <= BlockSize) {
+                // new ptr is block
+                // already have enough space
+                newPtr = ptr;
+            } else {
+                // moving to size too big to fit in block
+                deallocateBlock(ptr);
+                newPtr = allocateNonBlock(newSize, alignment);
+            }
+        } else {
+            // old ptr was nonblock
+            if (newSize <= BlockSize) {
+                // new ptr is block
+                deallocateNonBlock(ptr, oldSize, alignment);
+                newPtr = allocateBlock();
+            } else {
+                // both non blocks
+                if (newSize == oldSize) {
+                    newPtr = ptr;
+                } else {
+                    deallocateNonBlock(ptr, oldSize, alignment);
+                    newPtr = allocateNonBlock(newSize, alignment);
+                }
+            }
+        }
+
+        __asan_unpoison_memory_region(newPtr, newSize);
+        return newPtr;
+    }
+
+    void reserve(size_t blocks) {
+        if (blocks > freeBlocks.size()) {
+            allocateChunks((blocks + BlocksPerAlloc - 1) / BlocksPerAlloc);
+        }
+    }
+
+    bool shouldCleanupChunks() const {
+        // number of free blocks is more than half of estimated blocks allocated
+        return freeBlocks.size() > MAX(3 * BlocksPerAlloc, 2 * lastCleanupFreeBlockCount);
+    }
+
+    void tryCleanupChunks() {
+        for (auto block : freeBlocks) {
+            // for each chunk, check if all 
+            for (int i = chunks.size() - 1; i >= 0; i--) {
+                // check if block is within chunk bounds. dont want <= because chunk is [start, end)
+                char* chunk = chunks[i];
+                int freeBlockCount = 0;
+                if (block >= chunk && block < chunk + BlocksPerAlloc * BlockSize) {
+                    if (++freeBlockCount == BlocksPerAlloc) {
+                        // chunk has no live allocations remaining
+                        deallocateChunk(chunk);
+                    }
+                    break;
+                }
+            }
+        }
+
+        lastCleanupFreeBlockCount = freeBlocks.size();
+    }
+private:
+
+    int numUsedBlocks() const {
+        return chunks.size() * BlocksPerAlloc;
+    }
+
+    int numAllocatedBlocks() const {
+        return numUsedBlocks() - freeBlocks.size();
+    }
+public:
+
+    AllocatorStats getAllocatorStats() const {
+        int usedBlocks = numUsedBlocks();
+        int allocatedBlocks = numAllocatedBlocks();
+        std::string allocated;
+    #ifndef NDEBUG
+        allocated = string_format("%zu bytes allocated. Wasted bytes in blocks: %zu",
+            bytesAllocated, BlockSize * allocatedBlocks - bytesAllocated);
+    #else
+        allocated = string_format("%d allocated blocks of size %zu = %zu bytes",
+                allocatedBlocks, BlockSize, allocatedBlocks * BlockSize);
+    #endif
+        return {
+            .name = "Block Allocator",
+            .used = string_format("%d used blocks of size %zu = %zu bytes",
+                usedBlocks, BlockSize, usedBlocks * BlockSize),
+            .allocated = allocated
+        };
+    }
+
+    ~BlockAllocator() {
+        deallocateAll();
+    }
+};
+
+}

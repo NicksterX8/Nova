@@ -31,7 +31,6 @@ void generateChunk(ChunkData* chunkdata) {
 
 void ChunkMap::init() {
     map = InternalChunkMap::WithBuckets(128);
-    chunkList = ChunkBucketArray::WithBuckets(128);
 }
 
 void ChunkMap::destroy() {

@@ -485,9 +485,9 @@ namespace Commands {
 
     Result logAllocatorStats(Args args, Game* game) {
         for (auto allocator : GlobalAllocators.allocators) {
-            auto allocatorStats = allocator.getAllocatorStats();
+            auto allocatorStats = allocator->getAllocatorStats();
             std::string output = "---Allocator---\n";
-            auto name = allocator.getName();
+            auto name = allocator->getName();
             if (name) {
                 output += string_format("Name: %s\n", name);
             }

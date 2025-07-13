@@ -148,7 +148,11 @@ JOB_SINGLE_THREADED(BufferQuadJob) {
     void Execute(int N) {
         const QuadRenderer::Quad& quad = quads[N];
         GuiRenderLevel level = levels[N];
-        if (level < 0 || level > guiRenderer->levels.size) {
+        if (level >= guiRenderer->levels.size) {
+            LogOnce(Error, "Level %d too high! Lowering.", level);
+            level = guiRenderer->levels.size-1;
+        } else if (level < 0) {
+            LogError("invalid level!");
             return;
         }
         guiRenderer->levels[level].quads.push(quad);

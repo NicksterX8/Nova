@@ -16,10 +16,10 @@ using GameBlockAllocator = BlockAllocator<4096, 8>;
 struct GlobalAllocatorsType {
     GameBlockAllocator gameBlockAllocator{};
     ScratchAllocator<GameBlockAllocator&> gameScratchAllocator{16 * 1024, gameBlockAllocator};
-    llvm::BumpPtrAllocatorImpl<GameBlockAllocator> bumpPtr{&gameBlockAllocator};
+    llvm::BumpPtrAllocatorImpl<GameBlockAllocator&> bumpPtr{gameBlockAllocator};
 
     // pointers must be stable
-    std::vector<AbstractAllocator> allocators;
+    std::vector<AbstractAllocator*> allocators;
 
     GlobalAllocatorsType() {
         trackAllocator("Game block allocator", &gameBlockAllocator);
@@ -34,10 +34,10 @@ using GameStructureAllocator = decltype(GlobalAllocators.gameScratchAllocator);
 
 template<typename Allocator>
 AbstractAllocator* trackAllocator(std::string_view name, Allocator* allocator) {
-    AbstractAllocator abstract = makeAbstract(allocator);
-    abstract.setName(name);
+    AbstractAllocator* abstract = makeAbstract(allocator);
+    abstract->setName(name);
     GlobalAllocators.allocators.push_back(abstract);
-    return &GlobalAllocators.allocators.back();
+    return abstract;
 }
 
 AbstractAllocator* findTrackedAllocator(AllocatorI* allocatorPtr);

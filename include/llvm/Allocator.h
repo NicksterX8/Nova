@@ -62,7 +62,6 @@ template <typename AllocatorT = Mallocator, size_t SlabSize = 4096,
 class BumpPtrAllocatorImpl
     : public AllocatorBase<BumpPtrAllocatorImpl<AllocatorT, SlabSize,
                                                 SizeThreshold, GrowthDelay>> {
-  AllocatorT* allocator = nullptr;
 public:
   static_assert(SizeThreshold <= SlabSize,
                 "The SizeThreshold must be at most the SlabSize to ensure "
@@ -72,13 +71,17 @@ public:
                 "GrowthDelay must be at least 1 which already increases the"
                 "slab size after each allocated slab.");
 
-  BumpPtrAllocatorImpl(AllocatorT *allocator)
-      : allocator(allocator) {}
+  // BumpPtrAllocatorImpl(AllocatorT& allocator)
+  //     : allocator(allocator) {}
+
+  
+  BumpPtrAllocatorImpl(AllocatorT&& allocator)
+      : allocator(static_cast<AllocatorT&&>(allocator)) {}
 
   // Manually implement a move constructor as we must clear the old allocator's
   // slabs as a matter of correctness.
   // BumpPtrAllocatorImpl(BumpPtrAllocatorImpl &&Old)
-  //     : AllocTy(std::move(Old.getAllocator())), CurPtr(Old.CurPtr),
+  //     : AllocTy(std::move(Old.allocator)), CurPtr(Old.CurPtr),
   //       End(Old.End), Slabs(std::move(Old.Slabs)),
   //       CustomSizedSlabs(std::move(Old.CustomSizedSlabs)),
   //       BytesAllocated(Old.BytesAllocated), RedZoneSize(Old.RedZoneSize) {
@@ -93,6 +96,8 @@ public:
     DeallocateCustomSizedSlabs();
   }
 
+  BumpPtrAllocatorImpl(const BumpPtrAllocatorImpl& copy) = delete; // for now. maybe consider adding back
+
   // BumpPtrAllocatorImpl &operator=(BumpPtrAllocatorImpl &&RHS) {
   //   DeallocateSlabs(Slabs.begin(), Slabs.end());
   //   DeallocateCustomSizedSlabs();
@@ -103,7 +108,7 @@ public:
   //   RedZoneSize = RHS.RedZoneSize;
   //   Slabs = std::move(RHS.Slabs);
   //   CustomSizedSlabs = std::move(RHS.CustomSizedSlabs);
-  //   AllocTy::operator=(std::move(RHS.getAllocator()));
+  //   AllocTy::operator=(std::move(RHS.allocator));
 
   //   RHS.CurPtr = RHS.End = nullptr;
   //   RHS.BytesAllocated = 0;
@@ -178,7 +183,7 @@ public:
     size_t PaddedSize = SizeToAllocate + Alignment.value() - 1;
     if (PaddedSize > SizeThreshold) {
       void *NewSlab =
-          allocator->allocate(PaddedSize, alignof(std::max_align_t));
+          allocator.allocate(PaddedSize, alignof(std::max_align_t));
       // We own the new slab and don't want anyone reading anyting other than
       // pieces returned from this method.  So poison the whole slab.
       __asan_poison_memory_region(NewSlab, PaddedSize);
@@ -318,6 +323,8 @@ private:
   /// Custom-sized slabs allocated for too-large allocation requests.
   SmallVector<std::pair<void *, size_t>, 0> CustomSizedSlabs;
 
+  EMPTY_BASE_OPTIMIZE AllocatorT allocator;
+
   /// How many bytes we've allocated.
   ///
   /// Used so that we can compute how much space was wasted.
@@ -341,7 +348,7 @@ private:
   void StartNewSlab() {
     size_t AllocatedSlabSize = computeSlabSize(Slabs.size());
 
-    void *NewSlab = allocator->allocate(AllocatedSlabSize,
+    void *NewSlab = allocator.allocate(AllocatedSlabSize,
                                                   alignof(std::max_align_t));
     // We own the new slab and don't want anyone reading anything other than
     // pieces returned from this method.  So poison the whole slab.
@@ -358,7 +365,7 @@ private:
     for (; I != E; ++I) {
       size_t AllocatedSlabSize =
           computeSlabSize(std::distance(Slabs.begin(), I));
-      allocator->deallocate(*I, AllocatedSlabSize,
+      allocator.deallocate(*I, AllocatedSlabSize,
                                       alignof(std::max_align_t));
     }
   }
@@ -368,7 +375,7 @@ private:
     for (auto &PtrAndSize : CustomSizedSlabs) {
       void *Ptr = PtrAndSize.first;
       size_t Size = PtrAndSize.second;
-      allocator->deallocate(Ptr, Size, alignof(std::max_align_t));
+      allocator.deallocate(Ptr, Size, alignof(std::max_align_t));
     }
   }
 
@@ -445,22 +452,5 @@ public:
 };
 
 } // end namespace llvm
-
-template <typename AllocatorT, size_t SlabSize, size_t SizeThreshold,
-          size_t GrowthDelay>
-void *
-operator new(size_t Size,
-             llvm::BumpPtrAllocatorImpl<AllocatorT, SlabSize, SizeThreshold,
-                                        GrowthDelay> &Allocator) {
-  return Allocator.allocate(Size, std::min((size_t)llvm::NextPowerOf2(Size),
-                                           alignof(std::max_align_t)));
-}
-
-template <typename AllocatorT, size_t SlabSize, size_t SizeThreshold,
-          size_t GrowthDelay>
-void operator delete(void *,
-                     llvm::BumpPtrAllocatorImpl<AllocatorT, SlabSize,
-                                                SizeThreshold, GrowthDelay> &) {
-}
 
 #endif // LLVM_SUPPORT_ALLOCATOR_H

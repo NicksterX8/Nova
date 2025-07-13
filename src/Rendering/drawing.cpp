@@ -228,7 +228,7 @@ void renderFontComponents(const Font* font, glm::vec2 p, GuiRenderer& renderer) 
     //renderer.rectOutline(bounds, {0, 255, 0, 100}, 2.0f, 2.0f);
     //renderer.colorRect(addBorder(bounds, glm::vec2(0.0f)), {255, 0, 0, 100});
 
-    auto result3 = renderer.text->render("This is some!\nThis is some words a\n three now! \n4\n\t5\t\n6\t", renderer.options.size * 0.5f, TextFormattingSettings{.align = TextAlignment::MiddleCenter}, TextRenderingSettings{.font = font, .scale = 2.0f});
+    auto result3 = renderer.text->render("iiii\nwwww\n three now!", renderer.options.size * 0.5f, TextFormattingSettings{.align = TextAlignment::MiddleCenter}, TextRenderingSettings{.font = font, .scale = 2.0f});
     renderer.colorRect(result3.rect, {100, 0, 0, 105});
 
     auto result2 = renderer.text->render("This is some words!\nLine number 2!!\n three now! \n4\n\t5\t\n6\t", renderer.options.size, TextFormattingSettings{.align = TextAlignment::TopRight}, TextRenderingSettings{.font = font, .scale = 0.5f});
@@ -294,7 +294,7 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
     
     Draw::drawFpsCounter(guiRenderer, (float)Metadata->fps(), (float)Metadata->tps(), guiRenderer.options);
 
-    // renderFontComponents(Fonts->get("Debug"), {500, 500}, guiRenderer);
+    renderFontComponents(Fonts->get("Gui"), {500, 500}, guiRenderer);
 
     if (Global.paused) {
         guiRenderer.textBox("Paused.",

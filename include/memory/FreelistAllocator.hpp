@@ -14,12 +14,8 @@ struct FreelistAllocator {
     Node* head;
     EMPTY_BASE_OPTIMIZE AllocatorT allocator;
 
-    AllocatorT& getAllocator() const {
-        return allocator;
-    }
-
     void allocateNode(size_t size) {
-        void* memory = getAllocator().allocate(size + sizeof(Node), alignof(std::max_align_t));
+        void* memory = allocator.allocate(size + sizeof(Node), alignof(std::max_align_t));
         Node* node = (Node*)memory;
         char* ptr = (char*)memory + sizeof(Node);
 

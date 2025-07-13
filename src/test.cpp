@@ -115,7 +115,13 @@ struct TestS {
     int x;
 };
 
+struct Big {
+    size_t z;
+    size_t y;
+};
+
 
 int main() {
+
     return alignof(decltype(TestS()));
 }

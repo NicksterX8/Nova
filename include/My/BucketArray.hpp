@@ -3,77 +3,47 @@
 
 #include "MyInternals.hpp"
 #include <stddef.h>
-#include "Vec.hpp"
 #include "Allocation.hpp"
+#include "ADT/SmallVector.hpp"
 
 MY_CLASS_START
 
 #define MY_BUCKET_ARRAY_START_BUCKET_COUNT 4
 
-template<typename T, size_t BucketSize, class Allocator = DefaultAllocator, class BucketAllocator = DefaultAllocator>
+template<typename T, size_t BucketSize, typename BucketAllocator = Mallocator, typename MetaAllocator = Mallocator>
 struct BucketArray {
     static_assert(BucketSize > 0, "BucketArray bucket size cannot be zero!");
-private:
-    using Self = BucketArray<T, BucketSize, Allocator, BucketAllocator>;
-public:
-    using BucketContainer = Vec<T*>;
+    using BucketContainer = SmallVectorA<T*, MetaAllocator, 0>;
     BucketContainer buckets;
-    int topBucketSlotsUsed;
+    int topBucketSlotsUsed = 0;
 
-    static Allocator allocator;
-    static BucketAllocator bucketAllocator;
+    EMPTY_BASE_OPTIMIZE DoubleAllocatorHolder<BucketAllocator, MetaAllocator> allocators;
 
-    /*
     BucketArray() = default;
 
-    BucketArray(const Vec<T*, Allocator>& buckets, int topBucketSlotsUsed=0)
-    : buckets(buckets), topBucketSlotsUsed(topBucketSlotsUsed) {}
+    template<typename BucketAllocatorT, typename MetaAllocatorT>
+    BucketArray(BucketAllocatorT bucketAllocator, MetaAllocatorT metaAllocator)
+    : allocators(static_cast<BucketAllocatorT&&>(bucketAllocator), static_cast<MetaAllocatorT&&>(metaAllocator)) {}
 
-    BucketArray(int elementCapacity) {
-        int bucketCapacity = elementCapacity/BucketSize + (elementCapacity % BucketSize != 0);
-        buckets = Vec<T*>{
-            (T**)allocator.Alloc(bucketCapacity * sizeof(T*)), // data
-            0, // size
-            bucketCapacity // capacity
-        };
-        topBucketSlotsUsed = 0;
-    }
-    */
-
-    static Self WithCapacity(int elementCapacity) {
-        Self self;
-        int bucketCapacity = elementCapacity/BucketSize + (elementCapacity % BucketSize != 0);
-        self.buckets = BucketContainer{
-            (T**)allocator.Alloc(bucketCapacity * sizeof(T*)), // data
-            0, // size
-            bucketCapacity // capacity
-        };
-        self.topBucketSlotsUsed = 0;
-        return self;
-    }
-
-    static Self WithBuckets(int bucketCapacity) {
-        return Self{BucketContainer::WithCapacity(bucketCapacity), 0};
-    }
-
-    static Self Empty() {
-        return {{0,0,0}, 0};
-    }
+    template<typename BucketAllocatorT>
+    BucketArray(BucketAllocatorT bucketAllocator)
+    : allocators(static_cast<BucketAllocatorT&&>(bucketAllocator)) {}
 
     int size() const {
-        return ((buckets.size+(buckets.size==0)) * BucketSize) - BucketSize + topBucketSlotsUsed;
+        return ((buckets.size() + (buckets.size() == 0)) * BucketSize) - BucketSize + topBucketSlotsUsed;
     }
 
+    // may be null
     T* get(int elementIndex) const {
         if (elementIndex >= 0 && elementIndex < this->size()) {
-            T* bucket = buckets.get(elementIndex / BucketSize);
+            T* bucket = &buckets[elementIndex / BucketSize];
             if (bucket) return bucket[elementIndex % BucketSize];
         }
         return nullptr;
     }
 
     T& operator[](int elementIndex) const {
-        assert(elementIndex > -1 && "array index out of bounds");
+        assert(elementIndex >= 0 && "array index out of bounds");
         assert(elementIndex < this->size() && "array index out of bounds");
         return buckets[elementIndex / BucketSize][elementIndex % BucketSize];
     }
@@ -83,7 +53,7 @@ public:
     }
 
     void pushNewBucket() {
-        buckets.push(allocator.template Alloc<T>(BucketSize));
+        buckets.push_back(allocators.template getAllocator<BucketAllocator>().template allocate<T>(BucketSize));
         topBucketSlotsUsed = 0;
     }
 
@@ -117,7 +87,7 @@ public:
     /* Same as push, but leave the value at the back uninitialized */
     T* reserveBack(int size = 1) {
         // room for another element in top bucket?
-        if (topBucketSlotsUsed + size > BucketSize || buckets.size == 0) {
+        if (topBucketSlotsUsed + size > BucketSize || buckets.empty()) {
             pushNewBucket();
         }
         auto topBucket = buckets.back();
@@ -126,38 +96,37 @@ public:
         return reserved;
     }
 
+    // assertion fail if no buckets exist
     void pop() {
-        if (topBucketSlotsUsed != 0) {
+        if (topBucketSlotsUsed > 0) {
             topBucketSlotsUsed--;
         } else {
-            buckets.pop(); // assertion fail if no buckets exist
-            topBucketSlotsUsed = BucketSize-1;
-        }
-    }
-
-    void popReduce(int maxUnusedCapacity) {
-        if (topBucketSlotsUsed != 0) {
-            topBucketSlotsUsed--;
-        } else {
-            buckets.pop(); // assertion fail if no buckets exist
-            if (buckets.capacity > buckets.size + maxUnusedCapacity) {
-                // don't use any extra memory
-                buckets.reallocate(buckets.size);
-            }
+            buckets.pop(); 
             topBucketSlotsUsed = BucketSize-1;
         }
     }
 
     // may be null
     T* getBucket(int bucketIndex) const {
-        return buckets.get(bucketIndex);
+        if (buckets.size() > bucketIndex)
+            return &buckets[bucketIndex];
+        else
+            return nullptr;
+    }
+
+    void clear() {
+        for (T* bucket : buckets) {
+            allocators.template getAllocator<BucketAllocator>().deallocate(bucket);
+        }
+        buckets.clear();
     }
 
     void destroy() {
-        for (T* bucket : buckets) {
-            allocator.Free(bucket);
-        }
-        buckets.destroy();
+        clear();
+    }
+
+    ~BucketArray() {
+        clear();
     }
 
     // iterator stuff
@@ -188,12 +157,6 @@ public:
         return iterator(&buckets.back(), topBucketSlotsUsed);
     }
 };
-
-template<typename T, size_t BucketSize, class Allocator, class BucketAllocator>
-Allocator BucketArray<T, BucketSize, Allocator, BucketAllocator>::allocator = Allocator();
-
-template<typename T, size_t BucketSize, class Allocator, class BucketAllocator>
-BucketAllocator BucketArray<T, BucketSize, Allocator, BucketAllocator>::bucketAllocator = BucketAllocator();
 
 MY_CLASS_END
 

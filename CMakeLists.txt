@@ -7,7 +7,7 @@ project(faketorio VERSION 1.0)
 add_compile_options(-g -Wall -std=c++17
     -Wno-macro-redefined -Wno-unused-variable -Wno-char-subscripts -Wno-comment
     -Wliteral-conversion -fno-exceptions
-    -DDEBUG -DDEBUG_LEVEL=2
+    -DDEBUG -DDEBUG_LEVEL=2 -DMEMORY_DEBUG_LEVEL=2
 )
 
 add_link_options(-framework OpenGL -fno-exceptions)

@@ -1,5 +1,12 @@
 # TODO
 
+main things to optimize
+#1: text buffer flush. Just reduce draw calls.
+#2: chunk rendering. going to change allocator
+
+develop free list/recycler
+new bucket allocator
+fix old bucket allocator
 arena allocator
 better allocator use // for components
 

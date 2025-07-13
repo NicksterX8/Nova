@@ -86,7 +86,9 @@ static void renderChunk(RenderContext& ren, const Camera& camera, Chunk* chunk, 
             int index = row * CHUNKSIZE + col;
             float x = startPos.x + col * tileWidth;
             float y = startPos.y + row * tileHeight;
-            vertexPositions[index] = {x, y};
+            // set floats directly to avoid glm::vec2 constructor which was showing up on time profiling
+            ((GLfloat*)(&vertexPositions[index]))[0] = x;
+            ((GLfloat*)(&vertexPositions[index]))[1] = y;
         }
     }
 
@@ -354,7 +356,7 @@ void initFonts(FontManager& fonts, const ShaderManager& shaders) {
         fonts);
     Font* guiFont = makeFont("Gui",
         "factorio-fonts/TitilliumWeb-SemiBold.ttf",
-        12,
+        24,
         false,
         TextureUnit::Font3,
         fonts);

@@ -175,7 +175,7 @@ template<typename Allocator>
 void* operator new(size_t size, AlignWrapper align, const char* file, int line, Allocator& allocator) {
     void* ptr = allocator.allocate(size, align.align);
     debugNewed(ptr, size, file, line, (AllocatorI*)(void*)&allocator);
-    return ptr;
+    return ptr; 
 }
 
 template<typename T>

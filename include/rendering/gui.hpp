@@ -16,7 +16,7 @@ namespace RenderModes {
 using RenderModes::RenderMode;
 
 using GuiRenderLevel = int;
-constexpr GuiRenderLevel GuiNumLevels = 16;
+constexpr GuiRenderLevel GuiNumLevels = 12;
 
 struct RenderBufferLevel {
     My::Vec<QuadRenderer::Quad> quads;

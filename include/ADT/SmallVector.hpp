@@ -45,13 +45,13 @@ namespace WithAllocator {
 /// Using 64 bit size is desirable for cases like SmallVector<char>, where a
 /// 32 bit size would limit the vector to ~4GB. SmallVectors are used for
 /// buffering bitcode output - which can exceed 4GB.
-template <class Size_T, typename AllocatorT> class SmallVectorBase : private AllocatorHolder<AllocatorT> {
+template <class Size_T, typename AllocatorT> class SmallVectorBase {
 protected:
   void *BeginX;
   Size_T Size = 0, Capacity;
 
 public:
-  using AllocatorHolder<AllocatorT>::getAllocator;
+  EMPTY_BASE_OPTIMIZE AllocatorT allocator;
 protected:
 
   /// The maximum value of the Size_T used.
@@ -65,7 +65,7 @@ protected:
 
   template<typename AllocT>
   SmallVectorBase(void *FirstEl, size_t TotalCapacity, AllocT&& allocator)
-      : AllocatorHolder<AllocatorT>(std::forward<AllocT&&>(allocator)), BeginX(FirstEl), Capacity(TotalCapacity) {}
+      : allocator(static_cast<AllocT&&>(allocator)), BeginX(FirstEl), Capacity(TotalCapacity) {}
 
   /// This is a helper for \a grow() that's out of line to reduce code
   /// duplication.  This function will report a fatal error if it can't grow at
@@ -123,7 +123,6 @@ class SmallVectorTemplateCommon
     : public SmallVectorBase<SmallVectorSizeType<T>, AllocatorT> {
   using Base = SmallVectorBase<SmallVectorSizeType<T>, AllocatorT>;
 public:
-  using Base::getAllocator;
 
 protected:
   /// Find the address of the first element.  For this pointer math to be valid
@@ -338,8 +337,6 @@ template <typename T, typename AllocatorT, bool = (is_trivially_copy_constructib
                              std::is_trivially_destructible<T>::value>
 class SmallVectorTemplateBase : public SmallVectorTemplateCommon<T, AllocatorT> {
   friend class SmallVectorTemplateCommon<T, AllocatorT>;
-public:
-  using SmallVectorTemplateCommon<T, AllocatorT>::getAllocator;
 protected:
   static constexpr bool TakesParamByValue = false;
   using ValueParamT = const T &;
@@ -348,7 +345,7 @@ protected:
 
   template<typename AllocT>
   SmallVectorTemplateBase(size_t Size, AllocT&& allocator)
-  : SmallVectorTemplateCommon<T, AllocatorT>(Size, std::forward<AllocT&&>(allocator)) {}
+  : SmallVectorTemplateCommon<T, AllocatorT>(Size, static_cast<AllocT&&>(allocator)) {}
 
   static void destroy_range(T *S, T *E) {
     while (S != E) {
@@ -470,7 +467,7 @@ void SmallVectorTemplateBase<T, AllocatorT, TriviallyCopyable>::takeAllocationFo
     T *NewElts, size_t NewCapacity) {
   // If this wasn't grown from the inline copy, deallocate the old space.
   if (!this->isSmall())
-     getAllocator().deallocate((void*)this->begin(), this->Capacity * sizeof(T), alignof(std::max_align_t));
+     this->allocator.deallocate((void*)this->begin(), this->Capacity * sizeof(T), alignof(std::max_align_t));
 
   this->BeginX = NewElts;
   this->Capacity = NewCapacity;
@@ -496,7 +493,7 @@ protected:
   SmallVectorTemplateBase(size_t Size) : SmallVectorTemplateCommon<T, AllocatorT>(Size) {}
 
   template<typename AllocT>
-  SmallVectorTemplateBase(size_t Size, AllocT&& allocator) : SmallVectorTemplateCommon<T, AllocatorT>(Size, std::forward<AllocT&&>(allocator)) {}
+  SmallVectorTemplateBase(size_t Size, AllocT&& allocator) : SmallVectorTemplateCommon<T, AllocatorT>(Size, static_cast<AllocT&&>(allocator)) {}
 
   // No need to do a destroy loop for POD's.
   static void destroy_range(T *, T *) {}
@@ -586,7 +583,6 @@ class SmallVectorImpl : public SmallVectorTemplateBase<T, AllocatorT> {
   using SuperClass = SmallVectorTemplateBase<T, AllocatorT>;
 
 public:
-  using SuperClass::getAllocator;
 
   using iterator = typename SuperClass::iterator;
   using const_iterator = typename SuperClass::const_iterator;
@@ -603,12 +599,12 @@ protected:
     
   template<typename AllocT>
   explicit SmallVectorImpl(unsigned N, AllocT&& allocator)
-  : SmallVectorTemplateBase<T, AllocatorT>(N, std::forward<AllocT&&>(allocator)) {}
+  : SmallVectorTemplateBase<T, AllocatorT>(N, static_cast<AllocT&&>(allocator)) {}
 
   void assignRemote(SmallVectorImpl &&RHS) {
     this->destroy_range(this->begin(), this->end());
     if (!this->isSmall())
-      getAllocator().deallocate((void*)this->begin(), this->Capacity * sizeof(T), alignof(std::max_align_t));
+      this->allocator.deallocate((void*)this->begin(), this->Capacity * sizeof(T), alignof(std::max_align_t));
     this->BeginX = RHS.BeginX;
     this->Size = RHS.Size;
     this->Capacity = RHS.Capacity;
@@ -622,7 +618,7 @@ public:
     // Subclass has already destructed this vector's elements.
     // If this wasn't grown from the inline copy, deallocate the old space.
     if (!this->isSmall())
-      getAllocator().deallocate((void*)this->begin(), this->Capacity * sizeof(T), alignof(std::max_align_t));
+      this->allocator.deallocate((void*)this->begin(), this->Capacity * sizeof(T), alignof(std::max_align_t));
   }
 
   void clear() {
@@ -1202,7 +1198,6 @@ template <typename T,
           >
 class SmallVector : public SmallVectorImpl<T, AllocatorT>, SmallVectorStorage<T, N> {
 public:
-  using SmallVectorImpl<T, AllocatorT>::getAllocator;
 
   SmallVector() : SmallVectorImpl<T, AllocatorT>(N) {}
 
@@ -1396,10 +1391,10 @@ template <class Size_T, typename AllocatorT>
 void *llvm::WithAllocator::SmallVectorBase<Size_T, AllocatorT>::replaceAllocation(void *NewElts, size_t TSize,
                                                  size_t OldCapacity, size_t NewCapacity,
                                                  size_t VSize) {
-  void *NewEltsReplace = getAllocator().allocate(NewCapacity * TSize, alignof(std::max_align_t));
+  void *NewEltsReplace = allocator.allocate(NewCapacity * TSize, alignof(std::max_align_t));
   if (VSize)
     memcpy(NewEltsReplace, NewElts, VSize * TSize);
-  getAllocator().deallocate(NewElts, OldCapacity * TSize, alignof(std::max_align_t));
+  allocator.deallocate(NewElts, OldCapacity * TSize, alignof(std::max_align_t));
   return NewEltsReplace;
 }
 
@@ -1411,7 +1406,7 @@ void *llvm::WithAllocator::SmallVectorBase<Size_T, AllocatorT>::mallocForGrow(vo
   NewCapacity = ::detail::getNewCapacity<Size_T>(MinSize, TSize, this->capacity());
   // Even if capacity is not 0 now, if the vector was originally created with
   // capacity 0, it's possible for the malloc to return FirstEl.
-  void *NewElts = getAllocator().allocate(NewCapacity * TSize, alignof(std::max_align_t));
+  void *NewElts = allocator.allocate(NewCapacity * TSize, alignof(std::max_align_t));
   if (NewElts == FirstEl)
     NewElts = replaceAllocation(NewElts, TSize, Capacity, NewCapacity);
   return NewElts;
@@ -1424,7 +1419,7 @@ void llvm::WithAllocator::SmallVectorBase<Size_T, AllocatorT>::grow_pod(void *Fi
   size_t NewCapacity = ::detail::getNewCapacity<Size_T>(MinSize, TSize, this->capacity());
   void *NewElts;
   if (BeginX == FirstEl) {
-    NewElts = getAllocator().allocate(NewCapacity * TSize, alignof(std::max_align_t));
+    NewElts = allocator.allocate(NewCapacity * TSize, alignof(std::max_align_t));
     if (NewElts == FirstEl)
       NewElts = replaceAllocation(NewElts, TSize, Capacity, NewCapacity);
 
@@ -1432,7 +1427,7 @@ void llvm::WithAllocator::SmallVectorBase<Size_T, AllocatorT>::grow_pod(void *Fi
     memcpy(NewElts, this->BeginX, size() * TSize);
   } else {
     // If this wasn't grown from the inline copy, grow the allocated space.
-    NewElts = getAllocator().reallocate(this->BeginX, this->Capacity * TSize, NewCapacity * TSize, alignof(std::max_align_t));
+    NewElts = allocator.reallocate(this->BeginX, this->Capacity * TSize, NewCapacity * TSize, alignof(std::max_align_t));
     if (NewElts == FirstEl)
       NewElts = replaceAllocation(NewElts, TSize, Capacity, NewCapacity, size());
   }

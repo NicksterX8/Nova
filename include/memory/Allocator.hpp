@@ -116,24 +116,62 @@ struct AllocatorStats {
 };
 
 
-template <typename Allocator>
-class AllocatorHolder {
-    EMPTY_BASE_OPTIMIZE Allocator allocator;
+// template<typename Allocator>
+// class AllocatorHolder {
+//     EMPTY_BASE_OPTIMIZE Allocator allocator;
+// public:
+//     AllocatorHolder() = default;
+//     AllocatorHolder(const Allocator &allocator) : allocator(allocator) {}
+//     AllocatorHolder(Allocator &&allocator) : allocator(static_cast<Allocator &&>(allocator)) {}
+//     Allocator &getAllocator() { return allocator; }
+//     const Allocator &getAllocator() const { return allocator; }
+// };
+
+// template<typename Allocator>
+// class AllocatorHolder<Allocator&> {
+//     Allocator &allocator;
+// public:
+//     AllocatorHolder(Allocator& allocator) : allocator(allocator) {}
+//     Allocator &getAllocator() { return allocator; }
+//     const Allocator &getAllocator() const { return allocator; }
+// };
+
+class SameAllocator {};
+
+// allocator holder for two allocators which allows space optimization for when both are the same
+template<typename Allocator1, typename Allocator2>
+class DoubleAllocatorHolder {
+    EMPTY_BASE_OPTIMIZE Allocator1 allocator1;
+    EMPTY_BASE_OPTIMIZE Allocator2 allocator2;
 public:
-    AllocatorHolder() = default;
-    AllocatorHolder(const Allocator &allocator) : allocator(allocator) {}
-    AllocatorHolder(Allocator &&allocator) : allocator(static_cast<Allocator &&>(allocator)) {}
-    Allocator &getAllocator() { return allocator; }
-    const Allocator &getAllocator() const { return allocator; }
+    DoubleAllocatorHolder() = default;
+
+    DoubleAllocatorHolder(Allocator1&& allocator1, Allocator2&& allocator2)
+    : allocator1(static_cast<Allocator1&&>(allocator1)), allocator2(static_cast<Allocator2&&>(allocator2)) {}
+
+    template<typename Allocator>
+    Allocator& getAllocator() {
+        if constexpr (std::is_same_v<Allocator, Allocator1>) {
+            return allocator1;
+        } else {
+            return allocator2;
+        }
+    }
 };
 
-template <typename Allocator>
-class AllocatorHolder<Allocator&> {
-    Allocator &allocator;
+template<typename Allocator1>
+class DoubleAllocatorHolder<Allocator1, SameAllocator> {
+    EMPTY_BASE_OPTIMIZE Allocator1 allocator1;
 public:
-    AllocatorHolder(Allocator& allocator) : allocator(allocator) {}
-    Allocator &getAllocator() { return allocator; }
-    const Allocator &getAllocator() const { return allocator; }
+    DoubleAllocatorHolder() = default;
+
+    DoubleAllocatorHolder(Allocator1&& allocator)
+    : allocator1(static_cast<Allocator1&&>(allocator1)) {}
+
+    template<typename Allocator>
+    Allocator1& getAllocator() {
+        return allocator1;
+    }
 };
 
 // maybe implement
@@ -227,9 +265,8 @@ public:
 };
 
 template<typename Allocator>
-AbstractAllocator makeAbstract(Allocator* allocator) {
-    static_assert(sizeof(AbstractAllocatorImpl<Allocator>) == sizeof(AbstractAllocator), "AbstractAllocatorImpl must not have state so we can copy to abstract!");
-    AbstractAllocator abstract = AbstractAllocatorImpl<Allocator>(allocator);
+AbstractAllocator* makeAbstract(Allocator* allocator) {
+    AbstractAllocator* abstract = NEW(AbstractAllocatorImpl<Allocator>(allocator));
     return abstract;
 }
 
@@ -238,27 +275,22 @@ class Mallocator : public AllocatorBase<Mallocator> {
     using Base = AllocatorBase<Mallocator>;
 public:
 
-    void* allocate(size_t size) {
-        return malloc(size);
-    }
+    using Base::allocate;
+    using Base::deallocate;
 
     void* allocate(size_t size, size_t alignment) {
+        void* mem;
         if (alignment > alignof(std::max_align_t))
-            return aligned_alloc(alignment, size);
+            mem = aligned_alloc(alignment, size);
         else
-            return malloc(size);
-    }
-
-    void deallocate(void* ptr) {
-        free(ptr);
+            mem = malloc(size);
+        __asan_poison_memory_region(mem, size);
+        return mem;
     }
 
     void deallocate(void* ptr, size_t size, size_t alignment) {
         free(ptr);
-    }
-
-    void* reallocate(void* ptr, size_t newSize) {
-        return realloc(ptr, newSize);
+        __asan_unpoison_memory_region(ptr, size);
     }
 
     void* reallocate(void* ptr, size_t oldSize, size_t newSize, size_t alignment) {

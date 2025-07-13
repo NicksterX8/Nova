@@ -13,7 +13,7 @@ struct PrototypeManager {
     Signature validComponents;
     std::vector<Prototype*> prototypes;
     std::unordered_map<std::string, Prototype*> namedPrototypes;
-    My::BucketArray<char, 1024> componentAllocator = My::BucketArray<char, 1024>::Empty();
+    My::BucketArray<char, 1024> componentAllocator;
 
     void init(ComponentInfoRef componentInfo, int numPrototypes) {
         this->componentInfo = componentInfo;

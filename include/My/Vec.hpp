@@ -10,6 +10,8 @@
 #include "Allocation.hpp"
 #include "ADT/ArrayRef.hpp"
 
+#define BOUNDS_CHECKS 1
+
 MY_CLASS_START
 
 namespace Vector {
