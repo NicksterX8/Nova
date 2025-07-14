@@ -83,6 +83,8 @@ struct EntityWorld {
 protected:
     
     using EventCallback = std::function<void(EntityWorld*, ECS::Entity)>;
+    
+    // does nothing currently
     EventCallback callbacksOnAdd[EC::ComponentIDs::Count];
     EventCallback callbacksBeforeRemove[EC::ComponentIDs::Count];
 

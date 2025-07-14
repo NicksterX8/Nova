@@ -95,10 +95,15 @@ namespace Commands {
         auto settingName = args.get();
         auto value = args.get();
 
-        if (value == "1" || value == "true" || value == "y" || value == "True") {
-            game->debug.settings[settingName] = 1;
+        auto setting = game->debug.settings.get(settingName);
+        if (!setting) {
+            return RES_ERROR("No setting with that name found!");
+        }
+
+        if (value == "1" || value == "true" || value == "y" || value == "True" || value == "") {
+            *setting = true;
         } else {
-            game->debug.settings[settingName] = 0;
+            *setting = false;
         }
 
         return RES_SUCCESS("Setting changed.");

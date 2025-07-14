@@ -6,6 +6,9 @@
 #include "rendering/text/text.hpp"
 #include "actions.hpp"
 #include "ECS/componentMacros.hpp"
+#include "rendering/gui.hpp"
+
+#include "ADT/TinyPtrVectorPod.hpp"
 
 namespace GUI {
 
@@ -35,7 +38,7 @@ text
 
 namespace ComponentIDs {
     #define GUI_REGULAR_COMPONENTS_LIST Name, SimpleTexture, Numbered, Background, \
-        Border, ViewBox, Hidden, MaxSize, MinSize, Button, Text, ChildOf, Hover, \
+        Border, ViewBox, DisplayBox, Hidden, MaxSize, MinSize, Button, Text, ChildOf, Hover, \
         SizeConstraint, AlignmentConstraint, StackConstraint, Update, HotbarSlot
     #define GUI_PROTO_COMPONENTS_LIST PlaceholderPr 
     #define GUI_COMPONENTS_LIST GUI_REGULAR_COMPONENTS_LIST, GUI_PROTO_COMPONENTS_LIST
@@ -48,7 +51,11 @@ namespace ComponentIDs {
     constexpr static bool PROTOTYPE = false;\
     constexpr static const char* NAME = TOSTRING(name);
 
-#define END_COMPONENT(name) }; static_assert(true | ComponentIDs::name, "Checking for id");
+#define END_COMPONENT(name) }; \
+    static_assert(true | ComponentIDs::name, "Checking for id"); \
+    static_assert(std::is_trivially_copy_constructible_v<name>, "Components must be trivially copyable"); \
+    static_assert(std::is_trivially_move_constructible_v<name>, "Components must be trivially moveable"); \
+    static_assert(std::is_trivially_destructible_v<name>, "Components must be trivially assignable");
 
 #define BEGIN_PROTO_COMPONENT(name) struct name {\
     constexpr static ComponentID ID = ComponentIDs::name;\
@@ -84,10 +91,14 @@ END_COMPONENT(Hover)
 
 BEGIN_COMPONENT(ViewBox)
     Box box = {{0,0},{0,0}}; // relative box
-    Box absolute = {{0,0},{0,0}}; // where element was actually displayed
-    int level = 0;
+    GUI::RenderLevel level = GUI::RenderLevel::Null;
     bool visible = true; // set to false for an invisible 'container' type element. necessary to know if the user is trying use a gui element or click through to something else
 END_COMPONENT(ViewBox)
+
+BEGIN_COMPONENT(DisplayBox)
+    Box box = {{0,0},{0,0}}; // where element was actually displayed
+    GUI::RenderHeight height = NAN;
+END_COMPONENT(DisplayBox)
 
 BEGIN_COMPONENT(Hidden)
 END_COMPONENT(Hidden)
@@ -128,7 +139,7 @@ END_COMPONENT(HotbarSlot)
 
 // function to execute every tick
 BEGIN_COMPONENT(Update)
-    GuiAction update;
+    GuiAction update = nullptr;
 END_COMPONENT(Update)
 
 BEGIN_COMPONENT(SizeConstraint)

@@ -3,15 +3,14 @@
 
 namespace Text {
 
-TextRenderer TextRenderer::init(const Font* defaultFont, My::Vec<TextRenderBatch>* buffer) {
-    TextRenderer self;
-    self.buffer = buffer;
-    self.charBuffer = My::Vec<Char>::WithCapacity(256);
-    self.charPosBuffer = My::Vec<Vec2>::WithCapacity(256);
-    self.charColorBuffer = My::Vec<SDL_Color>::WithCapacity(256);
+void TextRenderer::init(const Font* defaultFont) {
+    this->buffer = My::Vec<TextRenderBatch>::WithCapacity(16);
+    this->charBuffer = My::Vec<Char>::WithCapacity(256);
+    this->charPosBuffer = My::Vec<Vec2>::WithCapacity(256);
+    this->charColorBuffer = My::Vec<SDL_Color>::WithCapacity(256);
 
-    self.model = GlGenModel();
-    self.model.bindAll();
+    this->model = GlGenModel();
+    this->model.bindAll();
 
     const static GlVertexFormat vertexFormat = GlMakeVertexFormat(0, {
         {2, GL_FLOAT, sizeof(GLfloat)}, // pos
@@ -32,17 +31,15 @@ TextRenderer TextRenderer::init(const Font* defaultFont, My::Vec<TextRenderBatch
         nullptr, 
         GL_STREAM_DRAW});
 
-    self.defaultColor = {0,0,0,0};
-    self.defaultFormatting = FormattingSettings::Default();
-    self.defaultRendering = RenderingSettings{
+    this->defaultColor = {0,0,0,0};
+    this->defaultFormatting = FormattingSettings::Default();
+    this->defaultRendering = RenderingSettings{
         .font = defaultFont,
         .scale = 1.0f
     };
-
-    return self;
 }
 
-TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength, Vec2 position, const TextFormattingSettings& formatSettings, TextRenderingSettings renderSettings, ArrayRef<SDL_Color> colors) {
+TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength, Vec2 position, const TextFormattingSettings& formatSettings, TextRenderingSettings renderSettings, TextHeight height, ArrayRef<SDL_Color> colors) {
     if (!text || textLength == 0) return RenderResult::BadRender(position);
     
     if (!renderSettings.font) {
@@ -66,11 +63,15 @@ TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength
 
     if (formatResult.visibleCharCount == 0) return *boxAsRect(&formatResult.boundingBox);
 
+    float adjustedHeight = height + heightIncrementer;
+    heightIncrementer += heightIncrement;
+
     TextRenderBatch renderBatch = {
         .settings = renderSettings,
         .charBufIndex = charBufIndex,
         .charPosBufIndex = charPosBufIndex,
-        .charCount = formatResult.visibleCharCount
+        .charCount = formatResult.visibleCharCount,
+        .height = adjustedHeight
     };
     if (!colors.empty()) {
         assert(colors.size() == textLength && "Need one color character!");
@@ -83,7 +84,7 @@ TextRenderer::RenderResult TextRenderer::render(const char* text, int textLength
         }
     }
 
-    buffer->push(renderBatch);
+    buffer.push(renderBatch);
     return {
         *boxAsRect(&formatResult.boundingBox)
     };
@@ -193,8 +194,8 @@ int TextRenderer::flushBufferType(bool sdfs) {
     auto* vertexBuffer = (GlyphVertex*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
     int totalChars = 0;
     int bufferedChars = 0;
-    for (int i = 0; i < buffer->size; i++) {
-        auto* batch = &(*buffer)[i];
+    for (int i = 0; i < buffer.size; i++) {
+        auto* batch = &buffer[i];
         if (batch->settings.font->usingSDFs == sdfs) {
             int batchCharsRendered = 0;
             while (batchCharsRendered < batch->charCount) {
@@ -224,14 +225,20 @@ int TextRenderer::flushBufferType(bool sdfs) {
 }
 
 void TextRenderer::flushBuffer() {
-    if (!buffer || buffer->empty()) return;
+    if (buffer.empty()) return;
+
+    // sort buffer based on height
+    std::sort(buffer.begin(), buffer.end(), [](const TextRenderBatch& lhs, const TextRenderBatch& rhs){
+        return lhs.height < rhs.height;
+    });
 
     glBindVertexArray(model.vao);
     glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
     flushBufferType(true);
     flushBufferType(false);
     GL::logErrors();
-    buffer->clear();
+    heightIncrementer = 0.0f;
+    buffer.clear();
 }
 
 }

@@ -1,5 +1,7 @@
 # TODO
 
+quads can render over higher height text and vice versa. whatever, good enough rn
+
 main things to optimize
 #1: text buffer flush. Just reduce draw calls.
 #2: chunk rendering. going to change allocator

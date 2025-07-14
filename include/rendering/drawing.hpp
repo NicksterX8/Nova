@@ -39,20 +39,20 @@ namespace Draw {
         glDrawArrays(GL_POINTS, 0, count);
     }
 
-    void thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, float z, const SDL_Color* colors, const GLfloat* lineWidths);
-    void thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, float z, SDL_Color color, const GLfloat* lineWidths);
-    void thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, float z, SDL_Color color, GLfloat lineWidth);
+    void thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, GUI::RenderHeight height, const SDL_Color* colors, const GLfloat* lineWidths);
+    void thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, GUI::RenderHeight height, SDL_Color color, const GLfloat* lineWidths);
+    void thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, GUI::RenderHeight height, SDL_Color color, GLfloat lineWidth);
 
     /* GUI */
 
-    int chunkBorders(QuadRenderer& renderer, const Camera& camera, SDL_Color color, float pixelLineWidth, float z);
+    int chunkBorders(QuadRenderer& renderer, const Camera& camera, SDL_Color color, float pixelLineWidth, GUI::RenderHeight height);
     void drawFpsCounter(GuiRenderer& renderer, float fps, float tps, RenderOptions options);
     void drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& screenTransform, GUI::Gui* gui, const GameState* state, const PlayerControls& playerControls);
-    inline void drawItemStack(GuiRenderer& renderer, const ItemManager& itemManager, const ItemStack& itemStack, const FRect& destination) {
+    inline void drawItemStack(GuiRenderer& renderer, const ItemManager& itemManager, const ItemStack& itemStack, const FRect& destination, GUI::RenderHeight height) {
         auto displayEc = itemManager.getComponent<ITC::Display>(itemStack.item);
         if (displayEc) {
             auto icon = displayEc->inventoryIcon;
-            renderer.sprite(icon, destination);
+            renderer.sprite(icon, destination, height);
         }
     }
 }

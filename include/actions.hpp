@@ -6,6 +6,7 @@
 
 namespace GUI {
     using Element = ECS::Entity;
+    struct GuiManager;
 }
 
 struct Game;
@@ -15,19 +16,15 @@ struct GameAction {
     int type;
 };
 
-using GuiAction = void(*)(Game* g, GUI::Element e);
-inline GameAction guiActionToGameAction(GuiAction function, GUI::Element e) {
-    return {
-        [e, function](Game* g){ function(g, e); },
-        0
-    };
-}
+// using GuiAction = std::function<void(Game*, GUI::GuiManager&, GUI::Element)>;
+using GuiAction = void(*)(Game* g, GUI::GuiManager&, GUI::Element e);
+GameAction guiActionToGameAction(GuiAction function, GUI::Element e);
 
 namespace GUI {
 
-    void selectHotbarSlot(Game* g, GUI::Element e);
+    void selectHotbarSlot(Game* g, GuiManager&, GUI::Element e);
 
-    void makeTheSkyBlue(Game* g, GUI::Element e);
+    void makeTheSkyBlue(Game* g, GuiManager&, GUI::Element e);
 
 }
 

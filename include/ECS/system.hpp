@@ -121,7 +121,7 @@ public:
         constexpr ComponentID neededComponent = Component::ID;
         constexpr bool constArray = std::is_const_v<Component>;
         int neededComponentIndex = pool->archetype.getIndex(neededComponent);
-        assert(neededComponentIndex != -1 && "Couldn't get component array");
+        assert(neededComponentIndex != -1 && "Job group does not have this component set!");
         char* poolComponentArray = pool->getBuffer(neededComponentIndex);
         Uint16 componentSize = pool->archetype.sizes[neededComponentIndex];
         // need to adjust to make the pointer point 'componentIndex' number of components behind itself,

@@ -651,6 +651,15 @@ public:
   /// Like resize, but \ref T is POD, the new values won't be initialized.
   void resize_for_overwrite(size_type N) { resizeImpl<true>(N); }
 
+  // added by Nick W for personal uses
+  T* require(size_type N) {
+    size_type NewSize = this->size() + N;
+    this->reserve(NewSize);
+    T* Elements = this->data();
+    this->set_size(NewSize);
+    return Elements;
+  }
+
   /// Like resize, but requires that \p N is less than \a size().
   void truncate(size_type N) {
     assert(this->size() >= N && "Cannot increase size with truncate");

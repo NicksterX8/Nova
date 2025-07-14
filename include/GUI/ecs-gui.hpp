@@ -71,7 +71,8 @@ struct GuiManager : ECS::EntityManager {
         screen = ECS::EntityManager::newEntity(ElementTypes::Normal);
         treeMap.insert(screen.id, GuiTreeNode(screen, NullElement.id));
 
-        addComponent(screen, EC::ViewBox{Box{Vec2(0), Vec2(INFINITY)}});
+        addComponent(screen, EC::ViewBox{Box{Vec2(0), Vec2(INFINITY)}, .visible = false});
+        addComponent(screen, EC::DisplayBox{});
         addComponent(screen, EC::Hidden{});
     }
 

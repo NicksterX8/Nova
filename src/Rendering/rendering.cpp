@@ -386,14 +386,14 @@ void renderInit(RenderContext& ren) {
     initFonts(ren.fonts, ren.shaders);
     Fonts = &ren.fonts;
 
-    ren.guiTextRenderer = TextRenderer::init(Fonts->get("Debug"), nullptr);
-    ren.worldTextRenderer = TextRenderer::init(Fonts->get("World"), nullptr);
+    ren.guiTextRenderer.init(Fonts->get("Debug"));
+    ren.worldTextRenderer.init(Fonts->get("World"));
     ren.worldTextRenderer.defaultRendering.scale = 1/BASE_UNIT_SCALE;
     GL::logErrors();
 
     /* Init misc. renderers */
-    ren.guiQuadRenderer = QuadRenderer(0);
-    ren.worldQuadRenderer = QuadRenderer(0);
+    ren.guiQuadRenderer.init();
+    ren.worldQuadRenderer.init();
 
     TextureAtlas guiAtlas = makeTextureAtlas(&ren.textures, TextureTypes::Gui | TextureTypes::World, FileSystem.assets.get(), GL_LINEAR, GL_LINEAR, TextureUnit::GuiAtlas);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -404,14 +404,12 @@ void renderInit(RenderContext& ren) {
         .scale = 1.0f
     };
     ren.guiRenderer = GuiRenderer(&ren.guiQuadRenderer, &ren.guiTextRenderer, guiAtlas, guiOptions);
-    ren.guiRenderer.setLevel(0);
 
     RenderOptions worldGuiOptions = {
         .size = {INFINITY, INFINITY},
         .scale = 1
     };
     ren.worldGuiRenderer = GuiRenderer(&ren.worldQuadRenderer, &ren.worldTextRenderer, guiAtlas, worldGuiOptions);
-    ren.worldGuiRenderer.setLevel(0);
     GL::logErrors();
 
     /* Tilemap rendering setup */
@@ -690,12 +688,14 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
 
     renderWorldRenderBuffer(ren, camera);
 
+
+
     /* GUI rendering */
 
     auto quadShader = shaders.use(Shaders::Quad);
     quadShader.setMat4("transform", worldTransform);
     if (Debug->settings["drawChunkBorders"]) {
-        Draw::chunkBorders(ren.worldQuadRenderer, camera, SDL_Color{255, 0, 255, 155}, 8.0f, 0.5f);
+        Draw::chunkBorders(ren.worldQuadRenderer, camera, SDL_Color{255, 0, 255, 155}, 8.0f, 5);
     }
 
     auto holyTree = World::Entities::findNamedEntity("Holy tree", state->ecs);
@@ -716,14 +716,14 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     settings.font = ren.fonts.get("World");
 
     ren.worldGuiRenderer.flush(ren.shaders, worldTransform);
-    ren.worldGuiRenderer.text->render("HI", {5, 5});
+    ren.worldGuiRenderer.text->render("HI", {5, 5}, 2);
     ren.worldGuiRenderer.text->render("This is roboto", {-5, -5},
-        TextRenderingSettings{.font = Fonts->get("TestFont"), .color = {255, 255, 0, 255}});
+        TextRenderingSettings{.font = Fonts->get("TestFont"), .color = {255, 255, 0, 255}}, 3);
     
     //ren.worldTextRenderer.flush(ren.shaders.get(Shaders::Text), worldTransform);
 
     ren.shaders.use(Shaders::Quad).setMat4("transform", screenTransform);
-    ren.guiQuadRenderer.flush(quadShader, worldTransform, ren.guiRenderer.guiAtlas.unit);
+    // ren.guiQuadRenderer.flush(quadShader, worldTransform, ren.guiRenderer.guiAtlas.unit);
     
     GL::logErrors();
 

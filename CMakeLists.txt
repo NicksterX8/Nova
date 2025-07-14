@@ -13,8 +13,8 @@ add_compile_options(-g -Wall -std=c++17
 add_link_options(-framework OpenGL -fno-exceptions)
 
 # debug options
-#add_compile_options(-fsanitize=undefined)
-#add_link_options(-fsanitize=undefined)
+add_compile_options(-fsanitize=undefined)
+add_link_options(-fsanitize=undefined)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(SD src)
@@ -37,6 +37,7 @@ set(SRC_FILES
     ${SD}/My/HashMap.cpp
     ${SD}/GUI/Gui.cpp
     ${SD}/GUI/update.cpp
+    ${SD}/GUI/systems.cpp
     ${SD}/items/items.cpp
     ${SD}/items/prototypes/prototypes.cpp
     ${SD}/Chunks.cpp
@@ -45,6 +46,7 @@ set(SRC_FILES
     ${SD}/PlayerControls.cpp
     ${SD}/commands.cpp
     ${SD}/GameState.cpp
+    ${SD}/rendering/renderers.cpp
     ${SD}/rendering/context.cpp
     ${SD}/rendering/textures.cpp
     ${SD}/rendering/shaders.cpp

@@ -34,8 +34,8 @@ void Gui::drawConsole(GuiRenderer& renderer) {
     }
     
     Element consoleLogElement = manager.getNamedElement("console-log");
-    auto* logViewEc = manager.getComponent<EC::ViewBox>(consoleLogElement);
-    if (showLog && logViewEc) {
+    auto* logDisplayEc = manager.getComponent<EC::DisplayBox>(consoleLogElement);
+    if (showLog && logDisplayEc) {
         manager.unhideElement(consoleElement);
         
         TextFormattingSettings logFormatting{
@@ -48,7 +48,7 @@ void Gui::drawConsole(GuiRenderer& renderer) {
             .scale = 0.5f
         };
         float messageSpacing = logRenderingSettings.font->height() * 0.25f;
-        Vec2 pos = logViewEc->absolute.min;
+        Vec2 pos = logDisplayEc->box.min;
         for (int i = console.log.size()-1; i >= 0; i--) {
             const Console::LogMessage& message = console.log[i];
             Console::Text text = console.getText(message);
@@ -56,9 +56,9 @@ void Gui::drawConsole(GuiRenderer& renderer) {
             TextRenderer::RenderResult result;
             if (text.colors.size() == 1) {
                 logRenderingSettings.color = message.colors.getSingleValue();
-                result = renderer.renderText(text.text.c_str(), pos, logFormatting, logRenderingSettings, logViewEc->level);
+                result = renderer.renderText(text.text.c_str(), pos, logFormatting, logRenderingSettings, logDisplayEc->height);
             } else {
-                result = renderer.renderColoredText(text.text.c_str(), text.colors, pos, logFormatting, logRenderingSettings, logViewEc->level);
+                result = renderer.renderColoredText(text.text.c_str(), text.colors, pos, logFormatting, logRenderingSettings, logDisplayEc->height);
             }
             pos.y += result.rect.h + messageSpacing;
             // check if message will be visible on screen
@@ -71,7 +71,8 @@ void Gui::drawConsole(GuiRenderer& renderer) {
     SDL_Color terminalTextColor = {255,255,255,255};
 
     Element consoleTerminal = manager.getNamedElement("console-terminal");
-    EC::ViewBox* terminalViewEc = manager.getComponent<EC::ViewBox>(consoleTerminal);
+    EC::DisplayBox* terminalDisplayEc = manager.getComponent_<EC::DisplayBox>(consoleTerminal);
+    EC::ViewBox* terminalViewEc = manager.getComponent_<EC::ViewBox>(consoleTerminal);
     const std::string& activeMessage = console.activeMessage;
 
     TextFormattingSettings terminalTextFormatting{
@@ -93,13 +94,13 @@ void Gui::drawConsole(GuiRenderer& renderer) {
 
         // TODO: reimplement cursor
         Vec2* characterPositions = nullptr;
-        auto textRect = renderer.renderText(activeMessage.c_str(), terminalViewEc->absolute.min, terminalTextFormatting, terminalTextRenderSettings, terminalViewEc->level).rect;
+        auto textRect = renderer.renderText(activeMessage.c_str(), terminalDisplayEc->box.min, terminalTextFormatting, terminalTextRenderSettings, terminalDisplayEc->height).rect;
         terminalViewEc->box = *rectAsBox(&textRect);
         if (terminalViewEc->box.size.y < terminalFont->height()) {
             terminalViewEc->box.size.y = terminalFont->height();
         }
 
-        // Vec2 selectedCharPos = terminalViewEc->absolute.min;
+        // Vec2 selectedCharPos = terminalDisplayEc->absolute.min;
         // int selectedCharIndex = console.selectedCharIndex;
         
         // // in the middle case
@@ -132,7 +133,7 @@ void Gui::drawConsole(GuiRenderer& renderer) {
         // double secondsSinceCursorMove = Metadata->seconds() - console.timeLastCursorMove;
         // if (secondsSinceCursorMove < flashDuration) timeTilFlash = -secondsSinceCursorMove;
         // if (timeTilFlash < 0.0) {
-        //     renderer.colorRect(cursor, terminalTextColor, terminalViewEc->level);
+        //     renderer.colorRect(cursor, terminalTextColor, terminalDisplayEc->level);
         // }
     } else {
         manager.hideElement(consoleTerminal);
@@ -152,7 +153,7 @@ void Gui::drawHeldItemStack(GuiRenderer& renderer, const ItemManager& itemManage
         size,
         size
     };
-    Draw::drawItemStack(renderer, itemManager, itemStack, destination);
+    Draw::drawItemStack(renderer, itemManager, itemStack, destination, getHeight(GUI::RenderLevel::HeldItem));
     float textScale = renderer.options.scale/2.0f;
     pos = Vec2{bottomLeft.x, bottomLeft.y + Fonts->get("Gui")->descender() * textScale} + renderer.pixels({2.5f, 5.0f});
     if (items::getStackSize(itemStack.item, itemManager) != 1) {
@@ -160,26 +161,41 @@ void Gui::drawHeldItemStack(GuiRenderer& renderer, const ItemManager& itemManage
         TextFormattingSettings{
             .align = TextAlignment::BottomLeft}, 
         TextRenderingSettings{
-            .font = Fonts->get("Gui"), .color = {0,0,0,255}, .scale = textScale});
+            .font = Fonts->get("Gui"), .color = {0,0,0,255}, .scale = textScale}, 13);
     }
 }
 
-void buildFromTree(GuiTreeNode* node, GUI::GuiManager& gui, int level) {
+void buildFromTree(GuiTreeNode* node, GUI::GuiManager& gui, GUI::RenderHeight height, int depth) {
     Element parent = node->e;
     if (parent.Null()) return;
-    auto* parentViewEc = gui.getComponent<EC::ViewBox>(parent);
-    if (!parentViewEc) return;
+    // auto* parentViewEc = gui.getComponent<EC::ViewBox>(parent);
+    auto* parentDisplayEc = gui.getComponent<EC::DisplayBox>(parent);
+    if (!parentDisplayEc) return;
     
-    Box parentBox = parentViewEc->absolute;
+    Box parentBox = parentDisplayEc->box;
     auto* fitConstraint = gui.getComponent<EC::StackConstraint>(parent);
     Box fitBox = parentBox;
+
+    constexpr float ChildHeightIncrement = 0.01f; // enough to be more than renderer batch increment but not enough to make difference between levels
     
     for (int i = 0; i < node->childCount; i++) {
         GuiTreeNode* childNode = gui.getTreeNode(node->children[i]);
         Element e = childNode->e;
         auto* viewEc = gui.getComponent<EC::ViewBox>(e);
+        auto* displayEc = gui.getComponent<EC::DisplayBox>(e);
+
+        // set height based on parent height by default
+        float childHeight = height;
         if (viewEc && !gui.entityHas<EC::Hidden>(e)) {
+            assert(displayEc && "Element with view component must have display component");
             Box childBox = viewEc->box;
+
+            GUI::RenderLevel childLevel = viewEc->level;
+            
+            if (childLevel != GUI::RenderLevel::Null) {
+                // set height from level if its set
+                childHeight = GUI::getHeight(childLevel);
+            }
             
             // size
             auto* sizeConstraint = gui.getComponent<EC::SizeConstraint>(e);
@@ -212,11 +228,11 @@ void buildFromTree(GuiTreeNode* node, GUI::GuiManager& gui, int level) {
             if (fitConstraint)
                 fitBox.min += childBox.size * Vec2(fitConstraint->horizontal, fitConstraint->vertical);
             
-            viewEc->level = level;
-            viewEc->absolute = childBox;
+            displayEc->height = childHeight + ChildHeightIncrement * depth;
+            displayEc->box = childBox;
         }
 
-        buildFromTree(childNode, gui, ++level);
+        buildFromTree(childNode, gui, childHeight, depth + 1);
     }
 }
 
@@ -239,10 +255,10 @@ void Gui::renderElements(GuiRenderer& renderer, const PlayerControls& playerCont
     */
 
     auto screenBox = Box{Vec2(0), renderer.options.size};
-    gui.setComponent(gui.screen, EC::ViewBox{screenBox, screenBox});
+    gui.getComponent<EC::ViewBox>(gui.screen)->box = screenBox;
+    gui.setComponent(gui.screen, EC::DisplayBox{.box = screenBox, .height = getHeight(GUI::RenderLevel::Lowest)});
 
-    int level = 1;
-    buildFromTree(gui.getTreeNode(gui.screen.id), gui, level);
+    buildFromTree(gui.getTreeNode(gui.screen.id), gui, getHeight(GUI::RenderLevel::Lowest), 1);
 
     /*
     gui.forEachElement<EC::ViewBox, EC::SizeConstraint>([&](Element e){
@@ -255,26 +271,34 @@ void Gui::renderElements(GuiRenderer& renderer, const PlayerControls& playerCont
     });
     */
 
+    auto hotbar = gui.getNamedElement("hotbar");
+    auto slot8 = gui.getNamedElement("hotbar-slot-8");
 
-    int hoveredLevel = -1;
+    auto viewboxSlot = gui.getComponent<EC::DisplayBox>(slot8);
+    auto displayboxBar = gui.getComponent<EC::DisplayBox>(hotbar);
+    LogOnce(Info, "slot level: %f", viewboxSlot->height);
+    LogOnce(Info, "hotbar level: %f", displayboxBar->height);
+
+    float hoveredHeight = -INFINITY;
     Element hoveredElement = NullElement;
 
     gui.forEachEntity([&](auto signature){ 
-        return signature[EC::ViewBox::ID] && !signature[EC::Hidden::ID];
+        return signature.template hasComponents<EC::ViewBox, EC::DisplayBox>() && !signature[EC::Hidden::ID];
     }, [&](Element e){
         auto* viewbox = gui.getComponent<EC::ViewBox>(e);
+        auto* displayBox = gui.getComponent<EC::DisplayBox>(e);
         if (viewbox->visible) {
-            bool mouseOnButton = pointInRect(mousePos, viewbox->absolute.rect());
+            bool mouseOnButton = pointInRect(mousePos, displayBox->box.rect());
             if (mouseOnButton) {
-                if (viewbox->level > hoveredLevel) {
-                    hoveredLevel = viewbox->level;
+                if (displayBox->height > hoveredHeight) {
+                    hoveredHeight = displayBox->height;
                     hoveredElement = e;
                 }
             }
         }
     });
 
-    if (hoveredLevel >= 0) {
+    if (hoveredHeight >= 0) {
         gui.hoveredElement = hoveredElement;
     } else {
         gui.hoveredElement = NullElement;
@@ -290,8 +314,8 @@ void Gui::renderElements(GuiRenderer& renderer, const PlayerControls& playerCont
     gui.forEachEntity<EC::ViewBox, EC::Text>([&](Element e){
         if (gui.entityHas<EC::Hidden>(e)) return;
 
-        auto* view = gui.getComponent<EC::ViewBox>(e);
-        Box entityBox = view->absolute;
+        auto* display = gui.getComponent<EC::DisplayBox>(e);
+        Box entityBox = display->box;
         auto* textComponent = gui.getComponent<EC::Text>(e);
 
         Vec2 alignmentOffset = Text::getAlignmentOffset(textComponent->formatSettings.align, entityBox.size);
@@ -299,7 +323,7 @@ void Gui::renderElements(GuiRenderer& renderer, const PlayerControls& playerCont
 
         entityBox.min = pos;
         
-        renderer.boxedText(textComponent->text, entityBox, textComponent->formatSettings, textComponent->renderSettings, view->level);
+        renderer.boxedText(textComponent->text, entityBox, textComponent->formatSettings, textComponent->renderSettings, display->height);
     });
 }
 

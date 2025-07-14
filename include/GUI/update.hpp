@@ -14,7 +14,7 @@ namespace GUI {
 inline Element simpleBox(GuiManager& gui, Element parent, 
     Box box, SDL_Color background, SDL_Color borderColor, float borderSize) {
     Element e = gui.newElement(ElementTypes::Normal, parent);
-    gui.addComponent(e, EC::ViewBox{.box = {box.min, box.size}});
+    addView(gui, e, box);
     gui.addComponent(e, EC::Background{background});
     gui.addComponent(e, EC::Border{borderColor, Vec2(0), Vec2(borderSize)});
     
@@ -41,9 +41,9 @@ inline Element makeHolder(GuiManager& gui, Element element) {
     return parent;
 }
 
-inline Element button(GuiManager& gui, Box box, SDL_Color backgroundColor, const char* text, SDL_Color textColor, GuiAction onClick) {
+inline Element button(GuiManager& gui, Box box, SDL_Color backgroundColor, const char* text, SDL_Color textColor, GuiAction onClick, GUI::RenderLevel level) {
     auto e = gui.newElement(ElementTypes::Normal);
-    gui.addComponent(e, EC::ViewBox{.box = {box.min, box.size}});
+    addView(gui, e, box, level);
     gui.addComponent(e, EC::Background{backgroundColor});
     gui.addComponent(e, EC::Text{
         .text = text,
@@ -64,52 +64,10 @@ inline Element button(GuiManager& gui, Box box, SDL_Color backgroundColor, const
 
 constexpr float ConsoleLogWidth = 400.0f;
 
-inline Element buildConsole(GuiManager& gui) {
-    float scale = 1;
+Element buildConsole(GuiManager& gui);
 
-    SDL_Color terminalBackgroundColor = {30, 30, 30, 205};
-    SDL_Color logBackgroundColor = {90, 90, 90, 150};
-
-    float maxLogWidth = ConsoleLogWidth * scale;
-
-    // make papa console
-    auto console = gui.newElement(ElementTypes::Normal, gui.screen);
-    gui.addName(console, "console");
-    gui.addComponent(console, EC::ViewBox{.box = {{0,0}, {INFINITY, INFINITY}}, .visible = false});
-    gui.addComponent(console, EC::StackConstraint{.vertical = true});
-
-    // make terminal
-    auto terminal = gui.newElement(ElementTypes::Normal, console);
-    gui.addName(terminal, "console-terminal");
-    gui.addComponent(terminal, EC::SizeConstraint{
-        .minSize = {maxLogWidth, 0}
-    });
-    gui.addComponent(terminal, EC::ViewBox{
-        .box = {{0,0}, {maxLogWidth, 0}}
-    });
-    gui.addComponent(terminal, EC::Background{terminalBackgroundColor});
-    // gui.addComponent(terminal, EC::Border{
-    //     .color = terminalBackgroundColor, .strokeOut = Vec2(5)
-    // });
-
-
-    // make log
-    auto log = gui.newElement(ElementTypes::Normal, console);
-    gui.addName(log, "console-log");
-    gui.addComponent(log, EC::ViewBox{
-        .box = {{0,0},{ConsoleLogWidth,0}}
-    });
-    gui.addComponent(log, EC::Background{logBackgroundColor});
-    gui.addComponent(log, EC::SizeConstraint{
-        .maxSize = {maxLogWidth, INFINITY},
-        .relativeSize = {INFINITY, 1.0}
-    });
-
-    return console;
-}
-
-void updateHotbar(Game* game, Element hotbarElement);
-void updateHotbarSlot(Game* game, Element slotElement);
+void updateHotbar(Game* game, GuiManager&, Element hotbarElement);
+void updateHotbarSlot(Game* game, GuiManager&, Element slotElement);
 
 inline Element buildHotbar(GuiManager& gui) {
     float scale = 1;
@@ -145,7 +103,7 @@ inline Element buildHotbar(GuiManager& gui) {
     auto bar = gui.newElement(ElementTypes::Normal, gui.screen);
     
     gui.addName(bar, "hotbar");
-    gui.addComponent(bar, EC::ViewBox{*rectAsBox(&barRect)});
+    addView(gui, bar, *rectAsBox(&barRect), GUI::RenderLevel::Hotbar);
     gui.addComponent(bar, EC::SizeConstraint{.maxSize = {800 * scale, INFINITY}});
     gui.addComponent(bar, EC::AlignmentConstraint{.alignment = TextAlignment::BottomCenter});
     gui.addComponent(bar, EC::Background({backgroundColor}));
@@ -178,7 +136,7 @@ inline Element buildHotbar(GuiManager& gui) {
 
         offset += slotSize;
 
-        gui.addComponent(slot, EC::ViewBox{hotbarSlot});
+        addView(gui, slot, hotbarSlot);
         gui.addComponent(slot, EC::SimpleTexture{0, innerSlot});
         gui.addComponent(slot, EC::Background{slotBackgroundColor});
         gui.addComponent(slot, EC::Hover{true, slotHoverColor, 0});
@@ -202,6 +160,12 @@ inline void initGui(GuiManager& gui) {
 
     auto bar = buildHotbar(gui);
     auto console = buildConsole(gui);
+    // auto b = button(gui, 
+    //     Box{{700, 100}, {100, 100}},
+    //     {0, 180, 30, 255},
+    //     "Execute them.", 
+    //     {255,255,255,255}, 
+    //     makeTheSkyBlue);
     //auto testTextBox = textBox(gui, gui.screen, Box{Vec2(100), Vec2(200)}, "This is some really awesome text and stuff");
     //auto halfBox = boxElement(gui, {Vec2(0.0f), Vec2(50.0f)}, {150, 0, 0, 255});
     //gui.addComponent(halfBox, EC::SizeConstraint{.relativeSize = Vec2(0.5, 0.2)});
@@ -211,11 +175,12 @@ inline void initGui(GuiManager& gui) {
     //gui.getComponent<EC::Text>(t3)->formatSettings.align = TextAlignment::BottomRight;
 
     auto b = button(gui, 
-        Box{{700, 100}, {100, 100}},
+        Box{{700, 50}, {100, 100}},
         {0, 180, 30, 255},
         "Execute them.", 
         {255,255,255,255}, 
-        makeTheSkyBlue);
+        makeTheSkyBlue,
+        GUI::RenderLevel::Lowest);
     gui.adopt(gui.screen, b);
 }
 
@@ -233,11 +198,11 @@ inline std::vector<GameAction> update(GuiManager& gui, const PlayerControls& pla
     std::vector<GameAction> actions;
     
     gui.forEachEntity([&](auto signature){
-        return signature[EC::ViewBox::ID] && signature[EC::Hover::ID];
+        return signature[EC::DisplayBox::ID] && signature[EC::Hover::ID];
     }, [&](Element e){
-        auto* viewbox = gui.getComponent<EC::ViewBox>(e);
+        auto* displayBox = gui.getComponent<EC::DisplayBox>(e);
         auto* hover = gui.getComponent<EC::Hover>(e);
-        Box box = viewbox->absolute;
+        Box box = displayBox->box;
 
         bool mouseOnButton = pointInRect(mousePos, box.rect());
         if (mouseOnButton) {

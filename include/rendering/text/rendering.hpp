@@ -17,6 +17,8 @@ struct TextRenderingSettings {
     float scale = -1.0f;
 };
 
+using TextHeight = float;
+
 struct TextRenderBatch {
     TextRenderingSettings settings;
 
@@ -24,6 +26,7 @@ struct TextRenderBatch {
     int charPosBufIndex = -1;
     int charColorBufIndex = -1;
     int charCount = -1;
+    TextHeight height = NAN;
 };
 
 struct GlyphVertex {
@@ -42,7 +45,7 @@ struct TextRenderer {
 
     GlModel model = {0,0,0};
 
-    My::Vec<TextRenderBatch>* buffer;
+    My::Vec<TextRenderBatch> buffer;
 
     My::Vec<Char> charBuffer;
     My::Vec<Vec2> charPosBuffer;
@@ -56,9 +59,12 @@ struct TextRenderer {
     
     glm::mat4 transform;
 
+    float heightIncrementer = 0.0f;
+    static constexpr float heightIncrement = 0.0001f;
+
     constexpr static int maxBatchSize = 1024;
 
-    static TextRenderer init(const Font* defaultFont, My::Vec<TextRenderBatch>* buffer);
+    void init(const Font* defaultFont);
 
     struct RenderResult {
         FRect rect; // rect that text will be rendered to
@@ -73,29 +79,29 @@ struct TextRenderer {
         }
     };
 
-    inline RenderResult render(const char* text, glm::vec2 pos) {
-        return render(text, pos, defaultFormatting, defaultRendering);
+    inline RenderResult render(const char* text, glm::vec2 pos, TextHeight height) {
+        return render(text, pos, defaultFormatting, defaultRendering, height);
     }
 
-    inline RenderResult render(const char* text, glm::vec2 pos, const TextFormattingSettings& formatSettings) {
-        return render(text, strlen(text), pos, formatSettings, defaultRendering);
+    inline RenderResult render(const char* text, glm::vec2 pos, const TextFormattingSettings& formatSettings, TextHeight height) {
+        return render(text, strlen(text), pos, formatSettings, defaultRendering, height);
     }
 
-    inline RenderResult render(const char* text, glm::vec2 pos, const TextRenderingSettings& renderSettings) {
-        return render(text, strlen(text), pos, defaultFormatting, renderSettings);
+    inline RenderResult render(const char* text, glm::vec2 pos, const TextRenderingSettings& renderSettings, TextHeight height) {
+        return render(text, strlen(text), pos, defaultFormatting, renderSettings, height);
     }
 
-    inline RenderResult render(const char* text, glm::vec2 pos, const TextFormattingSettings& formatSettings, const TextRenderingSettings& renderSettings) {
-        return render(text, text ? strlen(text) : 0, pos, formatSettings, renderSettings);
+    inline RenderResult render(const char* text, glm::vec2 pos, const TextFormattingSettings& formatSettings, const TextRenderingSettings& renderSettings, TextHeight height) {
+        return render(text, text ? strlen(text) : 0, pos, formatSettings, renderSettings, height);
     }
 
-    RenderResult render(const char* text, int textLength, glm::vec2 pos, const TextFormattingSettings& formatSettings, RenderingSettings renderSettings, ArrayRef<SDL_Color> colors = {});
+    RenderResult render(const char* text, int textLength, glm::vec2 pos, const TextFormattingSettings& formatSettings, RenderingSettings renderSettings, TextHeight height = 0, ArrayRef<SDL_Color> colors = {});
 
     RenderResult renderColored(const char* text, int textLength, ArrayRef<SDL_Color> colors,
         glm::vec2 pos, const TextFormattingSettings& formatSettings, 
-        RenderingSettings renderSettings)
+        RenderingSettings renderSettings, TextHeight height = 0)
     {
-        return render(text, textLength, pos, formatSettings, renderSettings, colors);
+        return render(text, textLength, pos, formatSettings, renderSettings, height, colors);
     }
 
     // param bufferSize: size of verticesOut buffer in number of glyph vertices

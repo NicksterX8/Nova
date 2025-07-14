@@ -1,6 +1,7 @@
 #include "rendering/drawing.hpp"
 #include "utils/Debug.hpp"
 #include "PlayerControls.hpp"
+#include "rendering/gui.hpp"
 
 vao_vbo_t Draw::makePointVertexAttribArray() {
     unsigned int vbo,vao;
@@ -26,8 +27,8 @@ vao_vbo_t Draw::makePointVertexAttribArray() {
     return {vao, vbo};
 }
 
-void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, float z, const SDL_Color* colors, const GLfloat* lineWidths) {
-    QuadRenderer::Quad* quads = renderer.renderManual(numLines);
+void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, GUI::RenderHeight height, const SDL_Color* colors, const GLfloat* lineWidths) {
+    QuadRenderer::Quad* quads = renderer.renderManual(numLines, height);
     for (GLuint i = 0; i < numLines; i++) {
         GLuint ind = i * 4;
         glm::vec2 p1 = points[i*2];
@@ -40,15 +41,15 @@ void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* 
             quads[ind][j].texCoord = {0, 0};
         }
         
-        quads[ind][0].pos = {p1 + offset, z};
-        quads[ind][1].pos = {p1 - offset, z};
-        quads[ind][2].pos = {p2 - offset, z};
-        quads[ind][3].pos = {p2 + offset, z};
+        quads[ind][0].pos = p1 + offset;
+        quads[ind][1].pos = p1 - offset;
+        quads[ind][2].pos = p2 - offset;
+        quads[ind][3].pos = p2 + offset;
     }
 }
 
-void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, float z, SDL_Color color, const GLfloat* lineWidths) {
-    QuadRenderer::Quad* quads = renderer.renderManual(numLines);
+void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, GUI::RenderHeight height, SDL_Color color, const GLfloat* lineWidths) {
+    QuadRenderer::Quad* quads = renderer.renderManual(numLines, height);
     for (GLuint i = 0; i < numLines; i++) {
         GLuint ind = i * 4;
         glm::vec2 p1 = points[i*2];
@@ -61,15 +62,15 @@ void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* 
             quads[ind][j].texCoord = {0, 0};
         }
         
-        quads[ind][0].pos = {p1 + offset, z};
-        quads[ind][1].pos = {p1 - offset, z};
-        quads[ind][2].pos = {p2 - offset, z};
-        quads[ind][3].pos = {p2 + offset, z};
+        quads[ind][0].pos = p1 + offset;
+        quads[ind][1].pos = p1 - offset;
+        quads[ind][2].pos = p2 - offset;
+        quads[ind][3].pos = p2 + offset;
     }
 }
 
-void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, float z, SDL_Color color, GLfloat lineWidth) {
-    QuadRenderer::Quad* quads = renderer.renderManual(numLines);
+void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* points, GUI::RenderHeight height, SDL_Color color, GLfloat lineWidth) {
+    QuadRenderer::Quad* quads = renderer.renderManual(numLines, height);
     for (GLuint i = 0; i < numLines; i++) {
         glm::vec2 p1 = points[i*2];
         glm::vec2 p2 = points[i*2+1];
@@ -81,14 +82,14 @@ void Draw::thickLines(QuadRenderer& renderer, GLuint numLines, const glm::vec2* 
             quads[i][j].texCoord = QuadRenderer::NullCoord;
         }
         
-        quads[i][0].pos = {p1 + offset, z};
-        quads[i][1].pos = {p1 - offset, z};
-        quads[i][2].pos = {p2 - offset, z};
-        quads[i][3].pos = {p2 + offset, z};
+        quads[i][0].pos = p1 + offset;
+        quads[i][1].pos = p1 - offset;
+        quads[i][2].pos = p2 - offset;
+        quads[i][3].pos = p2 + offset;
     }
 }
 
-int Draw::chunkBorders(QuadRenderer& renderer, const Camera& camera, SDL_Color color, float pixelLineWidth, float z) {
+int Draw::chunkBorders(QuadRenderer& renderer, const Camera& camera, SDL_Color color, float pixelLineWidth, GUI::RenderHeight height) {
     Boxf cameraBounds = camera.maxBoundingArea();
     glm::ivec2 minChunkPos = toChunkPosition(cameraBounds[0]);
     glm::ivec2 maxChunkPos = toChunkPosition(cameraBounds[1]);
@@ -109,7 +110,7 @@ int Draw::chunkBorders(QuadRenderer& renderer, const Camera& camera, SDL_Color c
         lineIndex++;
     }
 
-    Draw::thickLines(renderer, numLines, points, z, color, pixelLineWidth / camera.worldScale());
+    Draw::thickLines(renderer, numLines, points, height, color, pixelLineWidth / camera.worldScale());
     delete[] points;
 
     return numLines;
@@ -140,9 +141,10 @@ void Draw::drawFpsCounter(GuiRenderer& renderer, float fps, float tps, RenderOpt
         color = {255, 0, 0, 255};
     }
     
-    auto fpsRenderInfo = renderer.text->render(fpsCounter, {0, options.size.y}, 
+    auto fpsRenderInfo = renderer.renderText(fpsCounter, {0, options.size.y}, 
         TextFormattingSettings{.align = TextAlignment::TopLeft}, 
-        TextRenderingSettings{.font = font, .color = color, .scale = 1});
+        TextRenderingSettings{.font = font, .color = color, .scale = 1},
+        GUI::getHeight(GUI::RenderLevel::ScreenDebugInfo));
 
     {
         static char tpsCounter[128];
@@ -167,9 +169,10 @@ void Draw::drawFpsCounter(GuiRenderer& renderer, float fps, float tps, RenderOpt
         }
         
         float offset = fpsRenderInfo.rect.x + fpsRenderInfo.rect.w + 2 * font->advance(' ');
-        renderer.text->render(tpsCounter, {offset, options.size.y}, 
+        renderer.renderText(tpsCounter, {offset, options.size.y}, 
             TextFormattingSettings{.align = TextAlignment::TopLeft}, 
-            TextRenderingSettings{.font = font, .color = color, .scale = 1.0f});
+            TextRenderingSettings{.font = font, .color = color, .scale = 1.0f}, 
+            GUI::getHeight(GUI::RenderLevel::ScreenDebugInfo));
     }
 }
 
@@ -221,21 +224,21 @@ void renderFontComponents(const Font* font, glm::vec2 p, GuiRenderer& renderer) 
         (float)bbox.xMax - bbox.xMin,
         (float)bbox.yMax - bbox.yMin
     };
-    //renderer.colorRect(addBorder(bounds, glm::vec2(0.0f)), {255, 0, 0, 100});
+    renderer.colorRect(addBorder(bounds, glm::vec2(0.0f)), {255, 0, 0, 100}, getHeight(GUI::RenderLevel::Lowest));
     
     //Draw::thickLines(*renderer.quad, sizeof(points) / (2 * sizeof(glm::vec3)), points, 0.0f, colors, lineWidths);
 
     //renderer.rectOutline(bounds, {0, 255, 0, 100}, 2.0f, 2.0f);
     //renderer.colorRect(addBorder(bounds, glm::vec2(0.0f)), {255, 0, 0, 100});
 
-    auto result3 = renderer.text->render("iiii\nwwww\n three now!", renderer.options.size * 0.5f, TextFormattingSettings{.align = TextAlignment::MiddleCenter}, TextRenderingSettings{.font = font, .scale = 2.0f});
-    renderer.colorRect(result3.rect, {100, 0, 0, 105});
+    auto result3 = renderer.text->render("iiii\nwwww\n three now!", renderer.options.size * 0.5f, TextFormattingSettings{.align = TextAlignment::MiddleCenter}, TextRenderingSettings{.font = font, .scale = 2.0f}, 7);
+    renderer.colorRect(result3.rect, {100, 0, 0, 105}, getHeight(GUI::RenderLevel::Hotbar));
 
-    auto result2 = renderer.text->render("This is some words!\nLine number 2!!\n three now! \n4\n\t5\t\n6\t", renderer.options.size, TextFormattingSettings{.align = TextAlignment::TopRight}, TextRenderingSettings{.font = font, .scale = 0.5f});
-    renderer.colorRect(result2.rect, {100, 0, 0, 105});
+    auto result2 = renderer.text->render("This is some words!\nLine number 2!!\n three now! \n4\n\t5\t\n6\t", renderer.options.size, TextFormattingSettings{.align = TextAlignment::TopRight}, TextRenderingSettings{.font = font, .scale = 0.5f}, 6);
+    renderer.colorRect(result2.rect, {100, 0, 0, 105}, 5);
 
-    auto result = renderer.text->render("This is one line", {100, 400}, TextFormattingSettings{.align = TextAlignment::BottomLeft}, TextRenderingSettings{.font = font});
-    renderer.colorRect(result.rect, {100, 0, 0, 105});
+    auto result = renderer.text->render("This is one line", {100, 400}, TextFormattingSettings{.align = TextAlignment::BottomLeft}, TextRenderingSettings{.font = font}, 5);
+    renderer.colorRect(result.rect, {100, 0, 0, 105}, 3);
     unsigned int advance = font->advance('T');
     //auto ascender = font->ascender();
     //auto descender = font->descender();
@@ -249,13 +252,13 @@ void renderFontComponents(const Font* font, glm::vec2 p, GuiRenderer& renderer) 
         {result.rect.x, result.rect.y + result.rect.h},
         {result.rect.x, result.rect.y + result.rect.h - ascender}
     };
-    Draw::thickLines(*renderer.quad, 1, ascline, 0.5f, SDL_Color{155, 255, 255, 255}, 5.0f);
+    Draw::thickLines(*renderer.quad, 1, ascline, getHeight(GUI::RenderLevel::Testing1), SDL_Color{155, 255, 255, 255}, 5.f);
 
     glm::vec2 descline[] = {
         {result.rect.x, result.rect.y},
         {result.rect.x, result.rect.y - descender}
     };
-    Draw::thickLines(*renderer.quad, 1, descline, 0.5f, SDL_Color{255, 0, 155, 255}, 5.0f);
+    Draw::thickLines(*renderer.quad, 1, descline, getHeight(GUI::RenderLevel::Testing2), SDL_Color{255, 0, 155, 255}, 5.0f);
 }
 
 // static void testTextRendering(GuiRenderer& guiRenderer, TextRenderer& textRenderer) {
@@ -279,7 +282,6 @@ void renderFontComponents(const Font* font, glm::vec2 p, GuiRenderer& renderer) 
 
 void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& screenTransform, GUI::Gui* gui, const GameState* state, const PlayerControls& playerControls) {
     auto& textRenderer = ren.guiTextRenderer;
-    //textRenderer.setFont(&ren.debugFont);
 
     GuiRenderer& guiRenderer = ren.guiRenderer;
     auto quadShader = ren.shaders.get(Shaders::Quad);
@@ -294,14 +296,15 @@ void Draw::drawGui(RenderContext& ren, const Camera& camera, const glm::mat4& sc
     
     Draw::drawFpsCounter(guiRenderer, (float)Metadata->fps(), (float)Metadata->tps(), guiRenderer.options);
 
-    renderFontComponents(Fonts->get("Gui"), {500, 500}, guiRenderer);
+    // renderFontComponents(Fonts->get("Gui"), {500, 500}, guiRenderer);
 
     if (Global.paused) {
         guiRenderer.textBox("Paused.",
             Box::Centered({guiRenderer.options.size / 2.0f}, {400, 400}),
             {10, 10}, {200,200,200,140}, 
             {4, 4}, {0,0,0,255},
-            TextFormattingSettings{.align = TextAlignment::MiddleCenter}, TextRenderingSettings{.color = {0,0,0,255}}, 10);
+            TextFormattingSettings{.align = TextAlignment::MiddleCenter}, TextRenderingSettings{.color = {0,0,0,255}},
+            getHeight(GUI::RenderLevel::MenuPause));
     }
 
     guiRenderer.flush(ren.shaders, screenTransform);

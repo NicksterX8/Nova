@@ -2,10 +2,17 @@
 #include "Game.hpp"
 #include "GUI/components.hpp"
 
+GameAction guiActionToGameAction(GuiAction function, GUI::Element e) {
+    return {
+        [e, function](Game* g){ function(g, g->gui.manager, e); },
+        0
+    };
+}
+
 namespace GUI {
 // gui actions
-void selectHotbarSlot(Game* g, Element e) {
-    int slot = g->gui.manager.getComponent<EC::HotbarSlot>(e)->slot;
+void selectHotbarSlot(Game* g, GuiManager& manager, Element e) {
+    int slot = manager.getComponent<EC::HotbarSlot>(e)->slot;
     auto* playerInventory = g->state->player.inventory();
     if (!playerInventory) {
         return;
@@ -34,7 +41,7 @@ void selectHotbarSlot(Game* g, Element e) {
     }
 }
 
-void makeTheSkyBlue(Game* g, Element e) {
+void makeTheSkyBlue(Game* g, GuiManager&, Element e) {
     LogInfo("Sky is blue. Element id: %d", e.id);
 }
 

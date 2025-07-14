@@ -17,7 +17,18 @@ struct DebugSettings {
     std::unordered_map<std::string, bool> bools;
 
     void init() {
+        bools.insert({"drawChunkBorders", false});
+        bools.insert({"drawEntityCollisionBoxes", false});
+        bools.insert({"drawEntityViewBoxes", false});
+        bools.insert({"drawEntityIDs", false});
+    }
 
+    bool* get(std::string str) {
+        auto it = bools.find(str);
+        if (it != bools.end()) {
+            return &it->second;
+        }
+        return nullptr;
     }
 
     bool& operator[](const char* str) {

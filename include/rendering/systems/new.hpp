@@ -80,7 +80,11 @@ struct DrawEntityViewBoxJob : IJobSingleThreaded<DrawEntityViewBoxJob> {
 
     void Execute(int N) {
         constexpr SDL_Color rectColor = {255, 0, 255, 180};
-        worldGuiRenderer.rectOutline(dimensions[N].rect(), rectColor, Vec2(0.05f), Vec2(0.05f));
+        worldGuiRenderer.rectOutline(
+            dimensions[N].rect(),
+            rectColor,
+            Vec2(0.05f), Vec2(0.05f),
+            getHeight(GUI::RenderLevel::WorldDebug0));
     }
 };
 
@@ -338,7 +342,11 @@ struct RenderEntitySystem : RenderSystem {
                     size.y
                 };
                 constexpr SDL_Color rectColor = {255, 0, 255, 180};
-                ren.worldGuiRenderer.rectOutline(entityRect, rectColor, Vec2(0.05f), Vec2(0.05f));
+                ren.worldGuiRenderer.rectOutline(
+                    entityRect,
+                    rectColor,
+                    Vec2(0.05f), Vec2(0.05f),
+                    getHeight(GUI::RenderLevel::WorldDebug0));
             }
         }
 
@@ -359,7 +367,11 @@ struct RenderEntitySystem : RenderSystem {
                     size.y
                 };
                 constexpr SDL_Color rectColor = {0, 255, 255, 180};
-                ren.worldGuiRenderer.rectOutline(entityRect, rectColor, Vec2(0.05f), Vec2(0.05f));
+                ren.worldGuiRenderer.rectOutline(
+                    entityRect,
+                    rectColor,
+                    Vec2(0.05f), Vec2(0.05f),
+                    getHeight(GUI::RenderLevel::WorldDebug0));
             }
         }
 
@@ -374,9 +386,10 @@ struct RenderEntitySystem : RenderSystem {
 
                 char message[256];
                 snprintf(message, 256, "%d", entity.id);
-                ren.worldGuiRenderer.text->render(message,
+                ren.worldGuiRenderer.renderText(message,
                     {min.x, max.y},
-                    TextFormattingSettings{.align = TextAlignment::TopLeft}, {}
+                    TextFormattingSettings{.align = TextAlignment::TopLeft}, {},
+                    getHeight(GUI::RenderLevel::WorldDebug1)
                 );
             }
         }

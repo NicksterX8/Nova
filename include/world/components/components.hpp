@@ -13,7 +13,11 @@
     constexpr static bool PROTOTYPE = false;\
     constexpr static const char* NAME = TOSTRING(name);
 
-#define END_COMPONENT(name) }; static_assert(true | ComponentIDs::name, "Checking for id");
+#define END_COMPONENT(name) }; \
+    static_assert(true | ComponentIDs::name, "Checking for id"); \
+    static_assert(std::is_trivially_copy_constructible_v<name>, "Components must be trivially copyable"); \
+    static_assert(std::is_trivially_move_constructible_v<name>, "Components must be trivially moveable"); \
+    static_assert(std::is_trivially_destructible_v<name>, "Components must be trivially assignable");
 
 struct RawArray {
     const void* data;

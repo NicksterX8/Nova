@@ -231,12 +231,25 @@ protected:
 public:
 
     template<class C>
-    typename std::conditional<C::PROTOTYPE, const C*, C*>::type getComponent(Entity entity) const {
+    std::conditional_t<C::PROTOTYPE, const C*, C*> getComponent(Entity entity) const {
         if constexpr (C::PROTOTYPE) {
             return getProtoComponent<C>(entity);
         } else {
             return getRegularComponent<C>(entity);
         }
+    }
+
+    // get the component and assert that it exists. use this if you're not going to check if a component is null
+    template<class C>
+    std::conditional_t<C::PROTOTYPE, const C*, C*> getComponent_(Entity entity) const {
+        std::conditional_t<C::PROTOTYPE, const C*, C*> component;
+        if constexpr (C::PROTOTYPE) {
+            component = getProtoComponent<C>(entity);
+        } else {
+            component = getRegularComponent<C>(entity);
+        }
+        assert(component != nullptr && "Component must not be null!");
+        return component;
     }
 
     // does not work for prototype components maybe TODO?
@@ -251,7 +264,7 @@ public:
         if (component) {
             *component = value;
         } else {
-            LogError("Component %s does not exist for entity!", getComponentInfo(C::ID).name);
+            LogErrorLoc("Component %s does not exist for entity!", getComponentInfo(C::ID).name);
         }
     }
 

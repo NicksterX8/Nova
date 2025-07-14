@@ -15,10 +15,6 @@
 #include "memory/StackAllocate.hpp"
 
 struct GuiRenderer;
-template<typename T, size_t Align>
-struct alignas(Align) AlignedStruct : T {
-    AlignedStruct(const T& val) : T(val) {}
-};
 
 namespace GUI {
 
@@ -395,6 +391,7 @@ struct Gui {
 
         drawConsole(renderer);
         
+
     }
 
     void drawHeldItemStack(GuiRenderer& renderer, const ItemManager& itemManager, const ItemStack& itemStack, glm::vec2 pos);
