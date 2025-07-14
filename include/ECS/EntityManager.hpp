@@ -15,6 +15,8 @@ using ComponentManager = ArchetypalComponentManager;
 template<typename Value>
 using ComponentSet = My::DenseSparseSet<Sint8, Value, Uint8, MaxComponentID>;
 
+using ComponentDestructor = std::function<void(Entity)>;
+
 struct EntityManager {
     ComponentManager components;
     PrototypeManager prototypes;
@@ -24,7 +26,6 @@ private:
     EntityCommandBuffer* commandBuffer;
 
     Signature componentsWithDestructors = {0};
-    using ComponentDestructor = std::function<void(Entity)>;
     ComponentSet<ComponentDestructor> componentDestructors;
 public:
 

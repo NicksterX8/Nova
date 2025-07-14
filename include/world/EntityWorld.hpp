@@ -116,6 +116,10 @@ public:
         em.destroy();
     }
 
+    void setComponentDestructor(ECS::ComponentID component, const ECS::ComponentDestructor& destructor) {
+        em.setComponentDestructor(component, destructor);
+    }
+
     void useCommandBuffer(EntityCommandBuffer* buffer) {
         em.useCommandBuffer(buffer);
     }

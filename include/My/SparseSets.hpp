@@ -374,9 +374,9 @@ public:
         // move key, value, and index over
         keys[indexOfRemoved] = topKey;
         memcpy(&values[indexOfRemoved], &values[topIndex], sizeof(Value));
-        set[topKey] = NullIndex;
+        set[topKey] = indexOfRemoved;
         assert(set[key] != NullIndex && "Attempted to remove key not present in sparse set");
-        set[key] = indexOfRemoved; // mark removed key as gone
+        set[key] = NullIndex; // mark removed key as gone
         size--;
     }
 

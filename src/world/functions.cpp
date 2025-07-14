@@ -42,23 +42,39 @@ void setEventCallbacks(EntityWorld& ecs, ChunkMap& chunkmap) {
             }
         }
     });
-    ecs.SetBeforeRemove<EC::ViewBox>([&](EntityWorld* ecs, Entity entity){
-        auto* viewbox = ecs->Get<EC::ViewBox>(entity);
+
+    ecs.setComponentDestructor(EC::Position::ID, [&](Entity entity){
+        auto* viewbox = ecs.Get<EC::ViewBox>(entity);
         if (!viewbox) {
             LogError("entity viewbox not found!");
             return;
         }
-        auto* position = ecs->Get<EC::Position>(entity);
+        auto* position = ecs.Get<EC::Position>(entity);
         if (!position) {
             LogError("Entity position not found");
             return;
         }
         forEachChunkContainingBounds(&chunkmap, {{position->vec2() + viewbox->box.min, position->vec2() + viewbox->box.max()}}, [entity](ChunkData* chunkdata){
-            if (!chunkdata->removeCloseEntity(entity)) {
-                LogWarn("couldn't remove entity");
-            }
+            chunkdata->removeCloseEntity(entity);
         });
     });
+    // ecs.SetBeforeRemove<EC::ViewBox>([&](EntityWorld* ecs, Entity entity){
+    //     auto* viewbox = ecs->Get<EC::ViewBox>(entity);
+    //     if (!viewbox) {
+    //         LogError("entity viewbox not found!");
+    //         return;
+    //     }
+    //     auto* position = ecs->Get<EC::Position>(entity);
+    //     if (!position) {
+    //         LogError("Entity position not found");
+    //         return;
+    //     }
+    //     forEachChunkContainingBounds(&chunkmap, {{position->vec2() + viewbox->box.min, position->vec2() + viewbox->box.max()}}, [entity](ChunkData* chunkdata){
+    //         if (!chunkdata->removeCloseEntity(entity)) {
+    //             LogWarn("couldn't remove entity");
+    //         }
+    //     });
+    // });
 
     ecs.SetOnAdd<EC::Inventory>([](EntityWorld* ecs, Entity entity){
         ecs->Get<EC::Inventory>(entity)->inventory.addRef();

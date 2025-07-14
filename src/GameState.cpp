@@ -78,10 +78,6 @@ void GameState::init(const TextureManager* textureManager) {
     ecs = NEW(EntityWorld(), scratch);
     ecs->init(&chunkmap, ecs);
 
-    ecs->em.setComponentDestructor(World::EC::Health::ID, [this](Entity entity){
-        LogInfo("Health gone!! time damaged: %l, entity.id: %d", (int)ecs->Get<World::EC::Health>(entity)->timeDamaged, (int)entity.id);
-    });
-
 
     makeEntityPrototypes(*ecs);
     World::setEventCallbacks(*ecs, chunkmap);
