@@ -8,8 +8,6 @@
 #include "ECS/componentMacros.hpp"
 #include "rendering/gui.hpp"
 
-#include "ADT/TinyPtrVectorPod.hpp"
-
 namespace GUI {
 
 namespace EC {
@@ -39,7 +37,7 @@ text
 namespace ComponentIDs {
     #define GUI_REGULAR_COMPONENTS_LIST Name, SimpleTexture, Numbered, Background, \
         Border, ViewBox, DisplayBox, Hidden, MaxSize, MinSize, Button, Text, ChildOf, Hover, \
-        SizeConstraint, AlignmentConstraint, StackConstraint, Update, HotbarSlot
+        SizeConstraint, AlignmentConstraint, StackConstraint, Update, HotbarSlot, TestComponent
     #define GUI_PROTO_COMPONENTS_LIST PlaceholderPr 
     #define GUI_COMPONENTS_LIST GUI_REGULAR_COMPONENTS_LIST, GUI_PROTO_COMPONENTS_LIST
     GEN_IDS(ComponentIDs, ComponentID, GUI_COMPONENTS_LIST, Count);
@@ -64,9 +62,26 @@ namespace ComponentIDs {
 
 #define END_PROTO_COMPONENT(name) }; static_assert(true | ComponentIDs::name, "Checking for id");
 
+BEGIN_COMPONENT(TestComponent)
+    char* text;
+
+    TestComponent(const char* someText) {
+        text = strdup(someText);
+    }
+
+    void destruct() {
+        free(text);
+    }
+END_COMPONENT(TestComponent)
+
 BEGIN_COMPONENT(Button)
-    GuiAction onClick = nullptr;
+    NewGuiActionList onClick;
     bool pressed = false; // if the button is down
+
+    void destroy() {
+        onClick.destroy();
+        LogInfo("Destructed button component");
+    }
 END_COMPONENT(Button)
 
 #define GUI_ELEMENT_MAX_NAME_SIZE 64
@@ -139,7 +154,12 @@ END_COMPONENT(HotbarSlot)
 
 // function to execute every tick
 BEGIN_COMPONENT(Update)
-    GuiAction update = nullptr;
+    NewGuiActionList update;
+
+    void destroy() {
+        update.destroy();
+        LogInfo("Destructed GUI::EC::Update");
+    }
 END_COMPONENT(Update)
 
 BEGIN_COMPONENT(SizeConstraint)

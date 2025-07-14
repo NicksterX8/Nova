@@ -214,11 +214,11 @@ struct ArchetypalComponentManager {
     My::Vec<Entity> unusedEntities;
     My::HashMap<Signature, ArchetypeID, SignatureHash> archetypes;
     ComponentInfoRef componentInfo;
-    Signature validComponents;
+    Signature validComponents = {0};
 
     struct EntityData {
-        Sint32 prototype;
         Signature signature;
+        Sint32 prototype;
         Uint32 version;
         Sint16 poolIndex;
         ArchetypeID archetype;
@@ -229,7 +229,6 @@ struct ArchetypalComponentManager {
 
     void init(ComponentInfoRef componentInfo) {
         this->componentInfo = componentInfo;
-        validComponents = {0};
         for (int i = 0; i < componentInfo.size(); i++) {
             if (!componentInfo.get(i).prototype)
                 validComponents.set(i);
@@ -269,8 +268,8 @@ struct ArchetypalComponentManager {
         }
 
         ArchetypePool* pool = &pools[data->archetype];
-        pool->remove(data->poolIndex);
 
+        pool->remove(data->poolIndex);
         entityData.remove(entity.id);
         unusedEntities.push(entity);
     }

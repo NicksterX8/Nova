@@ -5,5 +5,7 @@ using namespace GUI;
 using namespace Systems;
 
 void DoElementUpdatesJob::Execute(int N) {
-    updates[N].update(game, game->gui.manager, elements[N]);
+    for (auto action : updates[N].update) {
+        action->operator()(game, game->gui.manager, elements[N]);
+    } 
 }

@@ -9,6 +9,13 @@ GameAction guiActionToGameAction(GuiAction function, GUI::Element e) {
     };
 }
 
+GameAction guiActionToGameAction(NewGuiAction* function, GUI::Element e) {
+    return {
+        [e, function](Game* g){ function->operator()(g, g->gui.manager, e); },
+        0
+    };
+}
+
 namespace GUI {
 // gui actions
 void selectHotbarSlot(Game* g, GuiManager& manager, Element e) {

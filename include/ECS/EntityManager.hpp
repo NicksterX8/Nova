@@ -12,6 +12,9 @@ namespace ECS {
 
 using ComponentManager = ArchetypalComponentManager;
 
+template<typename Value>
+using ComponentSet = My::DenseSparseSet<Sint8, Value, Uint8, MaxComponentID>;
+
 struct EntityManager {
     ComponentManager components;
     PrototypeManager prototypes;
@@ -19,6 +22,10 @@ struct EntityManager {
 private:
     bool* stateLocked;
     EntityCommandBuffer* commandBuffer;
+
+    Signature componentsWithDestructors = {0};
+    using ComponentDestructor = std::function<void(Entity)>;
+    ComponentSet<ComponentDestructor> componentDestructors;
 public:
 
     void init(ComponentInfoRef componentInfo, int numPrototypes) {
@@ -26,6 +33,7 @@ public:
         prototypes.init(componentInfo, numPrototypes);
         stateLocked = new bool(false);
         commandBuffer = nullptr;
+        componentDestructors = ComponentSet<ComponentDestructor>::Empty();
     }
 
     const ComponentInfo& getComponentInfo(ComponentID component) const {
@@ -65,13 +73,13 @@ public:
         for (auto& command : commandBuffer->commands) {
             switch (command.type) {
             case EntityCommandBuffer::Command::CommandAdd:
-                addComponent(command.value.add.target, command.value.add.component, command.value.add.componentValueIndex + commandBuffer->valueBuffer.data);
+                doAddComponent(command.value.add.target, command.value.add.component, command.value.add.componentValueIndex + commandBuffer->valueBuffer.data);
                 break;
             case EntityCommandBuffer::Command::CommandRemove:
-                removeComponent(command.value.remove.target, command.value.remove.component);
+                doRemoveComponent(command.value.remove.target, command.value.remove.component);
                 break;
             case EntityCommandBuffer::Command::CommandDelete:
-                components.deleteEntity(command.value.del.target);
+                doDeleteEntity(command.value.del.target);
                 break;
             default:
                 LogError("Invalid command type!");
@@ -171,6 +179,13 @@ public:
         return entity;
     }
 
+    // same as deleteEntity but no null checking
+    // and no command buffering
+    void doDeleteEntity(Entity entity) {
+        destructComponents(entity, getEntitySignature(entity));
+        components.deleteEntity(entity);
+    }
+
     void deleteEntity(Entity entity) {
         if (entity.Null()) {
             LogError("Cannot delete null entity!");
@@ -183,7 +198,7 @@ public:
             return;
         }
 
-        components.deleteEntity(entity);
+        doDeleteEntity(entity);
     }
 
     bool entityExists(Entity entity) const {
@@ -268,6 +283,11 @@ public:
         }
     }
 
+    bool doAddComponent(Entity entity, ComponentID component, const void* value) {
+        // TODO: do on add
+        return (bool)components.addComponent(entity, component, value);
+    }
+
     template<class C>
     bool addComponent(Entity entity, const C& startValue) {
         static_assert(!C::PROTOTYPE, "Cannot add a prototype component to a entity!");
@@ -288,7 +308,7 @@ public:
             return false;
         }
 
-        return (bool)components.addComponent(entity, component, value);
+        return (bool)doAddComponent(entity, component, value);
     }
 
     bool addSignature(Entity entity, Signature signature) {
@@ -300,10 +320,29 @@ public:
         return components.addSignature(entity, signature);
     }
 
-    template<class C>
-    void removeComponent(Entity entity) {
-        static_assert(!C::PROTOTYPE, "Cannot remove a prototype component from an entity!");
-        removeComponent(entity, C::ID);
+protected:
+    void destructComponents(Entity entity, Signature signature) {
+        Signature neededDestructors = signature & componentsWithDestructors;
+        auto& componentDestructors = this->componentDestructors;
+        neededDestructors.forEachSet([&componentDestructors, entity](ComponentID component){
+            auto* destructor = componentDestructors.lookup((Sint8)component);
+            assert(destructor && "componentsWithDestructors and componentDestructors set mis match!");
+            destructor->operator()(entity);
+        });
+    }
+
+    void destructComponent(Entity entity, ComponentID component) {
+        if (!componentsWithDestructors[component]) return;
+        auto* destructor = componentDestructors.lookup((Sint8)component);
+        assert(destructor && "componentsWithDestructors and componentDestructors set mis match!");
+        destructor->operator()(entity);
+    }
+public:
+
+    void setComponentDestructor(ComponentID component, const ComponentDestructor& destructor) {
+        assert(!componentDestructors.contains(component) && "Component already has destructor set!");
+        componentDestructors.insert(component, destructor);
+        componentsWithDestructors.set(component);
     }
 
     bool validRegComponent(ComponentID component) {
@@ -314,11 +353,16 @@ public:
         return prototypes.validComponents[component];
     }
 
-    // enum class ComponentType {
-    //     Invalid,
-    //     Regular,
-    //     Prototype
-    // };
+    template<class C>
+    void removeComponent(Entity entity) {
+        static_assert(!C::PROTOTYPE, "Cannot remove a prototype component from an entity!");
+        removeComponent(entity, C::ID);
+    }
+
+    void doRemoveComponent(Entity entity, ComponentID component) {
+        destructComponent(entity, component);
+        components.removeComponent(entity, component);
+    }
 
     void removeComponent(Entity entity, ComponentID component) {
         assert(validRegComponent(component));
@@ -330,9 +374,10 @@ public:
         if (commandsLocked()) {
             assert(commandBuffer && "Locking without valid command buffer!");
             commandBuffer->removeComponent(entity, component);
+            return;
         }
 
-        components.removeComponent(entity, component);
+        doRemoveComponent(entity, component);
     }
 
     int getComponentSize(ComponentID component) const {

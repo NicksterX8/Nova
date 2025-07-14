@@ -456,6 +456,8 @@ int Game::init(SDLContext sdlContext) {
         state->ecs->Get<World::EC::Render>(tree())->textures[0].layer = i;
     }
 
+    state->ecs->Destroy(tree);
+
     World::Entities::TextBox::make(state->ecs, {10, -5}, World::EC::Text{
         .message = "This is an example of a text box!",
         .rendering = TextRenderingSettings{

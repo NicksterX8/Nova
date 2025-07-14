@@ -64,7 +64,9 @@ std::vector<GameAction> PlayerControls::handleClick(const SDL_MouseButtonEvent& 
     if (hoveredGuiElement != GUI::NullElement) {
         mouseClickedOnNewGui = true;
         if (auto* button = game->gui.manager.getComponent<GUI::EC::Button>(hoveredGuiElement)) {
-            actions.push_back(guiActionToGameAction(button->onClick, hoveredGuiElement));
+            for (auto& action : button->onClick) {
+                actions.push_back(guiActionToGameAction(action, hoveredGuiElement));
+            }
         }
     }
 

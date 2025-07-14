@@ -240,6 +240,11 @@ public:
     }
     return cast<VecTy *>(Val)->insert(begin() + Offset, From, To);
   }
+
+  void destroy() {
+    if (VecTy *V = dyn_cast_if_present<VecTy *>(Val))
+      delete V;
+  }
 };
 
 }

@@ -74,6 +74,16 @@ struct GuiManager : ECS::EntityManager {
         addComponent(screen, EC::ViewBox{Box{Vec2(0), Vec2(INFINITY)}, .visible = false});
         addComponent(screen, EC::DisplayBox{});
         addComponent(screen, EC::Hidden{});
+
+        setComponentDestructor(EC::Update::ID, [this](Entity entity){
+            auto* component = getComponent_<EC::Update>(entity);
+            component->destroy();
+        });
+
+        setComponentDestructor(EC::Button::ID, [this](Entity entity){
+            auto* component = getComponent_<EC::Button>(entity);
+            component->destroy();
+        });
     }
 
     void removeFromTree(Element element) {
