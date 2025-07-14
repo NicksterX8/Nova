@@ -3,6 +3,8 @@
 #include "ADT/SmallVector.hpp"
 #include "llvm/BitVector.h"
 
+namespace OLD {
+
 template<size_t BlockSize, size_t BlocksPerAlloc, typename Allocator = Mallocator>
 class BlockAllocator : public AllocatorBase<BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>> {
     using Base = AllocatorBase<BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>>;
@@ -221,6 +223,8 @@ public:
     }
 };
 
+}
+
 namespace NEW {
 
 // Only alloc sizes <= BlockSize, otherwise make a custom alloc from Allocator
@@ -369,7 +373,7 @@ public:
                 newPtr = ptr;
             } else {
                 // moving to size too big to fit in block
-                deallocateBlock(ptr);
+                deallocateBlock((char*)ptr);
                 newPtr = allocateNonBlock(newSize, alignment);
             }
         } else {
@@ -459,3 +463,5 @@ public:
 };
 
 }
+
+using NEW::BlockAllocator;

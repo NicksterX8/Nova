@@ -9,6 +9,7 @@ main things to optimize
 develop free list/recycler
 new bucket allocator
 fix old bucket allocator
+    - seems pretty good now
 arena allocator
 better allocator use // for components
 
@@ -37,9 +38,8 @@ fix terminal out of sync for a frame cause of size constraint stuff and text
 add<...> components
 entities aren't put into chunk entity list when created
 
-fix alignment for archetype pools
 now: atomic structures / multithreading
-optimize for components with no members (std::is_empty)
+optimize for components with no members... maybe (std::is_empty)
 
 actual (new):
 fix scrolling up/down with keys on console
@@ -58,10 +58,8 @@ more text features (copying & pasting??) (prolly not, not necessary)
 - Make actual stuff like belts and -inserters-
 - clean up code, add documentation
 - Add back saving and reloading!
-    - Restart from scratch? Definitely need to think stuff over again. 
+    - Restart from scratch. Definitely need to think stuff over again. 
     - Start simple, with just chunks probably
-- Controller support! just for fun probably (just movement would be cool, fun learning experience)
-    √ started, kinda works
 
 ## little guys
 - fix motion blur for dynamic objects (use nvidia article)
@@ -118,6 +116,8 @@ more text features (copying & pasting??) (prolly not, not necessary)
     make it AAABBBCCC instead of AAA - BBB - CCC. better cache and stuff
 √ replace old ECS system with new
     - change element to entity
+√ Controller support! just for fun probably (just movement would be cool, fun learning experience)
+    √ started, kinda works
 
 ----------
 

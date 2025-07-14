@@ -314,7 +314,7 @@ struct SystemManager {
     EntityCommandBuffer unexecutedCommands;
     bool allowParallelization = true;
     // should be big enough blocks for almost all jobs
-    NEW::BlockAllocator<sizeof(IJob) + 32, 8> jobAllocator;
+    BlockAllocator<sizeof(IJob) + 32, 8> jobAllocator;
 public:
     SystemManager() {}
 
