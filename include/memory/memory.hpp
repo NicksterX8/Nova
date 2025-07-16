@@ -124,27 +124,27 @@ using Mem::Alloc;
 using Mem::Realloc;
 using Mem::Free;
 
-template<typename T>
-T* New() {
-    T* mem = Alloc<T>();
-    new (mem) T();
-    return mem;
-}
+// template<typename T>
+// T* New() {
+//     T* mem = Alloc<T>();
+//     new (mem) T();
+//     return mem;
+// }
 
-template<typename T, typename... Args>
-T* New(Args&... args) {
-    T* mem = Alloc<T>();
-    new (mem) T(args...);
-    return mem;
-}
+// template<typename T, typename... Args>
+// T* New(Args&... args) {
+//     T* mem = Alloc<T>();
+//     new (mem) T(args...);
+//     return mem;
+// }
 
-template<typename T>
-void Delete(T* pointer, size_t count = 1) {
-    Free(pointer);
-    for (int i = 0; i < count; i++) {
-        pointer[i].~T();
-    }
-}
+// template<typename T>
+// void Delete(T* pointer, size_t count = 1) {
+//     Free(pointer);
+//     for (int i = 0; i < count; i++) {
+//         pointer[i].~T();
+//     }
+// }
 
 struct AlignWrapper {
     size_t align;

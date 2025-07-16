@@ -116,6 +116,11 @@ struct ArchetypePool {
         return bufferOffsets.size;
     }
 
+    char* getComponentArray(ComponentID componentType) const {
+        auto bufferIndex = archetype.getIndex(componentType);
+        return getBuffer(bufferIndex);
+    }
+
     char* getBuffer(int bufferIndex) const {
         if (bufferIndex < 0 || bufferIndex >= numBuffers()) {
             LogError("Buffer index out of range!");

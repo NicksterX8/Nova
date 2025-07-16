@@ -276,8 +276,6 @@ void Gui::renderElements(GuiRenderer& renderer, const PlayerControls& playerCont
 
     auto viewboxSlot = gui.getComponent<EC::DisplayBox>(slot8);
     auto displayboxBar = gui.getComponent<EC::DisplayBox>(hotbar);
-    LogOnce(Info, "slot level: %f", viewboxSlot->height);
-    LogOnce(Info, "hotbar level: %f", displayboxBar->height);
 
     float hoveredHeight = -INFINITY;
     Element hoveredElement = NullElement;

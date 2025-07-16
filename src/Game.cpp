@@ -412,6 +412,15 @@ int Game::update() {
     return 0; 
 }
 
+inline void testJobs(Game* game) {
+    using namespace GUI;
+    SystemManager& manager = game->systems.ecsRenderSystems;
+    World::Systems::UpdateMovedEntitiesSystem newsystem{manager};
+    for (auto& job : newsystem.jobs) {
+        runJob(game->state->ecs->em, job.job, job.group);
+    }
+}
+
 int Game::init(SDLContext sdlContext) {
     this->sdlCtx = sdlContext;
 
@@ -455,6 +464,8 @@ int Game::init(SDLContext sdlContext) {
         state->ecs->Get<World::EC::Render>(tree())->textures[1].layer = i;
         state->ecs->Get<World::EC::Render>(tree())->textures[0].layer = i;
     }
+
+    testJobs(this);
 
     state->ecs->Destroy(tree);
 

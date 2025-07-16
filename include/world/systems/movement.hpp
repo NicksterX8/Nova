@@ -5,6 +5,8 @@
 #include "ECS/system.hpp"
 #include "world/components/components.hpp"
 #include "world/functions.hpp"
+#include "world/systems/testNewJobs.hpp"
+#include "ECS/Job.hpp"
 
 namespace World {
 
@@ -31,6 +33,43 @@ JOB_PARALLEL_FOR(FindChangedEntitiesJob) {
         posChanged[N] = positions[N].vec2() != dynamics[N].pos;
     }
 };
+
+
+struct PositionChangedArray {
+    GroupArray<bool> positionChanged;
+};
+
+struct NewFindChangedEntitiesJob : Job {
+    NewFindChangedEntitiesJob() {
+        USE_GROUP_VARS(PositionChangedArray);
+        EXECUTE_START_CLASS(Position, Dynamic)
+            groupVars.positionChanged[N] = Position[N].vec2() != Dynamic[N].pos;
+        EXECUTE_END_CLASS
+
+        EXECUTE_IF_START(Health, Position, Dynamic)
+            Position[N].x = Health[N].iFrames;
+        EXECUTE_IF_END
+
+        SetConst<EC::Dynamic, EC::Health>();
+    }
+};
+
+struct UpdateMovedEntitiesSystem : NewSystem {
+    NewFindChangedEntitiesJob changedEntitiesJob;
+    PositionChangedArray dynamicGroupVars;
+
+    UpdateMovedEntitiesSystem(SystemManager& manager) : NewSystem(manager) {
+        Group* dynamicGroup = makeGroup(ComponentGroup<
+            ReadOnly<EC::Position>,
+            ReadWrite<EC::Dynamic>
+        >(), &dynamicGroupVars);
+        dynamicGroup->addArray(&dynamicGroupVars.positionChanged);
+
+        Schedule(dynamicGroup, changedEntitiesJob);
+    }
+};
+
+
 
 JOB_SINGLE_THREADED(ChangeEntityPosJob) {
     ComponentArray<EC::Position> oldPositions;
@@ -76,10 +115,6 @@ struct DynamicEntitySystem : ISystem {
     DynamicEntitySystem(SystemManager& manager, ChunkMap* chunkmap)
     : ISystem(manager), chunkmap(chunkmap) {}
 
-    void alloc() {
-
-    }
-
     void ScheduleJobs() {
         auto posChangedArray = makeTempGroupArray<bool>(dynamicGroup);
         Schedule(dynamicGroup, ChangeEntityPosJob(posChangedArray, chunkmap), 
@@ -124,80 +159,7 @@ struct UpdateEntityViewBoxChunkPosJob : IJobMainThread<UpdateEntityViewBoxChunkP
     }
 };
 
-template<typename Trigger, typename T>
-struct TriggerGroup {
 
-};
-
-struct EntityEnters {
-
-};
-
-struct TriggerSystem {
-    SmallVector<Entity> triggeredEntities;
-    using TriggerType = int;
-    enum {
-        EntityEnters = 1,
-        EntityExits = 2,
-        EntityCreated = 4,
-        EntityDestroyed = 8
-    };
-    TriggerType trigger;
-
-    struct Group {
-        ECS::Signature needed = 0;
-        ECS::Signature rejected = 0;
-    } group;
-
-    TriggerSystem(SystemManager& manager, TriggerType trigger, Group group)
-    : trigger(trigger), group(group) {}
-
-    template<typename Job>
-    JobHandle Schedule(const Job& job) {
-        
-    }
-};
-
-// struct NewEntityViewBoxSystem : TriggerSystem {
-//     constexpr static TriggerGroup<EntityEnters, ComponentGroup<
-//         ReadOnly<EC::ViewBox>,
-//         ReadOnly<EC::Position>
-//     >> group;
-
-//     ChunkMap* chunkmap;
-
-//     NewEntityViewBoxSystem(SystemManager& manager, ChunkMap* chunkmap)
-//     : ISystem(manager), chunkmap(chunkmap) {
-        
-//     }
-
-//     void ScheduleJobs() {
-//         ScheduleWhen(group, UpdateEntityViewBoxChunkPosJob());
-//     }
-// };
-
-template<class... Components>
-constexpr ECS::Signature Need() {
-    return ECS::getSignature<Components...>();
-}
-
-template<class... Components>
-constexpr ECS::Signature Reject() {
-    return ECS::getSignature<Components...>();
-}
-
-struct NewEntityViewBoxSystem : TriggerSystem {
-    NewEntityViewBoxSystem(SystemManager& manager, ChunkMap* chunkmap) 
-    : TriggerSystem(manager,
-        EntityEnters | EntityExits, {Need<EC::ViewBox, EC::Position>()}), chunkmap(chunkmap)
-    {}
-
-    ChunkMap* chunkmap;
-
-    void ScheduleJobs() {
-        Schedule(UpdateEntityViewBoxChunkPosJob(chunkmap)); 
-    }
-};
 
 }
 

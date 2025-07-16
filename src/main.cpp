@@ -24,6 +24,7 @@
 #include "memory/allocators.hpp"
 
 #include "utils/system/signpost.hpp"
+#include "world/systems/testNewJobs.hpp"
 
 #ifdef DEBUG
     //#include "Testing.hpp"
@@ -62,6 +63,8 @@ void initPaths() {
 
 void tests() {
     physics_test();
+
+    
 }
 
 int main(int argc, char** argv) { 

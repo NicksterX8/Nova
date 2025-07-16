@@ -28,6 +28,9 @@ inline const void* alignPtr(const void* ptr, size_t align) {
     return (void*)((ptrValue + align - 1) & ~(align - 1U));
 }
 
+// TODO: consider moving these directly into AllocateBase instead of inheriting them. 
+// We don't inherit them anywhere else at the moment and they just add extra complexity
+
 template<typename Derived>
 struct DeallocateMethods {
     template<typename T>
