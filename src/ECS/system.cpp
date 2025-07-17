@@ -19,7 +19,7 @@ int ECS::System::findEligiblePools(const IComponentGroup& group, const ECS::Enti
         auto& pool = entityManager.components.pools[p];
         if (pool.size == 0) continue;
         auto poolSignature = pool.archetype.signature;
-        if ((poolSignature & group.signature) == group.signature
+        if ((group.signature & poolSignature) == group.signature
          && (poolSignature & group.subtract) == 0) {
             if (eligiblePools)
                 eligiblePools->push_back(&pool);

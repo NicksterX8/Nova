@@ -412,7 +412,7 @@ int Game::update() {
     return 0; 
 }
 
-inline void runJob(const ECS::EntityManager& components, Job job, Group* group) {
+inline void runJob(const ECS::EntityManager& components, Job job, Group* group, void* args) {
     std::vector<ECS::ArchetypePool*> eligiblePools;
     int groupSize = findEligiblePools(group->group, components, &eligiblePools);
 
@@ -425,21 +425,25 @@ inline void runJob(const ECS::EntityManager& components, Job job, Group* group) 
     JobDataNew jobData;
     jobData.dependencies = job.dependencies;
     jobData.indexBegin = 0;
+    jobData.groupVars = args;
     
 
     
-
-    jobData.pool = eligiblePools[0];
-
-    job.executeFunc(&jobData, 0, jobData.pool->size);
+    if (eligiblePools.empty()) return;
+    int index = 0;
+    for (auto* pool : eligiblePools) {
+        jobData.pool = pool;
+        job.executeFunc(&jobData, index, index + pool->size);
+        index += pool->size;
+    }
 }
 
 inline void testJobs(Game* game) {
     using namespace GUI;
     SystemManager& manager = game->systems.ecsRenderSystems;
-    NewEntityViewBoxSystem newsystem{manager, nullptr};
+    World::NewEntityViewBoxSystem newsystem{manager, nullptr};
     for (auto& job : newsystem.jobs) {
-        runJob(game->state->ecs->em, job.job, job.group);
+        runJob(game->state->ecs->em, job.job, job.group, job.args);
     }
 }
 

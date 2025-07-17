@@ -122,6 +122,7 @@ struct ArchetypePool {
     }
 
     char* getBuffer(int bufferIndex) const {
+        assert(buffer && "Null archetype pool!");
         if (bufferIndex < 0 || bufferIndex >= numBuffers()) {
             LogError("Buffer index out of range!");
             return nullptr;

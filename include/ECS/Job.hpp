@@ -3,6 +3,7 @@
 #include "utils/map.h"
 #include "utils/common-macros.hpp"
 #include "ECS/system.hpp"
+#include "utils/type_traits.hpp"
 
 namespace ECS {
 
@@ -15,7 +16,6 @@ struct Job {
     Signature readComponents = 0;
     Signature writeComponents = 0;
     void* dependencies = nullptr;
-    void* groupArrays = nullptr;
     bool parallelizable = false;
     bool enabled = true;
 
@@ -45,12 +45,6 @@ struct Job {
     template<class... Cs>
     void SetConst() {
         writeComponents &= ~ECS::getSignature<Cs...>();
-    }
-
-    void destroy() {
-        if (groupArrays) {
-            free(groupArrays);
-        }
     }
 };
 
@@ -137,10 +131,151 @@ constexpr GroupArray<T>::GroupArray(Group* group) {
     group->addArray(this);
 }
 
+template <typename T, typename... Ts>
+struct Index;
+
+template <typename T, typename... Ts>
+struct Index<T, T, Ts...> : std::integral_constant<std::size_t, 0> {};
+
+template <typename T, typename U, typename... Ts>
+struct Index<T, U, Ts...> : std::integral_constant<std::size_t, 1 + Index<T, Ts...>::value> {};
+
+template <typename T, typename... Ts>
+constexpr std::size_t Index_v = Index<T, Ts...>::value;
+
+template<class... Components, class... Vars, class Class>
+Job makeJob(Class* deps, std::tuple<ComponentArray<Components>...>* /*nullptr*/, std::tuple<Vars...>* /*nullptr*/) {
+    Job job;
+    job.readComponents = ECS::getSignature<Components...>();
+    job.writeComponents = ECS::getMutableSignature<Components...>();
+    // job.parallelizable = parallelizable;
+    job.dependencies = deps;
+ 
+    using GroupVarTuple = std::tuple<Vars...>; // don't use the first var, because it is the index N
+    job.executeFunc = [](void* jobDataPtr, int startN, int endN){
+        JobDataNew* jobData = (JobDataNew*)jobDataPtr;
+        Class& deps = *(Class*)jobData->dependencies;
+        std::tuple<ComponentArray<Components>...> componentArrays = {
+            ComponentArray<Components>(jobData->getComponentArray<Components>()) ...
+        };
+        GroupVarTuple groupVars = *(GroupVarTuple*)jobData->groupVars;
+        for (int N = startN; N < endN; N++) {
+            Class::execute(deps, N, componentArrays, groupVars);
+        }
+    };
+    return job;
+}
+
+// template<class ...Components>
+// std::tuple<Components*...> getComponents(JobDataNew* jobData, std::tuple<Components...> dummy) {
+//     return { jobData->getComponentArray<Components>() ... };
+// }
+
+// template<typename GroupVarsT, class ComponentsTuple, class Class>
+// Job makeJob4(Class* deps){
+//     Job job;
+//     //job.readComponents = ECS::getSignature<Components...>();
+//     //job.writeComponents = ECS::getMutableSignature<Components...>();
+//     // job.parallelizable = parallelizable;
+//     job.dependencies = deps;
+
+//     job.executeFunc = [](void* jobDataPtr, int startN, int endN){
+//         JobDataNew* jobData = (JobDataNew*)jobDataPtr;
+//         Class& deps = *(Class*)jobData->dependencies;
+//         auto componentArrays = getComponents(jobData, ComponentsTuple{});
+//         // std::tuple<Components*...> componentArrays = {
+//         //     jobData->getComponentArray<Components>() ...
+//         // };
+//         GroupVarsT* groupVars = (GroupVarsT*)jobData->groupVars;
+//         for (int N = startN; N < endN; N++) {
+//             Class::execute(deps, N, groupVars, componentArrays);
+//         }
+//     };
+//     return job;
+// }
+
+template<class C, typename = void>
+struct HasComponentArrayID : std::false_type {};
+
+template<class C>
+struct HasComponentArrayID<C, std::void_t<decltype(C::IsComponentArray)>>
+    : std::is_convertible<decltype(C::IsComponentArray), bool> {};
+
+template<typename T>
+inline constexpr bool IsComponentArray = HasComponentArrayID<T>::value;
+
+static_assert(IsComponentArray<int> == false, "Is component not detecting invalid components");
+
+// For free functions or static functions
+template <typename T>
+struct ExecuteMethodTraits;
+
+template <bool WantComponents, typename... Vars>
+struct filter_component_arrays;
+
+template <bool WantComponents>
+struct filter_component_arrays<WantComponents> {
+    using type = std::tuple<>;
+};
+
+template <bool WantComponents, typename Head, typename... Tail>
+struct filter_component_arrays<WantComponents, Head, Tail...> {
+private:
+    using tail_filtered = typename filter_component_arrays<WantComponents, Tail...>::type;
+public:
+    using type = std::conditional_t<
+        IsComponentArray<Head> == WantComponents,
+        decltype(std::tuple_cat(std::declval<std::tuple<Head>>(), std::declval<tail_filtered>())),
+        tail_filtered
+    >;
+};
+
+// Member function pointer
+template <typename Class, typename Ret, typename FirstArg, typename... Args>
+struct ExecuteMethodTraits<Ret(Class::*)(FirstArg, Args...)> {
+    using ReturnType = Ret;
+    using ClassType = Class;
+    using ArgsTuple = std::tuple<Args...>;
+    using ComponentArraysTuple = typename filter_component_arrays<true, Args...>::type;
+    using VarsTuple = typename filter_component_arrays<false, Args...>::type;
+    // using GroupVarsT = std::remove_pointer_t<std::tuple_element_t<2, ArgsTuple>>;
+    //using ComponentTuple = std::tuple<std::tuple_element_t<1, std::remove_pointer<ArgsTuple>::type>>;
+
+    static_assert(std::is_same_v<ReturnType, void>, "Execute method should always return void!");
+    static_assert(std::is_same_v<FirstArg, int>, "Execute method must take index as int for first parameter");
+};
+
+template <auto Method>
+using ExecuteMethodVars = typename ExecuteMethodTraits<decltype(Method)>::VarsTuple;
+
+template <auto Method>
+using ExecuteMethodComponents = typename ExecuteMethodTraits<decltype(Method)>::ComponentArraysTuple;
+
+template<auto Method>
+using JobGroupVars = typename ExecuteMethodTraits<decltype(Method)>::VarsTuple;
+
+template<typename Derived>
+struct JobDeclNew : Job {
+
+    JobDeclNew() : Job(makeJob(
+        static_cast<Derived*>(this), 
+        (ExecuteMethodComponents<&Derived::Execute>*)nullptr, 
+        (ExecuteMethodVars<&Derived::Execute>*)nullptr)) {}
+
+    template<typename... Components, typename... GroupVars>
+    static constexpr void execute(Derived& self, int N, std::tuple<ComponentArray<Components>...> components, std::tuple<GroupVars...> vars) {
+        self.Execute(N, std::get<Index_v<Components*, Components*...>>(components) ..., std::get<Index_v<GroupVars, GroupVars...>>(vars) ...);
+    }
+};
+
+template<typename Job>
+using JobArgs = JobGroupVars<&Job::Execute>;
+
 struct NewSystem {
     struct ScheduledJob {
         Group* group;
         Job job;
+        void* args;
     };
     
     SmallVector<ScheduledJob, 0> jobs;
@@ -148,10 +283,10 @@ struct NewSystem {
 
     NewSystem(SystemManager& manager) {}
 
-    
-
     template<typename JobT>
-    JobHandle Schedule(Group* group, const JobT& jobt) {
+    JobHandle Schedule(Group* group, const JobT& jobt, JobArgs<JobT> args) {
+        // static_assert(std::is_same_v<JobT::ArgsTuple, JobArgs>, "Incorrect job arguments");
+
         Job job = jobt;
         Signature illegalReads = job.readComponents & ~group->group.read;
         if (illegalReads.any()) {
@@ -162,7 +297,9 @@ struct NewSystem {
             LogError("Illegal job component writes!");
         }
 
-        jobs.push_back(ScheduledJob{group, job});
+        void* argsPtr = new JobArgs<JobT>(args);
+
+        jobs.push_back(ScheduledJob{group, job, argsPtr});
         return 0;
     }
 
@@ -178,94 +315,6 @@ struct NewSystem {
         return group;
     }
 };
-
-#define NAMESPACED_COMPONENT_ID_SIGNATURE(component, namespace) ECS::Signature{namespace::component::ID}
-
-#define GET_COMPONENT_SIGNATURE(namespace, ...) MAP_LIST_UD_OR(NAMESPACED_COMPONENT_ID_SIGNATURE, namespace, __VA_ARGS__)
-
-
-#define DECL_COMPONENT_ARRAY(component) EC::component* component = jobData->getComponentArray<EC::component>();
-
-// #define DECL_COMPONENT_ARRAY(component) EC::component* COMBINE(component, Array) = jobData->getComponentArray<EC::component>();
-// #define DECL_COMPONENT_REF_FROM_ARRAY(component) EC::component& component = COMBINE(component, Array)[N];
-
-// #define EXECUTE_START_FUNC(job, ...) \
-//     { \
-//         using namespace EC; \
-//         job.readComponents = ECS::getSignature<__VA_ARGS__>(); \
-//         job.writeComponents = ECS::getSignature<__VA_ARGS__>(); \
-//     } \
-//     job.executeFunc = [](void* jobDataPtr, int _startIndex, int _endIndex){\
-//     JobDataNew* jobData = (JobDataNew*)jobDataPtr; \
-//     GroupVars& groupVars = *(GroupVars*)jobData->groupVars; \
-//     Dependencies& deps = *(Dependencies*)jobData->dependencies; \
-//     MAP(DECL_COMPONENT_ARRAY2, __VA_ARGS__) \
-//     for (int N = _startIndex; N < _endIndex; N++) {
-// #define EXECUTE_END_FUNC } };
-
-#define EXECUTE_START_OBJECT_CLASS(job, ...) \
-    { \
-        using namespace EC; \
-        job.readComponents = ECS::getSignature<__VA_ARGS__>(); \
-        job.writeComponents = ECS::getSignature<__VA_ARGS__>(); \
-    } \
-    { \
-    using ThisClass = std::remove_reference_t<decltype(*this)>; \
-    job.dependencies = this; \
-    job.executeFunc = [](void* jobDataPtr, int _startIndex, int _endIndex){\
-    JobDataNew* jobData = (JobDataNew*)jobDataPtr; \
-    GroupVars& groupVars = *(GroupVars*)jobData->groupVars; \
-    ThisClass& self = *(ThisClass*)jobData->dependencies; \
-    MAP(DECL_COMPONENT_ARRAY2, __VA_ARGS__) \
-    for (int N = _startIndex; N < _endIndex; N++) {
-#define EXECUTE_END_OBJECT_CLASS } }; }
-
-// #define EXECUTE_START_CLASS4 \
-//     { \
-//     using ThisClass = std::remove_reference_t<decltype(*this)>; \
-//     this->dependencies = this; \
-//     this->executeFunc = [](void* jobDataPtr, int _startIndex, int _endIndex){\
-//     JobDataNew* jobData = (JobDataNew*)jobDataPtr; \
-//     GroupVars& groupVars = *(GroupVars*)jobData->groupVars; \
-//     ThisClass& self = *(ThisClass*)jobData->dependencies; \
-//     for (int N = _startIndex; N < _endIndex; N++) {
-// #define EXECUTE_END_CLASS4 } }; }
-
-#define EXECUTE_START_CLASS(...) \
-    { \
-        using namespace EC; \
-        this->readComponents = ECS::getSignature<__VA_ARGS__>(); \
-        this->writeComponents = ECS::getSignature<__VA_ARGS__>(); \
-    } \
-    { \
-    using ThisClass = std::remove_reference_t<decltype(*this)>; \
-    this->dependencies = this; \
-    this->executeFunc = [](void* jobDataPtr, int _startIndex, int _endIndex){\
-    JobDataNew* jobData = (JobDataNew*)jobDataPtr; \
-    GroupVars& groupVars = *(GroupVars*)jobData->groupVars; \
-    ThisClass& self = *(ThisClass*)jobData->dependencies; \
-    MAP(DECL_COMPONENT_ARRAY, __VA_ARGS__) \
-    for (int N = _startIndex; N < _endIndex; N++) {
-#define EXECUTE_END_CLASS } }; }
-
-#define USE_GROUP_VARS(groupvars) using GroupVars = groupvars;
-
-// params: components needed to run
-#define EXECUTE_IF_START(...) { \
-        using namespace EC; \
-        this->readComponents |= ECS::getSignature<__VA_ARGS__>(); \
-        this->writeComponents |= ECS::getSignature<__VA_ARGS__>(); \
-    } \
-    { \
-    using ThisClass = std::remove_reference_t<decltype(*this)>; \
-    this->addConditionalExecute(GET_COMPONENT_SIGNATURE(EC, __VA_ARGS__), [](void* jobDataPtr, int _startIndex, int _endIndex){\
-    JobDataNew* jobData = (JobDataNew*)jobDataPtr; \
-    GroupVars& groupVars = *(GroupVars*)jobData->groupVars; \
-    ThisClass& self = *(ThisClass*)jobData->dependencies; \
-    MAP(DECL_COMPONENT_ARRAY, __VA_ARGS__) \
-    for (int N = _startIndex; N < _endIndex; N++) {
-        
-#define EXECUTE_IF_END } }); }
 
 
 } // end namespace New

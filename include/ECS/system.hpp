@@ -62,13 +62,15 @@ struct ComponentArray {
 private:
     C* data;
 public:
+    static constexpr bool IsComponentArray = true;
+
     ComponentArray() : data(nullptr) {}
 
     ComponentArray(C* data) : data(data) {}
 
     typename std::conditional<std::is_const_v<C>, const C&, C&>::type& operator[](int index) {
         assert(data);
-        return ((C*)data)[index];
+        return data[index];
     }
 };
 

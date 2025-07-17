@@ -30,8 +30,15 @@ template<class C>
 struct HasComponentID_t<C, std::void_t<decltype(C::ID)>>
     : std::is_convertible<decltype(C::ID), int> {};
 
+template<class C, typename = void>
+struct HasComponentPrototypeBool_t : std::false_type {};
+
 template<class C>
-inline constexpr bool IsComponent = HasComponentID_t<C>::value;
+struct HasComponentPrototypeBool_t<C, std::void_t<decltype(C::PROTOTYPE)>>
+    : std::is_convertible<decltype(C::PROTOTYPE), bool> {};
+
+template<class C>
+inline constexpr bool IsComponent = HasComponentID_t<C>::value && HasComponentPrototypeBool_t<C>::value;
 
 static_assert(IsComponent<int> == false, "Is component not detecting invalid components");
 

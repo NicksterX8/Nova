@@ -7,6 +7,7 @@
 #include "world/functions.hpp"
 #include "world/systems/testNewJobs.hpp"
 #include "ECS/Job.hpp"
+#include "Chunks.hpp"
 
 namespace World {
 
@@ -33,40 +34,6 @@ JOB_PARALLEL_FOR(FindChangedEntitiesJob) {
         posChanged[N] = positions[N].vec2() != dynamics[N].pos;
     }
 };
-
-
-struct PositionChangedArray {
-    GroupArray<bool> positionChanged;
-};
-
-struct NewFindChangedEntitiesJob : Job {
-    NewFindChangedEntitiesJob() {
-        USE_GROUP_VARS(PositionChangedArray);
-        EXECUTE_START_CLASS(Position, Dynamic)
-            groupVars.positionChanged[N] = Position[N].vec2() != Dynamic[N].pos;
-        EXECUTE_END_CLASS
-
-        EXECUTE_IF_START(Health, Position, Dynamic)
-            Position[N].x = Health[N].iFrames;
-        EXECUTE_IF_END
-
-        SetConst<EC::Dynamic, EC::Health>();
-    }
-};
-
-struct UpdateMovedEntitiesSystem : NewSystem {
-    NewFindChangedEntitiesJob changedEntitiesJob;
-    Group* dynamicGroup = makeGroup(ComponentGroup<
-        ReadOnly<EC::Position>,
-        ReadWrite<EC::Dynamic>
-    >());
-    GroupArray<bool> positionsChanged{dynamicGroup};
-
-    UpdateMovedEntitiesSystem(SystemManager& manager) : NewSystem(manager) {
-        Schedule(dynamicGroup, changedEntitiesJob);
-    }
-};
-
 
 
 JOB_SINGLE_THREADED(ChangeEntityPosJob) {
