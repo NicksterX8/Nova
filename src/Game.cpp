@@ -496,6 +496,8 @@ int Game::init(SDLContext sdlContext) {
         state->ecs->Get<World::EC::Render>(tree())->textures[0].layer = i;
     }
 
+    state->ecs->Remove<World::EC::Health>(tree);
+
     testJobs(this);
 
     state->ecs->Destroy(tree);

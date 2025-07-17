@@ -27,17 +27,13 @@ struct MoveJob4 : JobDeclNew<MoveJob4> {
     }
 
     void HealthExecute(int N, ComponentArray<const EC::Health> health, GroupArray<int>* positionsOut, int x) {
-        if (health[N].health > 80.0f) {
-            LogOnce(Info, "HEALTHY!!");
-        }
         LogInfo("health execute %d", x);
     }
 };
 
 struct NewEntityViewBoxSystem : NewSystem {
     Group* enterGroup = makeGroup(ComponentGroup<
-        ReadOnly<EC::ViewBox>,
-        ReadOnly<EC::Health>
+        ReadOnly<EC::ViewBox>
     >());
 
     GroupArray<int> enterGroupVars{enterGroup};
