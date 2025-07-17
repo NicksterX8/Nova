@@ -11,11 +11,12 @@ namespace System {
 namespace New {
 
 struct Job {
-    JobExePtr executeFunc;
+    JobExePtr executeFunc = nullptr;
     Signature readComponents = 0;
     Signature writeComponents = 0;
-    void* dependencies;
-    bool parallelizable;
+    void* dependencies = nullptr;
+    void* groupArrays = nullptr;
+    bool parallelizable = false;
     bool enabled = true;
 
     struct ConditionalExecution {
@@ -45,11 +46,19 @@ struct Job {
     void SetConst() {
         writeComponents &= ~ECS::getSignature<Cs...>();
     }
+
+    void destroy() {
+        if (groupArrays) {
+            free(groupArrays);
+        }
+    }
 };
 
 struct JobDataNew {
     void* dependencies;
     void* groupVars;
+
+    void* groupArrays;
 
     ArchetypePool* pool;
     int indexBegin;
@@ -69,12 +78,22 @@ struct JobDataNew {
 
 struct GroupArrayI {};
 
+struct Group;
+
 template<typename T>
 struct GroupArray : GroupArrayI {
 private:
     T* data = nullptr;
 public:
+    // constexpr GroupArray() {}
+
+    constexpr GroupArray(Group* group);
+
     T& operator[](int index){
+        return data[index];
+    }
+
+    const T& operator[](int index) const {
         return data[index];
     }
 
@@ -89,10 +108,19 @@ struct GroupArrayT {
 
 struct Group {
     IComponentGroup group;
-    void* vars;
+    using TriggerType = int;
+    enum {
+        EntityEnters = 1,
+        EntityExits = 2,
+        EntityCreated = 4,
+        EntityDestroyed = 8,
+        EntityInGroup = 16
+    };
+    TriggerType trigger;
+
     std::vector<GroupArrayT> arrays;
 
-    Group(IComponentGroup group, void* vars) : group(group), vars(vars) {}
+    Group(IComponentGroup group, TriggerType trigger) : group(group), trigger(trigger) {}
 
     template<typename T>
     void addArray(GroupArray<T>* array) {
@@ -104,6 +132,11 @@ struct Group {
     }
 };
 
+template<typename T>
+constexpr GroupArray<T>::GroupArray(Group* group) {
+    group->addArray(this);
+}
+
 struct NewSystem {
     struct ScheduledJob {
         Group* group;
@@ -111,6 +144,7 @@ struct NewSystem {
     };
     
     SmallVector<ScheduledJob, 0> jobs;
+
 
     NewSystem(SystemManager& manager) {}
 
@@ -133,8 +167,14 @@ struct NewSystem {
     }
 
     template<typename GroupC>
-    Group* makeGroup(const GroupC& cgroup, void* groupVars) {
-        Group* group = new Group(cgroup, groupVars);
+    Group* makeGroup(const GroupC& cgroup, void* groupVars = nullptr) {
+        Group* group = new Group(cgroup, Group::EntityInGroup);
+        return group;
+    }
+
+    template<typename GroupC>
+    Group* makeGroup(const GroupC& cgroup, Group::TriggerType trigger, void* groupVars = nullptr) {
+        Group* group = new Group(cgroup, trigger);
         return group;
     }
 };

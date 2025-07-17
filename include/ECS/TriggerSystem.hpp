@@ -23,7 +23,8 @@ struct TriggerSystem {
         EntityEnters = 1,
         EntityExits = 2,
         EntityCreated = 4,
-        EntityDestroyed = 8
+        EntityDestroyed = 8,
+        EntityInGroup = 16
     };
     TriggerType trigger;
 
@@ -69,18 +70,7 @@ constexpr ECS::Signature Reject() {
     return ECS::getSignature<Components...>();
 }
 
-// struct NewEntityViewBoxSystem : TriggerSystem {
-//     NewEntityViewBoxSystem(SystemManager& manager, ChunkMap* chunkmap) 
-//     : TriggerSystem(manager,
-//         EntityEnters | EntityExits, {Need<EC::ViewBox, EC::Position>()}), chunkmap(chunkmap)
-//     {}
 
-//     ChunkMap* chunkmap;
-
-//     void ScheduleJobs() {
-//         Schedule(UpdateEntityViewBoxChunkPosJob(chunkmap)); 
-//     }
-// };
 
 }
 

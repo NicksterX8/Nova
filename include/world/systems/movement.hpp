@@ -56,15 +56,13 @@ struct NewFindChangedEntitiesJob : Job {
 
 struct UpdateMovedEntitiesSystem : NewSystem {
     NewFindChangedEntitiesJob changedEntitiesJob;
-    PositionChangedArray dynamicGroupVars;
+    Group* dynamicGroup = makeGroup(ComponentGroup<
+        ReadOnly<EC::Position>,
+        ReadWrite<EC::Dynamic>
+    >());
+    GroupArray<bool> positionsChanged{dynamicGroup};
 
     UpdateMovedEntitiesSystem(SystemManager& manager) : NewSystem(manager) {
-        Group* dynamicGroup = makeGroup(ComponentGroup<
-            ReadOnly<EC::Position>,
-            ReadWrite<EC::Dynamic>
-        >(), &dynamicGroupVars);
-        dynamicGroup->addArray(&dynamicGroupVars.positionChanged);
-
         Schedule(dynamicGroup, changedEntitiesJob);
     }
 };
