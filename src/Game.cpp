@@ -434,6 +434,11 @@ inline void runJob(const ECS::EntityManager& components, Job job, Group* group, 
     for (auto* pool : eligiblePools) {
         jobData.pool = pool;
         job.executeFunc(&jobData, index, index + pool->size);
+        for (auto& conditionalExecute : job.conditionalExecutions) {
+            if (pool->signature().hasAll(conditionalExecute.required)) {
+                conditionalExecute.execute(&jobData, index, index + pool->size);
+            }
+        }
         index += pool->size;
     }
 }

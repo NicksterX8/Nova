@@ -112,6 +112,10 @@ struct ArchetypePool {
         capacity = 0;
     }
 
+    Signature signature() const {
+        return archetype.signature;
+    }
+
     int numBuffers() const {
         return bufferOffsets.size;
     }
