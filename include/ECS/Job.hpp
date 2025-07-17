@@ -131,18 +131,7 @@ constexpr GroupArray<T>::GroupArray(Group* group) {
     group->addArray(this);
 }
 
-template <typename T, typename... Ts>
-struct Index;
-
-template <typename T, typename... Ts>
-struct Index<T, T, Ts...> : std::integral_constant<std::size_t, 0> {};
-
-template <typename T, typename U, typename... Ts>
-struct Index<T, U, Ts...> : std::integral_constant<std::size_t, 1 + Index<T, Ts...>::value> {};
-
-template <typename T, typename... Ts>
-constexpr std::size_t Index_v = Index<T, Ts...>::value;
-
+// tuple parameters are used only to take in variadic type packs. Value does not matter including nullptr
 template<class... Components, class... Vars, class Class>
 Job makeJob(Class* deps, std::tuple<ComponentArray<Components>...>* /*nullptr*/, std::tuple<Vars...>* /*nullptr*/) {
     Job job;
@@ -206,10 +195,6 @@ inline constexpr bool IsComponentArray = HasComponentArrayID<T>::value;
 
 static_assert(IsComponentArray<int> == false, "Is component not detecting invalid components");
 
-// For free functions or static functions
-template <typename T>
-struct ExecuteMethodTraits;
-
 template <bool WantComponents, typename... Vars>
 struct filter_component_arrays;
 
@@ -230,16 +215,18 @@ public:
     >;
 };
 
+
+template <typename T>
+struct ExecuteMethodTraits;
+
 // Member function pointer
+// Separate FirstArg so it isn't classified as a needed argument to the job. It is the index 
 template <typename Class, typename Ret, typename FirstArg, typename... Args>
 struct ExecuteMethodTraits<Ret(Class::*)(FirstArg, Args...)> {
     using ReturnType = Ret;
     using ClassType = Class;
-    using ArgsTuple = std::tuple<Args...>;
     using ComponentArraysTuple = typename filter_component_arrays<true, Args...>::type;
     using VarsTuple = typename filter_component_arrays<false, Args...>::type;
-    // using GroupVarsT = std::remove_pointer_t<std::tuple_element_t<2, ArgsTuple>>;
-    //using ComponentTuple = std::tuple<std::tuple_element_t<1, std::remove_pointer<ArgsTuple>::type>>;
 
     static_assert(std::is_same_v<ReturnType, void>, "Execute method should always return void!");
     static_assert(std::is_same_v<FirstArg, int>, "Execute method must take index as int for first parameter");
@@ -264,57 +251,13 @@ struct JobDeclNew : Job {
 
     template<typename... Components, typename... GroupVars>
     static constexpr void execute(Derived& self, int N, std::tuple<ComponentArray<Components>...> components, std::tuple<GroupVars...> vars) {
-        self.Execute(N, std::get<Index_v<Components*, Components*...>>(components) ..., std::get<Index_v<GroupVars, GroupVars...>>(vars) ...);
+        self.Execute(N, std::get<TupleTypeIndex<Components*, Components*...>>(components) ..., std::get<TupleTypeIndex<GroupVars, GroupVars...>>(vars) ...);
     }
 };
 
+// the arguments required to a job
 template<typename Job>
 using JobArgs = JobGroupVars<&Job::Execute>;
-
-struct NewSystem {
-    struct ScheduledJob {
-        Group* group;
-        Job job;
-        void* args;
-    };
-    
-    SmallVector<ScheduledJob, 0> jobs;
-
-
-    NewSystem(SystemManager& manager) {}
-
-    template<typename JobT>
-    JobHandle Schedule(Group* group, const JobT& jobt, JobArgs<JobT> args) {
-        // static_assert(std::is_same_v<JobT::ArgsTuple, JobArgs>, "Incorrect job arguments");
-
-        Job job = jobt;
-        Signature illegalReads = job.readComponents & ~group->group.read;
-        if (illegalReads.any()) {
-            LogError("Illegal job component reads!");
-        }
-        Signature illegalWrites = job.writeComponents & ~group->group.write;
-        if (illegalWrites.any()) {
-            LogError("Illegal job component writes!");
-        }
-
-        void* argsPtr = new JobArgs<JobT>(args);
-
-        jobs.push_back(ScheduledJob{group, job, argsPtr});
-        return 0;
-    }
-
-    template<typename GroupC>
-    Group* makeGroup(const GroupC& cgroup, void* groupVars = nullptr) {
-        Group* group = new Group(cgroup, Group::EntityInGroup);
-        return group;
-    }
-
-    template<typename GroupC>
-    Group* makeGroup(const GroupC& cgroup, Group::TriggerType trigger, void* groupVars = nullptr) {
-        Group* group = new Group(cgroup, trigger);
-        return group;
-    }
-};
 
 
 } // end namespace New

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ECS/Job.hpp"
+#include "ECS/NewSystem.hpp"
 
 #include "GUI/components.hpp"
 #include "world/components/components.hpp"

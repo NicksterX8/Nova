@@ -20,6 +20,21 @@ template<size_t Size>
 using SmallestUnsignedInteger = std::conditional_t<Size <= 4, std::conditional_t<Size <= 2, std::conditional_t<Size <= 1, std::conditional_t<Size == 0, void, uint8_t>, uint16_t>, uint32_t>, uint64_t>;
 
 
+// Get the type of a type in a tuple.  
+// Used in order to unwrap all elements of a tuple
+template <typename T, typename... Ts>
+struct TupleTypeIndex_;
+
+template <typename T, typename... Ts>
+struct TupleTypeIndex_<T, T, Ts...> : std::integral_constant<std::size_t, 0> {};
+
+template <typename T, typename U, typename... Ts>
+struct TupleTypeIndex_<T, U, Ts...> : std::integral_constant<std::size_t, 1 + TupleTypeIndex_<T, Ts...>::value> {};
+
+template <typename T, typename... Ts>
+constexpr std::size_t TupleTypeIndex = TupleTypeIndex_<T, Ts...>::value;
+
+
 template <typename... Ts>
 struct TupleMinusFirst_;
 
