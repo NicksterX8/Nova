@@ -5,7 +5,7 @@
 #include "PlayerControls.hpp"
 #include "elements.hpp"
 
-#include "ECS/system.hpp"
+#include "ECS/System.hpp"
 
 namespace GUI {
 

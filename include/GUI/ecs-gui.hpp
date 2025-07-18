@@ -4,7 +4,7 @@
 #include "ECS/EntityManager.hpp"
 #include "components.hpp"
 #include "prototypes.hpp"
-#include "ECS/system.hpp"
+#include "ECS/System.hpp"
 
 namespace GUI {
 
@@ -42,7 +42,7 @@ struct GuiManager : ECS::EntityManager {
     Element screen;
     My::HashMap<ElementID, GuiTreeNode> treeMap;
     Element hoveredElement;
-    ECS::System::SystemManager systemManager;
+    ECS::Systems::SystemManager systemManager;
 
     GuiTreeNode* getTreeNode(ElementID elementID) const {
         return treeMap.lookup(elementID);
@@ -230,7 +230,7 @@ public:
 
         ECS::EntityManager::destroy();
 
-        ECS::System::cleanupSystems(systemManager);
+        ECS::Systems::cleanupSystems(systemManager);
     }
 };
 

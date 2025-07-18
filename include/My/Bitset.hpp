@@ -159,8 +159,12 @@ public:
         return (*this & aBitset) == aBitset;
     }
 
+    constexpr bool hasAny(SelfParamT aBitset) const {
+        return *this & aBitset;
+    }
+
     constexpr bool hasNone(SelfParamT aBitset) const {
-        return !(*this & aBitset).any();
+        return !(*this & aBitset).any(); // !hasAny
     }
 
     constexpr Self operator&(SelfParamT rhs) const {

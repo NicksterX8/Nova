@@ -1,26 +1,24 @@
-#include "ECS/system.hpp"
+#include "ECS/System.hpp"
 #include "ADT/SmallVector.hpp"
 #include "llvm/TinyPtrVector.h"
 #include "global.hpp"
 #include "moodycamel/concurrentqueue.h"
+#include "ADT/concurrent/AtomicCountdown.hpp"
 #include "memory/allocators.hpp"
 #include "utils/system/sysinfo.hpp"
 #include "memory/StackAllocate.hpp"
 
 using namespace ECS;
-using namespace ECS::System;
+using namespace ECS::Systems;
 
-template<typename EltT>
-using TinyPtrVectorVector = SmallVector<llvm::TinyPtrVector<EltT*>>;
-
-int ECS::System::findEligiblePools(const IComponentGroup& group, const ECS::EntityManager& entityManager, std::vector<ArchetypePool*>* eligiblePools) {
+int ECS::Systems::findEligiblePools(Signature required, Signature rejected, const ECS::EntityManager& entityManager, std::vector<const ArchetypePool*>* eligiblePools) {
     int eligibleEntities = 0;
-    for (int p = 0; p < entityManager.components.pools.size; p++) {
+    for (int p = 0; p < entityManager.components.pools.size(); p++) {
         auto& pool = entityManager.components.pools[p];
         if (pool.size == 0) continue;
         auto poolSignature = pool.archetype.signature;
-        if ((group.signature & poolSignature) == group.signature
-         && (poolSignature & group.subtract) == 0) {
+        if (poolSignature.hasAll(required)
+         && poolSignature.hasNone(rejected)) {
             if (eligiblePools)
                 eligiblePools->push_back(&pool);
             eligibleEntities += pool.size;
@@ -29,7 +27,7 @@ int ECS::System::findEligiblePools(const IComponentGroup& group, const ECS::Enti
     return eligibleEntities;
 }
 
-void calculateJobStagesFromSource(ISystem* system, int* stages, JobHandle source, int stage) {
+void calculateJobStagesFromSource(System* system, int* stages, JobHandle source, int stage) {
     stages[source] = stage;
 
     // check for loops
@@ -46,10 +44,10 @@ void calculateJobStagesFromSource(ISystem* system, int* stages, JobHandle source
     }
 }
 
-void calculateJobStages(ISystem* system, TinyPtrVectorVector<ISystem::ScheduledJob>* jobsByStage) {
+void calculateJobStages(System* system, TinyPtrVectorVector<System::ScheduledJob>* jobsByStage) {
     StackAllocate<int, 14> stages{system->jobs.size(), -1};
     for (int i = 0; i < system->jobs.size(); i++) {
-        IJob* job = system->jobs[i].job;
+        Job* job = &system->jobs[i].job;
         if (stages[i] == -1) {
             calculateJobStagesFromSource(system, stages, i, 0);
         }
@@ -61,9 +59,9 @@ void calculateJobStages(ISystem* system, TinyPtrVectorVector<ISystem::ScheduledJ
     }
 }
 
-int calculateSystemStages(ISystem* source, int stage) {
+int calculateSystemStages(System* source, int stage) {
     int highestStage = stage;
-    for (ISystem* dependentOnSource : source->systemDependencies) {
+    for (System* dependentOnSource : source->systemDependencies) {
         if (highestStage < dependentOnSource->systemOrder) {
             highestStage = dependentOnSource->systemOrder;
         }
@@ -75,43 +73,22 @@ int calculateSystemStages(ISystem* source, int stage) {
     return highestStage;
 }
 
-// do a clone of the job using UB if you know the size of the actual derived job
-// must be freed with uglyCloneFree()
-IJob* uglyClone(const IJob* job, int jobSize) {
-    void* mem = SDL_aligned_alloc(CACHE_LINE_SIZE, jobSize);
-    memcpy(mem, job, jobSize);
-    return (IJob*)mem;
-}
-
-void uglyCloneFree(IJob* clone) {
-    SDL_aligned_free(clone);
-}
-
 // adds commands to commandBuffer
-// returns 0 on success, -1 on failure
-// make sure two threads are not using the same copy of the job, make a copy of the job before for multithreading
-// with executeJobChunkConcurrent
-int executeJobChunk(const JobChunk& chunk, IJob* job, EntityCommandBuffer* commandBuffer) {
-    JobData data(chunk, commandBuffer);
-    job->init(job, data);
-    if (data.failed()) {
-        return -1;
+void executeJobChunk(const JobChunk& chunk, EntityCommandBuffer* commandBuffer) {
+    JobData data{
+        .pool = chunk.pool,
+        .indexBegin = chunk.indexBegin,
+        .dependencies = chunk.job->dependencies,
+        .groupVars = chunk.groupVars,
+        .commandBuffer = commandBuffer
+    };
+
+    chunk.job->executeFunc(&data, chunk.indexBegin, chunk.indexEnd);
+    for (auto& conditionalExecutions : chunk.job->conditionalExecutions) {
+        if (chunk.pool->signature().hasAll(conditionalExecutions.required)) {
+            conditionalExecutions.execute(&data, chunk.indexBegin, chunk.indexEnd);
+        }
     }
-    job->executeRange(job, chunk.indexBegin, chunk.indexEnd);
-    auto additionalExecutions = data.getAdditionalExecutions();
-    for (auto& additionalExecution : additionalExecutions) {
-        additionalExecution(job, chunk.indexBegin, chunk.indexEnd);
-    }
-    return 0;
-}
-
-int executeJobChunkConcurrent(const JobChunk& chunk, EntityCommandBuffer* commandsOut) {
-    IJob* copy = uglyClone(chunk.job, chunk.job->realSize);
-
-    int err = executeJobChunk(chunk, copy, commandsOut);
-
-    uglyCloneFree(copy);
-    return err;
 }
 
 struct JobThreadTask {
@@ -120,29 +97,6 @@ struct JobThreadTask {
 
 template<typename T>
 using SharedQueue = moodycamel::ConcurrentQueue<T>;
-
-class AtomicCountDown {
-    std::atomic<int> counter;
-public:
-    AtomicCountDown() {}
-
-    AtomicCountDown(int countDownFrom) : counter(countDownFrom) {}
-
-    void add(int count) {
-        counter.fetch_add(count, std::memory_order_relaxed);
-    }
-
-    int decrement() {
-        int countBefore = counter.fetch_sub(1, std::memory_order_relaxed);
-        assert(countBefore > 0);
-        return countBefore;
-    }
-
-    // stall (spin lock) until the counter reaches 0
-    void wait() {
-        while (counter.load(std::memory_order_relaxed) != 0) {}
-    }
-};
 
 struct ThreadData {
     struct PerThread {
@@ -153,7 +107,7 @@ struct ThreadData {
     struct SharedData {
         SharedQueue<JobChunk>* taskQueue;
         std::atomic<bool> quit;
-        AtomicCountDown tasksToComplete;
+        AtomicCountdown tasksToComplete;
     };
     SharedData* shared;
 };
@@ -161,7 +115,7 @@ struct ThreadData {
 int executeJobTask(ThreadData* threadData, const JobChunk& task) {
     int threadNumber = threadData->personal.threadNumber;
     EntityCommandBuffer* chunkCommandBuffer = &threadData->personal.commandBuffer;
-    executeJobChunkConcurrent(task, chunkCommandBuffer);
+    executeJobChunk(task, chunkCommandBuffer);
 
     return 0;
 }
@@ -184,28 +138,42 @@ int jobThreadFunc(void* dataPtr) {
     return 0;
 }
 
-void ECS::System::setupSystems(SystemManager& sysManager) {
-    for (ISystem* system : sysManager.systems) {
-        if (system->systemOrder == ISystem::NullSystemOrder) {
+void ECS::Systems::setupSystems(SystemManager& sysManager) {
+    for (System* system : sysManager.systems) {
+        if (system->systemOrder == System::NullSystemOrder) {
             calculateSystemStages(system, 0);
         }
     }
     
     std::sort(sysManager.systems.begin(), sysManager.systems.end(),
-    [](ISystem* lhs, ISystem* rhs){
+    [](System* lhs, System* rhs){
         return lhs->systemOrder >= rhs->systemOrder;
     });
-}
 
-void ECS::System::cleanupSystems(SystemManager& sysManager) {
-    for (ISystem* system : sysManager.systems) {
-        for (auto& scheduledJob : system->jobs) {
-           delete scheduledJob.job;
+    
+    for (System* system : sysManager.systems) {
+        int numJobs = system->jobs.size();
+        if (numJobs > 0) {
+            calculateJobStages(system, &system->stageJobs);
         }
     }
 }
 
-void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<ISystem::ScheduledJob>& jobs) {
+void ECS::Systems::cleanupSystems(SystemManager& sysManager) {
+
+}
+
+void runTriggerJob(SystemManager& sysManager, const System::ScheduledJob& job, Group::TriggerType trigger) {
+    switch (trigger) {
+    case Group::EntityEntered:
+    
+        break;
+    case Group::EntityExited:
+        break;
+    }
+}
+
+void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<System::ScheduledJob>& jobs, const std::vector<std::vector<const ArchetypePool*>>& groupPools) {
     bool allowParallelization = sysManager.allowParallelization;
 
     SmallVector<Threads::ThreadID, 8> threads;
@@ -253,17 +221,22 @@ void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<ISystem:
         
         // split jobs into chunks while the stage is the same
         for (auto scheduledJob : stageJobList) {
-            IJob* job = scheduledJob->job;
-            const IComponentGroup& group = scheduledJob->group;
-            std::vector<ArchetypePool*> eligiblePools;
-            int totalJobEntities = findEligiblePools(group, *sysManager.entityManager, &eligiblePools);
+            Job* job = &scheduledJob->job;
+            GroupID group = scheduledJob->group;
+            Group::TriggerType trigger = sysManager.getGroup(group)->trigger;
+            if (trigger != Group::EntityInGroup) {
+                runTriggerJob(sysManager, *scheduledJob, trigger);
+            }
+            auto& eligiblePools = groupPools[group];
 
             int groupEntityOffset = 0;
-            for (ArchetypePool* pool : eligiblePools) {
+            for (const ArchetypePool* pool : eligiblePools) {
+                if (pool->size == 0) continue;
+                // assert(pool->size > 0 && "Empty eligible pool!");
                 // break up into chunks if pool is large enough.
                 // make it really small chunks so we can actually test
                 std::vector<JobChunk>* chunks;
-                if (job->needMainThread || !job->parallelize || !allowParallelization) {
+                if (job->mainThread || !job->parallelize || !allowParallelization) {
                     chunks = &mainThreadChunks;
                 } else if (job->blocking) {
                     chunks = &blockingChunks;
@@ -271,7 +244,8 @@ void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<ISystem:
                 } else {
                     chunks = &jobThreadChunks;
                 }
-                int ChunkSize = (job->parallelize && allowParallelization) ? pool->size : pool->size;
+
+                int ChunkSize = (job->parallelize && allowParallelization) ? pool->size / 64 : pool->size;
                 
                 int remainderChunkSize = pool->size % ChunkSize;
                 if (remainderChunkSize > 0) {
@@ -281,6 +255,7 @@ void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<ISystem:
                         .indexBegin = groupEntityOffset,
                         .indexEnd = groupEntityOffset + remainderChunkSize,
                         .poolOffset = 0,
+                        .groupVars = scheduledJob->args
                     };
                     chunks->push_back(chunk);
                 }
@@ -291,7 +266,8 @@ void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<ISystem:
                         .pool = pool,
                         .indexBegin = groupEntityOffset + remainderChunkSize,
                         .indexEnd = groupEntityOffset + ChunkSize + remainderChunkSize,
-                        .poolOffset = i * ChunkSize + remainderChunkSize
+                        .poolOffset = i * ChunkSize + remainderChunkSize,
+                        .groupVars = scheduledJob->args
                     };
                     chunks->push_back(chunk);
                 }
@@ -307,7 +283,7 @@ void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<ISystem:
             jobThreadChunks.clear();
         } else {
             // add tasks to queue
-            sharedThreadData->tasksToComplete.add(jobThreadChunks.size());
+            sharedThreadData->tasksToComplete.increment(jobThreadChunks.size());
             concurrentQueue.enqueue_bulk(jobThreadChunks.data(), jobThreadChunks.size());
         }
 
@@ -315,7 +291,7 @@ void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<ISystem:
         for (int i = 0; i < mainThreadChunks.size(); i++) {
             auto& chunk = mainThreadChunks[i];
             // put commands straight into unexecuted command list
-            executeJobChunk(chunk, chunk.job, &sysManager.unexecutedCommands);
+            executeJobChunk(chunk, &sysManager.unexecutedCommands);
         }
 
         // wait for tasks to finish
@@ -329,7 +305,7 @@ void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<ISystem:
         for (int i = 0; i < blockingChunks.size(); i++) {
             auto& chunk = blockingChunks[i];
             // put commands straight into unexecuted command list
-            executeJobChunk(chunk, chunk.job, &sysManager.unexecutedCommands);
+            executeJobChunk(chunk, &sysManager.unexecutedCommands);
         }
     }
 
@@ -341,7 +317,7 @@ void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<ISystem:
     delete sharedThreadData;
 }
 
-void ECS::System::executeSystem(SystemManager& sysManager, ISystem* system) {
+void ECS::Systems::executeSystem(SystemManager& sysManager, System* system, const std::vector<std::vector<const ArchetypePool*>>& groupPools) {
     if (system->flushCommandBuffers) {
         sysManager.entityManager->executeCommandBuffer(&sysManager.unexecutedCommands);
     }
@@ -350,31 +326,64 @@ void ECS::System::executeSystem(SystemManager& sysManager, ISystem* system) {
 
     system->BeforeExecution();
 
-    system->ScheduleJobs();
     int numJobs = system->jobs.size();
     if (numJobs > 0) {
-        TinyPtrVectorVector<ISystem::ScheduledJob> stageJobs;
-        calculateJobStages(system, &stageJobs);
-
-        runSystemJobs(sysManager, stageJobs);
-
-        system->clearJobs();
+        runSystemJobs(sysManager, system->stageJobs, groupPools);
     }
-    
-    for (void* allocation : system->tempAllocations) {
-        Free(allocation);
-    }
-    system->tempAllocations.clear();
 
     // all jobs executed
     system->AfterExecution();
 }
 
-void ECS::System::executeSystems(SystemManager& sysManager) {
+void ECS::Systems::executeSystems(SystemManager& sysManager) {
+    for (int i = 0; i < sysManager.groups.size(); i++) {
+        auto& group = sysManager.groups[i];
+        if (group.trigger == Group::EntityEntered) {
+            std::vector<const ArchetypePool*> eligiblePools;
+            findEligiblePools(group.group.signature, group.group.subtract, *sysManager.entityManager, &eligiblePools);
+            for (auto* pool : eligiblePools) {
+                const_cast<ArchetypePool*>(pool)->addedEntitiesWatchers.clear();
+                const_cast<ArchetypePool*>(pool)->addedEntitiesWatchers.push_back(&sysManager.triggerGroupInfo[i].triggeredEntities);
+            }
+        }
+    }
+
+    std::vector<std::vector<const ArchetypePool*>> groupPools;
+    groupPools.resize(sysManager.groups.size());
+
+    for (GroupID id = 0; id < sysManager.groups.size(); id++) {
+        Group* group = &sysManager.groups[id];
+        int totalJobEntities;
+        if (group->trigger == Group::EntityInGroup) {
+            totalJobEntities = findEligiblePools(
+                group->group.signature, group->group.subtract, 
+                *sysManager.entityManager,
+                &groupPools[id]);
+        }
+
+        // make sure arrays are right size for group
+        for (auto& array : group->arrays) {
+            void*& data = *array.ptrToData;
+            if (array.capacity < totalJobEntities) {
+                size_t minCapacity = totalJobEntities;
+                // use some buffer so we don't have to reallocate again unless 
+                // entity count goes up a lotreduce allocation count
+                size_t capacity = minCapacity + totalJobEntities/16; 
+                data = realloc(data, capacity * array.typeSize);
+                array.capacity = capacity;
+            } 
+            // check if we are wasting lots of memory
+            else if (array.capacity > totalJobEntities * 4) {
+                // shrink to a third
+                data = realloc(data, array.capacity / 3 * array.typeSize);
+            }
+        }
+    }
+
     int systemCount = sysManager.systems.size();
     for (int s = 0; s < systemCount; s++) {
-        ISystem* system = sysManager.systems[s];
-        executeSystem(sysManager, system);
+        System* system = sysManager.systems[s];
+        executeSystem(sysManager, system, groupPools);
     } // for each system end
 
     // flush all commands at end of systems execution

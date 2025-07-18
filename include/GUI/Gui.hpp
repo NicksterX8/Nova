@@ -365,7 +365,7 @@ struct Gui {
         initGui(manager);
 
         systems.init(manager.systemManager, renderer, game);
-        ECS::System::setupSystems(manager.systemManager);
+        ECS::Systems::setupSystems(manager.systemManager);
     }
 
     void renderElements(GuiRenderer& renderer, const PlayerControls& playerControls);

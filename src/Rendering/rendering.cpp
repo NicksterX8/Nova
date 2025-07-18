@@ -535,7 +535,7 @@ static void renderWorld(RenderContext& ren, Camera& camera, GameState* state, Ve
     renderWater(ren, camera, maxBoundingArea[0], maxBoundingArea[1], seconds);
 
     // do systems
-    ECS::System::executeSystems(*ren.ecsRenderSystems);
+    ECS::Systems::executeSystems(*ren.ecsRenderSystems);
 }
 
 // Binds the newly made texture on the active texture unit

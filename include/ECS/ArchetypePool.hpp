@@ -3,6 +3,7 @@
 
 #include <array>
 #include "ADT/ArrayRef.hpp"
+#include "ADT/SmallVector.hpp"
 #include "My/SparseSets.hpp"
 #include "My/HashMap.hpp"
 #include "My/Bitset.hpp"
@@ -103,6 +104,9 @@ struct ArchetypePool {
     char* buffer;
     My::Vec<int> bufferOffsets; // make SmallVector?
     Archetype archetype;
+
+    SmallVector<std::vector<Entity>*, 1> addedEntitiesWatchers;
+    SmallVector<std::vector<Entity>*, 1> removedEntitiesWatchers;
     
     ArchetypePool(const Archetype& archetype) : archetype(archetype) {
         entities = nullptr;
@@ -151,6 +155,10 @@ struct ArchetypePool {
 
     // returns index where entity is stored
     int addNew(Entity entity) {
+        for (auto& watcher : addedEntitiesWatchers) {
+            watcher->push_back(entity);
+        }
+
         if (size + 1 > capacity) {
             int newCapacity = (capacity * 2 > size) ? capacity * 2 : size + 1;
             // TODO: URGENT: this is horrible
@@ -188,6 +196,10 @@ struct ArchetypePool {
     Entity remove(int index) {
         assert(index < size);
 
+        for (auto& watcher : removedEntitiesWatchers) {
+            watcher->push_back(entities[index]);
+        }
+
         // if last entity
         if (index == size-1) {
             size--;
@@ -220,7 +232,7 @@ struct ArchetypalComponentManager {
     using ArchetypeID = Sint16;
     static constexpr ArchetypeID NullArchetypeID = -1;
 
-    My::Vec<ArchetypePool> pools;
+    SmallVector<ArchetypePool, 0> pools;
     My::Vec<Entity> unusedEntities;
     My::HashMap<Signature, ArchetypeID, SignatureHash> archetypes;
     ComponentInfoRef componentInfo;
@@ -245,7 +257,7 @@ struct ArchetypalComponentManager {
         }
 
         auto nullPool = ArchetypePool(Archetype::Null());
-        pools = My::Vec<ArchetypePool>(&nullPool, 1);
+        pools.push_back(nullPool);
         archetypes = decltype(archetypes)::Empty();
         entityData = My::DenseSparseSet<EntityID, EntityData, 
             Uint16, MaxEntityID>::WithCapacity(64);
@@ -511,8 +523,13 @@ private:
         return NullArchetypeID;
     }
 
-    ArchetypePool* getArchetypePool(ArchetypeID id) const {
-        if (id >= pools.size) return nullptr;
+    const ArchetypePool* getArchetypePool(ArchetypeID id) const {
+        if (id >= pools.size()) return nullptr;
+        return &pools[id];
+    }
+
+    ArchetypePool* getArchetypePool(ArchetypeID id) {
+        if (id >= pools.size()) return nullptr;
         return &pools[id];
     }
 public:
@@ -521,9 +538,9 @@ public:
         assert(!archetypes.contains(signature));
         Archetype archetype = makeArchetype(signature, componentInfo);
  
-        pools.push(archetype);
-        archetypes.insert(signature, pools.size-1);
-        return pools.size-1;
+        pools.push_back(archetype);
+        archetypes.insert(signature, pools.size()-1);
+        return pools.size()-1;
     }
 
     const ComponentInfo& getComponentInfo(ComponentID component) const {
@@ -531,7 +548,6 @@ public:
     }
 
     void destroy() {
-        pools.destroy();
         unusedEntities.destroy();
         archetypes.destroy();
         entityData.destroy();

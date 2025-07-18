@@ -2,6 +2,7 @@
 #define UTILS_TEMPLATES_INCLUDED
 
 #include <type_traits>
+#include <tuple>
 #include "utils/common-macros.hpp"
 
 template<typename... Ts>
@@ -97,5 +98,16 @@ struct FunctionTraits<Ret(Class::*)(Args...) const> {
     using ClassType = Class;
     using ArgsTuple = std::tuple<Args...>;
 };
+
+// Primary template: false by default
+template <typename T, template <typename...> class Template>
+struct is_instantiation_of : std::false_type {};
+
+// Partial specialization: true if T is Template<...>
+template <template <typename...> class Template, typename... Args>
+struct is_instantiation_of<Template<Args...>, Template> : std::true_type {};
+
+template<typename T, template<typename...> class Template>
+constexpr bool is_instantiation_of_v = is_instantiation_of<T, Template>::value;
 
 #endif

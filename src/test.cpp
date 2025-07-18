@@ -120,8 +120,15 @@ struct Big {
     size_t y;
 };
 
+void func(int x) {}
 
 int main() {
+    constexpr bool t = true;
+    if constexpr (t) {
+        func(0);
+    } else {
+        func(0, 1);
+    }
 
     return alignof(decltype(TestS()));
 }

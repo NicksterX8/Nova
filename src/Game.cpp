@@ -50,8 +50,8 @@ void GameEntitySystems::init(GameState* state, RenderContext* renderContext, Cam
     this->renderEntitySys = NEW(World::RenderSystems::RenderEntitySystem(ecsRenderSystems, *renderContext, camera, *state->ecs, state->chunkmap), allocator);
     this->dynamicEntitySys = NEW(World::Systems::DynamicEntitySystem(ecsStateSystems, &state->chunkmap), allocator);
 
-    ECS::System::setupSystems(ecsRenderSystems);
-    ECS::System::setupSystems(ecsStateSystems);
+    ECS::Systems::setupSystems(ecsRenderSystems);
+    ECS::Systems::setupSystems(ecsStateSystems);
 }
 
 void updateDynamicEntityChunkPositions(EntityWorld& ecs, GameState* state) {
@@ -82,7 +82,7 @@ static void updateSystems(GameState* state) {
     auto& chunkmap = state->chunkmap;
 
     namespace EC = World::EC;
-    ECS::System::executeSystems(*state->ecsSystems);
+    ECS::Systems::executeSystems(*state->ecsSystems);
 
     ecs.ForEach([](ECS::Signature components){
         return components[EC::Follow::ID] && components[EC::CollisionBox::ID] && components[EC::Dynamic::ID] && components[EC::Position::ID]; 
@@ -412,46 +412,6 @@ int Game::update() {
     return 0; 
 }
 
-inline void runJob(const ECS::EntityManager& components, Job job, Group* group, void* args) {
-    std::vector<ECS::ArchetypePool*> eligiblePools;
-    int groupSize = findEligiblePools(group->group, components, &eligiblePools);
-
-    // for each group, make sure array is big enough to fit one element per entity
-    for (auto& array : group->arrays) {
-        void*& data = *array.ptrToData;
-        data = realloc(data, array.typeSize * groupSize);
-    }
-
-    JobDataNew jobData;
-    jobData.dependencies = job.dependencies;
-    jobData.indexBegin = 0;
-    jobData.groupVars = args;
-    
-
-    
-    if (eligiblePools.empty()) return;
-    int index = 0;
-    for (auto* pool : eligiblePools) {
-        jobData.pool = pool;
-        job.executeFunc(&jobData, index, index + pool->size);
-        for (auto& conditionalExecute : job.conditionalExecutions) {
-            if (pool->signature().hasAll(conditionalExecute.required)) {
-                conditionalExecute.execute(&jobData, index, index + pool->size);
-            }
-        }
-        index += pool->size;
-    }
-}
-
-inline void testJobs(Game* game) {
-    using namespace GUI;
-    SystemManager& manager = game->systems.ecsRenderSystems;
-    World::NewEntityViewBoxSystem newsystem{manager, nullptr};
-    for (auto& job : newsystem.jobs) {
-        runJob(game->state->ecs->em, job.job, job.group, job.args);
-    }
-}
-
 int Game::init(SDLContext sdlContext) {
     this->sdlCtx = sdlContext;
 
@@ -498,9 +458,9 @@ int Game::init(SDLContext sdlContext) {
 
     state->ecs->Remove<World::EC::Health>(tree);
 
-    testJobs(this);
-
     state->ecs->Destroy(tree);
+
+    World::entityCreated(state, this->state->player.entity);
 
     World::Entities::TextBox::make(state->ecs, {10, -5}, World::EC::Text{
         .message = "This is an example of a text box!",

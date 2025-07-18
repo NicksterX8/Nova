@@ -14,7 +14,7 @@
 struct GameState {
     ChunkMap chunkmap;
     EntityWorld* ecs;
-    ECS::System::SystemManager* ecsSystems;
+    ECS::Systems::SystemManager* ecsSystems;
     Player player;
     ItemManager itemManager;
     ScratchAllocator<> scratch;

@@ -2,10 +2,9 @@
 #define WORLD_SYSTEMS_MOVEMENT_INCLUDED
 
 #include "world/EntityWorld.hpp"
-#include "ECS/system.hpp"
+#include "ECS/System.hpp"
 #include "world/components/components.hpp"
 #include "world/functions.hpp"
-#include "world/systems/testNewJobs.hpp"
 #include "ECS/Job.hpp"
 #include "Chunks.hpp"
 
@@ -13,48 +12,27 @@ namespace World {
 
 namespace Systems {
 
-using namespace ECS::System;
+using namespace ECS::Systems;
 
-JOB_PARALLEL_FOR(FindChangedEntitiesJob) {
-    ComponentArray<const EC::Position> positions;
-    ComponentArray<const EC::Dynamic> dynamics;
+struct FindChangedEntitiesJob : JobParallelFor<FindChangedEntitiesJob> {
 
-    MutArrayRef<bool> posChanged;
-    // TODO: replace with threadsafe queue
-
-    FindChangedEntitiesJob(MutArrayRef<bool> posChangedArray) 
-    : posChanged(posChangedArray) {}
-
-    void Init(JobData& data) {
-        data.getComponentArray(positions);
-        data.getComponentArray(dynamics);
-    }
-
-    void Execute(int N) {
+    void Execute(int N, ComponentArray<EC::Position> positions, ComponentArray<EC::Dynamic> dynamics, GroupArray<bool> posChanged) {
         posChanged[N] = positions[N].vec2() != dynamics[N].pos;
     }
 };
 
 
-JOB_SINGLE_THREADED(ChangeEntityPosJob) {
-    ComponentArray<EC::Position> oldPositions;
-    ComponentArray<const EC::Dynamic> newPositions;
-    ComponentArray<const EC::ViewBox> viewboxes;
-    const Entity* entities;
-
-    ArrayRef<bool> posChanged;
-
+struct ChangeEntityPosJob : JobSingleThreaded<ChangeEntityPosJob> {
     ChunkMap* chunkmap;
 
-    ChangeEntityPosJob(ArrayRef<bool> posChangedArray, ChunkMap* chunkmap)
-    : posChanged(posChangedArray), chunkmap(chunkmap) {}
+    ChangeEntityPosJob(ChunkMap* chunkmap)
+    : chunkmap(chunkmap) {}
 
-    void Init(JobData& data) {
-        data.getComponentArrays(oldPositions, newPositions, viewboxes);
-        entities = data.getEntityArray();
-    }
-
-    void Execute(int N) {
+    void Execute(int N, EntityArray entities,
+        ComponentArray<EC::Position> oldPositions, ComponentArray<const EC::Dynamic> newPositions,
+        ComponentArray<const EC::ViewBox> viewboxes, 
+        GroupArray<const bool> posChanged)
+    {
         if (LLVM_UNLIKELY(posChanged[N])) {
             auto oldPosition = oldPositions[N];
             auto newPosition = newPositions[N];
@@ -66,43 +44,56 @@ JOB_SINGLE_THREADED(ChangeEntityPosJob) {
     }
 };
 
-struct DynamicEntitySystem : ISystem {
-    constexpr static ComponentGroup<
-        ReadWrite<EC::Position>,
-        ReadWrite<EC::Dynamic>,
-        ReadOnly<EC::ViewBox>
-    > dynamicGroup;
-
+struct SetChunkMapPosJob : JobSingleThreaded<SetChunkMapPosJob> {
     ChunkMap* chunkmap;
 
-    MutArrayRef<bool> entityPosChanged;
+    SetChunkMapPosJob(ChunkMap* chunkmap) : chunkmap(chunkmap) {}
 
-    DynamicEntitySystem(SystemManager& manager, ChunkMap* chunkmap)
-    : ISystem(manager), chunkmap(chunkmap) {}
-
-    void ScheduleJobs() {
-        auto posChangedArray = makeTempGroupArray<bool>(dynamicGroup);
-        Schedule(dynamicGroup, ChangeEntityPosJob(posChangedArray, chunkmap), 
-            Schedule(dynamicGroup, FindChangedEntitiesJob(posChangedArray)));
+    void Execute(int N, EntityArray entity, ComponentArray<EC::Position> position, ComponentArray<EC::ViewBox> viewbox) {
+        entityViewChanged(chunkmap, entity[N], position[N].vec2(), position[N].vec2(), viewbox[N].box, viewbox[N].box, true);
     }
 };
 
-struct UpdateEntityViewBoxChunkPosJob : IJobMainThread<UpdateEntityViewBoxChunkPosJob> {
-    UpdateEntityViewBoxChunkPosJob(ChunkMap* chunkmap)
-    : IJobMainThread<UpdateEntityViewBoxChunkPosJob>(true), chunkmap(chunkmap) {}
+struct DynamicEntitySystem : System {
+    GroupID dynamicGroup = MakeGroup(ComponentGroup<
+        ReadWrite<EC::Position>,
+        ReadWrite<EC::Dynamic>,
+        ReadOnly<EC::ViewBox>
+    >());
 
-    ComponentArray<const EC::ViewBox> viewboxes;
-    ComponentArray<const EC::Position> positions;
+    ChunkMap* chunkmap;
+
+    ChangeEntityPosJob changeEntityPos{chunkmap};
+    FindChangedEntitiesJob findChangedEntities;
+
+    GroupArray<bool> entityPosChanged{this, dynamicGroup};
+
+    GroupID newEntities = MakeGroup(ComponentGroup<
+        ReadWrite<EC::Position>,
+        ReadWrite<EC::ViewBox>
+    >(), Group::EntityEntered);
+
+    SetChunkMapPosJob setChunkMapPos{chunkmap};
+
+    DynamicEntitySystem(SystemManager& manager, ChunkMap* chunkmap)
+    : System(manager), chunkmap(chunkmap) {
+        Schedule(dynamicGroup, changeEntityPos, entityPosChanged.refConst(), 
+            Schedule(dynamicGroup, findChangedEntities, &entityPosChanged));
+
+        Schedule(newEntities, setChunkMapPos);        
+    }
+};
+
+struct UpdateEntityViewBoxChunkPosJob : JobBlocking<UpdateEntityViewBoxChunkPosJob> {
+    UpdateEntityViewBoxChunkPosJob(ChunkMap* chunkmap)
+    : chunkmap(chunkmap) {}
+
     EntityArray entities;
 
     ChunkMap* chunkmap;
 
-    void Init(JobData& data) {
-        data.getComponentArrays(viewboxes, positions);
-        data.getEntityArray(entities);
-    }
 
-    void Execute(int N) {
+    void Execute(int N, ComponentArray<const EC::ViewBox> viewboxes, ComponentArray<const EC::Position> positions) {
         auto viewBox = viewboxes[N];
         auto position = positions[N];
         auto entity = entities[N];

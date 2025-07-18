@@ -76,7 +76,7 @@ struct FontManager {
 extern const FontManager* Fonts;
 
 namespace ECS {
-    namespace System {
+    namespace Systems {
         struct SystemManager;
     }
 }
@@ -98,7 +98,7 @@ struct RenderContext {
     TextRenderer worldTextRenderer;
     GuiRenderer worldGuiRenderer;
 
-    ECS::System::SystemManager* ecsRenderSystems;
+    ECS::Systems::SystemManager* ecsRenderSystems;
 
     ChunkModel chunkModel;
     ChunkBuffer chunkBuffer;

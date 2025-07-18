@@ -15,7 +15,7 @@
 #include "sdl.hpp"
 #include "Camera.hpp"
 #include "rendering/rendering.hpp"
-#include "ECS/system.hpp"
+#include "ECS/System.hpp"
 #include "world/systems/movement.hpp"
 #include "global.hpp"
 #include "memory/allocators.hpp"
@@ -45,8 +45,8 @@ namespace World {
 }
 
 struct GameEntitySystems {
-    ECS::System::SystemManager ecsRenderSystems;
-    ECS::System::SystemManager ecsStateSystems;
+    ECS::Systems::SystemManager ecsRenderSystems;
+    ECS::Systems::SystemManager ecsStateSystems;
 
     World::RenderSystems::RenderEntitySystem* renderEntitySys;
     World::Systems::DynamicEntitySystem* dynamicEntitySys;

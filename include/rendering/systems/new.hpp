@@ -2,7 +2,7 @@
 #define RENDERING_SYSTEMS_NEW_INCLUDED
 
 #include <array>
-#include "ECS/system.hpp"
+#include "ECS/System.hpp"
 #include "world/components/components.hpp"
 #include "world/functions.hpp"
 #include "rendering/utils.hpp"
@@ -45,133 +45,82 @@ namespace World {
 
 namespace RenderSystems {
 
-using namespace ECS::System;
+using namespace ECS::Systems;
 
-struct GetEntityRotationsJob : IJobParallelFor<GetEntityRotationsJob> {
-    ComponentArray<const EC::Rotation> rotation;
-    
-    GLfloat* outRotation;
-
-    GetEntityRotationsJob(JobGroup group, GLfloat* outRotation)
-    : outRotation(outRotation) {
-
-    }
-
-    void Init(JobData& data) {
-        data.getComponentArrays(rotation);
-    }
-
-    void Execute(int N) {
+struct GetEntityRotationsJob : JobParallelFor<GetEntityRotationsJob> {
+    void Execute(int N, ComponentArray<EC::Rotation> rotation, GroupArray<float> outRotation) {
         outRotation[N] = rotation[N].degrees;
     }
 };
 
-struct DrawEntityViewBoxJob : IJobSingleThreaded<DrawEntityViewBoxJob> {
-    const Box* dimensions;
-
+struct DrawEntityViewBoxJob : JobSingleThreaded<DrawEntityViewBoxJob> {
     GuiRenderer& worldGuiRenderer;
 
-    DrawEntityViewBoxJob(const Box* dimensions, GuiRenderer& worldGuiRenderer)
+    DrawEntityViewBoxJob(GuiRenderer& worldGuiRenderer)
     : worldGuiRenderer(worldGuiRenderer) {}
 
-    void Init(JobData&) {
-
-    }
-
     void Execute(int N) {
-        constexpr SDL_Color rectColor = {255, 0, 255, 180};
-        worldGuiRenderer.rectOutline(
-            dimensions[N].rect(),
-            rectColor,
-            Vec2(0.05f), Vec2(0.05f),
-            getHeight(GUI::RenderLevel::WorldDebug0));
+        // constexpr SDL_Color rectColor = {255, 0, 255, 180};
+        // worldGuiRenderer.rectOutline(
+        //     dimensions[N].rect(),
+        //     rectColor,
+        //     Vec2(0.05f), Vec2(0.05f),
+        //     getHeight(GUI::RenderLevel::WorldDebug0));
     }
 };
 
-struct GetEntityDimensionsJob : IJobParallelFor<GetEntityDimensionsJob> {
-    ComponentArray<const EC::Position> positions;
-    ComponentArray<const EC::ViewBox> viewboxes;
-    
-    Box* dimensions;
-
-    GetEntityDimensionsJob(JobGroup group, Box* outDimensions)
-    : dimensions(outDimensions) {}
-
-    void Init(JobData& data) {
-        data.getComponentArrays(positions, viewboxes);
-    }
-
-    void Execute(int N) {
-        Vec2 pos = positions[N].vec2();
-        Box viewbox = viewboxes[N].box;
-        
-        dimensions[N].min = pos + viewbox.min;
-        dimensions[N].size = viewbox.size;
-    }
-};
-
-struct EntityColorJob : IJobParallelFor<EntityColorJob> {
-    ComponentArray<const EC::Health> maybeHealth;
-    ComponentArray<const EC::Selected> maybeSelected;
-
-    glm::vec4* colors;
-
-    EntityColorJob(glm::vec4* colors)
-    : colors(colors) {}
-
-    void Init(JobData& data) {
-        data.getComponentArrayMaybe(maybeHealth);
-        data.getComponentArrayMaybe(maybeSelected);
-        data.setOptionalExecution<EC::Health>(&EntityColorJob::healthExecute);
-        data.setOptionalExecution<EC::Health>(&EntityColorJob::selectedExecute);
+struct EntityColorJob : JobParallelFor<EntityColorJob> {
+    EntityColorJob() {
+        addConditionalExecute<&EntityColorJob::healthExecute>();
+        addConditionalExecute<&EntityColorJob::selectedExecute>();
     }
 
     // class laid out in execution order
-    void Execute(int N) {
+    void Execute(int N, GroupArray<glm::vec4> colors) {
         colors[N] = {1.0, 1.0, 1.0, 1.0};
     }
 
     // if entity has health, it will execute this method in addition to the normal execute method.
     // Entities will always perform Execute first, then healthExecute. But, when healthExecute starts,
     // not all entities will have finished Execute. 
-    void healthExecute(int N) {
-        if (maybeHealth[N].timeDamaged != NullTick && Metadata->getTick() - maybeHealth[N].timeDamaged < 5) {
+    void healthExecute(int N, ComponentArray<const EC::Health> health, GroupArray<glm::vec4> colors) {
+        if (health[N].timeDamaged != NullTick && Metadata->getTick() - health[N].timeDamaged < 5) {
             blend(&colors[N], glm::vec4{1, 0, 0, 0.5});
         }
     }
 
     // if an entity has both health and selected, healthExecute will execute before selectedExecute,
     // because maybeHealth was initialized before maybeSelected
-    void selectedExecute(int N) {
+    void selectedExecute(int N, GroupArray<glm::vec4> colors) {
         blend(&colors[N], glm::vec4{0.5, 0.5, 1.0, 0.5});
     }
 
-    void blend(glm::vec4* base, glm::vec4 fg) {
+    static void blend(glm::vec4* base, glm::vec4 fg) {
         float alpha = fg.a;
         float invAlpha = 1 - alpha;
         *base = fg * alpha + *base * invAlpha;
     }
 };
 
-using RenderSystem = ISystem;
+using RenderSystem = System;
 
 struct RenderEntitySystem : RenderSystem {
     constexpr static GLint entitiesPerBatch = 512;
     constexpr static GLint verticesPerEntity = 1;
     constexpr static GLint verticesPerBatch = entitiesPerBatch*verticesPerEntity;
 
-    constexpr static ComponentGroup<
-        ReadOnly<EC::Render>,
-        ReadOnly<EC::Position>,
-        ReadOnly<EC::ViewBox>
-    > minimalGroup;
+    // constexpr static ComponentGroup<
+    //     ReadOnly<EC::Render>,
+    //     ReadOnly<EC::Position>,
+    //     ReadOnly<EC::ViewBox>
+    // > minimalGroup;
 
-    constexpr static ComponentGroup<
-        ReadOnly<EC::Render>,
-        ReadOnly<EC::Position>,
-        ReadOnly<EC::ViewBox>,
-        ReadOnly<EC::Rotation>
-    > rotationGroup;
+    // constexpr static ComponentGroup<
+    //     ReadOnly<EC::Render>,
+    //     ReadOnly<EC::Position>,
+    //     ReadOnly<EC::ViewBox>,
+    //     ReadOnly<EC::Rotation>
+    // > rotationGroup;
 
     float scale = 1.0f;
 
@@ -237,10 +186,6 @@ struct RenderEntitySystem : RenderSystem {
         // }
         
         
-    }
-
-    void ScheduleJobs() {
-
     }
 
     void AfterExecution() {

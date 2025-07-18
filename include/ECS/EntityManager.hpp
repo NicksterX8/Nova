@@ -97,7 +97,7 @@ public:
 
         constexpr Signature reqSignature = getSignatureNoProto<ReqComponents...>();
 
-        for (Uint32 i = 0; i < components.pools.size; i++) {
+        for (Uint32 i = 0; i < components.pools.size(); i++) {
             auto& pool = components.pools[i];
             auto signature = pool.archetype.signature;
             if ((signature & reqSignature) == reqSignature) {
@@ -137,7 +137,7 @@ public:
     void forEachEntity(Query query, Func func) const {
         bool locked = lock();
 
-        for (Uint32 i = 0; i < components.pools.size; i++) {
+        for (Uint32 i = 0; i < components.pools.size(); i++) {
             auto& pool = components.pools[i];
             auto signature = pool.archetype.signature;
             if (query(signature)) {
@@ -157,7 +157,7 @@ public:
     void forEachEntity_EarlyReturn(Query query, Func func) const {
         bool locked = lock();
         
-        for (Uint32 i = 0; i < components.pools.size; i++) {
+        for (Uint32 i = 0; i < components.pools.size(); i++) {
             auto& pool = components.pools[i];
             auto signature = pool.archetype.signature;
             if (query(signature)) {

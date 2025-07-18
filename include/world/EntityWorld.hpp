@@ -10,7 +10,7 @@
 #include "utils/common-macros.hpp"
 #include "components/components.hpp"
 #include "entities/prototypes/def.hpp"
-#include "ECS/system.hpp"
+#include "ECS/System.hpp"
 
 struct ChunkMap;
 

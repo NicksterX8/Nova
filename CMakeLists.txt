@@ -4,6 +4,7 @@ set(CMAKE_BUILD_TYPE Debug)
 project(faketorio VERSION 1.0)
 # -Wextra -pedantic
 
+# -fno-rtti
 add_compile_options(-g -Wall -std=c++17
     -Wno-macro-redefined -Wno-unused-variable -Wno-char-subscripts -Wno-comment
     -Wliteral-conversion -fno-exceptions
@@ -13,8 +14,8 @@ add_compile_options(-g -Wall -std=c++17
 add_link_options(-framework OpenGL -fno-exceptions)
 
 # debug options
-add_compile_options(-fsanitize=undefined)
-add_link_options(-fsanitize=undefined)
+#add_compile_options(-fsanitize=undefined)
+#add_link_options(-fsanitize=undefined)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(SD src)

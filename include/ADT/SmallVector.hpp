@@ -1467,6 +1467,9 @@ using SmallVector = llvm::SmallVector<T, N>;
 template<typename T, typename AllocatorT, unsigned N = llvm::WithAllocator::CalculateSmallVectorDefaultInlinedElements<T, AllocatorT>::value>
 using SmallVectorA = llvm::WithAllocator::SmallVector<T, AllocatorT, N>;
 
+template<typename T, typename AllocatorT = Mallocator>
+constexpr unsigned SmallVectorDefaultInlinedElements = llvm::WithAllocator::CalculateSmallVectorDefaultInlinedElements<T, AllocatorT>::value;
+
 template<typename T>
 using SmallVectorImpl = llvm::SmallVectorImpl<T>;
 
