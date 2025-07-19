@@ -70,7 +70,7 @@ inline Vec2 getAlignmentOffset(TextAlignment alignment, Vec2 size) {
 }
 
 // handle horizontal alignment by shifting line to correct position on the x axis
-inline void alignLineHorizontally(MutableArrayRef<glm::vec2> offsets, float originOffset, float paragraphWidth, HoriAlignment align) {
+inline void alignLineHorizontally(MutArrayRef<glm::vec2> offsets, float originOffset, float paragraphWidth, HoriAlignment align) {
     if (align != HoriAlignment::Left) {
         float width = originOffset;
         // shift whole line over to correct alignment location (center or right)
@@ -80,7 +80,7 @@ inline void alignLineHorizontally(MutableArrayRef<glm::vec2> offsets, float orig
         } else if (align == HoriAlignment::Center) {
             lineMovement = 0.5f * width;
         }
-        for (int j = 0; j < offsets.size(); j++) {
+        for (unsigned j = 0; j < offsets.size(); j++) {
             offsets[j].x -= lineMovement;
         }
     }

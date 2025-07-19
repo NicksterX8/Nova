@@ -11,7 +11,6 @@
 #include "GameSave/main.hpp"
 #include "commands.hpp"
 
-#include "ECS/ECS.hpp"
 #include "world/entities/entities.hpp"
 #include "world/components/components.hpp"
 #include "ECS/ArchetypePool.hpp"

@@ -134,7 +134,7 @@ glm::ivec2 packTexture(Atlas* atlas, Texture texture, glm::ivec2 padding) {
 }
 
 Texture packTextures(const int numTextures, const Texture* textures, int pixelSize, glm::ivec2* textureOrigins, glm::ivec2 padding, int startSize) {
-    if (!textures || !numTextures) return {nullptr, {0,0}};
+    if (!textures || !numTextures) return {nullptr, {0,0}, 0};
 
     Atlas atlas;
     atlas.nodesEmpty.reserve(2 * numTextures);

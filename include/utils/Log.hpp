@@ -93,7 +93,8 @@ void logOnceInternal(LogCategory category, LogPriority priority, char* lastMessa
 #define LogInfo(...) logInternal(gLogger.category, LogPriority::Info, __VA_ARGS__)
 #define LogDebug(...) logInternal(gLogger.category, LogPriority::Debug, __VA_ARGS__)
 
-#define LogOnce(priority, ...) { thread_local char COMBINE(_lastMessage, __LINE__)[256]; logOnceInternal(gLogger.category, LogPriority::priority, COMBINE(_lastMessage, __LINE__), __FILE__ ":" TOSTRING(__LINE__) " - " __VA_ARGS__); }
+#define LOG_ONCE_LAST_MESSAGE_BUF_SIZE 256
+#define LogOnce(priority, ...) { thread_local char COMBINE(_lastMessage, __LINE__)[LOG_ONCE_LAST_MESSAGE_BUF_SIZE]; logOnceInternal(gLogger.category, LogPriority::priority, COMBINE(_lastMessage, __LINE__), __FILE__ ":" TOSTRING(__LINE__) " - " __VA_ARGS__); }
 
 #undef LOG_PRIORITY
 

@@ -27,7 +27,7 @@
 #define PLAYER_INVENTORY_SIZE 32
 
 #define NUM_RENDER_LAYERS 16
-#define CHUNKSIZE 64
+#define CHUNKSIZE 128
 static_assert(CHUNKSIZE > 0, "Chunks can't be empty");
 
 #define BASE_UNIT_SCALE 32.0f

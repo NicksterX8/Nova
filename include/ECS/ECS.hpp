@@ -11,7 +11,6 @@
 #include "utils/Log.hpp"
 
 #include "Entity.hpp"
-#include "Component.hpp"
 #include "EntityManager.hpp"
 
 

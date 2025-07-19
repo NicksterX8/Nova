@@ -28,7 +28,7 @@ struct EntityMaker {
     ECS::PrototypeID prototype = -1;
 
     Uint16 bufUsed = 0;
-    MutableArrayRef<char> buf;
+    MutArrayRef<char> buf;
 
     static constexpr size_t MaxComponentMemory = std::numeric_limits<Uint16>::max();
     struct ComponentValue {
@@ -42,6 +42,8 @@ struct EntityMaker {
     EntityMaker(EntityWorld* ecs);
     
     EntityMaker(const EntityMaker& other) = delete;
+
+    EntityMaker& operator=(const EntityMaker& other);
 
     // if an entity was in progress or already made, that data will be replaced with a fresh start
     void start(ECS::PrototypeID prototype) {
@@ -356,8 +358,8 @@ public:
         return &entityMaker;
     }
 
-    MutableArrayRef<char> getEntityMakerBuffer() const {
-        return MutableArrayRef(entityMakerBuffer, 1024);
+    MutArrayRef<char> getEntityMakerBuffer() const {
+        return MutArrayRef<char>(entityMakerBuffer, 1024);
     }
 
     void StartDeferringEvents() {

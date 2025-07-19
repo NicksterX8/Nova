@@ -16,7 +16,6 @@
 
 #include "Compiler.h"
 #include "PointerLikeTypeTraits.h"
-#include "type_traits.h"
 #include <cassert>
 #include <cstdint>
 #include <limits>

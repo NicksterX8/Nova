@@ -5,7 +5,6 @@
 #include <string.h>
 #include <array>
 #include "My/String.hpp"
-#include "Component.hpp"
 #include "Signature.hpp"
 #include "utils/Log.hpp"
 #include "constants.hpp"

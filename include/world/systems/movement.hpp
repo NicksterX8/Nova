@@ -15,7 +15,6 @@ namespace Systems {
 using namespace ECS::Systems;
 
 struct FindChangedEntitiesJob : JobParallelFor<FindChangedEntitiesJob> {
-
     void Execute(int N, ComponentArray<EC::Position> positions, ComponentArray<EC::Dynamic> dynamics, GroupArray<bool> posChanged) {
         posChanged[N] = positions[N].vec2() != dynamics[N].pos;
     }
@@ -80,7 +79,7 @@ struct DynamicEntitySystem : System {
         Schedule(dynamicGroup, changeEntityPos, entityPosChanged.refConst(), 
             Schedule(dynamicGroup, findChangedEntities, &entityPosChanged));
 
-        Schedule(newEntities, setChunkMapPos);        
+       // Schedule(newEntities, setChunkMapPos);        
     }
 };
 

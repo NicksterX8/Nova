@@ -6,6 +6,15 @@
 #include <cassert>
 #include "utils/Log.hpp"
 
+template<typename T>
+void destruct(T* elements, size_t count) {
+    if constexpr (!std::is_trivially_destructible_v<T>) {
+        for (size_t i = count; i-- > 0;) {
+            (elements + i)->~T();
+        }
+    }
+}
+
 namespace Mem {
 
 /* Wrappers */
@@ -19,10 +28,6 @@ void* _realloc(void* ptr, size_t size);
 
 void* debug_malloc(size_t size, const char* file, int line);
 void debug_free(void* ptr, const char* file, int line) noexcept;
-
-} // namespace Mem
-
-namespace Mem {
 
 /* Interface */
 
@@ -180,9 +185,7 @@ void* operator new(size_t size, AlignWrapper align, const char* file, int line, 
 
 template<typename T>
 void deleteArray(T* pointer, size_t count) {
-    for (int i = 0; i < count; i++) {
-        pointer[i].~T();
-    }
+    destruct(pointer, count);
     delete pointer;
 }
 

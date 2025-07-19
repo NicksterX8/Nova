@@ -1,7 +1,6 @@
 #ifndef ENTITIES_INCLUDED
 #define ENTITIES_INCLUDED
 
-#include "ECS/ECS.hpp"
 #include "world/components/components.hpp"
 #include "rendering/textures.hpp"
 #include "world/EntityWorld.hpp"

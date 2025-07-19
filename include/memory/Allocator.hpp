@@ -40,19 +40,14 @@ struct DeallocateMethods {
 
     template<typename T>
     void Delete(T* ptr, size_t count = 1) {
-        // destruct then deallocate
-        for (int i = 0; i < count; i++) {
-            ptr[i].~T();
-        }
+        destruct(ptr, count);
         deallocate(ptr, count);
     }
 
     template<typename T>
-    void DeleteWithSize(T* ptr, size_t size, size_t count = 1) {
-        for (int i = 0; i < count; i++) {
-            ptr[i].~T();
-        }
-        static_cast<Derived*>(this)->deallocate((void*)ptr, count * size, alignof(T));
+    void DeleteWithSize(T* ptr, size_t size) {
+        ptr->~T();
+        static_cast<Derived*>(this)->deallocate((void*)ptr, size, alignof(T));
     } 
 };
 
@@ -169,7 +164,7 @@ public:
     DoubleAllocatorHolder() = default;
 
     DoubleAllocatorHolder(Allocator1&& allocator)
-    : allocator1(static_cast<Allocator1&&>(allocator1)) {}
+    : allocator1(static_cast<Allocator1&&>(allocator)) {}
 
     template<typename Allocator>
     Allocator1& getAllocator() {

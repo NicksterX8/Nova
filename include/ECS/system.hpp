@@ -15,11 +15,6 @@ namespace ECS {
 
 namespace Systems {
 
-struct Task {
-    IComponentGroup* group;
-    Job* job;
-};
-
 using JobHandle = int;
 
 struct DependencyList {

@@ -233,14 +233,15 @@ template<size_t BlockSize, size_t BlocksPerAlloc, typename Allocator = Mallocato
 class BlockAllocator : public AllocatorBase<BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>> {
     using Base = AllocatorBase<BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>>;
     using Me = BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>;
-    static_assert(BlockSize > 0 && BlocksPerAlloc > 0, "Block size or blocks per alloc too small!");
+    static_assert(BlocksPerAlloc > 0, "BlocksPerAlloc must be positive!");
+    static_assert(BlockSize > 0, "Block size must be positive!");
 
     SmallVector<char*, 0> freeBlocks;
     SmallVector<char*, 0> chunks;
 
     char* stackFreeBlocks[BlocksPerAlloc];
-    int stackFreeBlockCount = 0;
-    int lastCleanupFreeBlockCount = 0;
+    uint32_t stackFreeBlockCount = 0;
+    uint32_t lastCleanupFreeBlockCount = 0;
 
     EMPTY_BASE_OPTIMIZE Allocator allocator;
 #ifndef NDEBUG
@@ -279,7 +280,7 @@ private:
                 // allocate a chunk to fill stack blocks
                 char* chunk = (char*)allocator.allocate(BlocksPerAlloc * BlockSize, BlockAlignment);
                 chunks.push_back(chunk);
-                for (int i = 0; i < BlocksPerAlloc-1; i++) {
+                for (unsigned i = 0; i < BlocksPerAlloc-1; i++) {
                     stackFreeBlocks[i] = chunk + BlockSize * i;
                 }
                 stackFreeBlockCount = BlocksPerAlloc-1;
@@ -411,7 +412,7 @@ public:
     void tryCleanupChunks() {
         for (auto block : freeBlocks) {
             // for each chunk, check if all 
-            for (int i = chunks.size() - 1; i >= 0; i--) {
+            for (int i = (int)chunks.size() - 1; i >= 0; i--) {
                 // check if block is within chunk bounds. dont want <= because chunk is [start, end)
                 char* chunk = chunks[i];
                 int freeBlockCount = 0;

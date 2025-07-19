@@ -61,7 +61,7 @@ const GlVertexFormat& format) {
 GlModelSOA makeModelSOA(
 size_t vertexCount, const void * const * vertexData, GLenum vertexUsage,
 const GlVertexFormat& format) {
-    if (!vertexCount) return {{0, 0, 0}};
+    if (!vertexCount) return {{0, 0, 0}, {}};
 
     size_t sizePerVertex = format.totalSize();
     size_t totalSize = sizePerVertex * vertexCount;
@@ -73,7 +73,7 @@ const GlVertexFormat& format) {
     glBindVertexArray(model.vao);
     glBindBuffer(GL_ARRAY_BUFFER, model.vbo);
     glBufferData(GL_ARRAY_BUFFER, totalSize, NULL, vertexUsage);
-    SmallVector<size_t> attributeOffsets(format.attributeCount());
+    SmallVector<size_t, 4> attributeOffsets(format.attributeCount());
     size_t offset = 0;
     for (int i = 0; i < format.attributeCount(); i++) {
         size_t attributeSize = format.attributes[i].size() * vertexCount;

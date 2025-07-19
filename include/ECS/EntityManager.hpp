@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "My/Vec.hpp"
-#include "ArchetypePool.hpp"
+#include "ArchetypalComponentManager.hpp"
 #include "Entity.hpp"
 #include "PrototypeManager.hpp"
 #include "CommandBuffer.hpp"
@@ -70,25 +70,7 @@ public:
     }
 
     // command buffer is destroyed after this
-    void executeCommandBuffer(EntityCommandBuffer* commandBuffer) {
-        for (auto& command : commandBuffer->commands) {
-            switch (command.type) {
-            case EntityCommandBuffer::Command::CommandAdd:
-                doAddComponent(command.value.add.target, command.value.add.component, command.value.add.componentValueIndex + commandBuffer->valueBuffer.data);
-                break;
-            case EntityCommandBuffer::Command::CommandRemove:
-                doRemoveComponent(command.value.remove.target, command.value.remove.component);
-                break;
-            case EntityCommandBuffer::Command::CommandDelete:
-                doDeleteEntity(command.value.del.target);
-                break;
-            default:
-                LogError("Invalid command type!");
-            }
-        }
-
-        commandBuffer->destroy();
-    }
+    void executeCommandBuffer(EntityCommandBuffer* commandBuffer);
 
     template<class... ReqComponents, class Func>
     void forEachEntity(Func func) const {
@@ -101,7 +83,7 @@ public:
             auto& pool = components.pools[i];
             auto signature = pool.archetype.signature;
             if ((signature & reqSignature) == reqSignature) {
-                for (Uint32 e = 0; e < pool.size; e++) {
+                for (Uint32 e = 0; e < (Uint32)pool.size; e++) {
                     Entity entity = pool.entities[e];
                     func(entity);
                 }
@@ -187,20 +169,7 @@ public:
         components.deleteEntity(entity);
     }
 
-    void deleteEntity(Entity entity) {
-        if (entity.Null()) {
-            LogError("Cannot delete null entity!");
-            return;
-        }
-
-        if (commandsLocked()) {
-            assert(commandBuffer && "Locking without valid command buffer!");
-            commandBuffer->deleteEntity(entity);
-            return;
-        }
-
-        doDeleteEntity(entity);
-    }
+    void deleteEntity(Entity entity);
 
     bool entityExists(Entity entity) const {
         auto* entityData = components.getEntityData(entity.id);
@@ -297,47 +266,14 @@ public:
     }
 
     // generic add
-    bool addComponent(Entity entity, ComponentID component, const void* value = nullptr) {
-        if (!entityExists(entity)) {
-            LogError("Entity does not exist!");
-            return false;
-        }
+    bool addComponent(Entity entity, ComponentID component, const void* value = nullptr);
 
-        if (commandsLocked()) {
-            assert(commandBuffer && "Locking without valid command buffer!");
-            commandBuffer->addComponent(entity, component, value, getComponentInfo(component).size);
-            return false;
-        }
-
-        return (bool)doAddComponent(entity, component, value);
-    }
-
-    bool addSignature(Entity entity, Signature signature) {
-        if (!entityExists(entity)) {
-            LogError("Entity does not exist!");
-            return false;
-        }
-
-        return components.addSignature(entity, signature);
-    }
+    bool addSignature(Entity entity, Signature signature);
 
 protected:
-    void destructComponents(Entity entity, Signature signature) {
-        Signature neededDestructors = signature & componentsWithDestructors;
-        auto& componentDestructors = this->componentDestructors;
-        neededDestructors.forEachSet([&componentDestructors, entity](ComponentID component){
-            auto* destructor = componentDestructors.lookup((Sint8)component);
-            assert(destructor && "componentsWithDestructors and componentDestructors set mis match!");
-            destructor->operator()(entity);
-        });
-    }
+    void destructComponents(Entity entity, Signature signature);
 
-    void destructComponent(Entity entity, ComponentID component) {
-        if (!componentsWithDestructors[component]) return;
-        auto* destructor = componentDestructors.lookup((Sint8)component);
-        assert(destructor && "componentsWithDestructors and componentDestructors set mis match!");
-        destructor->operator()(entity);
-    }
+    void destructComponent(Entity entity, ComponentID component);
 public:
 
     void setComponentDestructor(ComponentID component, const ComponentDestructor& destructor) {
@@ -365,21 +301,7 @@ public:
         components.removeComponent(entity, component);
     }
 
-    void removeComponent(Entity entity, ComponentID component) {
-        assert(validRegComponent(component));
-
-        if (!entityExists(entity)) {
-            LogError("Entity does not exist!");
-        }
-
-        if (commandsLocked()) {
-            assert(commandBuffer && "Locking without valid command buffer!");
-            commandBuffer->removeComponent(entity, component);
-            return;
-        }
-
-        doRemoveComponent(entity, component);
-    }
+    void removeComponent(Entity entity, ComponentID component);
 
     int getComponentSize(ComponentID component) const {
         return components.getComponentInfo(component).size;
@@ -402,17 +324,7 @@ public:
         return (signature & componentSignature) == componentSignature;
     }
 
-    bool entityHas(Entity entity, Signature needComponents) const {
-        if (entity.Null()) return false;
-
-        const Prototype* prototype = getPrototype(entity);
-
-        Signature signature = components.getEntitySignature(entity);
-        if (prototype) {
-            signature |= prototype->signature;
-        }
-        return (signature & needComponents) == needComponents;
-    }
+    bool entityHas(Entity entity, Signature needComponents) const;
 
     Signature getEntitySignature(Entity entity) const {
         if (!entityExists(entity)) {

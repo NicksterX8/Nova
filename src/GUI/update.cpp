@@ -172,7 +172,7 @@ void updateHotbarSlot(Game* game, GuiManager& manager, Element slot) {
         char* slotText = slotComponent->text;
         if (stack.quantity != 0 && stackSize != 1) {
             auto str = string_format("%d", stack.quantity);
-            strcpy(slotText, str.c_str());
+            strlcpy(slotText, str.c_str(), 16);
         } else {
             strcpy(slotText, "");
         }

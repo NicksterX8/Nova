@@ -197,10 +197,10 @@ BEGIN_COMPONENT(Explosive)
 END_COMPONENT(Explosive)
 
 
-#define MAX_ENTITY_NAMETAG_LENGTH 64
+#define MAX_ENTITY_NAMETAG_LENGTH 63
 
 BEGIN_COMPONENT(Nametag)
-    char name[MAX_ENTITY_NAMETAG_LENGTH];
+    char name[MAX_ENTITY_NAMETAG_LENGTH+1];
 
     void setName(const char* name);
 

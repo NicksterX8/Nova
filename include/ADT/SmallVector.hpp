@@ -15,7 +15,6 @@
 #define SMALLVECTOR_WITH_ALLOCATOR_INCLUDED
 
 #include "llvm/Compiler.h"
-#include "llvm/type_traits.h"
 #include "memory/Allocator.hpp"
 #include "llvm/SmallVector.h"
 
@@ -332,8 +331,8 @@ public:
 /// copy these types with memcpy, there is no way for the type to observe this.
 /// This catches the important case of std::pair<POD, POD>, which is not
 /// trivially assignable.
-template <typename T, typename AllocatorT, bool = (is_trivially_copy_constructible<T>::value) &&
-                             (is_trivially_move_constructible<T>::value) &&
+template <typename T, typename AllocatorT, bool = (std::is_trivially_copy_constructible<T>::value) &&
+                             (std::is_trivially_move_constructible<T>::value) &&
                              std::is_trivially_destructible<T>::value>
 class SmallVectorTemplateBase : public SmallVectorTemplateCommon<T, AllocatorT> {
   friend class SmallVectorTemplateCommon<T, AllocatorT>;
@@ -1377,7 +1376,7 @@ namespace detail {
 template <class Size_T>
 static size_t getNewCapacity(size_t MinSize, size_t TSize, size_t OldCapacity) {
   constexpr size_t MaxSize = std::numeric_limits<Size_T>::max();
-
+  (void)TSize;
   // Ensure we can fit the new capacity.
   // This is only going to be applicable when the capacity is 32 bit.
   // if (MinSize > MaxSize)

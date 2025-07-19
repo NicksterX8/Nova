@@ -144,7 +144,7 @@ GlModel makeModel(GlBuffer vertexBuffer, const GlVertexFormat& format);
 
 struct GlModelSOA {
     GlModel model;
-    SmallVector<size_t> attributeOffsets;
+    SmallVector<size_t, 4> attributeOffsets;
 
     void destroy() {
         model.destroy();

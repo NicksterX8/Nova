@@ -111,7 +111,7 @@ struct TextureManager {
     My::HashMap<TextureID, Animation> animations;
 
     TextureManager(int numTextures) {
-        metadata = My::Vec<TextureMetaData>::Filled(numTextures, {nullptr, nullptr});
+        metadata = My::Vec<TextureMetaData>::Filled(numTextures, {nullptr, nullptr, 0});
         data = My::Vec<TextureData>::Filled(numTextures, {{0,0}});
         animations = My::HashMap<TextureID, Animation>::WithBuckets(8);
     }
@@ -265,7 +265,7 @@ struct TextureAtlas {
     }
 };
 
-GlSizedTexture GlLoadTextureAtlas(ArrayRef<SDL_Surface*> images, GLint minFilter, GLint magFilter, MutableArrayRef<glm::ivec2> texCoordsOut);
+GlSizedTexture GlLoadTextureAtlas(ArrayRef<SDL_Surface*> images, GLint minFilter, GLint magFilter, MutArrayRef<glm::ivec2> texCoordsOut);
 TextureAtlas makeTextureAtlas(TextureManager* textures, TextureType typesIncluded, const char* assetsPath, GLint minFilter, GLint magFilter, TextureUnit target);
 
 // returns -1 on error

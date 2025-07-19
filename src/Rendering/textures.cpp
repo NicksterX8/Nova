@@ -245,7 +245,7 @@ int updateTextureArray(TextureArray* textureArray, TextureManager* textures, Tex
     return 0;
 }
 
-GlSizedTexture GlLoadTextureAtlas(ArrayRef<SDL_Surface*> images, GLint minFilter, GLint magFilter, MutableArrayRef<glm::ivec2> texCoordsOut) {
+GlSizedTexture GlLoadTextureAtlas(ArrayRef<SDL_Surface*> images, GLint minFilter, GLint magFilter, MutArrayRef<glm::ivec2> texCoordsOut) {
     auto* textures = Alloc<Texture>(images.size());
     for (int i = 0; i < images.size(); i++) {
         auto* image = images[i];

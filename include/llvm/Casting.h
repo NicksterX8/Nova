@@ -15,11 +15,10 @@
 #define LLVM_SUPPORT_CASTING_H
 
 #include "llvm/Compiler.h"
-#include "llvm/type_traits.h"
 #include <cassert>
 #include <memory>
 #include <optional>
-#include <type_traits>
+#include "llvm/type_traits.h"
 
 namespace llvm {
 

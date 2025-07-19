@@ -13,6 +13,7 @@ constexpr ComponentID MaxComponentID = ECS_MAX_COMPONENT;
 
 template<class C>
 constexpr ComponentID getID() {
+    static_assert(C::ID < MaxComponentID, "Component ID too high!");
     return C::ID;
 }
 
@@ -67,12 +68,11 @@ using filter_components_t = typename filter_components<WantComponents, Vars...>:
 
 template<class ...Cs>
 constexpr static My::Bitset<MaxComponentID> getSignature() {
-    constexpr ComponentID ids[] = {getID<Cs>() ...};
+    constexpr ComponentID ids[] = {0, getID<Cs>() ...};
     // sum component signatures
     auto result = My::Bitset<MaxComponentID>(0);
     for (size_t i = 0; i < sizeof...(Cs); i++) {
-        if (ids[i] < result.size())
-            result.set(ids[i]);
+        result.set(ids[i+1]);
     }
     return result;
 }
@@ -80,13 +80,13 @@ constexpr static My::Bitset<MaxComponentID> getSignature() {
 // get the signature of only the const components
 template<class ...Cs>
 constexpr static My::Bitset<MaxComponentID> getConstSignature() {
-    constexpr ComponentID ids[] = {getID<Cs>() ...};
-    constexpr bool constness[] = {std::is_const_v<Cs> ...};
+    constexpr ComponentID ids[] = {0, getID<Cs>() ...};
+    constexpr bool constness[] = {false, std::is_const_v<Cs> ...};
     // sum component signatures
     auto result = My::Bitset<MaxComponentID>(0);
     for (size_t i = 0; i < sizeof...(Cs); i++) {
-        if (ids[i] < result.size() && constness[i])
-            result.set(ids[i]);
+        if (constness[i+1])
+            result.set(ids[i+1]);
     }
     return result;
 }
@@ -94,13 +94,13 @@ constexpr static My::Bitset<MaxComponentID> getConstSignature() {
 // get the signature of only the mutable components
 template<class ...Cs>
 constexpr static My::Bitset<MaxComponentID> getMutableSignature() {
-    constexpr ComponentID ids[] = {getID<Cs>() ...};
-    constexpr bool constness[] = {std::is_const_v<Cs> ...};
+    constexpr ComponentID ids[] = {0, getID<Cs>() ...};
+    constexpr bool constness[] = {false, std::is_const_v<Cs> ...};
     // sum component signatures
     auto result = My::Bitset<MaxComponentID>(0);
     for (size_t i = 0; i < sizeof...(Cs); i++) {
-        if (ids[i] < result.size() && !constness[i])
-            result.set(ids[i]);
+        if (!constness[i+1])
+            result.set(ids[i+1]);
     }
     return result;
 }
@@ -108,12 +108,11 @@ constexpr static My::Bitset<MaxComponentID> getMutableSignature() {
 // prototype components will result in a compilation error
 template<class ...Cs>
 constexpr static My::Bitset<MaxComponentID> getSignatureNoProto() {
-    constexpr ComponentID ids[] = {getIDNoProto<Cs>() ...};
+    constexpr ComponentID ids[] = {0, getIDNoProto<Cs>() ...};
     // sum component signatures
     auto result = My::Bitset<MaxComponentID>(0);
     for (size_t i = 0; i < sizeof...(Cs); i++) {
-        if (ids[i] < result.size())
-            result.set(ids[i]);
+        result.set(ids[i+1]);
     }
     return result;
 }

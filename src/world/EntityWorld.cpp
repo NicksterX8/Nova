@@ -8,6 +8,12 @@ namespace World {
         buf = ecs->getEntityMakerBuffer();
     }
 
+    EntityMaker& EntityMaker::operator=(const EntityMaker& other) {
+        this->ecs = other.ecs;
+        this->buf = other.ecs->getEntityMakerBuffer();
+        return *this;
+    }
+
     Entity EntityMaker::make() {
         if (entity.Null()) {
             entity = ecs->New(prototype);

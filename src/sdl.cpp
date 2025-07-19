@@ -144,11 +144,6 @@ SDLContext initSDL(const char* windowTitle, SDL_Rect windowRect) {
 
     SDL_Log("SDL Window Context initialized.");
 
-    // if (vsync)
-    //     SDL_GL_SetSwapInterval(1); 
-    // else
-    //     SDL_GL_SetSwapInterval(0); 
-
     return context;
 }
 

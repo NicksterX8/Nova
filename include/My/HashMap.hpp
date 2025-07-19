@@ -69,6 +69,7 @@ public:
     int   bucketCount;
 
     static Bucket* getBuckets(void* mem, int bucketCount) {
+        (void)bucketCount;
         return (Bucket*)mem;
     }
     static K* getKeys(void* mem, int bucketCount) {

@@ -1,5 +1,4 @@
 #include "world/entities/entities.hpp"
-#include "ECS/ECS.hpp"
 #include "world/components/components.hpp"
 #include "Tiles.hpp"
 #include "world/entities/methods.hpp"

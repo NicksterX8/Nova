@@ -124,13 +124,13 @@ void logOnceInternal(LogCategory category, LogPriority priority, char* lastMessa
     char message[MAX_LOG_MESSAGE_LENGTH];
 
     va_start(ap, fmt);
-    vsnprintf(message, 256, fmt, ap);
+    vsnprintf(message, MAX_LOG_MESSAGE_LENGTH, fmt, ap);
 
     if (strcmp(message, lastMessage) == 0) {
         // same as last, don't print
     } else {
         SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s", message);
-        strcpy(lastMessage, message);
+        strlcpy(lastMessage, message, LOG_ONCE_LAST_MESSAGE_BUF_SIZE);
     }
     va_end(ap);
 }

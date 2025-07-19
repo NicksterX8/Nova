@@ -1,5 +1,7 @@
 # TODO
 
+make entity maker a thing for all EntityManagers, not just World
+
 Need to make a unified gui renderer to batch all kinds of primitives into a single draw call so they can be properly ordered
 Need to use only one shader, uses multiple paths based on primitive type int
 
@@ -37,6 +39,9 @@ entities aren't put into chunk entity list when created
 
 now: atomic structures / multithreading
 optimize for components with no members... maybe (std::is_empty)
+
+entity debug panel would be sick
+need a lot better gui for that though
 
 actual (new):
 fix scrolling up/down with keys on console
@@ -84,12 +89,6 @@ more text features (copying & pasting??) (prolly not, not necessary)
 
 - make new commands
     - make commands for messing with entities and stuff
-    - switch hotkeys out for commands
-    - other cool debugging ones, partially for fun :| 
-
-- make static text rendering (for text that doesn't change, increase performance)
-
-- If possible make window open on second monitor by default
 
 ### things done
 √ Move to openGL rendering

@@ -118,17 +118,21 @@ struct TestS {
 struct Big {
     size_t z;
     size_t y;
+
+    Big() {
+        z = 12;
+    }
+
+    Big(int x) {
+        
+    }
 };
 
 void func(int x) {}
 
 int main() {
-    constexpr bool t = true;
-    if constexpr (t) {
-        func(0);
-    } else {
-        func(0, 1);
-    }
 
-    return alignof(decltype(TestS()));
+    Big* arr = new Big[10];
+
+    return arr->z;
 }

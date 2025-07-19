@@ -91,10 +91,6 @@ void executeJobChunk(const JobChunk& chunk, EntityCommandBuffer* commandBuffer) 
     }
 }
 
-struct JobThreadTask {
-   JobChunk chunk;
-};
-
 template<typename T>
 using SharedQueue = moodycamel::ConcurrentQueue<T>;
 
@@ -129,10 +125,8 @@ int jobThreadFunc(void* dataPtr) {
             int taskSuccess = executeJobTask(threadData, task);
             int counter = threadData->shared->tasksToComplete.decrement();
             if (counter == 1) {
-                
+                // we could tell the main thread we are done
             }
-        } else {
-            
         }
     }
     return 0;
@@ -166,7 +160,6 @@ void ECS::Systems::cleanupSystems(SystemManager& sysManager) {
 void runTriggerJob(SystemManager& sysManager, const System::ScheduledJob& job, Group::TriggerType trigger) {
     switch (trigger) {
     case Group::EntityEntered:
-    
         break;
     case Group::EntityExited:
         break;
@@ -336,30 +329,27 @@ void ECS::Systems::executeSystem(SystemManager& sysManager, System* system, cons
 }
 
 void ECS::Systems::executeSystems(SystemManager& sysManager) {
-    for (int i = 0; i < sysManager.groups.size(); i++) {
-        auto& group = sysManager.groups[i];
-        if (group.trigger == Group::EntityEntered) {
-            std::vector<const ArchetypePool*> eligiblePools;
-            findEligiblePools(group.group.signature, group.group.subtract, *sysManager.entityManager, &eligiblePools);
-            for (auto* pool : eligiblePools) {
-                const_cast<ArchetypePool*>(pool)->addedEntitiesWatchers.clear();
-                const_cast<ArchetypePool*>(pool)->addedEntitiesWatchers.push_back(&sysManager.triggerGroupInfo[i].triggeredEntities);
-            }
-        }
-    }
+    // for (int i = 0; i < sysManager.groups.size(); i++) {
+    //     auto& group = sysManager.groups[i];
+    //     if (group.trigger == Group::EntityEntered) {
+    //         std::vector<const ArchetypePool*> eligiblePools;
+    //         findEligiblePools(group.group.signature, group.group.subtract, *sysManager.entityManager, &eligiblePools);
+    //         for (auto* pool : eligiblePools) {
+    //             const_cast<ArchetypePool*>(pool)->addedEntitiesWatchers.clear();
+    //             const_cast<ArchetypePool*>(pool)->addedEntitiesWatchers.push_back(&sysManager.triggerGroupInfo[i].triggeredEntities);
+    //         }
+    //     }
+    // }
 
     std::vector<std::vector<const ArchetypePool*>> groupPools;
     groupPools.resize(sysManager.groups.size());
 
     for (GroupID id = 0; id < sysManager.groups.size(); id++) {
         Group* group = &sysManager.groups[id];
-        int totalJobEntities;
-        if (group->trigger == Group::EntityInGroup) {
-            totalJobEntities = findEligiblePools(
+        int totalJobEntities = findEligiblePools(
                 group->group.signature, group->group.subtract, 
                 *sysManager.entityManager,
                 &groupPools[id]);
-        }
 
         // make sure arrays are right size for group
         for (auto& array : group->arrays) {

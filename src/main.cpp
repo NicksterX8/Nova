@@ -48,8 +48,7 @@ void initPaths() {
         fprintf(stderr, "    %s\n", strerror(errno));
         printf("Error: Failed to get pid path!\n");
     } else {
-
-        char upperPath[512]; strcpy(upperPath, pathbuf);
+        char upperPath[512]; strlcpy(upperPath, pathbuf, 512);
         upperPath[std::string(pathbuf).find_last_of('/')+1] = '\0';
 
         FileSystem = FileSystemT(upperPath);

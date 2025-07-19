@@ -21,7 +21,7 @@ using SmallestUintT =
 
 constexpr size_t constHighestBit(size_t num) {
     size_t highest = 0;
-    for (int i = 0; i < sizeof(size_t) * CHAR_BIT; i++) {
+    for (size_t i = 0; i < sizeof(size_t) * CHAR_BIT; i++) {
         if (num & (1UL << i)) {
             highest = i;
         }

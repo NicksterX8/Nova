@@ -4,14 +4,16 @@ set(CMAKE_BUILD_TYPE Debug)
 project(faketorio VERSION 1.0)
 # -Wextra -pedantic
 
-# -fno-rtti
-add_compile_options(-g -Wall -std=c++17
-    -Wno-macro-redefined -Wno-unused-variable -Wno-char-subscripts -Wno-comment
-    -Wliteral-conversion -fno-exceptions
+add_compile_options(
+    -g -std=c++17
+    -Wall -Wextra -pedantic -Wliteral-conversion
+    -Wno-macro-redefined -Wno-unused-variable -Wno-unused-parameter -Wno-char-subscripts -Wno-comment -Wno-sign-compare
+    -Wno-gnu-zero-variadic-macro-arguments
+    -fno-exceptions -fno-rtti
     -DDEBUG -DDEBUG_LEVEL=2 -DMEMORY_DEBUG_LEVEL=2
 )
 
-add_link_options(-framework OpenGL -fno-exceptions)
+add_link_options(-framework OpenGL -fno-exceptions -fno-rtti)
 
 # debug options
 #add_compile_options(-fsanitize=undefined)
@@ -67,6 +69,8 @@ set(SRC_FILES
     ${SD}/world/EntityWorld.cpp
     ${SD}/ECS/system.cpp
     ${SD}/ECS/EntityManager.cpp
+    ${SD}/ECS/ArchetypePool.cpp
+    ${SD}/ECS/ArchetypalComponentManager.cpp
     ${SD}/physics/physics.cpp
 )
 
