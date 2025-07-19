@@ -16,6 +16,7 @@ add_compile_options(
 add_link_options(-framework OpenGL -fno-exceptions -fno-rtti)
 
 # debug options
+# doesn't work with lldb. just freezes and stops without giving you any information
 #add_compile_options(-fsanitize=undefined)
 #add_link_options(-fsanitize=undefined)
 
