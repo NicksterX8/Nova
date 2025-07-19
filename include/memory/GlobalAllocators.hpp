@@ -7,7 +7,7 @@
 #include <vector>
 
 template<typename Allocator>
-AbstractAllocator* trackAllocator(std::string_view name, Allocator* allocator);
+VirtualAllocator* trackAllocator(std::string_view name, Allocator* allocator);
 
 using GameBlockAllocator = BlockAllocator<4096, 8>;
 // using GameStructureAllocator = ScratchAllocator<GameBlockAllocator*>;
@@ -19,7 +19,7 @@ struct GlobalAllocatorsType {
     llvm::BumpPtrAllocatorImpl<GameBlockAllocator&> bumpPtr{gameBlockAllocator};
 
     // pointers must be stable
-    std::vector<AbstractAllocator*> allocators;
+    std::vector<VirtualAllocator*> allocators;
 
     GlobalAllocatorsType() {
         trackAllocator("Game block allocator", &gameBlockAllocator);
@@ -33,13 +33,13 @@ extern GlobalAllocatorsType GlobalAllocators;
 using GameStructureAllocator = decltype(GlobalAllocators.gameScratchAllocator);
 
 template<typename Allocator>
-AbstractAllocator* trackAllocator(std::string_view name, Allocator* allocator) {
-    AbstractAllocator* abstract = makeAbstract(allocator);
-    abstract->setName(name);
-    GlobalAllocators.allocators.push_back(abstract);
-    return abstract;
+VirtualAllocator* trackAllocator(std::string_view name, Allocator* allocator) {
+    VirtualAllocator* virt = makeVirtual(allocator);
+    virt->setName(name);
+    GlobalAllocators.allocators.push_back(virt);
+    return virt;
 }
 
-AbstractAllocator* findTrackedAllocator(AllocatorI* allocatorPtr);
+VirtualAllocator* findTrackedAllocator(AllocatorI* allocatorPtr);
 
 #endif

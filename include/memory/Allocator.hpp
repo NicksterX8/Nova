@@ -172,20 +172,14 @@ public:
     }
 };
 
-// maybe implement
-// enum class AllocatorType {
-//     Permanent,
-//     Temporary
-// };
-
 /* Polymorphic allocator made from any allocator base */
-class AbstractAllocator {
+class VirtualAllocator {
 protected:
     AllocatorI* realAllocator;
     std::string name;
     bool deallocNecessary = true;
 public:
-    AbstractAllocator(AllocatorI* realAllocator) : realAllocator(realAllocator) {}
+    VirtualAllocator(AllocatorI* realAllocator) : realAllocator(realAllocator) {}
 
     AllocatorI* getPointer() const {
         return realAllocator;
@@ -224,7 +218,7 @@ public:
         return {};
     }
 
-    virtual ~AbstractAllocator() {}
+    virtual ~VirtualAllocator() {}
 
     void setName(std::string_view name) {
         this->name = name;
@@ -238,10 +232,10 @@ public:
 
 
 template<typename Allocator>
-class AbstractAllocatorImpl : public AbstractAllocator {
+class VirtualAllocatorImpl : public VirtualAllocator {
     
 public:
-    AbstractAllocatorImpl(Allocator* realAllocator) : AbstractAllocator(realAllocator) {
+    VirtualAllocatorImpl(Allocator* realAllocator) : VirtualAllocator(realAllocator) {
         deallocNecessary = Allocator::NeedDeallocate();
     }
 
@@ -263,9 +257,9 @@ public:
 };
 
 template<typename Allocator>
-AbstractAllocator* makeAbstract(Allocator* allocator) {
-    AbstractAllocator* abstract = NEW(AbstractAllocatorImpl<Allocator>(allocator));
-    return abstract;
+VirtualAllocator* makeVirtual(Allocator* allocator) {
+    VirtualAllocator* virt = NEW(VirtualAllocatorImpl<Allocator>(allocator));
+    return virt;
 }
 
 /* Default allocator using malloc/free */

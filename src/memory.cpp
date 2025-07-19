@@ -75,8 +75,8 @@ void trackDealloc(AllocatorI* allocator, void* pointer, size_t bytes, const char
     } else {
         auto& trackedAlloc = trackedAllocIt->second;
         if (UNLIKELY(trackedAlloc.allocator != alloc.allocator)) {
-            AbstractAllocator* allocAllocator = findTrackedAllocator(trackedAlloc.allocator);
-            AbstractAllocator* deallocAllocator = findTrackedAllocator(alloc.allocator);
+            VirtualAllocator* allocAllocator = findTrackedAllocator(trackedAlloc.allocator);
+            VirtualAllocator* deallocAllocator = findTrackedAllocator(alloc.allocator);
             // if neither of them are tracked we can't know 
             if (allocAllocator || deallocAllocator)  {
                 logAllocError(alloc, trackedAlloc);

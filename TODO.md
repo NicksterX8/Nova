@@ -1,5 +1,8 @@
 # TODO
 
+NEW() and DELETE() with debug info is not thread safe
+
+
 fix console stuff like arrowing up/down
 fix cursor
 
