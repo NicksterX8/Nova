@@ -7,7 +7,9 @@
 #include <vector>
 
 template<typename Allocator>
-VirtualAllocator* trackAllocator(std::string_view name, Allocator* allocator);
+FullVirtualAllocator* trackAllocator(const char* name, Allocator* allocator);
+
+FullVirtualAllocator* findTrackedAllocator(AllocatorI* allocatorPtr);
 
 using GameBlockAllocator = BlockAllocator<4096, 8>;
 // using GameStructureAllocator = ScratchAllocator<GameBlockAllocator*>;
@@ -15,16 +17,18 @@ using GameBlockAllocator = BlockAllocator<4096, 8>;
 // Allocators for global use ONLY ON MAIN THREAD
 struct GlobalAllocatorsType {
     GameBlockAllocator gameBlockAllocator{};
-    ScratchAllocator<GameBlockAllocator&> gameScratchAllocator{16 * 1024, gameBlockAllocator};
-    llvm::BumpPtrAllocatorImpl<GameBlockAllocator&> bumpPtr{gameBlockAllocator};
+    FullVirtualAllocator* virtualGameBlockAllocator;
+   // ScratchAllocator<GameBlockAllocator&> gameScratchAllocatorOld{16 * 1024};
+    llvm::BumpPtrAllocatorImpl<> gameScratchAllocator;
+    FullVirtualAllocator* virtualGameScratchAllocator;
 
     // pointers must be stable
-    std::vector<VirtualAllocator*> allocators;
+    std::vector<FullVirtualAllocator*> allocators;
 
     GlobalAllocatorsType() {
-        trackAllocator("Game block allocator", &gameBlockAllocator);
-        trackAllocator("Game scratch allocator", &gameScratchAllocator);
-        trackAllocator("Global BumpPtr", &bumpPtr);
+        virtualGameBlockAllocator = trackAllocator("Game block allocator", &gameBlockAllocator);
+        virtualGameScratchAllocator = trackAllocator("Game scratch allocator", &gameScratchAllocator);
+        //trackAllocator("Global BumpPtr", &bumpPtr);
     }
 };
 
@@ -33,13 +37,11 @@ extern GlobalAllocatorsType GlobalAllocators;
 using GameStructureAllocator = decltype(GlobalAllocators.gameScratchAllocator);
 
 template<typename Allocator>
-VirtualAllocator* trackAllocator(std::string_view name, Allocator* allocator) {
-    VirtualAllocator* virt = makeVirtual(allocator);
+FullVirtualAllocator* trackAllocator(const char* name, Allocator* allocator) {
+    FullVirtualAllocator* virt = makeFullVirtual(allocator);
     virt->setName(name);
     GlobalAllocators.allocators.push_back(virt);
     return virt;
 }
-
-VirtualAllocator* findTrackedAllocator(AllocatorI* allocatorPtr);
 
 #endif

@@ -173,29 +173,30 @@ public:
 };
 
 /* Polymorphic allocator made from any allocator base */
-class VirtualAllocator {
+class FullVirtualAllocator {
 protected:
     AllocatorI* realAllocator;
     std::string name;
-    bool deallocNecessary = true;
+protected:
+    FullVirtualAllocator(AllocatorI* realAllocator) : realAllocator(realAllocator) {}
 public:
-    VirtualAllocator(AllocatorI* realAllocator) : realAllocator(realAllocator) {}
+    FullVirtualAllocator() : realAllocator(nullptr) {}
 
     AllocatorI* getPointer() const {
         return realAllocator;
     }
 
     virtual void* allocate(size_t size, size_t alignment) {
-        assert("No allocate method defined!");
+        assert(0 && "No allocate method defined!");
         return nullptr;
     }
 
     virtual void deallocate(void* ptr, size_t size, size_t alignment) {
-        assert("No deallocate method defined!");
+        assert(0 && "No deallocate method defined!");
     }
 
     virtual void* reallocate(void* ptr, size_t oldSize, size_t newSize, size_t alignment) {
-        assert("No reallocate method defined!");
+        assert(0 && "No reallocate method defined!");
         return nullptr;
     }
 
@@ -218,26 +219,22 @@ public:
         return {};
     }
 
-    virtual ~VirtualAllocator() {}
+    virtual ~FullVirtualAllocator() {}
 
-    void setName(std::string_view name) {
+    void setName(const char* name) {
         this->name = name;
     }
 
     const char* getName() const {
-        if (name.empty()) return nullptr;
         return name.c_str();
     }
 };
 
-
 template<typename Allocator>
-class VirtualAllocatorImpl : public VirtualAllocator {
+class FullVirtualAllocatorTemplate : public FullVirtualAllocator {
     
 public:
-    VirtualAllocatorImpl(Allocator* realAllocator) : VirtualAllocator(realAllocator) {
-        deallocNecessary = Allocator::NeedDeallocate();
-    }
+    FullVirtualAllocatorTemplate(Allocator* realAllocator) : FullVirtualAllocator(realAllocator) {}
 
     void* allocate(size_t size, size_t alignment) override {
         return static_cast<Allocator*>(realAllocator)->allocate(size, alignment);
@@ -257,8 +254,8 @@ public:
 };
 
 template<typename Allocator>
-VirtualAllocator* makeVirtual(Allocator* allocator) {
-    VirtualAllocator* virt = NEW(VirtualAllocatorImpl<Allocator>(allocator));
+FullVirtualAllocator* makeFullVirtual(Allocator* allocator) {
+    FullVirtualAllocator* virt = NEW(FullVirtualAllocatorTemplate<Allocator>(allocator));
     return virt;
 }
 
@@ -301,6 +298,31 @@ public:
         return {
             .name = "Mallocator"
         };
+    }
+};
+
+class VirtualAllocator : public AllocatorBase<VirtualAllocator> {
+    AllocatorI* allocator;
+    void* (*allocatefn)(AllocatorI* allocator, size_t, size_t);
+    void (*deallocatefn)(AllocatorI* allocator, void*, size_t, size_t);
+public:
+    template<typename AllocatorT>
+    VirtualAllocator(AllocatorT* allocator) : allocator(allocator) {
+        allocatefn = [](AllocatorI* allocator, size_t size, size_t alignment){
+            return ((AllocatorT*)allocator)->allocate(size, alignment);
+        };
+
+        deallocatefn = [](AllocatorI* allocator, void* ptr, size_t size, size_t alignment){
+            ((AllocatorT*)allocator)->deallocate(ptr, size, alignment);
+        };
+    }
+
+    void* allocate(size_t size, size_t alignment) {
+        return allocatefn(allocator, size, alignment);
+    }
+
+    void deallocate(void* ptr, size_t size, size_t alignment) {
+        deallocatefn(allocator, ptr, size, alignment);
     }
 };
 

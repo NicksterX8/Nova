@@ -128,11 +128,28 @@ struct Big {
     }
 };
 
-void func(int x) {}
+struct Base {
+    void* ptr;
+
+    virtual int foo() {
+        return 12;
+    }
+};
+
+struct Child : Base {
+    int foo() override {
+        return 15;
+    }
+};
 
 int main() {
+    Child child;
+    Base* base = &child;// = child;
+    Base b2 = *base;
+    printf("x: %d", (&b2)->foo());
+    //memcpy((void*)&base, &child, sizeof(Child));
 
-    Big* arr = new Big[10];
-
-    return arr->z;
+    // printf("x: %d", (&base)->foo());
+    // Base* basePtr = &base;
+    //printf("ptr: %d", basePtr->foo());
 }

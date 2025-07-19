@@ -2,7 +2,7 @@
 
 GlobalAllocatorsType GlobalAllocators = {};
 
-VirtualAllocator* findTrackedAllocator(AllocatorI* allocatorPtr) {
+FullVirtualAllocator* findTrackedAllocator(AllocatorI* allocatorPtr) {
     for (auto aallocator : GlobalAllocators.allocators) {
         if (aallocator->getPointer() == allocatorPtr) {
             return aallocator;

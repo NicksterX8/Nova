@@ -74,6 +74,8 @@ public:
   // BumpPtrAllocatorImpl(AllocatorT& allocator)
   //     : allocator(allocator) {}
 
+  BumpPtrAllocatorImpl() = default;
+
   
   BumpPtrAllocatorImpl(AllocatorT&& allocator)
       : allocator(static_cast<AllocatorT&&>(allocator)) {}
@@ -223,6 +225,10 @@ public:
   // after deallocation.
   void deallocate(const void *Ptr, size_t Size, size_t /*Alignment*/) {
     __asan_poison_memory_region(Ptr, Size);
+  }
+
+  static constexpr bool NeedDeallocate() {
+    return false;
   }
 
   // Pull in base class overloads.

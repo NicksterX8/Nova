@@ -32,7 +32,7 @@ struct InventoryAllocator {
 
 struct ItemManager : ECS::EntityManager {
     InventoryAllocator inventoryAllocator;
-    GameStructureAllocator prototypeAllocator{1024, GlobalAllocators.gameBlockAllocator};
+    GameStructureAllocator& prototypeAllocator = GlobalAllocators.gameScratchAllocator;
 
     void init(ECS::ComponentInfoRef componentInfo, int numPrototypes) {
         ECS::EntityManager::init(componentInfo, numPrototypes);

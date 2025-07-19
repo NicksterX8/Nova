@@ -62,7 +62,8 @@ void initPaths() {
 void tests() {
     physics_test();
 
-    
+    SmallVectorA<int, FullVirtualAllocator&> vec{*GlobalAllocators.virtualGameScratchAllocator};
+    vec.require(2000);
 }
 
 int main(int argc, char** argv) { 
@@ -81,7 +82,7 @@ int main(int argc, char** argv) {
     }
 
     Game game;
-    game.essentialAllocator.init(1ULL << 15);
+    game.essentialAllocator.init(1ULL << 13);
     trackAllocator("Essential Allocator", &game.essentialAllocator);
     trackAllocator("Medium allocator", &game.blockAllocator);
 

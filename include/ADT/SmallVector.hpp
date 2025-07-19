@@ -64,7 +64,7 @@ protected:
 
   template<typename AllocT>
   SmallVectorBase(void *FirstEl, size_t TotalCapacity, AllocT&& allocator)
-      : allocator(static_cast<AllocT&&>(allocator)), BeginX(FirstEl), Capacity(TotalCapacity) {}
+      : BeginX(FirstEl), Capacity(TotalCapacity), allocator(static_cast<AllocT&&>(allocator)) {}
 
   /// This is a helper for \a grow() that's out of line to reduce code
   /// duplication.  This function will report a fatal error if it can't grow at
