@@ -1,5 +1,8 @@
 # TODO
 
+fix console stuff like arrowing up/down
+fix cursor
+
 make entity maker a thing for all EntityManagers, not just World
 
 Need to make a unified gui renderer to batch all kinds of primitives into a single draw call so they can be properly ordered
