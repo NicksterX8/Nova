@@ -489,7 +489,13 @@ namespace Commands {
     }
 
     Result logAllocatorStats(Args args, Game* game) {
-        for (auto allocator : GlobalAllocators.allocators) {
+        std::vector<FullVirtualAllocator*> allocators = GlobalAllocators.allocators; // make copy so we can sort without messing up globalallocator array
+        // sort by bytes used so we see the actually important allocators
+        std::sort(allocators.begin(), allocators.end(), [](FullVirtualAllocator* lhs, FullVirtualAllocator* rhs){
+            return lhs->getAllocatorStats().estimatedBytesUsed >= rhs->getAllocatorStats().estimatedBytesUsed;
+        });
+
+        for (auto allocator : allocators) {
             auto allocatorStats = allocator->getAllocatorStats();
             std::string output = "---Allocator---\n";
             auto name = allocator->getName();

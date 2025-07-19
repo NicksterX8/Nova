@@ -29,6 +29,11 @@ public:
     }
 
     void* allocate(size_t size, size_t alignment) {
+        assert(current && "Scratch not allocated!");
+    #ifdef ADDRESS_SANITIZER_BUILD
+        // make a red zone byte to detect bad pointer accesses
+        current = (char*)current + 1;
+    #endif
         void* ptr = alignPtr(current, alignment);
         current = (char*)ptr + size;
         __asan_unpoison_memory_region(ptr, size);
@@ -68,6 +73,7 @@ public:
     }
 };
 
+// This allocator is NOT thread safe!
 template<typename Allocator = Mallocator>
 class ScratchAllocator : public ScratchMemory {
     using Base = ScratchMemory;
@@ -122,7 +128,8 @@ public:
         return {
             .name = "ScratchAllocator",
             .allocated = string_format("Allocated bytes: %zu", getAllocatedMemory()),
-            .used = string_format("Used bytes: %zu", (uintptr_t)end - (uintptr_t)start)
+            .used = string_format("Used bytes: %zu", (uintptr_t)end - (uintptr_t)start),
+            .estimatedBytesUsed = (uintptr_t)end - (uintptr_t)start
         };
     }
 };

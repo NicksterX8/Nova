@@ -10,6 +10,7 @@ add_compile_options(
     -Wno-macro-redefined -Wno-unused-variable -Wno-unused-parameter -Wno-char-subscripts -Wno-comment -Wno-sign-compare
     -Wno-gnu-zero-variadic-macro-arguments
     -fno-exceptions -fno-rtti
+    -DMACOS
     -DDEBUG -DDEBUG_LEVEL=2 -DMEMORY_DEBUG_LEVEL=2
 )
 
@@ -17,8 +18,8 @@ add_link_options(-framework OpenGL -fno-exceptions -fno-rtti)
 
 # debug options
 # doesn't work with lldb. just freezes and stops without giving you any information
-#add_compile_options(-fsanitize=undefined)
-#add_link_options(-fsanitize=undefined)
+add_compile_options(-fsanitize=undefined -fsanitize=address)
+add_link_options(-fsanitize=undefined -fsanitize=address)
 
 set(CMAKE_BUILD_TYPE Debug)
 set(SD src)

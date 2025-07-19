@@ -56,7 +56,7 @@ struct Player {
     ItemHold heldItemStack;
     int selectedHotbarSlot = -1; // -1 means no slot is selected. TODO: rename this to slot
 
-    Entity selectedEntity;
+    Entity selectedEntity = NullEntity;
 
     int grenadeThrowCooldown = 0;
     static constexpr int GrenadeCooldown = 10;

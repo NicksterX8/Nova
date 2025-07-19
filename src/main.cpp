@@ -24,6 +24,7 @@
 #include "memory/allocators.hpp"
 
 #include "utils/system/signpost.hpp"
+#include "memory/FreelistAllocator.hpp"
 
 #ifdef DEBUG
     //#include "Testing.hpp"
@@ -61,9 +62,6 @@ void initPaths() {
 
 void tests() {
     physics_test();
-
-    SmallVectorA<int, FullVirtualAllocator&> vec{*GlobalAllocators.virtualGameScratchAllocator};
-    vec.require(2000);
 }
 
 int main(int argc, char** argv) { 

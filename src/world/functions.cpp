@@ -219,7 +219,7 @@ Entity findClosestEntityToPosition(const EntityWorld& ecs, const ChunkMap* chunk
 
 Entity findPlayerFocusedEntity(const EntityWorld& ecs, const ChunkMap& chunkmap, Vec2 playerMousePos) {
     Vec2 target = playerMousePos;
-    Entity focusedEntity;
+    Entity focusedEntity = NullEntity;
     int focusedEntityLayer = RenderLayers::Lowest;
     forEachEntityNearPoint(ecs, &chunkmap, target,
     [&](Entity entity){

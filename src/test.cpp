@@ -13,6 +13,7 @@
 #include <chrono>
 #include <type_traits>
 #include <array>
+#include <malloc/malloc.h>
 
 #define COMBINE1(X,Y) X##Y  // helper macro
 #define COMBINE(X,Y) COMBINE1(X,Y)
@@ -128,25 +129,50 @@ struct Big {
     }
 };
 
+template<typename D>
 struct Base {
     void* ptr;
 
-    virtual int foo() {
+    int foo() {
         return 12;
+    }
+
+    int bar() {
+        return static_cast<D*>(this)->foo();
     }
 };
 
-struct Child : Base {
-    int foo() override {
+struct Child : Base<Child> {
+    int foo() {
         return 15;
     }
 };
 
 int main() {
-    Child child;
-    Base* base = &child;// = child;
-    Base b2 = *base;
-    printf("x: %d", (&b2)->foo());
+    size_t totalBytes = 0;
+    size_t totalbonus = 0;
+    // for (size_t s = 0, s2 = 1, s3 = 1; s < 100000; s = s2, s2 = s3, s3 = s + s2) {
+    //     if (s > 10) {
+    //         s -= 3;
+    //     }
+    //     if (s > 100) {
+    //         s -= 20;
+    //     }
+    //     if (s > 1000) {
+    //         s -= 100;
+    //     }
+    //     void* ptr = malloc(s);
+    //     printf("size: %zu. good size: %zu. bonus percent: %.3f\n", s, malloc_good_size(s), float(malloc_good_size(s) - s) / float(s) * 100);
+    //     totalBytes += s;
+    //     totalbonus += malloc_good_size(s) - s;
+    // }
+    for (size_t s = 20; s < 1000; s *= 2) {
+        size_t s2 = s + rand() % 24 - 12;
+        printf("size: %zu. good size: %zu. bonus percent: %.3f\n", s2, malloc_good_size(s2), float(malloc_good_size(s2) - s2) / float(s2) * 100);
+        totalBytes += s2;
+        totalbonus += malloc_good_size(s2) - s2;
+    }
+    printf("averaged bonus percent: %.2f", float(totalbonus)/ float(totalBytes) * 100);
     //memcpy((void*)&base, &child, sizeof(Child));
 
     // printf("x: %d", (&base)->foo());

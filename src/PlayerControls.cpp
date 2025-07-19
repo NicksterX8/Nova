@@ -146,6 +146,8 @@ void PlayerControls::rightMouseHeld(const MouseState& mouse) {
 }
 
 void PlayerControls::clickOnEntity(Entity clickedEntity) {
+    if (clickedEntity.Null()) return;
+
     namespace EC = World::EC;
     auto& ecs = *game->state->ecs;
 
@@ -154,6 +156,7 @@ void PlayerControls::clickOnEntity(Entity clickedEntity) {
     if (clickedEntity == *selectedEntity) {
         ecs.Remove<EC::Selected>(clickedEntity);
         *selectedEntity = NullEntity;
+        return;
     } else {
         if (ecs.EntityHas<EC::Selected>(*selectedEntity)) {
             ecs.Remove<EC::Selected>(*selectedEntity);
@@ -416,8 +419,6 @@ Vec2 circleCollidingRect(Vec2 circleCenter, float circleRadius, Box rect, Vec2 m
     Vec2 clamped = glm::clamp(difference, -halfExtents, halfExtents);
     Vec2 closest = rectCenter + clamped; // closest point on rect
 
-
-
     difference = closest - circleCenter;
     Vec2 adjust = {0,0};
     float distance = glm::length(difference);
@@ -433,12 +434,7 @@ Vec2 circleCollidingRect(Vec2 circleCenter, float circleRadius, Box rect, Vec2 m
             adjust.y += penetration.y * (Direction::DOWN == direction);
         }
     }
-    // Vec2 collisionMargin = difference -  * distance;
-    // if (distance < circleRadius) {
-    //     if (movement.x > 0.0f) {
-    //         adjust.x = 
-    //     }
-    // }w
+
     return adjust;
 }
 
@@ -471,32 +467,6 @@ void PlayerControls::movePlayer(Vec2 movement) {
         for (int y = minTile.y; y <= maxTile.y; y++) {
             Tile* tile = getTileAtPosition(game->state->chunkmap, Vec2{x, y});
             if (TileTypeData[tile->type].flags & TileTypes::Solid) {
-                // Vec2 tileCenter = Vec2{x + 0.5f, y + 0.5f};
-                // Vec2 delta = tileCenter - circleCenter;
-                // Vec2 clamped = glm::clamp(delta, {-0.5f, -0.5f}, {0.5f, 0.5f});
-                // Vec2 closest = tileCenter + clamped; // closest point on tile
-                // delta = closest - circleCenter;
-                // bool collision = glm::length(delta) < collisionRadius;
-                // if (collision) {
-                //     float angle = atan2(delta.y, delta.x);
-                //     Vec2 sincos = get_sincosf(angle);
-                //     change = sincos * delta;
-                //     tile->type = TileTypes::Sand;
-                // }
-                // Vec2 delta;
-                // if (circleCollidingRect(circleCenter, collisionRadius, {Vec2{x, y}, Vec2({1, 1})}, &delta)) {
-                //     LogInfo("colliding");
-                //     float angle = atan2(delta.y, delta.x);
-                //     Vec2 sincos = get_sincosf(angle);
-                //     if (movement.x > 0.0f) {
-                        
-                //     }
-                //     change = -(delta + collisionRadius);
-
-                //     change = circleCollidingRect(circleCenter, collisionRadius, {Vec2{x, y}, Vec2({1, 1})}, movement);
-                //     goto end;
-                // }
-
                 Vec2 nearestPoint = glm::clamp(potentialPosition, {x, y}, {x+1, y+1});
                 Vec2 nearestPointDelta = nearestPoint - potentialPosition;
                 float length = glm::length(nearestPointDelta);

@@ -306,8 +306,7 @@ public:
         keys[index] = key;
         assert(set[key] == NullIndex && "Attempted to insert key already present in sparse set");
         set[key] = index;
-        // memcpy(&values[index], &value, sizeof(Value));
-        values[index] = value;
+        ::new (&values[index]) Value(value);
         size++;
     }
 
@@ -319,6 +318,9 @@ public:
 
         const auto index = (Index)size;
         keys[index] = key;
+        if constexpr (!std::is_trivially_default_constructible_v<Value>) {
+            ::new (&values[index]) Value;
+        }
         assert(set[key] == NullIndex && "Attempted to insert key already present in sparse set");
         set[key] = index;
         size++;
@@ -327,6 +329,8 @@ public:
 
     // returns the beginning of the range of values for the keys
     Value* insertList(ArrayRef<Key> newKeys) {
+        static_assert(std::is_default_constructible_v<Value>, "Values in insertRange need to be default constructed!");
+
         for (auto key : newKeys) {
             assertValidKey(key);
         }
@@ -337,16 +341,23 @@ public:
 
         const auto startIndex = (Index)size;
         Value* newValues = &values[startIndex];
-        memcpy(&keys[startIndex], newKeys.data(), newKeys.size() * sizeof(Key));
-        for (SizeT i = 0; i < newKeys.size(); i++) {
+        auto newKeyCount = newKeys.size();
+        std::copy(newKeys.begin(), newKeys.end(), keys + startIndex);
+        for (SizeT i = 0; i < newKeyCount; i++) {
             assert(set[newKeys[i]] == NullIndex && "Attempted to insert key already present in sparse set");
             set[newKeys[i]] = startIndex + i;
+            if constexpr (!std::is_trivially_default_constructible_v<Value>) {
+                ::new (newValues + i) Value;
+            }
         }
         size += newKeys.size();
         return newValues;
     }
 
-    void insertRange(Key keyBegin, Key keyEnd) {
+    // returns a reference to the values corresponding to the keys, where (keyBegin + i) links to values[i]
+    Value* insertRange(Key keyBegin, Key keyEnd) {
+        static_assert(std::is_default_constructible_v<Value>, "Values in insertRange need to be default constructed!");
+
         assertValidKey(keyBegin);
         assertValidKey(keyEnd);
     
@@ -358,11 +369,16 @@ public:
 
         const auto startIndex = (Index)size;
         memcpy(keys + startIndex, keys, count * sizeof(Key));
+        Value* newValues = &values[size];
         for (SizeT i = 0; i < count; i++) {
             assert(set[keyBegin + i] == NullIndex && "Attempted to insert key already present in sparse set");
             set[keyBegin + i] = startIndex + i;
+            if constexpr (!std::is_trivially_default_constructible_v<Value>) {
+                ::new (newValues + i) Value;
+            }
         }
         size += count;
+        return newValues;
     }
 
     void remove(Key key) {
@@ -373,7 +389,7 @@ public:
         const auto topKey = keys[topIndex];
         // move key, value, and index over
         keys[indexOfRemoved] = topKey;
-        memcpy(&values[indexOfRemoved], &values[topIndex], sizeof(Value));
+        values[indexOfRemoved] = std::move(values[topIndex]);
         set[topKey] = indexOfRemoved;
         assert(set[key] != NullIndex && "Attempted to remove key not present in sparse set");
         set[key] = NullIndex; // mark removed key as gone
@@ -381,7 +397,9 @@ public:
     }
 
     bool contains(Key key) const {
-        return key >= 0 && key <= MaxKeyValue && set[key] != NullIndex;
+        assert(key > 0 && "Invalid key value!");
+        assert(key <= MaxKeyValue && "Violation of contract - key greater than MaxKeyValue");
+        return set[key] != NullIndex;
     }
 
     void reallocate(SizeT newCapacity) {

@@ -52,7 +52,7 @@ struct SystemManager {
     
     EntityManager* entityManager = nullptr;
     EntityCommandBuffer unexecutedCommands;
-    bool allowParallelization = true;
+    bool allowParallelization = USE_MULTITHREADING;
 public:
     SystemManager() {}
 

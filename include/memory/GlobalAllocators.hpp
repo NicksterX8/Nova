@@ -18,8 +18,8 @@ using GameBlockAllocator = BlockAllocator<4096, 8>;
 struct GlobalAllocatorsType {
     GameBlockAllocator gameBlockAllocator{};
     FullVirtualAllocator* virtualGameBlockAllocator;
-   // ScratchAllocator<GameBlockAllocator&> gameScratchAllocatorOld{16 * 1024};
-    llvm::BumpPtrAllocatorImpl<> gameScratchAllocator;
+    ScratchAllocator<GameBlockAllocator&> gameScratchAllocator{16 * 1024, gameBlockAllocator};
+    //llvm::BumpPtrAllocatorImpl<> gameScratchAllocator;
     FullVirtualAllocator* virtualGameScratchAllocator;
 
     // pointers must be stable

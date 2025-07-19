@@ -8,6 +8,10 @@
 #include "utils/compiler.hpp"
 #include "My/String.hpp"
 
+#ifdef MACOS
+#include <malloc/malloc.h> // for malloc_good_size
+#endif
+
 inline size_t getAlignedOffset(size_t offset, size_t align) {
     return ((offset + align - 1) & ~(align - 1U));
 }
@@ -71,6 +75,15 @@ struct AllocateMethods {
         ::new (mem) T(value);
         return mem;
     }
+
+    template<typename T>
+    T* New(size_t count) {
+        T* mem = allocate<T>(count);
+        for (size_t i = 0; i < count; ++i) {
+            new (mem + i) T;
+        }
+        return mem;
+    }
 };
 
 class AllocatorI {};
@@ -85,6 +98,7 @@ class AllocatorBase : public AllocatorI, public AllocateMethods<Derived>, public
     // reallocate(void* ptr, size_t oldSize, size_t newSize, size_t alignment)
     // static constexpr bool needDeallocate() if deallocate isn't necessary like a scratch allocator
     // getAllocatorStats() recommended
+    // deallocateAll() if possible (not possible for something like Mallocator)
 
 public:
     static constexpr bool NeedDeallocate() {
@@ -105,9 +119,47 @@ public:
     T* reallocate(T* ptr, size_t oldCount, size_t newCount) {
         return (T*)static_cast<Derived*>(this)->reallocate(ptr, oldCount * sizeof(T), newCount * sizeof(T), alignof(T));
     }
+
+    static constexpr size_t goodSize(size_t minSize) {
+        return minSize;
+    }
+
+    template<typename T>
+    static constexpr size_t goodSize(size_t minCount) {
+        return Derived::goodSize(minCount * sizeof(T)) / sizeof(T);
+    }
+
+    // template<typename T>
+    // struct MemoryBlockT {
+    //     T* pointer;
+    //     size_t size; // in elements
+    // };
+
+    // struct MemoryBlock {
+    //     void* pointer;
+    //     size_t size; // bytes
+    // };
+
+    // MemoryBlock allocateAtLeast(size_t minSize, size_t alignment) {
+    //     // if not overriden, does the same thing as normal allocate and allocates exactly minSize
+    //     return {
+    //         static_cast<Derived*>(this)->allocate(minSize, alignment),
+    //         minSize
+    //     };
+    // }
+
+    // template<typename T>
+    // MemoryBlockT<T> allocateAtLeast(size_t minCount) {
+    //     // if not overriden, does the same thing as normal allocate and allocates exactly minSize
+    //     return {
+    //         static_cast<Derived*>(this)->allocate(minCount * sizeof(T), alignof(T)),
+    //         minCount * sizeof(T)
+    //     };
+    // }
 };
 
 struct AllocatorStats {
+    size_t estimatedBytesUsed = 0;
     std::string name;
     std::string allocated; // used by clients. ACTUALLY being used
     std::string used; // used by the allocator
@@ -268,22 +320,18 @@ public:
     using Base::deallocate;
 
     void* allocate(size_t size, size_t alignment) {
-        void* mem;
-        if (alignment > alignof(std::max_align_t))
-            mem = aligned_alloc(alignment, size);
+        if (LIKELY(alignment <= alignof(std::max_align_t)))
+            return malloc(size);
         else
-            mem = malloc(size);
-        __asan_poison_memory_region(mem, size);
-        return mem;
+            return aligned_alloc(alignment, size);
     }
 
     void deallocate(void* ptr, size_t size, size_t alignment) {
         free(ptr);
-        __asan_unpoison_memory_region(ptr, size);
     }
 
     void* reallocate(void* ptr, size_t oldSize, size_t newSize, size_t alignment) {
-        if (alignment < alignof(std::max_align_t)) {
+        if (alignment <= alignof(std::max_align_t)) {
             // just use regular realloc
             return realloc(ptr, newSize);
         }
@@ -294,9 +342,17 @@ public:
         return newPtr;
     }
 
+    static constexpr size_t goodSize(size_t minSize) {
+    #ifdef MACOS
+        return malloc_good_size(minSize);
+    #else
+        return minSize;
+    #endif
+    }
+
     AllocatorStats getAllocatorStats() const {
         return {
-            .name = "Mallocator"
+            .name = "mallocator"
         };
     }
 };

@@ -84,8 +84,10 @@ struct BucketArray {
         return location;
     }
 
-    /* Same as push, but leave the value at the back uninitialized */
+    // Same as push, but leave the value at the back uninitialized
+    // |size| must be less than BucketSize
     T* reserveBack(int size = 1) {
+        assert(size < BucketSize && "Allocation too large");
         // room for another element in top bucket?
         if (topBucketSlotsUsed + size > BucketSize || buckets.empty()) {
             pushNewBucket();

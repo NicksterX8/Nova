@@ -179,6 +179,10 @@ public:
     #endif
     }
 
+    static constexpr size_t goodSize(size_t minSize) {
+        return (minSize + BlockSize - 1) / BlockSize * BlockSize;
+    }
+
     int countBlocks() const {
         int blocks = 0;
         for (const Chunk& chunk : chunks) {
@@ -228,7 +232,7 @@ public:
 namespace NEW {
 
 // Only alloc sizes <= BlockSize, otherwise make a custom alloc from Allocator
-
+// This allocator is NOT thread safe!
 template<size_t BlockSize, size_t BlocksPerAlloc, typename Allocator = Mallocator>
 class BlockAllocator : public AllocatorBase<BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>> {
     using Base = AllocatorBase<BlockAllocator<BlockSize, BlocksPerAlloc, Allocator>>;
@@ -245,7 +249,8 @@ class BlockAllocator : public AllocatorBase<BlockAllocator<BlockSize, BlocksPerA
 
     EMPTY_BASE_OPTIMIZE Allocator allocator;
 #ifndef NDEBUG
-    size_t bytesAllocated = 0;
+    size_t nonBlockBytesAllocated = 0;
+    size_t blockBytesAllocated = 0;
 #endif
 
     static constexpr size_t BlockAlignment = alignof(std::max_align_t);
@@ -264,13 +269,17 @@ public:
         void* ptr;
         if (LIKELY(size < BlockSize && alignment <= BlockAlignment)) {
             ptr = allocateBlock();
+        #ifndef NDEBUG
+            blockBytesAllocated += size;
+        #endif
         } else {
             ptr = allocateNonBlock(size, alignment);
+        #ifndef NDEBUG
+            nonBlockBytesAllocated += size;
+        #endif
         }
         __asan_unpoison_memory_region(ptr, size);
-    #ifndef NDEBUG
-        bytesAllocated += size;
-    #endif
+    
         return ptr;
     }
 private:
@@ -315,20 +324,26 @@ private:
     void deallocateNonBlock(void* ptr, size_t size, size_t alignment) {
         allocator.deallocate(ptr, size, alignment);
     }
+
+    void* reallocateNonBlock(void* ptr, size_t oldSize, size_t newSize, size_t alignment) {
+        return allocator.reallocate(ptr, oldSize, newSize, alignment);
+    }
 public:
 
     void deallocate(void* ptr, size_t size, size_t alignment) {
         if (size < BlockSize && alignment <= BlockAlignment) {
             deallocateBlock((char*)ptr);
+        #ifndef NDEBUG
+            blockBytesAllocated -= size;
+        #endif
         } else {
             deallocateNonBlock(ptr, size, alignment);
+        #ifndef NDEBUG
+            nonBlockBytesAllocated -= size;
+        #endif
         }
 
         __asan_poison_memory_region(ptr, size);
-
-    #ifndef NDEBUG
-        bytesAllocated -= size;
-    #endif
     }
 private:
     void deallocateBlock(char* block) {
@@ -353,14 +368,12 @@ public:
         chunks.clear();
         freeBlocks.clear();
     #ifndef NDEBUG
-        bytesAllocated = 0;
+        blockBytesAllocated = 0;
+        nonBlockBytesAllocated = 0;
     #endif
     }
 
     void* reallocate(void* ptr, size_t oldSize, size_t newSize, size_t alignment) {
-    #ifndef NDEBUG
-        bytesAllocated += newSize - oldSize;
-    #endif
         assert(alignment <= BlockAlignment && "Non standard alignments not allowed");
 
         __asan_poison_memory_region(ptr, oldSize);
@@ -372,10 +385,18 @@ public:
                 // new ptr is block
                 // already have enough space
                 newPtr = ptr;
+            #ifndef NDEBUG
+                blockBytesAllocated += newSize - oldSize;
+            #endif
             } else {
                 // moving to size too big to fit in block
                 deallocateBlock((char*)ptr);
                 newPtr = allocateNonBlock(newSize, alignment);
+
+            #ifndef NDEBUG
+                nonBlockBytesAllocated += newSize;
+                blockBytesAllocated -= oldSize;
+            #endif
             }
         } else {
             // old ptr was nonblock
@@ -383,19 +404,33 @@ public:
                 // new ptr is block
                 deallocateNonBlock(ptr, oldSize, alignment);
                 newPtr = allocateBlock();
+            #ifndef NDEBUG
+                nonBlockBytesAllocated -= oldSize;
+                blockBytesAllocated += newSize;
+            #endif
             } else {
                 // both non blocks
                 if (newSize == oldSize) {
                     newPtr = ptr;
+                #ifndef NDEBUG
+                    nonBlockBytesAllocated += newSize - oldSize;
+                #endif
                 } else {
-                    deallocateNonBlock(ptr, oldSize, alignment);
-                    newPtr = allocateNonBlock(newSize, alignment);
+                    newPtr = reallocateNonBlock(ptr, oldSize, newSize, alignment);
+                #ifndef NDEBUG
+                    nonBlockBytesAllocated += newSize - oldSize;
+                #endif
                 }
             }
         }
 
         __asan_unpoison_memory_region(newPtr, newSize);
         return newPtr;
+    }
+
+    static constexpr size_t goodSize(size_t minSize) {
+        if (minSize < BlockSize) return BlockSize;
+        else return minSize;
     }
 
     void reserve(size_t blocks) {
@@ -444,8 +479,8 @@ public:
         int allocatedBlocks = numAllocatedBlocks();
         std::string allocated;
     #ifndef NDEBUG
-        allocated = string_format("%zu bytes allocated. Wasted bytes in blocks: %zu",
-            bytesAllocated, BlockSize * allocatedBlocks - bytesAllocated);
+        allocated = string_format("%zu block bytes allocated. %zu non block bytes allocated. Wasted bytes in blocks: %zu",
+            blockBytesAllocated, nonBlockBytesAllocated, (ssize_t)BlockSize * usedBlocks - (ssize_t)blockBytesAllocated);
     #else
         allocated = string_format("%d allocated blocks of size %zu = %zu bytes",
                 allocatedBlocks, BlockSize, allocatedBlocks * BlockSize);
@@ -454,6 +489,7 @@ public:
             .name = "Block Allocator",
             .used = string_format("%d used blocks of size %zu = %zu bytes",
                 usedBlocks, BlockSize, usedBlocks * BlockSize),
+            .estimatedBytesUsed = usedBlocks * BlockSize,
             .allocated = allocated
         };
     }

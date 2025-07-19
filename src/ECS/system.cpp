@@ -238,7 +238,7 @@ void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<System::
                     chunks = &jobThreadChunks;
                 }
 
-                int ChunkSize = (job->parallelize && allowParallelization) ? pool->size / 64 : pool->size;
+                int ChunkSize = (job->parallelize && allowParallelization) ? 64 : pool->size;
                 
                 int remainderChunkSize = pool->size % ChunkSize;
                 if (remainderChunkSize > 0) {

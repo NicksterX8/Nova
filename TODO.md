@@ -2,6 +2,8 @@
 
 NEW() and DELETE() with debug info is not thread safe
 
+player gets kind of stuck on tile edges
+
 
 fix console stuff like arrowing up/down
 fix cursor
@@ -11,8 +13,6 @@ make entity maker a thing for all EntityManagers, not just World
 Need to make a unified gui renderer to batch all kinds of primitives into a single draw call so they can be properly ordered
 Need to use only one shader, uses multiple paths based on primitive type int
 
-develop free list/recycler
-new bucket allocator
 fix old bucket allocator
     - seems pretty good now
 arena allocator
