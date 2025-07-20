@@ -128,34 +128,6 @@ public:
     static constexpr size_t goodSize(size_t minCount) {
         return Derived::goodSize(minCount * sizeof(T)) / sizeof(T);
     }
-
-    // template<typename T>
-    // struct MemoryBlockT {
-    //     T* pointer;
-    //     size_t size; // in elements
-    // };
-
-    // struct MemoryBlock {
-    //     void* pointer;
-    //     size_t size; // bytes
-    // };
-
-    // MemoryBlock allocateAtLeast(size_t minSize, size_t alignment) {
-    //     // if not overriden, does the same thing as normal allocate and allocates exactly minSize
-    //     return {
-    //         static_cast<Derived*>(this)->allocate(minSize, alignment),
-    //         minSize
-    //     };
-    // }
-
-    // template<typename T>
-    // MemoryBlockT<T> allocateAtLeast(size_t minCount) {
-    //     // if not overriden, does the same thing as normal allocate and allocates exactly minSize
-    //     return {
-    //         static_cast<Derived*>(this)->allocate(minCount * sizeof(T), alignof(T)),
-    //         minCount * sizeof(T)
-    //     };
-    // }
 };
 
 struct AllocatorStats {
@@ -164,27 +136,6 @@ struct AllocatorStats {
     std::string allocated; // used by clients. ACTUALLY being used
     std::string used; // used by the allocator
 };
-
-
-// template<typename Allocator>
-// class AllocatorHolder {
-//     EMPTY_BASE_OPTIMIZE Allocator allocator;
-// public:
-//     AllocatorHolder() = default;
-//     AllocatorHolder(const Allocator &allocator) : allocator(allocator) {}
-//     AllocatorHolder(Allocator &&allocator) : allocator(static_cast<Allocator &&>(allocator)) {}
-//     Allocator &getAllocator() { return allocator; }
-//     const Allocator &getAllocator() const { return allocator; }
-// };
-
-// template<typename Allocator>
-// class AllocatorHolder<Allocator&> {
-//     Allocator &allocator;
-// public:
-//     AllocatorHolder(Allocator& allocator) : allocator(allocator) {}
-//     Allocator &getAllocator() { return allocator; }
-//     const Allocator &getAllocator() const { return allocator; }
-// };
 
 class SameAllocator {};
 
@@ -381,6 +332,5 @@ public:
         deallocatefn(allocator, ptr, size, alignment);
     }
 };
-
 
 #endif

@@ -2,6 +2,7 @@
 
 #include "utils/type_traits.hpp"
 #include "ECS/Signature.hpp"
+#include "ECS/EntityManager.hpp"
 #include <vector>
 
 namespace ECS {
