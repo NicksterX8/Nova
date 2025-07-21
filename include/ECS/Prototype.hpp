@@ -34,7 +34,7 @@ namespace ECS {
 using ComponentPtr = void*;
 
 class LargeComponentList {
-    using Set = My::DenseSparseSet<ComponentID, ComponentPtr, Uint16, MaxComponentID>;
+    using Set = My::DenseSparseSet<ComponentID, ComponentPtr, Uint16, MaxComponentIDs>;
     Set components;
 public:
 

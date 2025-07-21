@@ -46,7 +46,8 @@ bool EntityManager::addComponent(Entity entity, ComponentID component, const voi
         return false;
     }
 
-    return (bool)doAddComponent(entity, component, value);
+    doAddComponent(entity, component, value);
+    return true;
 }
 
 bool EntityManager::addSignature(Entity entity, Signature signature) {

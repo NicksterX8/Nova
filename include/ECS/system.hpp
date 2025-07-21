@@ -45,10 +45,6 @@ struct SystemManager {
     std::vector<System*> systems;
 
     std::vector<Group> groups;
-    struct TriggerGroupInfo {
-        std::vector<Entity> triggeredEntities;
-    };
-    std::vector<TriggerGroupInfo> triggerGroupInfo;
     
     EntityManager* entityManager = nullptr;
     EntityCommandBuffer unexecutedCommands;
@@ -73,8 +69,16 @@ public:
         }
 
         // none exist yet of same type, make one
+        if (trigger & (Group::EntityEntered | Group::EntityExited)) {
+            ECS::GroupWatcherType type = 0;
+            if (trigger & Group::EntityEntered)
+                type |= ECS::GroupWatcherTypes::EnteredGroup;
+            if (trigger & Group::EntityExited)
+                type |= ECS::GroupWatcherTypes::ExitedGroup;
+            newGroup.watcherPool = entityManager->makeWatcher({newGroup.group.signature, newGroup.group.subtract}, type);
+        }
         GroupID id = groups.size();
-        groups.push_back(Group(componentGroup, trigger));
+        groups.push_back(newGroup);
         return id;
     }
 
@@ -141,6 +145,7 @@ struct System {
         for (JobHandle jobDependency : dependencyList.jobDependencies) {
             AddDependency(handle, jobDependency);
         }
+
         return handle;
     }
 
@@ -184,12 +189,6 @@ struct System {
     template<typename GroupC>
     GroupID MakeGroup(const GroupC& cgroup, Group::TriggerType trigger = Group::EntityInGroup) {
         return systemManager->getOrMakeGroup(cgroup, trigger);
-    }
-
-    template<typename T>
-    void MakeGroupArray(GroupArray<T>* array, GroupID groupID) const {
-        Group* group = systemManager->getGroup(groupID);
-        group->addArray(array);
     }
 
     class Thenner {

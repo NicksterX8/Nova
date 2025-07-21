@@ -167,7 +167,7 @@ struct Group {
     };
     TriggerType trigger;
     std::vector<GroupArrayT> arrays;
-    std::vector<Entity> triggeredEntities;
+    ArchetypePool* watcherPool = nullptr;
 
     Group(IComponentGroup group, TriggerType trigger) : group(group), trigger(trigger) {}
 
@@ -187,14 +187,9 @@ struct Group {
     }
 };
 
-// template<typename T>
-// constexpr GroupArray<T>::GroupArray(Group* group) {
-//     group->addArray(this);
-// }
-
 // tuple parameters are used only to take in variadic type packs. Value does not matter including nullptr
 template<bool TakesEntityArray, class... Components, class... Vars, class JobT>
-void makeJob(JobT* job, std::tuple<ComponentArray<Components>...>* /*nullptr*/, std::tuple<Vars...>* /*nullptr*/) {
+void makeJobOld(JobT* job, std::tuple<ComponentArray<Components>...>* /*nullptr*/, std::tuple<Vars...>* /*nullptr*/) {
     constexpr Signature readSignature = ECS::getSignature<Components...>();
     constexpr Signature writeSignature = ECS::getMutableSignature<Components...>();
     job->readComponents = readSignature;
@@ -226,10 +221,39 @@ void makeJob(JobT* job, std::tuple<ComponentArray<Components>...>* /*nullptr*/, 
     };
 }
 
-// template<class ...Components>
-// std::tuple<Components*...> getComponents(JobData* jobData, std::tuple<Components...> dummy) {
-//     return { jobData->getComponentArray<Components>() ... };
-// }
+// tuple parameters are used only to take in variadic type packs. Value does not matter including nullptr
+template<bool TakesEntityArray, class... Components, class... Vars, class JobT>
+void makeJob(JobT* job, std::tuple<ComponentArray<Components>...>* /*nullptr*/, std::tuple<Vars...>* /*nullptr*/) {
+    constexpr Signature readSignature = ECS::getSignature<Components...>();
+    constexpr Signature writeSignature = ECS::getMutableSignature<Components...>();
+    job->readComponents = readSignature;
+    job->writeComponents = writeSignature;
+    job->dependencies = job; // TODO: remove this field maybeee?
+ 
+    using GroupVarTuple = std::tuple<Vars*...>; // need pointers to vars so they remain up to date
+    job->executeFunc = [](void* jobDataPtr, int startN, int endN){
+        JobData* jobData = (JobData*)jobDataPtr;
+        JobT* job = (JobT*)jobData->dependencies;
+        GroupVarTuple groupVars = *(GroupVarTuple*)jobData->groupVars;
+        if constexpr (TakesEntityArray) {
+            EntityArray entityArray = {jobData->getEntityArray()};
+            std::tuple<ComponentArray<Components>...> componentArrays = {
+                ComponentArray<Components>(jobData->getComponentArray<Components>()) ...
+            };
+            for (int N = startN; N < endN; N++) {
+                job->Execute(N, entityArray, std::get<TupleTypeIndex<ComponentArray<Components>, ComponentArray<Components>...>>(componentArrays) ..., *std::get<TupleTypeIndex<Vars*, Vars*...>>(groupVars) ...);
+            }
+        } else {
+            std::tuple<ComponentArray<Components>...> componentArrays = {
+                ComponentArray<Components>(jobData->getComponentArray<Components>()) ...
+            };
+            for (int N = startN; N < endN; N++) {
+                job->Execute(N, std::get<TupleTypeIndex<ComponentArray<Components>, ComponentArray<Components>...>>(componentArrays) ..., *std::get<TupleTypeIndex<Vars*, Vars*...>>(groupVars) ...);
+            }
+        }
+        
+    };
+}
 
 // template<typename GroupVarsT, class ComponentsTuple, class Class>
 // Job makeJob4(Class* deps){
@@ -348,8 +372,8 @@ template<typename JobT>
 constexpr bool JobTakesEntityArray = ExecuteMethodTraits<decltype(&JobT::Execute)>::TakesEntityArray;
 
 // tuple parameters are used only to take in variadic type packs. Value does not matter including nullptr
-template<bool TakesEntityArray, class Execute, class... Components, class... Vars>
-Job::ConditionalExecution makeConditionalExecute(Job* job, std::tuple<ComponentArray<Components>...>* /*nullptr*/, std::tuple<Vars...>* /*nullptr*/) {
+template<class JobT, bool TakesEntityArray, auto Execute, class... Components, class... Vars>
+Job::ConditionalExecution makeConditionalExecute(JobT* job, std::tuple<ComponentArray<Components>...>* /*nullptr*/, std::tuple<Vars...>* /*nullptr*/) {
     constexpr Signature readSignature = ECS::getSignature<Components...>();
     constexpr Signature writeSignature = ECS::getMutableSignature<Components...>();
     job->readComponents |= readSignature;
@@ -358,22 +382,22 @@ Job::ConditionalExecution makeConditionalExecute(Job* job, std::tuple<ComponentA
     using GroupVarTuple = std::tuple<const Vars*...>;
     JobExePtr executeFunc = [](void* jobDataPtr, int startN, int endN){
         JobData* jobData = (JobData*)jobDataPtr;
-        Job* job = (Job*)jobData->dependencies;
+        JobT* job = (JobT*)jobData->dependencies;
         GroupVarTuple groupVars = *(GroupVarTuple*)jobData->groupVars;
         if constexpr (TakesEntityArray) {
-            std::tuple<EntityArray, ComponentArray<Components>...> componentArrays = {
-                EntityArray(jobData->getEntityArray()),
+            EntityArray entityArray = {jobData->getEntityArray()};
+            std::tuple<ComponentArray<Components>...> componentArrays = {
                 ComponentArray<Components>(jobData->getComponentArray<Components>()) ...
             };
             for (int N = startN; N < endN; N++) {
-                Execute::execute(job, N, componentArrays, groupVars);
+                (job->*Execute)(N, entityArray, std::get<TupleTypeIndex<ComponentArray<Components>, ComponentArray<Components>...>>(componentArrays) ..., *std::get<TupleTypeIndex<Vars*, Vars*...>>(groupVars) ...);
             }
         } else {
             std::tuple<ComponentArray<Components>...> componentArrays = {
                 ComponentArray<Components>(jobData->getComponentArray<Components>()) ...
             };
             for (int N = startN; N < endN; N++) {
-                Execute::execute(job, N, componentArrays, groupVars);
+                (job->*Execute)(N, std::get<TupleTypeIndex<ComponentArray<Components>, ComponentArray<Components>...>>(componentArrays) ..., *std::get<TupleTypeIndex<Vars*, Vars*...>>(groupVars) ...);
             }
         }
     };
@@ -392,25 +416,11 @@ struct JobDecl : Job {
             (ExecuteMethodVars<&Derived::Execute>*)nullptr);
     }
 
-    // or entities
-    template<typename... Ts, typename... GroupVars>
-    static constexpr void execute(void* self, int N, std::tuple<Ts...> components, std::tuple<GroupVars*...> vars) {
-        ((Derived*)self)->Execute(N, std::get<TupleTypeIndex<Ts, Ts...>>(components) ..., *std::get<TupleTypeIndex<GroupVars*, GroupVars*...>>(vars) ...);
-    }
-
-    template<auto Exe>
-    struct Execute {
-        template<typename... Components, typename... GroupVars>
-        static constexpr void execute(void* self, int N, std::tuple<ComponentArray<Components>...> components, std::tuple<GroupVars*...> vars) {
-            (((Derived*)self)->*Exe)(N, std::get<TupleTypeIndex<Components*, Components*...>>(components) ..., *std::get<TupleTypeIndex<GroupVars*, GroupVars*...>>(vars) ...);
-        }
-    };
-
     template<auto Exe>
     void addConditionalExecute() {
         conditionalExecutions.push_back(
-            makeConditionalExecute<ExecuteMethodTraits<decltype(Exe)>::TakesEntityArray, Execute<Exe>>(
-                this, 
+            makeConditionalExecute<Derived, ExecuteMethodTraits<decltype(Exe)>::TakesEntityArray, Exe>(
+                static_cast<Derived*>(this), 
                 (ExecuteMethodComponents<Exe>*)nullptr, 
                 (ExecuteMethodVars<&Derived::Execute>*)nullptr // Vars to both executes must be the same
             )

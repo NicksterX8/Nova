@@ -43,7 +43,9 @@ fix terminal out of sync for a frame cause of size constraint stuff and text
 add<...> components
 entities aren't put into chunk entity list when created
 
+
 now: atomic structures / multithreading
+#
 optimize for components with no members... maybe (std::is_empty)
 
 entity debug panel would be sick

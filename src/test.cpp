@@ -148,6 +148,24 @@ struct Child : Base<Child> {
     }
 };
 
+class myClass {
+public:
+    int x = 10;
+
+    myClass() {}
+
+    myClass(const myClass& other) {
+        printf("copied\n");
+    }
+
+    void test() {
+        auto lambd = [this](int v){
+            x = v;
+        };
+        lambd(12);
+    }
+};
+
 int main() {
     size_t totalBytes = 0;
     size_t totalbonus = 0;
@@ -166,16 +184,26 @@ int main() {
     //     totalBytes += s;
     //     totalbonus += malloc_good_size(s) - s;
     // }
-    for (size_t s = 20; s < 1000; s *= 2) {
-        size_t s2 = s + rand() % 24 - 12;
-        printf("size: %zu. good size: %zu. bonus percent: %.3f\n", s2, malloc_good_size(s2), float(malloc_good_size(s2) - s2) / float(s2) * 100);
-        totalBytes += s2;
-        totalbonus += malloc_good_size(s2) - s2;
-    }
-    printf("averaged bonus percent: %.2f", float(totalbonus)/ float(totalBytes) * 100);
-    //memcpy((void*)&base, &child, sizeof(Child));
+    // for (size_t s = 20; s < 1000; s *= 2) {
+    //     size_t s2 = s + rand() % 24 - 12;
+    //     printf("size: %zu. good size: %zu. bonus percent: %.3f\n", s2, malloc_good_size(s2), float(malloc_good_size(s2) - s2) / float(s2) * 100);
+    //     totalBytes += s2;
+    //     totalbonus += malloc_good_size(s2) - s2;
+    // }
+    // printf("averaged bonus percent: %.2f", float(totalbonus)/ float(totalBytes) * 100);
+    // //memcpy((void*)&base, &child, sizeof(Child));
 
-    // printf("x: %d", (&base)->foo());
-    // Base* basePtr = &base;
-    //printf("ptr: %d", basePtr->foo());
+    // // printf("x: %d", (&base)->foo());
+    // // Base* basePtr = &base;
+    // //printf("ptr: %d", basePtr->foo());
+    // int arr[10] = {12,};
+    // for (int i = 0; i < 10; i++) {
+    //     printf("arr %d: %d", i ,arr[i]);
+    // } 
+
+    
+
+    myClass c;
+    c.test();
+    printf("c: %d", c.x);
 }

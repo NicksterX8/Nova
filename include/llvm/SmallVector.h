@@ -648,6 +648,7 @@ public:
 
   // added by Nick W for personal uses
   T* require(size_type N) {
+    static_assert(std::is_trivially_default_constructible_v<T>, "Require does not construct any elements!");
     size_type NewSize = this->size() + N;
     this->reserve(NewSize);
     T* Elements = this->data();

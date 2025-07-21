@@ -47,7 +47,7 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
 void GameEntitySystems::init(GameState* state, RenderContext* renderContext, Camera& camera) {
     auto& allocator = GlobalAllocators.gameScratchAllocator;
     this->renderEntitySys = NEW(World::RenderSystems::RenderEntitySystem(ecsRenderSystems, *renderContext, camera, *state->ecs, state->chunkmap), allocator);
-    this->dynamicEntitySys = NEW(World::Systems::DynamicEntitySystem(ecsStateSystems, &state->chunkmap), allocator);
+    this->dynamicEntitySys = NEW(World::Systems::DynamicEntitySystem(ecsStateSystems, &state->chunkmap, state->ecs), allocator);
 
     ECS::Systems::setupSystems(ecsRenderSystems);
     ECS::Systems::setupSystems(ecsStateSystems);
@@ -201,6 +201,12 @@ static void updateSystems(GameState* state) {
 
 int tick(GameState* state, PlayerControls* playerControls) {
     state->player.grenadeThrowCooldown--;
+
+    Entity test = World::Entities::Player::make(state->ecs, {5, 5}, state->itemManager);
+
+    state->ecs->Destroy(test);
+
+
 
     updateSystems(state);
 
@@ -438,11 +444,13 @@ int Game::init(SDLContext sdlContext) {
     // init systems
     systems.init(state, renderContext, camera);
 
-    for (int e = 0; e < 200; e++) {
-        Vec2 pos = {(float)randomInt(-400, 400), (float)randomInt(-400, 400)};
+    this->state->createWorld();
+
+    for (int e = 0; e < 8000; e++) {
+        Vec2 pos = {(float)randomInt(-100, 100), (float)randomInt(-100, 100)};
         // do placing collision checks
         auto tree = World::Entities::Tree::make(state->ecs, pos, {4, 4}).make();
-        World::entityCreated(state, tree);
+        // World::entityCreated(state, tree);
         (void)tree;
     }
 
@@ -458,8 +466,6 @@ int Game::init(SDLContext sdlContext) {
     state->ecs->Remove<World::EC::Health>(tree);
 
     state->ecs->Destroy(tree);
-
-    World::entityCreated(state, this->state->player.entity);
 
     World::Entities::TextBox::make(state->ecs, {10, -5}, World::EC::Text{
         .message = "This is an example of a text box!",

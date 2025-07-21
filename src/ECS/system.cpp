@@ -216,10 +216,11 @@ void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<System::
         for (auto scheduledJob : stageJobList) {
             Job* job = &scheduledJob->job;
             GroupID group = scheduledJob->group;
-            Group::TriggerType trigger = sysManager.getGroup(group)->trigger;
-            if (trigger != Group::EntityInGroup) {
-                runTriggerJob(sysManager, *scheduledJob, trigger);
-            }
+            // dont think i need
+            // Group::TriggerType trigger = sysManager.getGroup(group)->trigger;
+            // if (trigger != Group::EntityInGroup) {
+            //     runTriggerJob(sysManager, *scheduledJob, trigger);
+            // }
             auto& eligiblePools = groupPools[group];
 
             int groupEntityOffset = 0;
@@ -329,27 +330,26 @@ void ECS::Systems::executeSystem(SystemManager& sysManager, System* system, cons
 }
 
 void ECS::Systems::executeSystems(SystemManager& sysManager) {
-    // for (int i = 0; i < sysManager.groups.size(); i++) {
-    //     auto& group = sysManager.groups[i];
-    //     if (group.trigger == Group::EntityEntered) {
-    //         std::vector<const ArchetypePool*> eligiblePools;
-    //         findEligiblePools(group.group.signature, group.group.subtract, *sysManager.entityManager, &eligiblePools);
-    //         for (auto* pool : eligiblePools) {
-    //             const_cast<ArchetypePool*>(pool)->addedEntitiesWatchers.clear();
-    //             const_cast<ArchetypePool*>(pool)->addedEntitiesWatchers.push_back(&sysManager.triggerGroupInfo[i].triggeredEntities);
-    //         }
-    //     }
-    // }
 
     std::vector<std::vector<const ArchetypePool*>> groupPools;
     groupPools.resize(sysManager.groups.size());
 
     for (GroupID id = 0; id < sysManager.groups.size(); id++) {
         Group* group = &sysManager.groups[id];
-        int totalJobEntities = findEligiblePools(
+        int totalJobEntities;
+        if (group->trigger == Group::EntityInGroup) {
+            totalJobEntities = findEligiblePools(
                 group->group.signature, group->group.subtract, 
                 *sysManager.entityManager,
                 &groupPools[id]);
+        } else {
+            ArchetypePool* pool = group->watcherPool;
+            if (!pool) {
+                LogError("Watching group with no watcher pool!");
+                continue; // won't execute
+            }
+            groupPools[id].push_back(pool);
+        }
 
         // make sure arrays are right size for group
         for (auto& array : group->arrays) {
@@ -375,6 +375,13 @@ void ECS::Systems::executeSystems(SystemManager& sysManager) {
         System* system = sysManager.systems[s];
         executeSystem(sysManager, system, groupPools);
     } // for each system end
+
+    // clear watcher pools for next frame
+    for (GroupID id = 0; id < sysManager.groups.size(); id++) {
+        if (sysManager.groups[id].watcherPool != nullptr) {
+            sysManager.groups[id].watcherPool->clear();
+        }
+    }
 
     // flush all commands at end of systems execution
     sysManager.entityManager->executeCommandBuffer(&sysManager.unexecutedCommands);

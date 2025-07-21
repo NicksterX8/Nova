@@ -185,6 +185,50 @@ void forEachEntityInBounds(const EntityWorld& ecs, const ChunkMap* chunkmap, Box
     });
 }
 
+SmallVectorA<Entity, VirtualAllocator, 4> getAllEntitiesInBounds(const EntityWorld& ecs, const ChunkMap* chunkmap, Boxf bounds, VirtualAllocator allocator) {
+    SmallVectorA<Entity, VirtualAllocator, 4> result{allocator};
+    
+    forEachChunkContainingBounds(chunkmap, bounds, [&](ChunkData* chunkdata){
+        Vec2 min = bounds[0];
+        Vec2 max = bounds[1];
+
+        result.reserve(result.size() + chunkdata->closeEntities.size);
+        for (int i = chunkdata->closeEntities.size-1 ; i >= 0; i--) {
+            auto closeEntity = chunkdata->closeEntities[i];
+            /* TEMPORARY!  TODO: replace this */
+            if (!ecs.EntityExists(closeEntity)) {
+                chunkdata->removeCloseEntity(closeEntity);
+                continue;
+            }
+
+            auto* entityViewbox = ecs.Get<const EC::ViewBox>(closeEntity);
+            auto* entityPos = ecs.Get<const EC::Position>(closeEntity);
+            assert(entityViewbox && entityPos);
+
+            Vec2 eMin = entityPos->vec2() + entityViewbox->box.min;
+            Vec2 eMax = eMin + entityViewbox->box.size;
+
+            if (eMin.x < max.x && eMax.x > min.x &&
+                eMin.y < max.y && eMax.y > min.y)
+            {
+                result.push_back(closeEntity);
+            }
+        }
+    });
+
+    return result;
+}
+
+SmallVectorA<Entity, VirtualAllocator, 0> getAllEntitiesNearBounds(const EntityWorld& ecs, const ChunkMap* chunkmap, Boxf bounds, VirtualAllocator allocator) {
+    SmallVectorA<Entity, VirtualAllocator, 0> result{allocator};
+    
+    forEachChunkContainingBounds(chunkmap, bounds, [&](ChunkData* chunkdata){
+        result.append(chunkdata->closeEntities.begin(), chunkdata->closeEntities.end());
+    });
+
+    return result;
+}
+
 Entity findFirstEntityAtPosition(const EntityWorld& ecs, const ChunkMap* chunkmap, Vec2 position) {
     Entity foundEntity;
     World::forEachEntityNearPoint(ecs, chunkmap, position, [&](Entity entity){
@@ -229,13 +273,15 @@ Entity findPlayerFocusedEntity(const EntityWorld& ecs, const ChunkMap& chunkmap,
 
         auto render = ecs.Get<const EC::Render>(entity);
         // TODO: enhance for multiple textures
-        int entityLayer = render->textures[0].layer;
-
         if (pointInEntity(target, entity, ecs)) {
-            if (entityLayer > focusedEntityLayer
-            || (entityLayer == focusedEntityLayer && entity.id > focusedEntity.id)) {
-                focusedEntity = entity;
-                focusedEntityLayer = entityLayer;
+            for (int i = 0; i < render->numTextures; i++) {
+                int entityLayer = render->textures[i].layer;
+                if (entityLayer > focusedEntityLayer 
+                    || (entityLayer == focusedEntityLayer
+                    && entity.id > focusedEntity.id)) {
+                    focusedEntity = entity;
+                    focusedEntityLayer = entityLayer;
+                }
             }
         }
 

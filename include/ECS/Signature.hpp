@@ -9,11 +9,11 @@ namespace ECS {
 using ComponentID = Sint16;
 
 #define ECS_MAX_COMPONENT 64
-constexpr ComponentID MaxComponentID = ECS_MAX_COMPONENT;
+constexpr ComponentID MaxComponentIDs = ECS_MAX_COMPONENT;
 
 template<class C>
 constexpr ComponentID getID() {
-    static_assert(C::ID < MaxComponentID, "Component ID too high!");
+    static_assert(C::ID < MaxComponentIDs, "Component ID too high!");
     return C::ID;
 }
 
@@ -67,10 +67,10 @@ template <bool WantComponents, typename... Vars>
 using filter_components_t = typename filter_components<WantComponents, Vars...>::type;
 
 template<class ...Cs>
-constexpr static My::Bitset<MaxComponentID> getSignature() {
+constexpr static My::Bitset<MaxComponentIDs> getSignature() {
     constexpr ComponentID ids[] = {0, getID<Cs>() ...};
     // sum component signatures
-    auto result = My::Bitset<MaxComponentID>(0);
+    auto result = My::Bitset<MaxComponentIDs>(0);
     for (size_t i = 0; i < sizeof...(Cs); i++) {
         result.set(ids[i+1]);
     }
@@ -79,11 +79,11 @@ constexpr static My::Bitset<MaxComponentID> getSignature() {
 
 // get the signature of only the const components
 template<class ...Cs>
-constexpr static My::Bitset<MaxComponentID> getConstSignature() {
+constexpr static My::Bitset<MaxComponentIDs> getConstSignature() {
     constexpr ComponentID ids[] = {0, getID<Cs>() ...};
     constexpr bool constness[] = {false, std::is_const_v<Cs> ...};
     // sum component signatures
-    auto result = My::Bitset<MaxComponentID>(0);
+    auto result = My::Bitset<MaxComponentIDs>(0);
     for (size_t i = 0; i < sizeof...(Cs); i++) {
         if (constness[i+1])
             result.set(ids[i+1]);
@@ -93,11 +93,11 @@ constexpr static My::Bitset<MaxComponentID> getConstSignature() {
 
 // get the signature of only the mutable components
 template<class ...Cs>
-constexpr static My::Bitset<MaxComponentID> getMutableSignature() {
+constexpr static My::Bitset<MaxComponentIDs> getMutableSignature() {
     constexpr ComponentID ids[] = {0, getID<Cs>() ...};
     constexpr bool constness[] = {false, std::is_const_v<Cs> ...};
     // sum component signatures
-    auto result = My::Bitset<MaxComponentID>(0);
+    auto result = My::Bitset<MaxComponentIDs>(0);
     for (size_t i = 0; i < sizeof...(Cs); i++) {
         if (!constness[i+1])
             result.set(ids[i+1]);
@@ -107,24 +107,24 @@ constexpr static My::Bitset<MaxComponentID> getMutableSignature() {
 
 // prototype components will result in a compilation error
 template<class ...Cs>
-constexpr static My::Bitset<MaxComponentID> getSignatureNoProto() {
+constexpr static My::Bitset<MaxComponentIDs> getSignatureNoProto() {
     constexpr ComponentID ids[] = {0, getIDNoProto<Cs>() ...};
     // sum component signatures
-    auto result = My::Bitset<MaxComponentID>(0);
+    auto result = My::Bitset<MaxComponentIDs>(0);
     for (size_t i = 0; i < sizeof...(Cs); i++) {
         result.set(ids[i+1]);
     }
     return result;
 }
 
-struct Signature : My::Bitset<MaxComponentID> {
-    private: using Base = My::Bitset<MaxComponentID>; public:
+struct Signature : My::Bitset<MaxComponentIDs> {
+    private: using Base = My::Bitset<MaxComponentIDs>; public:
 
     constexpr Signature() {}
 
     constexpr Signature(typename Base::IntegerType startValue) : Base(startValue) {}
 
-    constexpr Signature(const My::Bitset<MaxComponentID>& base) : Base(base) {}
+    constexpr Signature(const My::Bitset<MaxComponentIDs>& base) : Base(base) {}
 
     template<class C>
     constexpr bool getComponent() const {
@@ -133,7 +133,7 @@ struct Signature : My::Bitset<MaxComponentID> {
 
     template<class C>
     constexpr void setComponent(bool val = true) {
-        My::Bitset<MaxComponentID>::set(C::ID, val);
+        My::Bitset<MaxComponentIDs>::set(C::ID, val);
     }
 
     template<class... Cs>

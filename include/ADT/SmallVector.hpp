@@ -1256,12 +1256,12 @@ public:
     return *this;
   }
 
-  SmallVector(SmallVector &&RHS) : SmallVectorImpl<T, AllocatorT>(N) {
+  SmallVector(SmallVector &&RHS) : SmallVectorImpl<T, AllocatorT>(N, RHS.allocator) {
     if (!RHS.empty())
       SmallVectorImpl<T, AllocatorT>::operator=(::std::move(RHS));
   }
 
-  SmallVector(SmallVectorImpl<T, AllocatorT> &&RHS) : SmallVectorImpl<T, AllocatorT>(N) {
+  SmallVector(SmallVectorImpl<T, AllocatorT> &&RHS) : SmallVectorImpl<T, AllocatorT>(N, RHS.allocator) {
     if (!RHS.empty())
       SmallVectorImpl<T, AllocatorT>::operator=(::std::move(RHS));
   }

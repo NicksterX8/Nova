@@ -4,6 +4,36 @@
 
 namespace ECS {
 
+ struct ComponentGroup {
+    Signature required;
+    Signature rejected;
+
+    bool contains(Signature components) const {
+        return components.hasAll(required) && components.hasNone(rejected);
+        // alternate: doesn't have short circuiting but no branch is probably good?
+       // return ((components & required) ^ (components & ~rejected)) == components;
+    }
+
+    bool operator==(ComponentGroup other) const {
+        return required == other.required && rejected == other.rejected;
+    }
+
+    struct Hash {
+        My::Map::Hash operator()(ComponentGroup group) const {
+            return group.required.bits[0] ^ group.rejected.bits[0];
+        }
+    };
+};
+
+using GroupWatcherType = uint8_t;
+
+namespace GroupWatcherTypes {
+    enum : GroupWatcherType {
+        EnteredGroup = 1,
+        ExitedGroup = 2,
+    };
+}
+
 struct ArchetypalComponentManager {
     static constexpr size_t MaxEntityID = (1 << 14) - 1;
 
@@ -24,8 +54,28 @@ struct ArchetypalComponentManager {
         ArchetypeID archetype;
     };
 
-    My::DenseSparseSet<EntityID, EntityData, 
-        Uint16, MaxEntityID> entityData;
+    My::DenseSparseSet<EntityID, EntityData, Uint16, MaxEntityID> entityData;
+
+    struct ComponentWatcher {
+        ComponentGroup group;
+        ArchetypePool* pool;
+        GroupWatcherType type;
+    };
+
+    Signature watchedComponentAdds = 0;
+    Signature watchedComponentRemoves = 0;
+    SmallVector<SmallVector<ComponentWatcher>, 0> componentAddWatchers;
+    SmallVector<SmallVector<ComponentWatcher>, 0> componentRemoveWatchers;
+    static constexpr Uint8 NullWatcherIndex = 255;
+    /*alignas(64)*/ Uint8 watchedComponentAddGroupIndices[MaxComponentIDs]; 
+                Uint8 watchedComponentRemoveGroupIndices[MaxComponentIDs];
+
+    
+    // My::HashMap<ComponentGroup, ArchetypePool*, ComponentGroup::Hash> watcherPools;
+
+    /* Methods */
+
+    ArchetypePool* addWatcher(ComponentGroup group, GroupWatcherType type);
 
     void init(ComponentInfoRef componentInfo);
 
@@ -71,7 +121,9 @@ struct ArchetypalComponentManager {
     // returns true on success, false on failure
     bool addSignature(Entity entity, Signature components);
 
-    void* addComponent(Entity entity, ComponentID component, const void* initializationValue = nullptr);
+    void addComponent(Entity entity, ComponentID component, const void* initializationValue = nullptr);
+
+    void addComponentWithGroups(Entity entity, ComponentID component, const void* initializationValue = nullptr);
 
     void removeComponent(Entity entity, ComponentID component);
 

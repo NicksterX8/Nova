@@ -36,9 +36,9 @@ void forEachSetBitULL(unsigned long long bits, const F& functor) {
 template<typename IntegerT, class F>
 void forEachSetBit(IntegerT bits, const F& functor) {
     static_assert(std::is_unsigned<IntegerT>::value, "Invalid type");
-    if (sizeof(IntegerT) == sizeof(unsigned long long)) {
+    if constexpr (sizeof(IntegerT) == sizeof(unsigned long long)) {
         forEachSetBitULL(bits, functor);
-    } else if (sizeof(IntegerT) == sizeof(unsigned int)) {
+    } else if constexpr (sizeof(IntegerT) == sizeof(unsigned int)) {
         forEachSetBitUint(bits, functor);
     } else {
         for (IntegerT j = 0; bits != 0 && j < sizeof(IntegerT) * 8; j++) {
@@ -136,8 +136,7 @@ public:
 
     constexpr bool any() const {
         for (size_t i = 0; i < nInts; i++) {
-            if (bits[i])
-                return true;
+            if (bits[i]) return true;
         }
         return false;
     }
@@ -164,7 +163,7 @@ public:
     }
 
     constexpr bool hasNone(SelfParamT aBitset) const {
-        return !(*this & aBitset).any(); // !hasAny
+        return (*this & aBitset).empty();
     }
 
     constexpr Self operator&(SelfParamT rhs) const {

@@ -20,6 +20,7 @@ struct GameState {
     ScratchAllocator<> scratch;
 
     void init(const TextureManager* textureManager);
+    void createWorld();
     void destroy();
 };
 

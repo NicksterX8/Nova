@@ -105,7 +105,7 @@ struct EntityColorJob : JobParallelFor<EntityColorJob> {
 using RenderSystem = System;
 
 struct RenderEntitySystem : RenderSystem {
-    constexpr static GLint entitiesPerBatch = 512;
+    constexpr static GLint entitiesPerBatch = 1024;
     constexpr static GLint verticesPerEntity = 1;
     constexpr static GLint verticesPerBatch = entitiesPerBatch*verticesPerEntity;
 
@@ -173,18 +173,7 @@ struct RenderEntitySystem : RenderSystem {
     }
 
     void BeforeExecution() {
-        auto camTransform = camera.getTransformMatrix();
 
-        auto shader = ren.shaders.use(Shaders::Entity);
-        shader.setMat4("transform", camTransform);
-
-        // glBindVertexArray(model.model.vao);
-        // glBindBuffer(GL_ARRAY_BUFFER, model.model.vbo);
-
-        // if (!mapVertexArrays()) {
-        //     LogError("Failed to map vertex arrays!");
-        // }
-        
         
     }
 
@@ -197,56 +186,50 @@ struct RenderEntitySystem : RenderSystem {
         glBindVertexArray(model.model.vao);
         glBindBuffer(GL_ARRAY_BUFFER, model.model.vbo);
         
-        if (!mapVertexArrays()) {
-            // can't render :(
-            LogError("Failed to map entity vertex arrays!");
-            return;
-        }
+        // if (!mapVertexArrays()) {
+        //     // can't render :(
+        //     LogError("Failed to map entity vertex arrays!");
+        //     return;
+        // }
 
         const auto* textureAtlas = &ren.textureAtlas;
         const auto* textureData = ren.textures.data.data;
 
         Boxf cameraBounds = camera.maxBoundingArea();
 
-        My::Vec<Entity> entityList = My::Vec<Entity>::WithCapacity(16);
+        // My::Vec<Entity> entityList = My::Vec<Entity>::WithCapacity(16);
 
-        World::forEachEntityInBounds(ecs, &chunkmap, cameraBounds, 
-        [&](Entity entity){
-            if (ecs.EntitySignature(entity).hasComponents<EC::Render, EC::ViewBox, EC::Position>()) {
-                entityList.push(entity);
-            }
-        });
+        // World::forEachEntityInBounds(ecs, &chunkmap, cameraBounds, 
+        // [&](Entity entity){
+        //     //if (ecs.EntitySignature(entity).hasComponents<EC::Render, EC::ViewBox, EC::Position>()) {
+        //         entityList.push(entity);
+        //     //}
+        // });
 
-        My::Vec<Uint16> textureIndexList = My::Vec<Uint16>::Filled(entityList.size, 0);
+        Mallocator mallocator;
 
-        int realNumEntities = entityList.size;
+        auto entityList = getAllEntitiesInBounds(ecs, &chunkmap, cameraBounds, &mallocator);
+
+        My::Vec<Uint16> textureIndexList = My::Vec<Uint16>::Filled(entityList.size(), 0);
+
+        int realNumEntities = entityList.size();
         for (int e = 0; e < realNumEntities; e++) {
             Entity entity = entityList[e];
             EC::Render* renderComponent = ecs.Get<EC::Render>(entity);
             for (int i = 1; i < renderComponent->numTextures; i++) {
-                entityList.push(entity);
+                entityList.push_back(entity);
                 textureIndexList.push(i);
             }
         }
 
         int entitiesRendered = 0;
-        while (entitiesRendered < entityList.size) {
-            int batchSize = MIN(entityList.size - entitiesRendered, entitiesPerBatch);
-            renderBatch(ArrayRef(entityList.data, entityList.size), ArrayRef(textureIndexList.data, textureIndexList.size), ecs, chunkmap, ren);
+        while (entitiesRendered < entityList.size()) {
+            int batchSize = MIN(entityList.size() - entitiesRendered, entitiesPerBatch);
+            renderBatch(ArrayRef(entityList.data() + entitiesRendered, batchSize), ArrayRef(textureIndexList.data + entitiesRendered, batchSize), ecs, chunkmap, ren);
             entitiesRendered += batchSize;
         }
 
-        // put vertex data into effect
-        unmapVertexArrays();
-
-        // number of entities wasn't exactly divisible by entitiesPerBatch, so we have some left to do
-        if (entitiesRendered < entityList.size) {
-            // draw a batch of entities
-            glDrawArrays(GL_POINTS, 0, entityList.size - entitiesRendered);
-        }
-
         textureIndexList.destroy();
-        entityList.destroy();
     }
 
     void renderBatch(ArrayRef<Entity> entities, ArrayRef<Uint16> texIndices, const EntityWorld& ecs, const ChunkMap& chunkmap, RenderContext& ren) {
@@ -254,6 +237,11 @@ struct RenderEntitySystem : RenderSystem {
         auto& buffer = vertices;
         
         int batchSize = entities.size();
+
+        if (!mapVertexArrays()) {
+            LogError("Failed to map vertex arrays!");
+            return;
+        }
     
         // position and size
         for (int e = 0; e < batchSize; e++) {
@@ -392,6 +380,8 @@ struct RenderEntitySystem : RenderSystem {
 
             buffer.colors[e] = colorShading;
         }
+
+        unmapVertexArrays();
 
         // draw a batch of entities
         glDrawArrays(GL_POINTS, 0, batchSize);

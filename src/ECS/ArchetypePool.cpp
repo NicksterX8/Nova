@@ -13,7 +13,7 @@ Archetype makeArchetype(Signature signature, ComponentInfoRef componentTypeInfo)
         .numComponents = (int)count,
         .sumSize = 0
     };
-    for (int i = 0; i < MaxComponentID; i++) {
+    for (int i = 0; i < MaxComponentIDs; i++) {
         archetype.componentIndices[i] = -1;
     }
 
@@ -87,56 +87,19 @@ void ArchetypePool::doubleCopyIndex(int dstIndex, int middleIndex, int srcIndex)
     entities[middleIndex] = entities[srcIndex];
 }
 
-void ArchetypePool::remove(int index, EntityMoved* movedEntity0, EntityMoved* movedEntity1) {
+void ArchetypePool::remove(int index, Entity* movedEntity) {
     assert(index < size);
 
-    const int lastCleanIndex = size - 1 - dirtyEntitiesStart;
-    const int lastDirtyIndex = size - 1;
+    const int lastIndex = size - 1;
     if (index < size-1) {
-        if (numDirtyEntities() == 0) {
-            // much simpler
-            *movedEntity0 = {
-                .entity = entities[lastCleanIndex],
-                .newIndex = index
-            };
-            *movedEntity1 = {
-                .entity = NullEntity
-            };
-            copyIndex(index, lastCleanIndex);
-        } else {
-            if (index < dirtyEntitiesStart) {
-                // removing clean
-
-                // fill now empty spot with last dirty
-                *movedEntity0 = {
-                    entities[lastCleanIndex],
-                    index
-                };
-                *movedEntity1 = {
-                    entities[lastDirtyIndex],
-                    lastCleanIndex
-                };
-                
-                doubleCopyIndex(index, lastCleanIndex, lastDirtyIndex);
-            } else {
-                // removing dirty
-                // swap last dirty with index and decrement size
-                *movedEntity0 = {
-                    .entity = entities[lastDirtyIndex],
-                    .newIndex = index
-                };
-                *movedEntity1 = {
-                    .entity = NullEntity
-                };
-                copyIndex(index, lastDirtyIndex);
-            }
-            
-        }
+        // much simpler
+        *movedEntity = entities[lastIndex];
+        copyIndex(index, lastIndex);
     } else {
         // removing very last entity.
         // doesn't matter whether it's dirty or not,
         // no swapping to do
-        *movedEntity0 = {.entity = NullEntity};
+        *movedEntity = NullEntity;
     }
 
     size--;

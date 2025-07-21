@@ -48,7 +48,7 @@ constexpr size_t element_offset() {
 namespace ECS {
 
 struct Archetype {
-    Sint8 componentIndices[MaxComponentID];
+    Sint8 componentIndices[MaxComponentIDs];
     int32_t numComponents;
     Signature signature;
     uint16_t* sizes;
@@ -61,7 +61,7 @@ struct Archetype {
     }
 
     Sint8 getIndex(ComponentID component) const {
-        if (component < 0 || component >= MaxComponentID) return -1;
+        if (component < 0 || component >= MaxComponentIDs) return -1;
         return componentIndices[component];
     }
 
@@ -77,10 +77,8 @@ struct ArchetypePool {
     int capacity;
     Entity* entities; // contained entities
     char* buffer;
-    My::Vec<int> bufferOffsets; // make SmallVector?
+    My::Vec<int> bufferOffsets; // make SmallVector? there could be like 15 components and then its just a waste of space
     Archetype archetype;
-
-    int dirtyEntitiesStart = 0;
 
     ArchetypePool(const Archetype& archetype);
 
@@ -99,10 +97,7 @@ struct ArchetypePool {
 
     char* getBuffer(int bufferIndex) const {
         assert(buffer && "Null archetype pool!");
-        if (bufferIndex < 0 || bufferIndex >= numBuffers()) {
-            LogError("Buffer index out of range!");
-            return nullptr;
-        }
+        assert(bufferIndex >= 0 && bufferIndex < numBuffers() && "Buffer index out of range!");
         return buffer + bufferOffsets[bufferIndex];
     }
 
@@ -118,28 +113,12 @@ struct ArchetypePool {
     void* getComponent(ComponentID component, int index) const {
         assert(index < size && index >= 0);
         auto bufferIndex = archetype.getIndex(component);
+        if (bufferIndex < 0) return nullptr;
         return getComponentByIndex(bufferIndex, index);
     }
 
     // returns index where entity is stored
     int addNew(Entity entity);
-
-    void markAllEntitiesClean() {
-        dirtyEntitiesStart = size;
-    }
-
-    int numDirtyEntities() const {
-        return size - dirtyEntitiesStart;
-    }
-
-    const Entity* getDirtyEntities() const {
-        return &entities[dirtyEntitiesStart];
-    }
-
-    struct EntityMoved {
-        Entity entity;
-        int newIndex;
-    };
 
     void copyIndex(int dstIndex, int srcIndex) {
         for (int i = 0; i < archetype.numComponents; i++) {
@@ -157,7 +136,11 @@ struct ArchetypePool {
 
     // returns entities moved in movedEntity0 and movedEntity1. If less than 2 entities were moved, they will be set to NullEntity and newIndex will be undefined
     // if movedEntity0 is NullEntity, movedEntity1 will also be
-    void remove(int index, EntityMoved* movedEntity0, EntityMoved* movedEntity1);
+    void remove(int index, Entity* movedEntity);
+
+    void clear() {
+        size = 0;
+    }
 
     void destroy() {
         Free(buffer);

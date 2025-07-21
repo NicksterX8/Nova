@@ -45,11 +45,16 @@ struct ChangeEntityPosJob : JobSingleThreaded<ChangeEntityPosJob> {
 
 struct SetChunkMapPosJob : JobSingleThreaded<SetChunkMapPosJob> {
     ChunkMap* chunkmap;
+    EntityWorld* ecs;
 
-    SetChunkMapPosJob(ChunkMap* chunkmap) : chunkmap(chunkmap) {}
+    SetChunkMapPosJob(ChunkMap* chunkmap, EntityWorld* ecs) : chunkmap(chunkmap), ecs(ecs) {}
 
-    void Execute(int N, EntityArray entity, ComponentArray<EC::Position> position, ComponentArray<EC::ViewBox> viewbox) {
-        entityViewChanged(chunkmap, entity[N], position[N].vec2(), position[N].vec2(), viewbox[N].box, viewbox[N].box, true);
+    void Execute(int N, EntityArray entity) {
+        if (!ecs->EntityExists(entity[N])) return;
+        // entityViewChanged(chunkmap, entity[N], position[N].vec2(), position[N].vec2(), viewbox[N].box, viewbox[N].box, true);
+        auto position = *ecs->Get<EC::Position>(entity[N]);
+        auto viewbox = *ecs->Get<EC::ViewBox>(entity[N]);
+        entityViewChanged(chunkmap, entity[N], position.vec2(), position.vec2(), viewbox.box, viewbox.box, true);
     }
 };
 
@@ -58,6 +63,10 @@ struct DynamicEntitySystem : System {
         ReadWrite<EC::Position>,
         ReadWrite<EC::Dynamic>,
         ReadOnly<EC::ViewBox>
+    >());
+
+    GroupID treeGroup = MakeGroup(ComponentGroup<
+        ReadWrite<EC::Position>
     >());
 
     ChunkMap* chunkmap;
@@ -72,14 +81,14 @@ struct DynamicEntitySystem : System {
         ReadWrite<EC::ViewBox>
     >(), Group::EntityEntered);
 
-    SetChunkMapPosJob setChunkMapPos{chunkmap};
+    SetChunkMapPosJob setChunkMapPos;
 
-    DynamicEntitySystem(SystemManager& manager, ChunkMap* chunkmap)
-    : System(manager), chunkmap(chunkmap) {
+    DynamicEntitySystem(SystemManager& manager, ChunkMap* chunkmap, EntityWorld* ecs)
+    : System(manager), chunkmap(chunkmap), setChunkMapPos(chunkmap, ecs) {
         Schedule(dynamicGroup, changeEntityPos, entityPosChanged.refConst(), 
             Schedule(dynamicGroup, findChangedEntities, &entityPosChanged));
 
-       // Schedule(newEntities, setChunkMapPos);        
+       Schedule(newEntities, setChunkMapPos);        
     }
 };
 

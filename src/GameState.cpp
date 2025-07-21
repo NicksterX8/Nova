@@ -54,9 +54,36 @@ void makeEntityPrototypes(EntityWorld& ecs) {
     }
 }
 
+void GameState::createWorld() {
+    /* Init Player */
+    player = Player(ecs, Vec2(0, 0), itemManager);
+
+    auto* pool = ecs->em.makeWatcher({
+        .required = ECS::getSignature<World::EC::ViewBox>(),
+        .rejected = ECS::getSignature<World::EC::Inserter>()
+    }, ECS::GroupWatcherTypes::EnteredGroup);
+
+    ecs->Add(player.entity, World::EC::Inserter{0, 0, 0, {0,0}, {0,0}});
+
+    ecs->Remove<World::EC::Inserter>(player.entity);
+
+    ItemStack startInventory[] = {
+        ItemStack(items::Prototypes::SandGun::make(itemManager)),
+        ItemStack(items::Prototypes::Grenade::make(itemManager), 60),
+        ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::Grass), 64),
+        ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::Sand), 24),
+        ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::TransportBelt), 64),
+        ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::GreyFloor), 192)
+    };
+
+    Inventory* playerInventory = player.inventory();
+    for (int i = 0; i < (int)(sizeof(startInventory) / sizeof(ItemStack)); i++) {
+        playerInventory->addItemStack(startInventory[i]);
+    }
+}
+
 void GameState::init(const TextureManager* textureManager) {
     auto& scratch = GlobalAllocators.gameScratchAllocator;
-    // auto scratch = ScratchMemory::allocate(GlobalAllocators.gameScratchAllocator, 1024);
     trackAllocator("GameState::scratch", &scratch);
 
     /* Init Chunkmap */
@@ -91,23 +118,6 @@ void GameState::init(const TextureManager* textureManager) {
 
     makeItemPrototypes(itemManager);
     loadTileData(itemManager, textureManager);
-
-    /* Init Player */
-    player = Player(ecs, Vec2(0, 0), itemManager);
-
-    ItemStack startInventory[] = {
-        ItemStack(items::Prototypes::SandGun::make(itemManager)),
-        ItemStack(items::Prototypes::Grenade::make(itemManager), 60),
-        ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::Grass), 64),
-        ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::Sand), 24),
-        ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::TransportBelt), 64),
-        ItemStack(items::Prototypes::Tile::make(itemManager, TileTypes::GreyFloor), 192)
-    };
-
-    Inventory* playerInventory = player.inventory();
-    for (int i = 0; i < (int)(sizeof(startInventory) / sizeof(ItemStack)); i++) {
-        playerInventory->addItemStack(startInventory[i]);
-    }
 }
 
 void GameState::destroy() {

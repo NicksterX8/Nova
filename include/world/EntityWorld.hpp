@@ -54,10 +54,10 @@ struct EntityMaker {
     template<class C>
     void Add(const C& value) {
         components.setComponent<C>();
-        if (bufUsed + sizeof(C) > buf.size()) {
+        Uint16 offset = (Uint16)((uintptr_t)buf.data() % alignof(C));
+        if (bufUsed + offset + sizeof(C) > buf.size()) {
             assert(0 && "Ran out of buffer space");
         }
-        Uint16 offset = (Uint16)((uintptr_t)buf.data() % alignof(C));
         memcpy(&buf[bufUsed + offset], &value, sizeof(C));
         componentValues.push_back(ComponentValue{C::ID, (Uint16)(bufUsed + offset)});
         bufUsed += sizeof(C) + offset;
@@ -297,12 +297,25 @@ public:
     }
 
     bool AddSignature(Entity entity, ECS::Signature signature) {
-        if (em.addSignature(entity, signature)) {
-            
-            return true;
-        }
-        return false;
+        return em.addSignature(entity, signature);
     }
+
+    template<typename... Ts>
+    struct TypeBuffer {
+        char buf[sumSizes<Ts...>()];
+
+        void construct(size_t offset) {}
+
+        template<typename T, typename... Rest>
+        void construct(size_t offset, const T& val, const Rest&... rest) {
+            memcpy(buf + offset, &val, sizeof(T));
+            construct(offset + sizeof(T), rest...);
+        }
+
+        TypeBuffer(const Ts&... vals) {
+            construct(0, vals...);
+        }
+    };
 
     /* Add the template argument components to the entity.
      * Triggers the relevant 'onAdd' events directly after adding all of the components if not currently deferring events.
@@ -314,6 +327,7 @@ public:
     template<class... Components>
     bool Add(Entity entity, Components... components) {
         constexpr ECS::Signature signature = ECS::getSignature<Components...>();
+
         bool ret = em.addSignature(entity, signature);
         if (ret) {
             void* ptrs[] = {(void*)Set<Components>(entity, components) ...};

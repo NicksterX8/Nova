@@ -13,9 +13,16 @@ namespace ECS {
 using ComponentManager = ArchetypalComponentManager;
 
 template<typename Value>
-using ComponentSet = My::DenseSparseSet<Sint8, Value, Uint8, MaxComponentID>;
+using ComponentSet = My::DenseSparseSet<Sint8, Value, Uint8, MaxComponentIDs>;
 
 using ComponentDestructor = std::function<void(Entity)>;
+struct ComponentOnAdds {
+    struct OnAdd {
+        Signature required;
+        std::function<void(Entity)> onAdd;
+    };
+    SmallVector<OnAdd, 2> onAdds;
+};
 
 struct EntityManager {
     ComponentManager components;
@@ -25,8 +32,10 @@ private:
     bool* stateLocked;
     EntityCommandBuffer* commandBuffer;
 
-    Signature componentsWithDestructors = {0};
+    Signature componentsWithDestructors = 0;
     ComponentSet<ComponentDestructor> componentDestructors;
+
+    Signature componentsWithOnAdd = 0;
 public:
 
     void init(ComponentInfoRef componentInfo, int numPrototypes) {
@@ -253,16 +262,22 @@ public:
         }
     }
 
-    bool doAddComponent(Entity entity, ComponentID component, const void* value) {
-        // TODO: do on add
-        return (bool)components.addComponent(entity, component, value);
+    ComponentSet<ComponentOnAdds> onAdds;
+
+    void doAddComponent(Entity entity, ComponentID component, const void* value) {
+        components.addComponent(entity, component, value);
+    }
+
+    ArchetypePool* makeWatcher(ECS::ComponentGroup group, ECS::GroupWatcherType type) {
+       return components.addWatcher(group, type);
     }
 
     template<class C>
     bool addComponent(Entity entity, const C& startValue) {
         static_assert(!C::PROTOTYPE, "Cannot add a prototype component to a entity!");
         
-        return addComponent(entity, C::ID, &startValue);
+        addComponent(entity, C::ID, &startValue);
+        return true; // TODO: think about addComponent return types
     }
 
     // generic add
