@@ -406,8 +406,15 @@ public:
         assert(newCapacity >= 0 && "can't have negative map capacity");
         newCapacity = MAX(size, newCapacity); // capacity can't be smaller than size
 
-        values = Realloc(values, (size_t)newCapacity);
-        keys   = Realloc(keys, (size_t)newCapacity);
+        if constexpr (!std::is_trivially_move_constructible_v<Value>) {
+            Value* newValues = Alloc<Value>(newCapacity);
+            std::uninitialized_move_n(values, size, newValues);
+            Free(values);
+            values = newValues;
+        } else {
+            values = Realloc(values, (size_t)newCapacity);
+        }
+        keys = Realloc(keys, (size_t)newCapacity);
         
         capacity = newCapacity;
     }
@@ -425,6 +432,7 @@ public:
     }
 
     void destroy() {
+        destruct(values, size);
         Free(values);
         Free(set);
         Free(keys);

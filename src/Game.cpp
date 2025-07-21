@@ -410,6 +410,8 @@ int Game::update() {
     lastUpdateMouseState = mouse;
     lastUpdatePlayerTargetPos = playerControls->mouseWorldPos;
 
+    GlobalAllocators.frame.Reset();
+
     if (quit) {
         LogInfo("Returning from main update loop.");
         return 1;
@@ -446,26 +448,16 @@ int Game::init(SDLContext sdlContext) {
 
     this->state->createWorld();
 
-    for (int e = 0; e < 8000; e++) {
-        Vec2 pos = {(float)randomInt(-100, 100), (float)randomInt(-100, 100)};
-        // do placing collision checks
-        auto tree = World::Entities::Tree::make(state->ecs, pos, {4, 4}).make();
-        // World::entityCreated(state, tree);
-        (void)tree;
-    }
+    // for (int e = 0; e < 8000; e++) {
+    //     Vec2 pos = {(float)randomInt(-100, 100), (float)randomInt(-100, 100)};
+    //     // do placing collision checks
+    //     auto tree = World::Entities::Tree::make(state->ecs, pos, {4, 4}).make();
+    //     // World::entityCreated(state, tree);
+    //     (void)tree;
+    // }
 
-    auto tree = World::Entities::Tree::make(state->ecs, {10.5, 10.5}, {40, 40})();
-    state->ecs->Add<World::EC::Fresh, World::EC::Immortal>(tree, {}, {});
-
-    for (int i = 0; i < 10; i++) {
-        auto& tree = World::Entities::Grenade::make(state->ecs, Vec2(i*2));
-        state->ecs->Get<World::EC::Render>(tree())->textures[1].layer = i;
-        state->ecs->Get<World::EC::Render>(tree())->textures[0].layer = i;
-    }
-
-    state->ecs->Remove<World::EC::Health>(tree);
-
-    state->ecs->Destroy(tree);
+    // auto tree = World::Entities::Tree::make(state->ecs, {10.5, 10.5}, {40, 40})();
+    // state->ecs->Add<World::EC::Fresh, World::EC::Immortal>(tree, {}, {});
 
     World::Entities::TextBox::make(state->ecs, {10, -5}, World::EC::Text{
         .message = "This is an example of a text box!",

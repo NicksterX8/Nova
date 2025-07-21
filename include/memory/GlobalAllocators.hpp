@@ -19,7 +19,7 @@ struct GlobalAllocatorsType {
     GameBlockAllocator gameBlockAllocator{};
     FullVirtualAllocator* virtualGameBlockAllocator;
     ScratchAllocator<GameBlockAllocator&> gameScratchAllocator{16 * 1024, gameBlockAllocator};
-    //llvm::BumpPtrAllocatorImpl<> gameScratchAllocator;
+    llvm::BumpPtrAllocatorImpl<> frame;
     FullVirtualAllocator* virtualGameScratchAllocator;
 
     // pointers must be stable
@@ -28,6 +28,7 @@ struct GlobalAllocatorsType {
     GlobalAllocatorsType() {
         virtualGameBlockAllocator = trackAllocator("Game block allocator", &gameBlockAllocator);
         virtualGameScratchAllocator = trackAllocator("Game scratch allocator", &gameScratchAllocator);
+        trackAllocator("Main frame allocator", &frame);
         //trackAllocator("Global BumpPtr", &bumpPtr);
     }
 };

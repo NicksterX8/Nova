@@ -15,14 +15,14 @@ void generateChunk(ChunkData* chunkdata) {
     for (int row = 0; row < CHUNKSIZE; row++) {
         for (int col = 0; col < CHUNKSIZE; col++) {
             TileType tileType = TileTypes::Space;
-            r += (float)rand() / RAND_MAX;
-            if (r < 0.2f) {
-                tileType = TileTypes::Water;
-            } else if (r < 0.4f) {
-                tileType = TileTypes::GreyFloor;
-            } else {
-                tileType = TileTypes::Grass;
-            }
+            // r += (float)rand() / RAND_MAX;
+            // if (r < 0.2f) {
+            //     tileType = TileTypes::Water;
+            // } else if (r < 0.4f) {
+            //     tileType = TileTypes::GreyFloor;
+            // } else {
+            //     tileType = TileTypes::Grass;
+            // }
             
             chunk[row][col] = Tile(tileType);
         }

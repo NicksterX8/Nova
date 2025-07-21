@@ -87,14 +87,14 @@ inline void initGui(GuiManager& gui) {
     //gui.getComponent<EC::Text>(t2)->formatSettings.align = TextAlignment::MiddleCenter;
     //gui.getComponent<EC::Text>(t3)->formatSettings.align = TextAlignment::BottomRight;
 
-    auto b = button(gui, 
-        Box{{700, 50}, {100, 100}},
-        {0, 180, 30, 255},
-        "Execute them.", 
-        {255,255,255,255}, 
-        makeTheSkyBlue,
-        GUI::RenderLevel::Lowest);
-    gui.adopt(gui.screen, b);
+    // auto b = button(gui, 
+    //     Box{{700, 50}, {100, 100}},
+    //     {0, 180, 30, 255},
+    //     "Execute them.", 
+    //     {255,255,255,255}, 
+    //     makeTheSkyBlue,
+    //     GUI::RenderLevel::Lowest);
+    // gui.adopt(gui.screen, b);
 }
 
 inline void bufferAction(GuiAction guiAction, GUI::Element e, std::vector<GameAction>* gameActions) {

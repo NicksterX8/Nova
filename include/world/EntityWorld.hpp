@@ -83,19 +83,6 @@ struct EntityMaker {
 struct EntityWorld {
     ECS::EntityManager em;
 protected:
-    
-    using EventCallback = std::function<void(EntityWorld*, ECS::Entity)>;
-    
-    // does nothing currently
-    EventCallback callbacksOnAdd[EC::ComponentIDs::Count];
-    EventCallback callbacksBeforeRemove[EC::ComponentIDs::Count];
-
-    bool deferringEvents;
-    struct DeferredEvent {
-        ECS::Entity entity;
-        EventCallback callback;
-    };
-    SmallVector<DeferredEvent, 3> deferredEvents;
 
     char* entityMakerBuffer;
     EntityMaker entityMaker;
@@ -338,16 +325,6 @@ public:
 
     template<class T>
     void Remove(Entity entity) {
-        
-        auto& beforeRemoveT = callbacksBeforeRemove[ECS::getID<T>()];
-        if (beforeRemoveT) {
-            if (deferringEvents) {
-                deferredEvents.push_back({entity, beforeRemoveT});
-            } else {
-                beforeRemoveT(this, entity);
-            }
-        }
-        
         em.removeComponent<T>(entity);
     }
 
@@ -374,29 +351,6 @@ public:
 
     MutArrayRef<char> getEntityMakerBuffer() const {
         return MutArrayRef<char>(entityMakerBuffer, 1024);
-    }
-
-    void StartDeferringEvents() {
-        deferringEvents = true;
-    }
-
-    void StopDeferringEvents() {
-        for (auto& deferredEvent : deferredEvents) {
-            deferredEvent.callback(this, deferredEvent.entity);
-        }
-        deferredEvents.clear();
-
-        deferringEvents = false;
-    }
-
-    template<class T>
-    void SetOnAdd(EventCallback callback) {
-        callbacksOnAdd[ECS::getID<T>()] = callback;
-    }
-
-    template<class T>
-    void SetBeforeRemove(EventCallback callback) {
-        callbacksBeforeRemove[ECS::getID<T>()] = callback;
     }
 
     void ForEachAll(std::function<bool(Entity entity)> callback) const {

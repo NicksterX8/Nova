@@ -34,7 +34,6 @@ namespace World {
     }
 
     void EntityWorld::init(ChunkMap* chunkmap, EntityWorld* pointerToThis) {
-        deferringEvents = false;
         this->chunkmap = chunkmap;
         using namespace EC;
         using namespace EC::Proto;

@@ -125,12 +125,12 @@ public:
     // Deallocate all but the first slab, and deallocate all custom-sized slabs.
     DeallocateCustomSizedSlabs();
     CustomSizedSlabs.clear();
+    BytesAllocated = 0;
 
     if (Slabs.empty())
       return;
 
     // Reset the state.
-    BytesAllocated = 0;
     CurPtr = (char *)Slabs.front();
     End = CurPtr + SlabSize;
 

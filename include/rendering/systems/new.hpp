@@ -205,10 +205,7 @@ struct RenderEntitySystem : RenderSystem {
         //         entityList.push(entity);
         //     //}
         // });
-
-        Mallocator mallocator;
-
-        auto entityList = getAllEntitiesInBounds(ecs, &chunkmap, cameraBounds, &mallocator);
+        auto entityList = getAllEntitiesInBounds(ecs, &chunkmap, cameraBounds, &GlobalAllocators.frame);
 
         My::Vec<Uint16> textureIndexList = My::Vec<Uint16>::Filled(entityList.size(), 0);
 

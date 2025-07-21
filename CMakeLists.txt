@@ -5,7 +5,7 @@ project(faketorio VERSION 1.0)
 # -Wextra -pedantic
 
 add_compile_options(
-    -g -std=c++17 -O2
+    -g -std=c++17
     -Wall -Wextra -pedantic -Wliteral-conversion
     -Wno-macro-redefined -Wno-unused-variable -Wno-unused-parameter -Wno-char-subscripts -Wno-comment -Wno-sign-compare
     -Wno-gnu-zero-variadic-macro-arguments

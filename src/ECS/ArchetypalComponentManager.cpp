@@ -44,7 +44,7 @@ void ArchetypalComponentManager::init(ComponentInfoRef componentInfo) {
         watchedComponentAdds |= group.rejected;
     }
 
-    auto* pool = NEW(ArchetypePool(makeArchetype(group.required, componentInfo)));
+    auto* pool = NEW(ArchetypePool(makeArchetype(0, componentInfo)));
     ComponentWatcher watcher = {
         group,
         pool,

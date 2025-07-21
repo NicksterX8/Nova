@@ -1,5 +1,9 @@
 # TODO
 
+fix memory leak
+
+improve trigger systems implementation
+
 NEW() and DELETE() with debug info is not thread safe
 
 player gets kind of stuck on tile edges
