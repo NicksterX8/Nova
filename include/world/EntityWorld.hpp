@@ -58,9 +58,22 @@ struct EntityMaker {
         if (bufUsed + offset + sizeof(C) > buf.size()) {
             assert(0 && "Ran out of buffer space");
         }
-        memcpy(&buf[bufUsed + offset], &value, sizeof(C));
+        *((C*)(buf.data() + bufUsed + offset)) = value;
         componentValues.push_back(ComponentValue{C::ID, (Uint16)(bufUsed + offset)});
         bufUsed += sizeof(C) + offset;
+    }
+
+    template<class... Cs>
+    void Add(const Cs&... components) {
+        // components |= ECS::getSignature<Cs...>();
+        FOR_EACH_VAR_TYPE(Add<Cs>(components));
+        // Uint16 offset = (Uint16)((uintptr_t)buf.data() % alignof(C));
+        // if (bufUsed + offset + sizeof(C) > buf.size()) {
+        //     assert(0 && "Ran out of buffer space");
+        // }
+        // memcpy(&buf[bufUsed + offset], &value, sizeof(C));
+        // componentValues.push_back(ComponentValue{C::ID, (Uint16)(bufUsed + offset)});
+        // bufUsed += sizeof(C) + offset;
     }
 
     void setPos(Vec2 pos) {
@@ -286,23 +299,6 @@ public:
     bool AddSignature(Entity entity, ECS::Signature signature) {
         return em.addSignature(entity, signature);
     }
-
-    template<typename... Ts>
-    struct TypeBuffer {
-        char buf[sumSizes<Ts...>()];
-
-        void construct(size_t offset) {}
-
-        template<typename T, typename... Rest>
-        void construct(size_t offset, const T& val, const Rest&... rest) {
-            memcpy(buf + offset, &val, sizeof(T));
-            construct(offset + sizeof(T), rest...);
-        }
-
-        TypeBuffer(const Ts&... vals) {
-            construct(0, vals...);
-        }
-    };
 
     /* Add the template argument components to the entity.
      * Triggers the relevant 'onAdd' events directly after adding all of the components if not currently deferring events.

@@ -42,9 +42,9 @@ namespace ComponentIDs {
         Render, Inserter, Dynamic, Immortal, Selected, Follow, \
         Special, TransportLineEC, Transporter, Dying, Fresh, \
         ItemStack, Rotation, Rotatable, Explosion, \
-        Explosive, Growth, Point, Text
+        Explosive, Growth, Point, Text, Gun
     #define WORLD_PROTOTYPE_COMPONENT_LIST \
-        Hostile, Nature, EntityRenderLayer, Living
+        Hostile, Nature, EntityRenderLayer, Living, GunProto
     #define WORLD_COMPONENT_LIST WORLD_REGULAR_COMPONENT_LIST COMMA WORLD_PROTOTYPE_COMPONENT_LIST
     GEN_IDS(ComponentIDs, ComponentID, WORLD_COMPONENT_LIST, Count)
 };
@@ -325,6 +325,10 @@ END_COMPONENT(Dynamic)
 BEGIN_COMPONENT(Selected)
 END_COMPONENT(Selected)
 
+BEGIN_COMPONENT(Gun)
+    Tick lastFired;
+END_COMPONENT(Gun)
+
 namespace Proto {
     BEGIN_PROTO_COMPONENT(Hostile)
     END_PROTO_COMPONENT(Hostile)
@@ -335,6 +339,11 @@ namespace Proto {
     BEGIN_PROTO_COMPONENT(EntityRenderLayer)
         RenderLayer layer;
     END_PROTO_COMPONENT(EntityRenderLayer)
+
+    BEGIN_PROTO_COMPONENT(GunProto)
+        Uint16 cooldown; // ticks
+        ECS::PrototypeID projectile; //
+    END_PROTO_COMPONENT(GunProto)
 }
 
 };

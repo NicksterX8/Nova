@@ -16,6 +16,9 @@ struct Job {
     Signature readComponents = 0;
     Signature writeComponents = 0;
     void* dependencies = nullptr;
+
+    
+
     bool parallelize     : 1;
     bool mainThread      : 1;
     bool blocking        : 1;

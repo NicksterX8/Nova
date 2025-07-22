@@ -4,6 +4,7 @@
 #include "ECS/Prototype.hpp"
 #include "world/EntityWorld.hpp"
 #include "world/entities/methods.hpp"
+#include "utils/random_random.hpp"
 
 namespace World {
 
@@ -64,8 +65,9 @@ namespace Entities {
 
         static EntityMaker& make(EntityBuilder builder, Vec2 position, Vec2 size) {
             auto& e = builder.New(ID);
-            e.Add(EC::Health(100.0f));
-            e.Add(EC::Growth(0.0f));
+            e.Add(
+                EC::Health(100.0f),
+                EC::Growth(0.0f));
             Box texBox = Box{Vec2(-0.1), Vec2(1.2)};
             EC::Render::Texture textures[] = {
                 {TextureIDs::TreeBottom, RenderLayers::Tilemap, texBox},
@@ -190,6 +192,25 @@ namespace Entities {
             e.Add(EC::Position(position));
             e.Add(EC::ViewBox::BottomLeft(textComponent.box.size));
             e.Add(textComponent);
+            return e;
+        }
+    };
+
+    struct Cannon : PrototypeDecl<PrototypeIDs::Cannon> {
+        Cannon(PrototypeManager& manager) : PrototypeDecl(manager) {
+            setName("cannon");
+            add(EC::Proto::GunProto{
+                .cooldown = 60,
+                .projectile = PrototypeIDs::Laser,
+            });
+        }
+
+        static EntityMaker& make(EntityBuilder ecs, Vec2 position) {
+            auto& e = ecs.New(ID);
+            e.Add(EC::Position{position});
+            e.Add(EC::ViewBox::BottomLeft({1, 1}));
+            e.Add(EC::Render{TextureIDs::Buildings::TransportBelt, RenderLayers::Buildings});
+            e.Add(EC::Gun{});
             return e;
         }
     };

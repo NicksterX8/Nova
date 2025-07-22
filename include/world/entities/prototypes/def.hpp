@@ -1,7 +1,10 @@
 #ifndef WORLD_ENTITIES_PROTOTYPES_DEF_INCLUDED
 #define WORLD_ENTITIES_PROTOTYPES_DEF_INCLUDED
 
+#include "ECS/PrototypeManager.hpp"
+
 namespace World {
+    using PrototypeID = ECS::PrototypeID;
     namespace Entities {
         namespace PrototypeIDs {
             enum IDs {
@@ -15,6 +18,8 @@ namespace World {
                 Tree,
                 TransportBelt,
                 Monster,
+                Cannon,
+                Laser,
                 Count
             };
         }
@@ -28,7 +33,7 @@ namespace World {
 
     template<int TemplateId>
     struct PrototypeDecl : Prototype {
-        static constexpr int ID = TemplateId;
+        static constexpr PrototypeID ID = TemplateId;
 
         PrototypeDecl(PrototypeManager& manager) : Prototype(manager.New(ID)) {}
     };
