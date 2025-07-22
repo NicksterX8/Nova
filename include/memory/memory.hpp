@@ -129,28 +129,6 @@ using Mem::Alloc;
 using Mem::Realloc;
 using Mem::Free;
 
-// template<typename T>
-// T* New() {
-//     T* mem = Alloc<T>();
-//     new (mem) T();
-//     return mem;
-// }
-
-// template<typename T, typename... Args>
-// T* New(Args&... args) {
-//     T* mem = Alloc<T>();
-//     new (mem) T(args...);
-//     return mem;
-// }
-
-// template<typename T>
-// void Delete(T* pointer, size_t count = 1) {
-//     Free(pointer);
-//     for (int i = 0; i < count; i++) {
-//         pointer[i].~T();
-//     }
-// }
-
 struct AlignWrapper {
     size_t align;
 };
@@ -161,23 +139,23 @@ void debugNewed(void* pointer, size_t bytes, const char* file, int line, Allocat
 
 void debugDeleted(void* pointer, size_t bytes, const char* file, int line, AllocatorI* allocator = nullptr);
 
-inline void* operator new(size_t size, AlignWrapper align) {
+[[nodiscard]] inline void* operator new(size_t size, AlignWrapper align) {
     return malloc(size);
 }
 
 template<typename Allocator>
-void* operator new(size_t size, AlignWrapper align, Allocator& allocator) {
+[[nodiscard]] void* operator new(size_t size, AlignWrapper align, Allocator& allocator) {
     return allocator.allocate(size, align.align);
 }
 
-inline void* operator new(size_t size, AlignWrapper align, const char* file, int line) {
+[[nodiscard]] inline void* operator new(size_t size, AlignWrapper align, const char* file, int line) {
     void* ptr = malloc(size);
     debugNewed(ptr, size, file, line);
     return ptr;
 }
 
 template<typename Allocator>
-void* operator new(size_t size, AlignWrapper align, const char* file, int line, Allocator& allocator) {
+[[nodiscard]] void* operator new(size_t size, AlignWrapper align, const char* file, int line, Allocator& allocator) {
     void* ptr = allocator.allocate(size, align.align);
     debugNewed(ptr, size, file, line, (AllocatorI*)(void*)&allocator);
     return ptr; 
@@ -203,7 +181,8 @@ void deleteArray(T* pointer, const char* file, int line, Allocator& allocator, s
 // needed for deleting class from its base class pointer
 template<typename T, typename Allocator>
 void deleteArray(T* pointer, size_t objectSize, Allocator& allocator, size_t count) {
-    allocator.DeleteWithSize(pointer, objectSize, count);
+    assert(count == 1);
+    allocator.DeleteWithSize(pointer, objectSize);
 }
 
 // needed for deleting class from its base class pointer
@@ -214,24 +193,24 @@ void deleteArray(T* pointer, const char* file, int line, size_t objectSize, Allo
 }
 
 template<typename T>
-T* newArray(size_t count) {
+[[nodiscard]] T* newArray(size_t count) {
     return new T[count];
 }
 
 template<typename T>
-T* newArray(size_t count, const char* file, int line) {
+[[nodiscard]] T* newArray(size_t count, const char* file, int line) {
     T* ptr = new T[count];
     debugNewed(ptr, count * sizeof(T), file, line);
     return ptr;
 }
 
 template<typename T, typename Allocator>
-T* newArray(size_t count, Allocator& allocator) {
+[[nodiscard]] T* newArray(size_t count, Allocator& allocator) {
     return allocator.template New<T>(count);
 }
 
 template<typename T, typename Allocator>
-T* newArray(size_t count, const char* file, int line, Allocator& allocator) {
+[[nodiscard]] T* newArray(size_t count, const char* file, int line, Allocator& allocator) {
     T* ptr = allocator.template New<T>(count);
     debugNewed(ptr, count * sizeof(T), file, line, &allocator);
     return ptr;

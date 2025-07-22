@@ -13,13 +13,15 @@ using namespace ECS::Systems;
 
 using CopyNamesJob = CopyComponentArrayJob<GUI::EC::Name>;
 
-struct EnforceMinMaxSizeJob : JobParallelFor<EnforceMinMaxSizeJob> {
-    void Execute(int N, ComponentArray<EC::DisplayBox> displayBox, ComponentArray<const EC::SizeConstraint> sizeConstraint) {
-        if (displayBox[N].box.size.x > sizeConstraint[N].maxSize.x) displayBox[N].box.size.x = sizeConstraint[N].maxSize.x;
-        if (displayBox[N].box.size.y > sizeConstraint[N].maxSize.y) displayBox[N].box.size.y = sizeConstraint[N].maxSize.y;   
+struct EnforceMinMaxSizeJob : JobParallelFor<EnforceMinMaxSizeJob, EC::DisplayBox, const EC::SizeConstraint> {
+    void Execute(int N) {
+        auto displayBox = Get<EC::DisplayBox>(N);
+        auto sizeConstraint = Get<EC::SizeConstraint>(N);
+        if (displayBox.box.size.x > sizeConstraint.maxSize.x) displayBox.box.size.x = sizeConstraint.maxSize.x;
+        if (displayBox.box.size.y > sizeConstraint.maxSize.y) displayBox.box.size.y = sizeConstraint.maxSize.y;   
 
-        if (displayBox[N].box.size.x < sizeConstraint[N].minSize.x) displayBox[N].box.size.x = sizeConstraint[N].minSize.x;
-        if (displayBox[N].box.size.y < sizeConstraint[N].minSize.y) displayBox[N].box.size.y = sizeConstraint[N].minSize.y;
+        if (displayBox.box.size.x < sizeConstraint.minSize.x) displayBox.box.size.x = sizeConstraint.minSize.x;
+        if (displayBox.box.size.y < sizeConstraint.minSize.y) displayBox.box.size.y = sizeConstraint.minSize.y;
     }
 };
 
@@ -37,9 +39,9 @@ struct SizeConstraintSystem : System {
     }
 };
 
-struct GetViewLevelsJob : JobParallelFor<GetViewLevelsJob> {
-    void Execute(int N, ComponentArray<const EC::ViewBox> viewbox, GroupArray<GUI::RenderLevel> levels) {
-        levels[N] = viewbox[N].level;
+struct GetViewLevelsJob : JobParallelFor<GetViewLevelsJob, const EC::ViewBox> {
+    void Execute(int N, GroupArray<GUI::RenderLevel> levels) {
+        levels[N] = Get<EC::ViewBox>(N).level;
     }
 };
 
@@ -48,12 +50,10 @@ struct QuadAndHeight {
     GUI::RenderHeight height;
 };
 
-struct BoxToQuadJob : JobParallelFor<BoxToQuadJob> {
-    void Execute(int N,
-        ComponentArray<const EC::DisplayBox> displayBox,
-        GroupArray<QuadAndHeight> quads)
-    {
-        Box box = displayBox[N].box;
+struct BoxToQuadJob : JobParallelFor<BoxToQuadJob, const EC::DisplayBox> {
+    void Execute(int N, GroupArray<QuadAndHeight> quads) {
+        auto displaybox = Get<EC::DisplayBox>(N);
+        Box box = displaybox.box;
         Vec2 min = box.min;
         Vec2 max = box.max();
 
@@ -61,13 +61,13 @@ struct BoxToQuadJob : JobParallelFor<BoxToQuadJob> {
         quads[N].quad[1].pos = {min.x, max.y};
         quads[N].quad[2].pos = {max.x, max.y};
         quads[N].quad[3].pos = {max.x, min.y};
-        quads[N].height = displayBox[N].height;
+        quads[N].height = displaybox.height;
     }
 };
 
-struct ColorToQuadJob : JobParallelFor<ColorToQuadJob> {
-    void Execute(int N, ComponentArray<const EC::Background> background, GroupArray<QuadAndHeight> quads) {
-        SDL_Color color = background[N].color;
+struct ColorToQuadJob : JobParallelFor<ColorToQuadJob, const EC::Background> {
+    void Execute(int N, GroupArray<QuadAndHeight> quads) {
+        SDL_Color color = Get<EC::Background>(N).color;
 
         for (int i = 0; i < 4; i++) {
             quads[N].quad[i].color = color;
@@ -102,7 +102,7 @@ struct BufferBordersJob : JobSingleThreaded<BufferBordersJob> {
     }
 };
 
-struct BorderQuadsJob : JobParallelFor<BorderQuadsJob> {
+struct BorderQuadsJob : JobParallelFor<BorderQuadsJob, const EC::DisplayBox, const EC::Border> {
     QuadRenderer::Quad colorRect(glm::vec2 min, glm::vec2 max, SDL_Color color) {
         return QuadRenderer::Quad{{
             {glm::vec2{min.x, min.y}, color, QuadRenderer::NullCoord},
@@ -112,23 +112,22 @@ struct BorderQuadsJob : JobParallelFor<BorderQuadsJob> {
         }};
     }
 
-    void Execute(int N, 
-        ComponentArray<const EC::DisplayBox> displayBox, ComponentArray<const EC::Border> border, 
-        GroupArray<BorderQuads> quads)
-    {
-        Box box = displayBox[N].box;
+    void Execute(int N, GroupArray<BorderQuads> quads) {
+        auto displayBox = Get<EC::DisplayBox>(N);
+        auto border = Get<EC::Border>(N);
+        Box box = displayBox.box;
         Vec2 min = box.min;
         Vec2 max = box.max();
 
-        SDL_Color color = border[N].color;
-        Vec2 strokeIn = border[N].strokeIn;
-        Vec2 strokeOut = border[N].strokeOut;
+        SDL_Color color = border.color;
+        Vec2 strokeIn = border.strokeIn;
+        Vec2 strokeOut = border.strokeOut;
         
         quads[N].first[0] = colorRect({min.x - strokeOut.x, min.y - strokeOut.y}, {max.x -  strokeIn.x, min.y +  strokeIn.y}, color);
         quads[N].first[1] = colorRect({max.x -  strokeIn.x, min.y - strokeOut.y}, {max.x + strokeOut.x, max.y -  strokeIn.y}, color);
         quads[N].first[2] = colorRect({max.x + strokeOut.x, max.y -  strokeIn.y}, {min.x +  strokeIn.x, max.y + strokeOut.y}, color);
         quads[N].first[3] = colorRect({min.x - strokeOut.x, max.y + strokeOut.y}, {min.x +  strokeIn.x, min.y +  strokeIn.y}, color);
-        quads[N].second = displayBox[N].height;
+        quads[N].second = displayBox.height;
     }
 };
 
@@ -186,23 +185,23 @@ struct RenderBackgroundSystem : System {
     }
 };
 
-struct MakeTextureQuadsJob : JobParallelFor<MakeTextureQuadsJob> {
+struct MakeTextureQuadsJob : JobParallelFor<MakeTextureQuadsJob,
+            const EC::SimpleTexture, const EC::DisplayBox> {
     const TextureAtlas* textureAtlas;
 
     MakeTextureQuadsJob(const TextureAtlas* textureAtlas)
     : textureAtlas(textureAtlas) {}
 
-    void Execute(int N, 
-        ComponentArray<const EC::SimpleTexture> textures, ComponentArray<const EC::DisplayBox> displaybox, 
-        GroupArray<QuadAndHeight> quads)
-    {
-        TextureID texture = textures[N].texture;
+    void Execute(int N, GroupArray<QuadAndHeight> quads) {
+        auto textureEc = Get<EC::SimpleTexture>(N);
+        auto displaybox = Get<EC::DisplayBox>(N);
+        TextureID texture = textureEc.texture;
         TextureAtlas::Space space = getTextureAtlasSpace(textureAtlas, texture);
         Vec2 texMin = space.min;
         Vec2 texMax = space.max;
 
-        Vec2 min = displaybox[N].box.min + textures[N].texBox.min;
-        Vec2 max = displaybox[N].box.min + textures[N].texBox.max();
+        Vec2 min = displaybox.box.min + textureEc.texBox.min;
+        Vec2 max = displaybox.box.min + textureEc.texBox.max();
 
         SDL_Color color = {0,0,0,0};
 
@@ -210,7 +209,7 @@ struct MakeTextureQuadsJob : JobParallelFor<MakeTextureQuadsJob> {
         quads[N].quad[1] = {glm::vec2{min.x, max.y}, color, {texMin.x, texMax.y}};
         quads[N].quad[2] = {glm::vec2{max.x, max.y}, color, {texMax.x, texMax.y}};
         quads[N].quad[3] = {glm::vec2{max.x, min.y}, color, {texMax.x, texMin.y}};
-        quads[N].height = displaybox[N].height;
+        quads[N].height = displaybox.height;
     }
 };
 
@@ -236,12 +235,12 @@ struct RenderTexturesSystem : System {
     }
 };
 
-struct DoElementUpdatesJob : JobBlocking<DoElementUpdatesJob> {
+struct DoElementUpdatesJob : JobBlocking<DoElementUpdatesJob, const EC::Update> {
     Game* game;
 
     DoElementUpdatesJob(Game* game) : game(game) {}
 
-    void Execute(int N, EntityArray, ComponentArray<const EC::Update>);
+    void Execute(int N);
 };
 
 struct DoElementUpdatesSystem : System {

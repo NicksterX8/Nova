@@ -5,6 +5,7 @@ fix memory leak
 improve trigger systems implementation
 
 NEW() and DELETE() with debug info is not thread safe
+make ALLOC and DEALLOC macros
 
 player gets kind of stuck on tile edges
 

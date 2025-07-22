@@ -47,7 +47,7 @@ void calculateJobStagesFromSource(System* system, int* stages, JobHandle source,
 void calculateJobStages(System* system, TinyPtrVectorVector<System::ScheduledJob>* jobsByStage) {
     StackAllocate<int, 14> stages{system->jobs.size(), -1};
     for (int i = 0; i < system->jobs.size(); i++) {
-        Job* job = &system->jobs[i].job;
+        Job* job = system->jobs[i].job;
         if (stages[i] == -1) {
             calculateJobStagesFromSource(system, stages, i, 0);
         }
@@ -75,20 +75,33 @@ int calculateSystemStages(System* source, int stage) {
 
 // adds commands to commandBuffer
 void executeJobChunk(const JobChunk& chunk, EntityCommandBuffer* commandBuffer) {
-    JobData data{
-        .pool = chunk.pool,
-        .indexBegin = chunk.indexBegin,
-        .dependencies = chunk.job->dependencies,
-        .groupVars = chunk.groupVars,
-        .commandBuffer = commandBuffer
-    };
+    Job* job = (Job*)Alloc(chunk.job->size);
+    memcpy((void*)job, (void*)chunk.job, chunk.job->size);
+    job->commandBuffer = commandBuffer;
+    void* componentArrays[8] = {nullptr};
+    for (int i = 0; job->componentIDs[i] != 255; i++) {
+        auto componentID = job->componentIDs[i];
+        char* poolComponentArray = chunk.pool->getComponentArray(componentID);
+        assert(poolComponentArray && "Archetype pool does not have this component!");
 
-    chunk.job->executeFunc(&data, chunk.indexBegin, chunk.indexEnd);
-    for (auto& conditionalExecutions : chunk.job->conditionalExecutions) {
+        // need to adjust to make the pointer point 'componentIndex' number of components behind itself,
+        // so when indexBegin is added to the base index in the for loop,
+        // the range is actually 0...chunkSize
+        poolComponentArray -= (chunk.indexBegin * chunk.pool->archetype.sizes[chunk.pool->archetype.getIndex(componentID)]);
+        componentArrays[i] = poolComponentArray;
+    }
+    job->componentArrays = componentArrays;
+    job->entities = chunk.pool->entities - chunk.indexBegin;
+
+    chunk.job->executeFunc(job, chunk.groupVars, chunk.indexBegin, chunk.indexEnd);
+    for (int i = 0; i < chunk.job->nConditionalExecutions; i++) {
+        auto& conditionalExecutions = chunk.job->conditionalExecutions[i];
         if (chunk.pool->signature().hasAll(conditionalExecutions.required)) {
-            conditionalExecutions.execute(&data, chunk.indexBegin, chunk.indexEnd);
+            conditionalExecutions.execute(job, chunk.groupVars, chunk.indexBegin, chunk.indexEnd);
         }
     }
+
+    Free(job);
 }
 
 template<typename T>
@@ -214,7 +227,7 @@ void runSystemJobs(SystemManager& sysManager, const TinyPtrVectorVector<System::
         
         // split jobs into chunks while the stage is the same
         for (auto scheduledJob : stageJobList) {
-            Job* job = &scheduledJob->job;
+            Job* job = scheduledJob->job;
             GroupID group = scheduledJob->group;
             // dont think i need
             // Group::TriggerType trigger = sysManager.getGroup(group)->trigger;

@@ -4,8 +4,10 @@
 using namespace GUI;
 using namespace Systems;
 
-void DoElementUpdatesJob::Execute(int N, EntityArray elements, ComponentArray<const EC::Update> updates) {
-    for (auto action : updates[N].update) {
-        action->operator()(game, game->gui.manager, elements[N]);
-    } 
+void DoElementUpdatesJob::Execute(int N) {
+        auto update = Get<EC::Update>(N);
+        auto element = GetEntity(N);
+        for (auto action : update.update) {
+            action->operator()(game, game->gui.manager, element);
+        } 
 }

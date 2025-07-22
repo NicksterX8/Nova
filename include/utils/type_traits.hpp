@@ -99,6 +99,25 @@ struct FunctionTraits<Ret(Class::*)(Args...) const> {
     using ArgsTuple = std::tuple<Args...>;
 };
 
+template<typename T, typename... Us>
+struct is_one_of : std::disjunction<std::is_same<T, Us>...> {};
+
+template<typename T, typename... Us>
+constexpr bool is_one_of_v = is_one_of<T, Us...>::value;
+
+// template<typename T, typename Compare>
+// struct is_same_and_const : std::false_type {};
+
+// template<typename T, typename Compare>
+// struct is_same_and_const : std::is_same<std::remove_const_t<T>, std::remove_const_t<Compare>> && std::is_const_v<Compare>;
+
+// template<typename T, typename... Us>
+// struct type_in_group_is_const : std::disjunction<is_same_and_const<T, Us>...> {};
+
+// template<typename T, typename... Us>
+// constexpr bool type_in_group_is_const_v = type_in_group_is_const<T, Us...>::value;
+
+
 // Primary template: false by default
 template <typename T, template <typename...> class Template>
 struct is_instantiation_of : std::false_type {};

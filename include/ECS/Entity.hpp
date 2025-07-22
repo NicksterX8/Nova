@@ -52,11 +52,6 @@ constexpr EntityVersion WILDCARD_ENTITY_VERSION = UINT32_MAX;
 //     return result;
 // }
 
-// template<class... Components>
-// constexpr std::array<ComponentID, sizeof...(Components)> getComponentIDs() {
-//     return {getID<Components>() ...};
-// }
-
 // template<class T, class... Components>
 // constexpr inline bool componentInComponents() {
 //     constexpr ComponentFlags signature = componentSignature<Components...>();

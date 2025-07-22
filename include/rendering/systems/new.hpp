@@ -69,10 +69,10 @@ struct DrawEntityViewBoxJob : JobSingleThreaded<DrawEntityViewBoxJob> {
     }
 };
 
-struct EntityColorJob : JobParallelFor<EntityColorJob> {
+struct EntityColorJob : JobParallelFor<EntityColorJob, const EC::Health> {
     EntityColorJob() {
-        addConditionalExecute<&EntityColorJob::healthExecute>();
-        addConditionalExecute<&EntityColorJob::selectedExecute>();
+        addConditionalExecute<&EntityColorJob::healthExecute, EC::Health>();
+        addConditionalExecute<&EntityColorJob::selectedExecute, EC::Selected>();
     }
 
     // class laid out in execution order
@@ -83,8 +83,9 @@ struct EntityColorJob : JobParallelFor<EntityColorJob> {
     // if entity has health, it will execute this method in addition to the normal execute method.
     // Entities will always perform Execute first, then healthExecute. But, when healthExecute starts,
     // not all entities will have finished Execute. 
-    void healthExecute(int N, ComponentArray<const EC::Health> health, GroupArray<glm::vec4> colors) {
-        if (health[N].timeDamaged != NullTick && Metadata->getTick() - health[N].timeDamaged < 5) {
+    void healthExecute(int N, GroupArray<glm::vec4> colors) {
+        auto health = Get<EC::Health>(N);
+        if (health.timeDamaged != NullTick && Metadata->getTick() - health.timeDamaged < 5) {
             blend(&colors[N], glm::vec4{1, 0, 0, 0.5});
         }
     }

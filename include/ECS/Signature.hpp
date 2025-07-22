@@ -24,6 +24,11 @@ constexpr ComponentID getIDNoProto() {
     return C::ID;
 }
 
+template<class... Components>
+constexpr std::array<ComponentID, sizeof...(Components)> getComponentIDs() {
+    return {getID<Components>() ...};
+}
+
 template<class C, typename = void>
 struct HasComponentID_t : std::false_type {};
 
@@ -67,7 +72,7 @@ template <bool WantComponents, typename... Vars>
 using filter_components_t = typename filter_components<WantComponents, Vars...>::type;
 
 template<class ...Cs>
-constexpr static My::Bitset<MaxComponentIDs> getSignature() {
+static constexpr My::Bitset<MaxComponentIDs> getSignature() {
     constexpr ComponentID ids[] = {0, getID<Cs>() ...};
     // sum component signatures
     auto result = My::Bitset<MaxComponentIDs>(0);
@@ -79,7 +84,7 @@ constexpr static My::Bitset<MaxComponentIDs> getSignature() {
 
 // get the signature of only the const components
 template<class ...Cs>
-constexpr static My::Bitset<MaxComponentIDs> getConstSignature() {
+static constexpr My::Bitset<MaxComponentIDs> getConstSignature() {
     constexpr ComponentID ids[] = {0, getID<Cs>() ...};
     constexpr bool constness[] = {false, std::is_const_v<Cs> ...};
     // sum component signatures

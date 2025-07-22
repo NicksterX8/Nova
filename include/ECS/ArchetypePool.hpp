@@ -92,6 +92,7 @@ struct ArchetypePool {
 
     char* getComponentArray(ComponentID componentType) const {
         auto bufferIndex = archetype.getIndex(componentType);
+        if (bufferIndex == -1) return nullptr; // component array not in pool
         return getBuffer(bufferIndex);
     }
 

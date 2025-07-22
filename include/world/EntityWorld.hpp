@@ -65,15 +65,7 @@ struct EntityMaker {
 
     template<class... Cs>
     void Add(const Cs&... components) {
-        // components |= ECS::getSignature<Cs...>();
         FOR_EACH_VAR_TYPE(Add<Cs>(components));
-        // Uint16 offset = (Uint16)((uintptr_t)buf.data() % alignof(C));
-        // if (bufUsed + offset + sizeof(C) > buf.size()) {
-        //     assert(0 && "Ran out of buffer space");
-        // }
-        // memcpy(&buf[bufUsed + offset], &value, sizeof(C));
-        // componentValues.push_back(ComponentValue{C::ID, (Uint16)(bufUsed + offset)});
-        // bufUsed += sizeof(C) + offset;
     }
 
     void setPos(Vec2 pos) {
@@ -309,7 +301,7 @@ public:
      */
     template<class... Components>
     bool Add(Entity entity, Components... components) {
-        constexpr ECS::Signature signature = ECS::getSignature<Components...>();
+        static constexpr ECS::Signature signature = ECS::getSignature<Components...>();
 
         bool ret = em.addSignature(entity, signature);
         if (ret) {

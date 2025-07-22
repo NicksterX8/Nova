@@ -50,7 +50,7 @@ constexpr static bool isPrototype() {
 
 template<class ...RegCs>
 static Signature getNonProtoSignature(Signature signature) {
-    constexpr Signature allRegularComponents = getSignature<RegCs...>();
+    static constexpr Signature allRegularComponents = getSignature<RegCs...>();
     return signature & allRegularComponents;
 }
 

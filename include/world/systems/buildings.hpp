@@ -15,9 +15,11 @@ struct GunSystem : System {
         ReadOnly<EC::Position>,
     >());
 
-    struct ShootJob : JobParallelFor<ShootJob> {
-        void Execute(int N, ComponentArray<EC::Gun> gun) {
-
+    struct ShootJob : JobParallelFor<ShootJob, EC::Gun> {
+        void Execute(int N) {
+            auto gun = Get<EC::AngleMotion>(N);
+            Entity entity = GetEntity(N);
+            commandBuffer->addComponent(entity, EC::Dying{5});
         }
     } shootJob;
 

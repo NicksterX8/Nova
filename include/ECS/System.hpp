@@ -7,6 +7,7 @@
 #include "ECS/Job.hpp"
 #include "ADT/SmallVector.hpp"
 #include "llvm/TinyPtrVector.h"
+#include "memory/BlockAllocator.hpp"
 
 template<typename EltT>
 using TinyPtrVectorVector = SmallVector<llvm::TinyPtrVector<EltT*>>;
@@ -49,6 +50,8 @@ struct SystemManager {
     EntityManager* entityManager = nullptr;
     EntityCommandBuffer unexecutedCommands;
     bool allowParallelization = USE_MULTITHREADING;
+
+    BlockAllocator<128, 16> jobAllocator;
 public:
     SystemManager() {}
 
@@ -93,7 +96,7 @@ struct System {
     // job schedule
     struct ScheduledJob {
         GroupID group;
-        Job job;
+        Job* job;
         void* args;
     };
     SmallVector<ScheduledJob> jobs;
@@ -135,7 +138,7 @@ struct System {
 
     template<typename JobT>
     JobHandle Schedule(GroupID group, const JobT& jobt, JobArgPtrs<JobT> args, const DependencyList& dependencyList) {
-        Job job = jobt;
+        Job* job = NEW(JobT(jobt), systemManager->jobAllocator);
         JobHandle handle = jobs.size();
         // we can't know what the size of the args when we free it so just use malloc
         // we could change that, but since we only ever schedule once per job rn, it doesn't matter and we could just leak it if we wanted
@@ -158,7 +161,7 @@ struct System {
     JobHandle Schedule(GroupID group, const JobT& jobt, const DependencyList& dependencyList) {
         static_assert(std::tuple_size_v<JobArgs<JobT>> == 0, "Job requires arguments and none were provided!");
 
-        Job job = jobt;
+        Job* job = NEW(JobT(jobt), systemManager->jobAllocator);
 
         JobHandle handle = jobs.size();
         jobs.push_back(ScheduledJob{group, job, new std::tuple<>{}});
@@ -239,6 +242,7 @@ struct System {
             if (job.args) {
                 free(job.args);
             }
+            DELETE(job.job, job.job->size, systemManager->jobAllocator);
         }
     }
 
@@ -330,8 +334,8 @@ void executeSystems(SystemManager&);
 // default jobs
 
 // most strict
-template<class Derived>
-struct JobParallelFor : JobDecl<Derived> {
+template<class Derived, class... Cs>
+struct JobParallelFor : JobDecl<Derived, Cs...> {
     JobParallelFor() {
         this->mainThread = false;
         this->parallelize = true;
@@ -339,8 +343,8 @@ struct JobParallelFor : JobDecl<Derived> {
 };
 
 // less relaxed. allows for standard queues and vectors without worries of parallelism. May or may not be on the main thread
-template<class Derived>
-struct JobSingleThreaded : JobDecl<Derived> {
+template<class Derived, class... Cs>
+struct JobSingleThreaded : JobDecl<Derived, Cs...> {
     JobSingleThreaded() {
         this->mainThread = false;
         this->parallelize = false;
@@ -349,8 +353,8 @@ struct JobSingleThreaded : JobDecl<Derived> {
 };
 
 // run the job strictly on the main thread, single threaded
-template<class Derived>
-struct JobMainThread : JobDecl<Derived> {
+template<class Derived, class... Cs>
+struct JobMainThread : JobDecl<Derived, Cs...> {
     // param blocking: allow other jobs while this is run or run purely single threaded
     JobMainThread() {
         this->blocking = false;
@@ -360,8 +364,8 @@ struct JobMainThread : JobDecl<Derived> {
 };
 
 // run the job strictly on the main thread, single threaded
-template<class Derived>
-struct JobBlocking : JobDecl<Derived> {
+template<class Derived, class... Cs>
+struct JobBlocking : JobDecl<Derived, Cs...> {
     // param blocking: allow other jobs while this is run or run purely single threaded
     JobBlocking() {
         this->blocking = true;

@@ -86,7 +86,7 @@ public:
         static_assert((!ReqComponents::PROTOTYPE && ...), "Prototype components cannot be used in for each!");
         bool locked = lock();
 
-        constexpr Signature reqSignature = getSignatureNoProto<ReqComponents...>();
+        static constexpr Signature reqSignature = getSignatureNoProto<ReqComponents...>();
 
         for (Uint32 i = 0; i < components.pools.size(); i++) {
             auto& pool = components.pools[i];
@@ -335,7 +335,7 @@ public:
         if (prototype) {
             signature |= prototype->signature;
         }
-        constexpr Signature componentSignature = getSignature<Components...>();
+        static constexpr Signature componentSignature = getSignature<Components...>();
         return (signature & componentSignature) == componentSignature;
     }
 

@@ -14,31 +14,28 @@ namespace Systems {
 
 using namespace ECS::Systems;
 
-struct FindChangedEntitiesJob : JobParallelFor<FindChangedEntitiesJob> {
-    void Execute(int N, ComponentArray<EC::Position> positions, ComponentArray<EC::Dynamic> dynamics, GroupArray<bool> posChanged) {
-        posChanged[N] = positions[N].vec2() != dynamics[N].pos;
+struct FindChangedEntitiesJob : JobParallelFor<FindChangedEntitiesJob, const EC::Position, const EC::Dynamic> {
+    void Execute(int N, GroupArray<bool> posChanged) {
+        posChanged[N] = Get<EC::Position>(N).vec2() != Get<EC::Dynamic>(N).pos;
     }
 };
 
 
-struct ChangeEntityPosJob : JobSingleThreaded<ChangeEntityPosJob> {
+struct ChangeEntityPosJob : JobSingleThreaded<ChangeEntityPosJob, const EC::ViewBox, EC::Position, const EC::Dynamic> {
     ChunkMap* chunkmap;
 
     ChangeEntityPosJob(ChunkMap* chunkmap)
     : chunkmap(chunkmap) {}
 
-    void Execute(int N, EntityArray entities,
-        ComponentArray<EC::Position> oldPositions, ComponentArray<const EC::Dynamic> newPositions,
-        ComponentArray<const EC::ViewBox> viewboxes, 
-        GroupArray<const bool> posChanged)
-    {
+    void Execute(int N, GroupArray<const bool> posChanged) {
         if (LLVM_UNLIKELY(posChanged[N])) {
-            auto oldPosition = oldPositions[N];
-            auto newPosition = newPositions[N];
-            oldPositions[N].x = newPosition.pos.x;
-            oldPositions[N].y = newPosition.pos.y;
-            auto viewbox = viewboxes[N];
-            World::entityViewChanged(chunkmap, entities[N], newPosition.pos, oldPosition.vec2(), viewbox.box, viewbox.box, false);
+            auto& oldPosition = Get<EC::Position>(N);
+            auto newPosition = Get<EC::Dynamic>(N);
+            oldPosition.x = newPosition.pos.x;
+            oldPosition.y = newPosition.pos.y;
+            auto viewbox = Get<EC::ViewBox>(N);
+            auto entity = GetEntity(N);
+            World::entityViewChanged(chunkmap, entity, newPosition.pos, oldPosition.vec2(), viewbox.box, viewbox.box, false);
         }
     }
 };
@@ -49,12 +46,13 @@ struct SetChunkMapPosJob : JobSingleThreaded<SetChunkMapPosJob> {
 
     SetChunkMapPosJob(ChunkMap* chunkmap, EntityWorld* ecs) : chunkmap(chunkmap), ecs(ecs) {}
 
-    void Execute(int N, EntityArray entity) {
-        if (!ecs->EntityExists(entity[N])) return;
+    void Execute(int N) {
+        auto entity = GetEntity(N);
+        if (!ecs->EntityExists(entity)) return;
         // entityViewChanged(chunkmap, entity[N], position[N].vec2(), position[N].vec2(), viewbox[N].box, viewbox[N].box, true);
-        auto position = *ecs->Get<EC::Position>(entity[N]);
-        auto viewbox = *ecs->Get<EC::ViewBox>(entity[N]);
-        entityViewChanged(chunkmap, entity[N], position.vec2(), position.vec2(), viewbox.box, viewbox.box, true);
+        auto position = *ecs->Get<EC::Position>(entity);
+        auto viewbox = *ecs->Get<EC::ViewBox>(entity);
+        entityViewChanged(chunkmap, entity, position.vec2(), position.vec2(), viewbox.box, viewbox.box, true);
     }
 };
 
@@ -92,19 +90,16 @@ struct DynamicEntitySystem : System {
     }
 };
 
-struct UpdateEntityViewBoxChunkPosJob : JobBlocking<UpdateEntityViewBoxChunkPosJob> {
+struct UpdateEntityViewBoxChunkPosJob : JobBlocking<UpdateEntityViewBoxChunkPosJob, const EC::Position, const EC::ViewBox> {
     UpdateEntityViewBoxChunkPosJob(ChunkMap* chunkmap)
     : chunkmap(chunkmap) {}
 
-    EntityArray entities;
-
     ChunkMap* chunkmap;
 
-
-    void Execute(int N, ComponentArray<const EC::ViewBox> viewboxes, ComponentArray<const EC::Position> positions) {
-        auto viewBox = viewboxes[N];
-        auto position = positions[N];
-        auto entity = entities[N];
+    void Execute(int N) {
+        auto viewBox = Get<EC::ViewBox>(N);
+        auto position = Get<EC::Position>(N);
+        auto entity = GetEntity(N);
 
         Vec2 pos = position.vec2();
 
