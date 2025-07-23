@@ -201,114 +201,25 @@ struct Group {
     }
 };
 
-// // tuple parameters are used only to take in variadic type packs. Value does not matter including nullptr
-// template<bool TakesEntityArray, class... Components, class... Vars, class JobT>
-// void makeJob(JobT* job, std::tuple<ComponentArray<Components>...>* /*nullptr*/, std::tuple<Vars...>* /*nullptr*/) {
-//     constexpr Signature readSignature = ECS::getSignature<Components...>();
-//     constexpr Signature writeSignature = ECS::getMutableSignature<Components...>();
-//     job->readComponents = readSignature;
-//     job->writeComponents = writeSignature;
-//     job->dependencies = job; // TODO: remove this field maybeee?
- 
-//     using GroupVarTuple = std::tuple<Vars*...>; // need pointers to vars so they remain up to date
-//     job->executeFunc = [](void* jobDataPtr, int startN, int endN){
-//         JobData* jobData = (JobData*)jobDataPtr;
-//         JobT* job = (JobT*)jobData->dependencies;
-//         GroupVarTuple groupVars = *(GroupVarTuple*)jobData->groupVars;
-//         if constexpr (TakesEntityArray) {
-//             EntityArray entityArray = {jobData->getEntityArray()};
-//             std::tuple<ComponentArray<Components>...> componentArrays = {
-//                 ComponentArray<Components>(jobData->getComponentArray<Components>()) ...
-//             };
-//             for (int N = startN; N < endN; N++) {
-//                 job->Execute(N, entityArray, std::get<TupleTypeIndex<ComponentArray<Components>, ComponentArray<Components>...>>(componentArrays) ..., *std::get<TupleTypeIndex<Vars*, Vars*...>>(groupVars) ...);
-//             }
-//         } else {
-//             std::tuple<ComponentArray<Components>...> componentArrays = {
-//                 ComponentArray<Components>(jobData->getComponentArray<Components>()) ...
-//             };
-//             for (int N = startN; N < endN; N++) {
-//                 job->Execute(N, std::get<TupleTypeIndex<ComponentArray<Components>, ComponentArray<Components>...>>(componentArrays) ..., *std::get<TupleTypeIndex<Vars*, Vars*...>>(groupVars) ...);
-//             }
-//         }
-        
-//     };
-// }
+// template <typename... Vars>
+// struct filter_vars;
 
-// template<typename GroupVarsT, class ComponentsTuple, class Class>
-// Job makeJob4(Class* deps){
-//     Job job;
-//     //job.readComponents = ECS::getSignature<Components...>();
-//     //job.writeComponents = ECS::getMutableSignature<Components...>();
-//     // job.parallelizable = parallelizable;
-//     job.dependencies = deps;
+// template <>
+// struct filter_vars<> {
+//     using type = std::tuple<>;
+// };
 
-//     job.executeFunc = [](void* jobDataPtr, int startN, int endN){
-//         JobData* jobData = (JobData*)jobDataPtr;
-//         Class& deps = *(Class*)jobData->dependencies;
-//         auto componentArrays = getComponents(jobData, ComponentsTuple{});
-//         // std::tuple<Components*...> componentArrays = {
-//         //     jobData->getComponentArray<Components>() ...
-//         // };
-//         GroupVarsT* groupVars = (GroupVarsT*)jobData->groupVars;
-//         for (int N = startN; N < endN; N++) {
-//             Class::execute(deps, N, groupVars, componentArrays);
-//         }
-//     };
-//     return job;
-// }
-
-// template<class C, typename = void>
-// struct HasComponentArrayID : std::false_type {};
-
-// template<class C>
-// struct HasComponentArrayID<C, std::void_t<decltype(C::IsComponentArray)>>
-//     : std::is_convertible<decltype(C::IsComponentArray), bool> {};
-
-template<typename T>
-inline constexpr bool IsComponentArray = is_instantiation_of_v<T, ComponentArray>;
-
-static_assert(IsComponentArray<int> == false, "Is component not detecting invalid components");
-
-template <bool WantComponents, typename... Vars>
-struct filter_component_arrays;
-
-template <bool WantComponents>
-struct filter_component_arrays<WantComponents> {
-    using type = std::tuple<>;
-};
-
-template <bool WantComponents, typename Head, typename... Tail>
-struct filter_component_arrays<WantComponents, Head, Tail...> {
-private:
-    using tail_filtered = typename filter_component_arrays<WantComponents, Tail...>::type;
-public:
-    using type = std::conditional_t<
-        IsComponentArray<std::remove_pointer_t<Head>> == WantComponents, // remove pointer so it works pointers too
-        decltype(std::tuple_cat(std::declval<std::tuple<Head>>(), std::declval<tail_filtered>())),
-        tail_filtered
-    >;
-};
-
-template <typename... Vars>
-struct filter_vars;
-
-template <>
-struct filter_vars<> {
-    using type = std::tuple<>;
-};
-
-template <typename Head, typename... Tail>
-struct filter_vars<Head, Tail...> {
-private:
-    using tail_filtered = typename filter_vars<Tail...>::type;
-public:
-    using type = std::conditional_t<
-        !IsComponentArray<std::remove_const_t<std::remove_pointer_t<Head>>> && !std::is_same_v<std::remove_const_t<std::remove_pointer_t<Head>>, EntityArray>, // remove pointer so it works pointers too
-        decltype(std::tuple_cat(std::declval<std::tuple<Head>>(), std::declval<tail_filtered>())),
-        tail_filtered
-    >;
-};
+// template <typename Head, typename... Tail>
+// struct filter_vars<Head, Tail...> {
+// private:
+//     using tail_filtered = typename filter_vars<Tail...>::type;
+// public:
+//     using type = std::conditional_t<
+//         !IsComponentArray<std::remove_const_t<std::remove_pointer_t<Head>>> && !std::is_same_v<std::remove_const_t<std::remove_pointer_t<Head>>, EntityArray>, // remove pointer so it works pointers too
+//         decltype(std::tuple_cat(std::declval<std::tuple<Head>>(), std::declval<tail_filtered>())),
+//         tail_filtered
+//     >;
+// };
 
 template <typename T>
 struct ExecuteMethodTraits;
@@ -319,8 +230,8 @@ template <typename Class, typename Ret, typename FirstArg, typename... Args>
 struct ExecuteMethodTraits<Ret(Class::*)(FirstArg, Args...)> {
     using ReturnType = Ret;
     using ClassType = Class;
-    using VarsTuple = typename filter_vars<Args...>::type;
-    using VarPtrsTuple = typename filter_vars<const Args*...>::type;
+    using VarsTuple = std::tuple<Args...>;
+    using VarPtrsTuple = std::tuple<const Args*...>;
 
     static_assert(std::is_same_v<ReturnType, void>, "Execute method should always return void!");
     static_assert(std::is_same_v<FirstArg, int>, "Execute method must take index as int for first parameter");
@@ -406,10 +317,9 @@ struct JobDecl : Job {
         std::conditional_t<
             (std::disjunction_v<std::is_same<const C, Components>...>),
             C,
-            C& // fallback
+            C&
         >
     >;
-
 
     template<class Component>
     [[nodiscard]] LLVM_ATTRIBUTE_ALWAYS_INLINE ComponentReturnType<Component>

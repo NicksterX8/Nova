@@ -327,7 +327,8 @@ void setupSystems(SystemManager&);
 
 void cleanupSystems(SystemManager&);
 
-void executeSystem(SystemManager&, System*, const std::vector<std::vector<const ArchetypePool*>>& groupPools);
+
+void executeSystemSingleThreaded(SystemManager&, System*, const std::vector<std::vector<const ArchetypePool*>>& groupPools);
 void executeSystems(SystemManager&);
 
 
@@ -375,25 +376,22 @@ struct JobBlocking : JobDecl<Derived, Cs...> {
 };
 
 template <class C>
-struct CopyComponentArrayJob : JobParallelFor<CopyComponentArrayJob<C>> {
-    void Execute(int N, ComponentArray<C> src, C* dst) {
-        dst[N] = src[N];
+struct CopyComponentArrayJob : JobParallelFor<CopyComponentArrayJob<C>, C> {
+    void Execute(int N, GroupArray<C> dst) {
+        dst[N] = this->template Get<C>(N);
     }
 };
 
 struct CopyEntityArrayJob : JobParallelFor<CopyEntityArrayJob> {
-    Entity* dst;
-    const Entity* src;
-
-    void Execute(int N, EntityArray src, Entity* dst) {
-        dst[N] = src[N];
+    void Execute(int N, GroupArray<Entity> dst) {
+        dst[N] = GetEntity(N);
     }
 };
 
 template<class Component>
-struct FillComponentsFromArrayJob : JobParallelFor<FillComponentsFromArrayJob<Component>> {
-    void Execute(int N, ComponentArray<Component> dst, Component src) {
-        dst[N] = src[N];
+struct FillComponentsFromArrayJob : JobParallelFor<FillComponentsFromArrayJob<Component>, Component> {
+    void Execute(int N, GroupArray<Component> src) {
+        this->template Get<Component>(N) = src[N];
     }
 };
 

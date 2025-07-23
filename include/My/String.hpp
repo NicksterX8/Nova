@@ -19,7 +19,7 @@ std::string string_format(const std::string& format, Args... args) {
         return {};
     }
     auto size = (size_t)size_s;
-    StackAllocate<char, 128> buf{size};
+    StackAllocate<char, 128> buf{(int)size};
     std::snprintf((char*)buf, size, format.c_str(), args...);
     return std::string((char*)buf, (char*)buf + size - 1); // We don't want the '\0' inside
 }

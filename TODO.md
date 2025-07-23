@@ -1,5 +1,7 @@
 # TODO
 
+add static constexpr NAME field to components
+
 fix memory leak
 
 improve trigger systems implementation

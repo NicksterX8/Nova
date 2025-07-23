@@ -14,9 +14,6 @@ private:
 
     using Me = StackAllocate<T, StackElements>;
 public:
-    StackAllocate(size_t size) : StackAllocate((int)size) {}
-    StackAllocate(size_t size, const T& initValue) : StackAllocate((int)size, initValue) {}
-
     StackAllocate(int size) {
         if (size <= NumStackElements) {
             _data = stackElements.data();

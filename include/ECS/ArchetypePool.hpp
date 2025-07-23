@@ -82,6 +82,10 @@ struct ArchetypePool {
 
     ArchetypePool(const Archetype& archetype);
 
+    bool empty() const {
+        return size == 0;
+    }
+
     Signature signature() const {
         return archetype.signature;
     }

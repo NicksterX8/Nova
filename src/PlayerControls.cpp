@@ -194,7 +194,7 @@ void PlayerControls::playerMouseTargetMoved(const MouseState& mouseState, const 
         // only do it if the isnt in the gui either currently or previously
         if (!game->gui.pointInArea(mouseState.position)) {
             auto line = raytraceDDA(prevWorldPos, newWorldPos);
-            StackAllocate<Tile, 8> tiles{line.size()};
+            StackAllocate<Tile, 8> tiles{(int)line.size()};
             getTiles(game->state->chunkmap, line.data(), tiles.data(), line.size());
             ItemStack* heldItemStack = game->state->player.heldItemStack.get();
             
