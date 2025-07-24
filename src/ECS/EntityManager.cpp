@@ -6,13 +6,13 @@ void EntityManager::executeCommandBuffer(EntityCommandBuffer* commandBuffer) {
     for (auto& command : commandBuffer->commands) {
         switch (command.type) {
         case EntityCommandBuffer::Command::CommandAdd:
-            doAddComponent(command.value.add.target, command.value.add.component, command.value.add.componentValueIndex + commandBuffer->valueBuffer.data);
+            doAddComponent(command.entity, command.add.component, command.add.componentValueIndex + commandBuffer->valueBuffer.data);
             break;
         case EntityCommandBuffer::Command::CommandRemove:
-            doRemoveComponent(command.value.remove.target, command.value.remove.component);
+            doRemoveComponent(command.entity, command.remove.component);
             break;
         case EntityCommandBuffer::Command::CommandDelete:
-            doDeleteEntity(command.value.del.target);
+            doDeleteEntity(command.entity);
             break;
         default:
             LogError("Invalid command type!");

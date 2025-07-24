@@ -17,6 +17,7 @@
 #include "rendering/rendering.hpp"
 #include "ECS/System.hpp"
 #include "world/systems/movement.hpp"
+#include "world/systems/buildings.hpp"
 #include "global.hpp"
 #include "memory/allocators.hpp"
 
@@ -50,6 +51,7 @@ struct GameEntitySystems {
 
     World::RenderSystems::RenderEntitySystem* renderEntitySys;
     World::Systems::DynamicEntitySystem* dynamicEntitySys;
+    World::Systems::GunSystem* gunSys;
 
     void init(GameState* state, RenderContext* renderContext, Camera& camera);
 };

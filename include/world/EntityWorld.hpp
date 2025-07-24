@@ -8,9 +8,10 @@
 #include "global.hpp"
 #include "ECS/EntityManager.hpp"
 #include "utils/common-macros.hpp"
-#include "components/components.hpp"
+//#include "components/components.hpp"
 #include "entities/prototypes/def.hpp"
 #include "ECS/System.hpp"
+#include "llvm/PointerUnion.h"
 
 struct ChunkMap;
 
@@ -20,77 +21,23 @@ using ECS::EntityCommandBuffer;
 
 struct EntityWorld;
 
-struct EntityMaker {
-    EntityWorld* ecs = nullptr;
-    
-    Entity entity = NullEntity;
-    ECS::Signature components = {0};
-    ECS::PrototypeID prototype = -1;
+template<typename... Args>
+struct EntityConstructor {
+    ECS::PrototypeID prototype;
+    ECS::Signature signature;
 
-    Uint16 bufUsed = 0;
-    MutArrayRef<char> buf;
+    Entity make(Args... args) {
 
-    static constexpr size_t MaxComponentMemory = std::numeric_limits<Uint16>::max();
-    struct ComponentValue {
-        ECS::ComponentID id;
-        Uint16 valueBufPos;
-    };
-    SmallVector<ComponentValue> componentValues;
-
-    EntityMaker() {}
-
-    EntityMaker(EntityWorld* ecs);
-    
-    EntityMaker(const EntityMaker& other) = delete;
-
-    EntityMaker& operator=(const EntityMaker& other);
-
-    // if an entity was in progress or already made, that data will be replaced with a fresh start
-    void start(ECS::PrototypeID prototype) {
-        clear();
-        this->prototype = prototype;
     }
 
-    template<class C>
-    void Add(const C& value) {
-        components.setComponent<C>();
-        Uint16 offset = (Uint16)((uintptr_t)buf.data() % alignof(C));
-        if (bufUsed + offset + sizeof(C) > buf.size()) {
-            assert(0 && "Ran out of buffer space");
-        }
-        *((C*)(buf.data() + bufUsed + offset)) = value;
-        componentValues.push_back(ComponentValue{C::ID, (Uint16)(bufUsed + offset)});
-        bufUsed += sizeof(C) + offset;
+    void buffer(Args... args) {
+
     }
-
-    template<class... Cs>
-    void Add(const Cs&... components) {
-        FOR_EACH_VAR_TYPE(Add<Cs>(components));
-    }
-
-    void setPos(Vec2 pos) {
-        Add<EC::Position>(pos);
-    }
-
-    Entity make();
-
-    void make(Entity* pEntity) {
-        *pEntity = make();
-    }
-
-    Entity operator()() {
-        return make();
-    }
-
-    void clear();
 };
 
 struct EntityWorld {
     ECS::EntityManager em;
 protected:
-
-    char* entityMakerBuffer;
-    EntityMaker entityMaker;
 
     ChunkMap* chunkmap;
 
@@ -328,18 +275,18 @@ public:
         return (Prototype*)em.getPrototype(entity);
     }
 
-    EntityMaker& startMakingEntity(ECS::PrototypeID prototype) {
-        entityMaker.start(prototype);
-        return entityMaker;
-    }
+    // EntityMaker& startMakingEntity(ECS::PrototypeID prototype) {
+    //     entityMaker.start(prototype);
+    //     return entityMaker;
+    // }
 
-    EntityMaker* getEntityMaker() {
-        return &entityMaker;
-    }
+    // EntityMaker* getEntityMaker() {
+    //     return &entityMaker;
+    // }
 
-    MutArrayRef<char> getEntityMakerBuffer() const {
-        return MutArrayRef<char>(entityMakerBuffer, 1024);
-    }
+    // MutArrayRef<char> getEntityMakerBuffer() const {
+    //     return MutArrayRef<char>(entityMakerBuffer, 1024);
+    // }
 
     void ForEachAll(std::function<bool(Entity entity)> callback) const {
         em.forAllEntities(callback);
@@ -372,69 +319,45 @@ public:
     ECS::ComponentID GetComponentIdFromName(const char* name) const {
         return em.getComponentIdFromName(name);
     }
-
-    template<typename T>
-    void setValue(void* valuePtr, T value) const {
-        memcpy(valuePtr, &value, sizeof(T));
-    }
-
-    bool GetComponentValueFromStr(ECS::ComponentID component, std::string str, void* v) const {
-        if (component == ECS::NullComponentID) return false;
-        auto componentSize = getComponentSize(component);
-        bool empty = str.empty() || str == "{}";
-        
-
-        using namespace World;
-        #define CASE(component_name) case ECS::getID<EC::component_name>()
-        #define VALUE(component_name, ...) setValue<EC::component_name>(v, __VA_ARGS__); return true
-        std::stringstream ss(str);
-        // TODO: for objects automatically parse out properties and stuff. make it an array
-        // OR / AND REGEX? dont use std library one casue it sucks balllssss
-
-        switch (component) {
-
-        CASE(Position): {
-            if (empty) {
-                VALUE(Position, {{0.0f, 0.0f}});
-            }
-
-            float x,y;
-
-            ss.ignore(1, '{');
-            ss >> x;
-            ss.ignore(1, ',');
-            ss >> y;
-
-            VALUE(Position, {x, y});
-        }
-        /*
-        CASE(Size):
-            if (empty) {
-                VALUE(Size, {0.0f, 0.0f});
-            }
-
-            float width,height;
-
-            ss.ignore(1, '{');
-            ss >> width;
-            ss.ignore(1, ',');
-            ss >> height;
-
-            VALUE(Size, {width, height});
-        */
-        }
-
-        return false;
-    }
 };
 
-struct EntityBuilder {
-    EntityWorld* ecs;
+struct EntityCommandOutput : private llvm::PointerUnion<EntityWorld*, EntityCommandBuffer*> {
+    using Base = llvm::PointerUnion<EntityWorld*, EntityCommandBuffer*>;
+    EntityCommandOutput(EntityWorld* ecs) : Base(ecs) {}
 
-    EntityBuilder(EntityWorld* ecs) : ecs(ecs) {}
+    EntityCommandOutput(EntityCommandBuffer* buffer) : Base(buffer) {}
 
-    EntityMaker& New(ECS::PrototypeID prototype) {
-        return ecs->startMakingEntity(prototype);
+    bool isCommandBuffer() const {
+        return is<EntityCommandBuffer*>();
+    }
+
+    bool isEntityManager() const {
+        return is<EntityWorld*>();
+    }
+
+    Entity newEntity(ECS::PrototypeID prototype) {
+        if (isEntityManager()) {
+            return get<EntityWorld*>()->New(prototype);
+        } else {
+            return get<EntityCommandBuffer*>()->newEntity(prototype);
+        }
+    }
+
+    template<class C>
+    void addComponent(Entity entity, const C& component) {
+        if (isEntityManager()) {
+            get<EntityWorld*>()->Add<C>(entity, component);
+        } else {
+            get<EntityCommandBuffer*>()->addComponent(entity, component);
+        }
+    } 
+
+    void addSignature(Entity entity, ECS::Signature signature, ECS::PackedValuesRef components) {
+        if (isEntityManager()) {
+            get<EntityWorld*>()->AddSignature(entity, signature);
+        } else {
+            get<EntityCommandBuffer*>()->addSignature(entity, signature, components);
+        }
     }
 };
 

@@ -1,5 +1,12 @@
 # TODO
 
+use chunks instead of/with archetype pools?
+preallocate something like 4 or 8kb pools, so we never need to grow
+how to solve prototype problem?
+
+
+change Tick to unsigned type. make all uint32 or all uint64
+
 add static constexpr NAME field to components
 
 fix memory leak

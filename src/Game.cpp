@@ -48,7 +48,8 @@ void GameEntitySystems::init(GameState* state, RenderContext* renderContext, Cam
     auto& allocator = GlobalAllocators.gameScratchAllocator;
     this->renderEntitySys = NEW(World::RenderSystems::RenderEntitySystem(ecsRenderSystems, *renderContext, camera, *state->ecs, state->chunkmap), allocator);
     this->dynamicEntitySys = NEW(World::Systems::DynamicEntitySystem(ecsStateSystems, &state->chunkmap, state->ecs), allocator);
-
+    this->gunSys = NEW(World::Systems::GunSystem(ecsStateSystems, state->ecs));
+ 
     ECS::Systems::setupSystems(ecsRenderSystems);
     ECS::Systems::setupSystems(ecsStateSystems);
 }

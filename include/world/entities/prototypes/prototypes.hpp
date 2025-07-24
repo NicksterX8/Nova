@@ -6,7 +6,84 @@
 #include "world/entities/methods.hpp"
 #include "utils/random_random.hpp"
 
+namespace ECS {
+    struct CommandRegistry {
+        MutArrayRef<char> buffer;
+        Uint16 bufferUsed;
+
+        template<class C>
+        void Add(C component) {
+
+        }
+    };
+}
+
 namespace World {
+
+struct EntityMaker {
+    EntityWorld* ecs = nullptr;
+    
+    Entity entity = NullEntity;
+    ECS::Signature components = {0};
+    ECS::PrototypeID prototype = -1;
+
+    Uint16 bufUsed = 0;
+    MutArrayRef<char> buf;
+
+    static constexpr size_t MaxComponentMemory = std::numeric_limits<Uint16>::max();
+    struct ComponentValue {
+        ECS::ComponentID id;
+        Uint16 valueBufPos;
+    };
+    SmallVector<ComponentValue> componentValues;
+
+    EntityMaker() {}
+
+    EntityMaker(EntityWorld* ecs);
+    
+    EntityMaker(const EntityMaker& other) = delete;
+
+    EntityMaker& operator=(const EntityMaker& other);
+
+    // if an entity was in progress or already made, that data will be replaced with a fresh start
+    void start(ECS::PrototypeID prototype) {
+        clear();
+        this->prototype = prototype;
+    }
+
+    template<class C>
+    void Add(const C& value) {
+        components.setComponent<C>();
+        Uint16 offset = (Uint16)((uintptr_t)buf.data() % alignof(C));
+        if (bufUsed + offset + sizeof(C) > buf.size()) {
+            assert(0 && "Ran out of buffer space");
+        }
+        *((C*)(buf.data() + bufUsed + offset)) = value;
+        componentValues.push_back(ComponentValue{C::ID, (Uint16)(bufUsed + offset)});
+        bufUsed += sizeof(C) + offset;
+    }
+
+    template<class... Cs>
+    void Add(const Cs&... components) {
+        FOR_EACH_VAR_TYPE(Add<Cs>(components));
+    }
+
+    void setPos(Vec2 pos) {
+        Add<EC::Position>(pos);
+    }
+
+    Entity make();
+
+    void make(Entity* pEntity) {
+        *pEntity = make();
+    }
+
+    Entity operator()() {
+        return make();
+    }
+
+    void clear();
+};
 
 namespace Entities {
 
@@ -21,9 +98,29 @@ namespace Entities {
 //     }
 // };
 
-#define START_ENTITY() ecs->startMakingEntity(ID)
+#define START_ENTITY() ECS::EntityMaker(ID)
+
+using EntityOut = EntityCommandOutput;
 
 //namespace Prototypes {
+    struct Zombie : PrototypeDecl<PrototypeIDs::Monster> {
+        Zombie(PrototypeManager& manager) : PrototypeDecl(manager) {
+            using namespace EC::Proto;
+            setName("zombie");
+            add(EntityRenderLayer{RenderLayers::Player});
+
+            // Maker.setMake([](EntityMaker& m, Vec2 position){
+            //     m.Add<EC::Position>(position);
+            // });
+
+            // Maker.Add<EC::Health>({100.0f});
+            // e.constructor = [](auto output, Entity entity, Vec2 position, Vec2 size){
+            //     output.Add(EC::Position{position});
+            //     output.Add(EC::ViewBox::BottomLeft(size));
+            // }
+        }
+    };
+
     struct Player : PrototypeDecl<PrototypeIDs::Player> {
 
         Player(PrototypeManager& manager) : PrototypeDecl(manager) {
@@ -33,8 +130,8 @@ namespace Entities {
             add(Living{});
         }
 
-        static Entity make(EntityWorld* ecs, Vec2 position, ItemManager& inventoryAllocator) {
-            auto& e = START_ENTITY();
+        static Entity make(EntityOut output, Vec2 position, ItemManager& inventoryAllocator) {
+            auto e = START_ENTITY();
 
             e.Add<EC::Position>(position);
             e.Add<EC::Dynamic>(Vec2{-5,-5});
@@ -52,7 +149,7 @@ namespace Entities {
             e.Add<EC::Special>({});
             e.Add<EC::Immortal>({});
 
-            return e.make();
+            return e.output(output);
         }
     };
 
@@ -63,8 +160,8 @@ namespace Entities {
             add<Nature>({});
         }
 
-        static EntityMaker& make(EntityBuilder builder, Vec2 position, Vec2 size) {
-            auto& e = builder.New(ID);
+        static Entity make(EntityOut out, Vec2 position, Vec2 size) {
+            auto e = START_ENTITY();
             e.Add(
                 EC::Health(100.0f),
                 EC::Growth(0.0f));
@@ -78,7 +175,7 @@ namespace Entities {
             
             e.Add(EC::ViewBox(Box{Vec2(-0.5) * size, Vec2(size)}));
             e.Add(EC::CollisionBox(Box{Vec2(-0.4) * size, Vec2(0.8) * size}));
-            return e;
+            return e.output(out);
         }
     };
 
@@ -88,14 +185,14 @@ namespace Entities {
             add(EC::Proto::EntityRenderLayer{RenderLayer::Items});
         }
 
-        static EntityMaker& make(EntityBuilder ecs, Vec2 position, ::ItemStack item, const ItemManager& itemManager) {
-            auto& e = ecs.New(ID);
+        static Entity make(EntityOut out, Vec2 position, ::ItemStack item, const ItemManager& itemManager) {
+            auto e = START_ENTITY();
             e.Add<EC::Position>({position});
             e.Add<EC::ViewBox>({Box{Vec2(0), Vec2(1)}});
             e.Add<EC::ItemStack>({item});
             e.Add<EC::Grabbable>({item});
             e.Add<EC::Render>(EC::Render(itemManager.getComponent<ITC::Display>(item.item)->inventoryIcon, RenderLayers::Items));
-            return e;
+            return e.output(out);
         }
     };
 
@@ -106,14 +203,14 @@ namespace Entities {
             add<Hostile>({});
         }
 
-        static EntityMaker& make(EntityWorld* ecs, Vec2 pos) {
-            auto& e = START_ENTITY();
-            e.setPos(pos);
+        static Entity make(EntityOut out, Vec2 pos) {
+            auto e = START_ENTITY();
+            e.Add(EC::Position(pos));
             e.Add(EC::Render(TextureIDs::Player, RenderLayers::Player));
             e.Add(EC::CollisionBox(Vec2(0.05f), Vec2(0.9f)));
             e.Add<EC::Rotation>({0.0f});
             e.Add<EC::Health>({300});
-            return e;
+            return e.output(out);
         }
     };
 
@@ -124,14 +221,14 @@ namespace Entities {
             add<Hostile>({});
         }
 
-        static EntityMaker& make(EntityBuilder& builder, Vec2 pos) {
-            auto& e = builder.New(PrototypeIDs::Monster);
-            e.setPos(pos);
+        static Entity make(EntityOut out, Vec2 pos) {
+            auto e = START_ENTITY();
+            e.Add(EC::Position(pos));
             e.Add(EC::Render(TextureIDs::Player, RenderLayers::Player));
             e.Add(EC::CollisionBox(Vec2(0.05f), Vec2(0.9f)));
             e.Add<EC::Rotation>({0.0f});
             e.Add<EC::Health>({300});
-            return e;
+            return e.output(out);
         }
     };
 
@@ -141,8 +238,8 @@ namespace Entities {
 
         }
 
-        static EntityMaker& make(EntityBuilder ecs, Vec2 position, Vec2 size, TextureID texture, const EC::Explosion& explosion, float startRotation = 0.0f) {
-            auto& e = ecs.New(Tid);
+        static Entity make(EntityOut out, Vec2 position, Vec2 size, TextureID texture, const EC::Explosion& explosion, float startRotation = 0.0f) {
+            auto& e = START_ENTITY();
 
             Box box = {{0.0f,0.0f}, size};
             e.Add<EC::Position>(position);
@@ -152,7 +249,7 @@ namespace Entities {
             e.Add<EC::Render>(EC::Render(texture, RenderLayers::Particles));
             e.Add<EC::Rotation>({startRotation});
 
-            return e;
+            return e.output(out);
         }
     };
 
@@ -161,10 +258,9 @@ namespace Entities {
             setName("grenade");
         }
 
-        static EntityMaker& make(EntityBuilder ecs, Vec2 position) {
+        static Entity make(EntityOut out, Vec2 position) {
             const auto grenadeExplosion = EC::Explosion(4, 25, 1.0f, 60);
-            auto& e = Explosive::make(ecs, position, {0.5,0.5}, TextureIDs::Grenade, grenadeExplosion);
-            return e;
+            return Explosive::make(out, position, {0.5,0.5}, TextureIDs::Grenade, grenadeExplosion);
         }
     };
 
@@ -176,7 +272,7 @@ namespace Entities {
         }
 
         static Entity make(EntityWorld* ecs, Vec2 position, Vec2 size, Vec2 target) {
-            Entity airstrike = Explosive<PrototypeIDs::Airstrike>::make(ecs, position, size, TextureIDs::Grenade, airstrikeExplosion)();
+            Entity airstrike = Explosive<PrototypeIDs::Airstrike>::make(ecs, position, size, TextureIDs::Grenade, airstrikeExplosion);
             Entities::throwEntity(*ecs, airstrike, target, 0.2f);
             return airstrike;
         }
@@ -187,13 +283,38 @@ namespace Entities {
             setName("textbox");
         }
 
-        static EntityMaker& make(EntityBuilder ecs, Vec2 position, const EC::Text& textComponent) {
-            auto& e = ecs.New(ID);
+        static Entity make(EntityOut out, Vec2 position, const EC::Text& textComponent) {
+            auto e = START_ENTITY();
             e.Add(EC::Position(position));
             e.Add(EC::ViewBox::BottomLeft(textComponent.box.size));
             e.Add(textComponent);
-            return e;
+            return e.output(out);
         }
+    };
+
+    struct Laser : PrototypeDecl<PrototypeIDs::Laser> {
+        Laser(PrototypeManager& manager) : PrototypeDecl(manager) {
+            setName("laser");
+
+
+            // constructor.setConstruct([](EntityConstructor<EC::Position>* constructor, EC::Position position) {
+            //     constructor->Add<EC::Position>(position);
+
+            // });
+        }
+
+        static Entity make(EntityCommandOutput output, Vec2 position) {
+            auto m = START_ENTITY();
+            m.Add(EC::Health(100.0f));
+            m.Add(EC::Position{position});
+            m.output(output);
+        }
+
+        // static void construct(EntityConstructor<EC::Position>* constructor, EC::Position position) {
+        //     // constructor->Set<EC::Position>(position);
+        // }
+
+        // static EntityConstructor<EC::Position> constructor{ID, construct};
     };
 
     struct Cannon : PrototypeDecl<PrototypeIDs::Cannon> {
@@ -205,13 +326,13 @@ namespace Entities {
             });
         }
 
-        static EntityMaker& make(EntityBuilder ecs, Vec2 position) {
-            auto& e = ecs.New(ID);
+        static Entity make(EntityOut out, Vec2 position) {
+            auto e = START_ENTITY();
             e.Add(EC::Position{position});
             e.Add(EC::ViewBox::BottomLeft({1, 1}));
             e.Add(EC::Render{TextureIDs::Buildings::TransportBelt, RenderLayers::Buildings});
-            e.Add(EC::Gun{});
-            return e;
+            e.Add(EC::Gun(60, &Laser::make));
+            return e.output(out);
         }
     };
 //}

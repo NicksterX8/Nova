@@ -4,44 +4,6 @@
 
 GLuint usedShader = 0;
 
-/*
-char* readFileContents(FILE* file, size_t* outBytesRead) {
-    size_t chunkSize = 64;
-    ssize_t n;
-    char *str = (char*)malloc(chunkSize+1); // add 1 for nul char
-    if (!str) return NULL;
-    size_t len = 0;
-    while ((n = fread(str+len, 1, chunkSize, file))) {
-        if (n < 0) {
-            if (errno == EAGAIN)
-                continue;
-            perror("read");
-            break;
-        }
-        void* newStr = realloc(str, len + n + chunkSize + 1); // add 1 for nul char
-        if (!newStr) {
-            break;
-        }
-        str = (char*)newStr;
-        len += n;
-    }
-    str[len] = '\0';
-    if (outBytesRead)
-        *outBytesRead = len;
-    return str;
-}
-
-char* readFileContents(const char* filename, size_t* outBytesRead) {
-    FILE* file = SDL_fopen(filename, "r");
-    if (file) {
-        char* contents = readFileContents(file, outBytesRead);
-        fclose(file);
-        return contents;
-    }
-    return NULL;
-}
-*/
-
 GLuint compileShader(GLenum shaderType, const char* sourcePath) {
     const char* shaderName;
     switch (shaderType) {

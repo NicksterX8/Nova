@@ -200,10 +200,10 @@ int main() {
     // for (int i = 0; i < 10; i++) {
     //     printf("arr %d: %d", i ,arr[i]);
     // } 
+    uint8_t a = 255;
+    uint8_t b = 245;
+    a += 5;
 
-    
-
-    myClass c;
-    c.test();
-    printf("c: %d", c.x);
+    uint8_t c = a - b;
+    printf("c: %u", (uint32_t)c);
 }

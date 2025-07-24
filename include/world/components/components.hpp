@@ -7,6 +7,7 @@
 #include "ECS/Entity.hpp"
 #include "ECS/componentMacros.hpp"
 #include "rendering/text/text.hpp"
+#include "world/EntityWorld.hpp"
 
 #define BEGIN_COMPONENT(name) struct name {\
     constexpr static ComponentID ID = ComponentIDs::name;\
@@ -326,7 +327,12 @@ BEGIN_COMPONENT(Selected)
 END_COMPONENT(Selected)
 
 BEGIN_COMPONENT(Gun)
-    Tick lastFired;
+    Tick lastFired = NullTick;
+    Uint16 cooldown;
+    using CreateProjectileFunc = Entity(*)(EntityCommandOutput, Vec2 position);
+    CreateProjectileFunc projectileFired;
+
+    Gun(Uint16 cooldown, CreateProjectileFunc projectileFired) : cooldown(cooldown), projectileFired(projectileFired) {}
 END_COMPONENT(Gun)
 
 namespace Proto {
