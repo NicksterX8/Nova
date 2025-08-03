@@ -1,7 +1,6 @@
 *.o
 *.a
 *.d
-Makefile
 Makefile-old
 CMakeCache.txt
 cmake_install.cmake

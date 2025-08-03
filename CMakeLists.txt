@@ -3,12 +3,18 @@ cmake_minimum_required(VERSION 3.23.3)
 set(CMAKE_BUILD_TYPE Debug)
 project(faketorio VERSION 1.0)
 # -Wextra -pedantic
+# for extra optimization but slow:
+# enable -flto. link time optimization
+# or use unity builds for optimization
+# but can break things
+# -DCMAKE_UNITY_BUILD_ON
 
 add_compile_options(
-    -g -std=c++17
+    -g -std=c++17 -O0
     -Wall -Wextra -pedantic -Wliteral-conversion
     -Wno-macro-redefined -Wno-unused-variable -Wno-unused-parameter -Wno-char-subscripts -Wno-comment -Wno-sign-compare
     -Wno-gnu-zero-variadic-macro-arguments
+    -fno-math-errno -fno-trapping-math -fassociative-math -freciprocal-math -fno-signed-zeros
     -fno-exceptions -fno-rtti
     -DMACOS
     -DDEBUG -DDEBUG_LEVEL=2 -DMEMORY_DEBUG_LEVEL=0
@@ -21,7 +27,7 @@ add_link_options(-framework OpenGL -fno-exceptions -fno-rtti)
 #add_compile_options(-fsanitize=undefined -fsanitize=address)
 #add_link_options(-fsanitize=undefined -fsanitize=address)
 
-set(CMAKE_BUILD_TYPE Debug)
+
 set(SD src)
 
 set(SRC_FILES 
