@@ -83,10 +83,10 @@ struct DynamicEntitySystem : System {
 
     DynamicEntitySystem(SystemManager& manager, ChunkMap* chunkmap, EntityWorld* ecs)
     : System(manager), chunkmap(chunkmap), setChunkMapPos(chunkmap, ecs) {
-        Schedule(dynamicGroup, changeEntityPos, entityPosChanged.refConst(), 
+        auto first = Schedule(dynamicGroup, changeEntityPos, entityPosChanged.refConst(), 
             Schedule(dynamicGroup, findChangedEntities, &entityPosChanged));
 
-       Schedule(newEntities, setChunkMapPos);        
+        Schedule(newEntities, setChunkMapPos, first);        
     }
 };
 

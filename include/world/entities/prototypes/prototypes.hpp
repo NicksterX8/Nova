@@ -100,7 +100,7 @@ namespace Entities {
 
 #define START_ENTITY() ECS::EntityMaker(ID)
 
-using EntityOut = EntityCommandOutput;
+using EntityOut = ECS::EntityCommandOutput;
 
 //namespace Prototypes {
     struct Zombie : PrototypeDecl<PrototypeIDs::Monster> {
@@ -239,7 +239,7 @@ using EntityOut = EntityCommandOutput;
         }
 
         static Entity make(EntityOut out, Vec2 position, Vec2 size, TextureID texture, const EC::Explosion& explosion, float startRotation = 0.0f) {
-            auto& e = START_ENTITY();
+            auto e = ECS::EntityMaker(Tid);
 
             Box box = {{0.0f,0.0f}, size};
             e.Add<EC::Position>(position);
@@ -287,6 +287,7 @@ using EntityOut = EntityCommandOutput;
             auto e = START_ENTITY();
             e.Add(EC::Position(position));
             e.Add(EC::ViewBox::BottomLeft(textComponent.box.size));
+            e.Add(EC::Render(TextureIDs::Null, RenderLayers::Text));
             e.Add(textComponent);
             return e.output(out);
         }
@@ -303,11 +304,11 @@ using EntityOut = EntityCommandOutput;
             // });
         }
 
-        static Entity make(EntityCommandOutput output, Vec2 position) {
+        static Entity make(ECS::EntityCommandOutput output, Vec2 position) {
             auto m = START_ENTITY();
             m.Add(EC::Health(100.0f));
             m.Add(EC::Position{position});
-            m.output(output);
+            return m.output(output);
         }
 
         // static void construct(EntityConstructor<EC::Position>* constructor, EC::Position position) {
@@ -327,7 +328,8 @@ using EntityOut = EntityCommandOutput;
         }
 
         static Entity make(EntityOut out, Vec2 position) {
-            auto e = START_ENTITY();
+            //auto e = START_ENTITY();
+            auto e = ECS::EntityMaker(ID);
             e.Add(EC::Position{position});
             e.Add(EC::ViewBox::BottomLeft({1, 1}));
             e.Add(EC::Render{TextureIDs::Buildings::TransportBelt, RenderLayers::Buildings});

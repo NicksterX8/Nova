@@ -41,7 +41,7 @@ namespace ComponentIDs {
         Grabbable, Nametag, Health, CollisionBox, ViewBox,  \
         Size, Position, Inventory, Motion, AngleMotion,     \
         Render, Inserter, Dynamic, Immortal, Selected, Follow, \
-        Special, TransportLineEC, Transporter, Dying, Fresh, \
+        Special, TransportLineEC, Transporter, Dying, \
         ItemStack, Rotation, Rotatable, Explosion, \
         Explosive, Growth, Point, Text, Gun
     #define WORLD_PROTOTYPE_COMPONENT_LIST \
@@ -239,12 +239,6 @@ BEGIN_COMPONENT(Dying)
     Dying(int updatesTilRemoval) : timeToRemoval(updatesTilRemoval) {}
 END_COMPONENT(Dying)
 
-BEGIN_COMPONENT(Fresh)
-    ECS::Signature components;
-
-    Fresh() : components(0) {}
-END_COMPONENT(Fresh)
-
 BEGIN_COMPONENT(Inserter)
     int cycleLength;
     int stackSize;
@@ -329,7 +323,7 @@ END_COMPONENT(Selected)
 BEGIN_COMPONENT(Gun)
     Tick lastFired = NullTick;
     Uint16 cooldown;
-    using CreateProjectileFunc = Entity(*)(EntityCommandOutput, Vec2 position);
+    using CreateProjectileFunc = Entity(*)(ECS::EntityCommandOutput, Vec2 position);
     CreateProjectileFunc projectileFired;
 
     Gun(Uint16 cooldown, CreateProjectileFunc projectileFired) : cooldown(cooldown), projectileFired(projectileFired) {}

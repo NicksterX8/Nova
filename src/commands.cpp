@@ -187,48 +187,48 @@ namespace Commands {
     }
 
     Result setComponent(Args args, GameState* state) {
-        REQUIRE(3);
-        auto entityIdStr = args.get();
-        auto componentName = args.get();
-        auto componentValueStr = args.get();
+        // REQUIRE(3);
+        // auto entityIdStr = args.get();
+        // auto componentName = args.get();
+        // auto componentValueStr = args.get();
 
-        auto* ecs = state->ecs;
+        // auto* ecs = state->ecs;
 
-        Entity entity = getEntity(entityIdStr, state->ecs);
-        if (!ecs->EntityExists(entity)) {
-            return RES_ERROR("That entity doesn't exist!");
-        }
+        // Entity entity = getEntity(entityIdStr, state->ecs);
+        // if (!ecs->EntityExists(entity)) {
+        //     return RES_ERROR("That entity doesn't exist!");
+        // }
 
-        ECS::ComponentID componentID = ecs->GetComponentIdFromName(componentName.c_str());
-        if (componentID == ECS::NullComponentID) {
-            return RES_ERROR("Invalid component!");
-        }
+        // ECS::ComponentID componentID = ecs->GetComponentIdFromName(componentName.c_str());
+        // if (componentID == ECS::NullComponentID) {
+        //     return RES_ERROR("Invalid component!");
+        // }
 
-        // str should begin and end in braces, need atleast 2 characters to do that
-        //if (componentValueStr.size() < 2) return {"Invalid component value"} ;
-        //std::string interiorValue = componentValueStr.substr(1, componentValueStr.size()-2); // cut off braces
+        // // str should begin and end in braces, need atleast 2 characters to do that
+        // //if (componentValueStr.size() < 2) return {"Invalid component value"} ;
+        // //std::string interiorValue = componentValueStr.substr(1, componentValueStr.size()-2); // cut off braces
 
-        void* component = ecs->Get(entity, componentID);
-        if (!component) {
-            // entity doesn't have this component, so add it
-            ecs->Add(entity, componentID);
-        }
+        // void* component = ecs->Get(entity, componentID);
+        // if (!component) {
+        //     // entity doesn't have this component, so add it
+        //     ecs->Add(entity, componentID);
+        // }
 
-        auto componentSize = ecs->getComponentSize(componentID);
-        if (componentSize <= 0) return RES_ERROR("Invalid component!");
+        // auto componentSize = ecs->getComponentSize(componentID);
+        // if (componentSize <= 0) return RES_ERROR("Invalid component!");
 
-        bool success;
-        // position is annoying. maybe change one day
-        if (componentID == ECS::getID<World::EC::Position>()) {
-            Vec2 oldPos = ((World::EC::Position*)component)->vec2();
-            success = ecs->GetComponentValueFromStr(componentID, componentValueStr, component);
-            World::entityPositionChanged(state, entity, oldPos);
-        } else {
-            success = ecs->GetComponentValueFromStr(componentID, componentValueStr, component);
-        }
-        if (success) {
-            return RES_SUCCESS("Successfully set component value");
-        }
+        // bool success;
+        // // position is annoying. maybe change one day
+        // if (componentID == ECS::getID<World::EC::Position>()) {
+        //     Vec2 oldPos = ((World::EC::Position*)component)->vec2();
+        //     success = ecs->GetComponentValueFromStr(componentID, componentValueStr, component);
+        //     World::entityPositionChanged(state, entity, oldPos);
+        // } else {
+        //     success = ecs->GetComponentValueFromStr(componentID, componentValueStr, component);
+        // }
+        // if (success) {
+        //     return RES_SUCCESS("Successfully set component value");
+        // }
         return RES_ERROR("Failed to parse component value");
     }
 
@@ -246,7 +246,7 @@ namespace Commands {
             World::EntityCommandBuffer commandBuffer;
             ecs.useCommandBuffer(&commandBuffer);
             ecs.ForEachAll([&](Entity entity){
-                if (target == "ALL" || ecs.em.getPrototypeID(entity) == prototypeID) {
+                if (target == "ALL" || ecs.getPrototypeID(entity) == prototypeID) {
                     if (ecs.EntityExists(entity)) {
                         if (!ecs.EntityHas<World::EC::Immortal>(entity)) {
                             ecs.Destroy(entity);

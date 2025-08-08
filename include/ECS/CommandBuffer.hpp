@@ -8,11 +8,6 @@ namespace ECS {
 
 using PrototypeID = Sint32;
 
-struct PackedValuesRef {
-    void* buffer;
-    ArrayRef<Uint16> sizes;
-};
-
 struct EntityCommandBuffer {
     struct Command {
         Entity entity;
@@ -27,7 +22,6 @@ struct EntityCommandBuffer {
 
         struct AddSignature {
             Signature signature;
-            
         };
 
         struct Set {
@@ -94,7 +88,14 @@ struct EntityCommandBuffer {
         return {fakeID, 0};
     }
 
-    void addSignature(Entity entity, Signature signature, PackedValuesRef components) {
+    struct VoidComponentValue {
+        ECS::ComponentID id;
+        Uint16 bufferIndex;
+        Uint16 size;
+    };
+
+    void addSignature(Entity entity, Signature signature, ArrayRef<char> buffer, ArrayRef<VoidComponentValue> values) {
+        commands.reserve(1 + commands.size + values.size());
         commands.push(Command{
             .type = Command::CommandAddSignature,
             .entity = entity,
@@ -102,24 +103,18 @@ struct EntityCommandBuffer {
                 .signature = signature
             }
         });
-        commands.reserve(commands.size + components.sizes.size());
-        int totalSize = 0;
-        int i = 0;
-        signature.forEachSet([&](ComponentID component){
-            auto size = components.sizes[i];
-            ssize_t valueIndex = valueBuffer.size;
+        for (auto& value : values) {
             commands.push(Command{
                 .type = Command::CommandSet,
                 .entity = entity,
                 .set = {
-                    .component = component,
-                    .componentValueIndex = valueBuffer.size + totalSize
+                    .component = value.id,
+                    .componentValueIndex = valueBuffer.size + value.bufferIndex
                 }
             });
-            totalSize += size;
-            i++;
-        });
-        valueBuffer.push((char*)components.buffer, totalSize);
+        }
+        
+        valueBuffer.push(buffer);
     }
 
     void addComponent(Entity entity, ComponentID component, const void* value, size_t componentSize) {

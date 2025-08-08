@@ -2,19 +2,18 @@
 #define WORLD_ENTITIES_PROTOTYPES_DEF_INCLUDED
 
 #include "ECS/PrototypeManager.hpp"
+#include "ECS/CommandOutput.hpp"
 
 namespace ECS {
 
 struct EntityMaker {
 private:
-    // char buffer[1024];
     SmallVector<char, 256> buffer;
 public:
     ECS::Signature components = {0};
     ECS::PrototypeID prototype = -1;
 
-    
-    SmallVector<Uint16, 12> componentSizes;
+    SmallVector<EntityCommandBuffer::VoidComponentValue, 8> componentValues;
 
     EntityMaker(ECS::PrototypeID prototype) : prototype(prototype) {
     
@@ -28,7 +27,7 @@ public:
         size_t offset = getAlignmentOffset((size_t)buffer.data(), alignof(C));
         buffer.resize(buffer.size() + sizeof(C) + offset);
         *((C*)(buffer.end() - sizeof(C))) = value;
-        componentValues.push_back(ComponentValue{C::ID, (Uint16)(buffer.size() - sizeof(C)), sizeof(C)});
+        componentValues.push_back({C::ID, (Uint16)(buffer.size() - sizeof(C)), sizeof(C)});
     }
 
     template<class... Cs>
@@ -36,11 +35,9 @@ public:
         FOR_EACH_VAR_TYPE(Add<Cs>(components));
     }
 
-    Entity output(World::EntityCommandOutput out) {
+    Entity output(ECS::EntityCommandOutput out) {
         Entity entity = out.newEntity(prototype);
-        out.addSignature(entity, components, {buffer.data(), componentValues});
-        // set
-        // done
+        out.addSignature(entity, components, buffer, componentValues);
         return entity;
     }
 
@@ -85,7 +82,7 @@ namespace World {
 
     using PrototypeManager = ECS::PrototypeManager;
 
-    template<int TemplateId>
+    template<PrototypeID TemplateId>
     struct PrototypeDecl : Prototype {
         static constexpr PrototypeID ID = TemplateId;
 

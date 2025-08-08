@@ -11,7 +11,7 @@ namespace Entities {
     
 
     Entity ThrownGrenade(EntityWorld* ecs, Vec2 position, Vec2 target) {
-        Entity grenade = Grenade::make(ecs, position).make();
+        Entity grenade = Grenade::make(ecs, position);
         throwEntity(*ecs, grenade, target, 0.2f);
         return grenade;
     }

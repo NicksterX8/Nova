@@ -9,8 +9,8 @@
 namespace ECS {
 
 struct ComponentInfo {
-    ssize_t size = 0;
-    ssize_t alignment = 0;
+    Sint32 size = 0;
+    Sint32 alignment = 0;
     const char* name = "null";
     bool prototype = false;
 };

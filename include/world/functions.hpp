@@ -2,6 +2,7 @@
 #define WORLD_FUNCTIONS
 
 #include "EntityWorld.hpp"
+#include "components/components.hpp"
 
 struct ChunkMap;
 struct GameState;

@@ -39,12 +39,12 @@ namespace World {
         using namespace EC;
         using namespace EC::Proto;
         static constexpr auto infoList = ECS::getComponentInfoList<WORLD_COMPONENT_LIST>();
-        em.init(ArrayRef(infoList), World::Entities::PrototypeIDs::Count);
+        Base::init(ArrayRef(infoList), World::Entities::PrototypeIDs::Count);
     }
 
     ECS::EntityVersion EntityWorld::GetEntityVersion(ECS::EntityID id) const {
         assert(id <= NullEntity.id);
-        auto* data = em.components.getEntityData(id);
+        auto* data = Base::components.getEntityData(id);
         if (data)
             return data->version;
         return NullEntity.version;
@@ -52,9 +52,9 @@ namespace World {
 
     void EntityWorld::Set(Entity entity, ECS::ComponentID componentID, void* value) {
         assert(value);
-        void* component = em.getComponent(entity, componentID);
+        void* component = Base::getComponent(entity, componentID);
         if (component) {
-            memcpy(component, value, em.getComponentSize(componentID));
+            memcpy(component, value, getComponentSize(componentID));
         } else {
             LogError("Failed to set component, it could not be found.");
         }

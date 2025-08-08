@@ -3,6 +3,7 @@
 namespace ECS {
 
 void EntityManager::executeCommandBuffer(EntityCommandBuffer* commandBuffer) {
+    assert(commandBuffer);
     for (auto& command : commandBuffer->commands) {
         switch (command.type) {
         case EntityCommandBuffer::Command::CommandAdd:

@@ -50,6 +50,10 @@ public:
         return components.getComponentInfo(component);
     }
 
+    Sint32 getComponentSize(ComponentID component) const {
+        return components.getComponentInfo(component).size;
+    }
+
     void useCommandBuffer(EntityCommandBuffer* buffer) {
         assert(!commandBuffer && "Cannot use a new command buffer while another is active");
         this->commandBuffer = buffer;
@@ -57,8 +61,10 @@ public:
 
     // executes the current command buffer if it exists, and sets current command buffer to null
     void flushCurrentCommandBuffer() {
-        executeCommandBuffer(commandBuffer);
-        commandBuffer = nullptr;
+        if (commandBuffer) {
+            executeCommandBuffer(commandBuffer);
+            commandBuffer = nullptr;
+        }
     }
 
     // TODO: this is horrible... so slow and bad. figure out new solution for foreaches
@@ -317,10 +323,6 @@ public:
     }
 
     void removeComponent(Entity entity, ComponentID component);
-
-    int getComponentSize(ComponentID component) const {
-        return components.getComponentInfo(component).size;
-    }
 
     template<class... Components>
     bool entityHas(Entity entity) const {

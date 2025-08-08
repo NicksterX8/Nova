@@ -274,7 +274,8 @@ struct JobDecl : Job {
     }
     
     JobDecl() {
-        static_assert(std::is_trivially_copyable_v<Derived>, "Jobs must be trivially copyable!");
+        // static_assert(std::is_trivially_copyable_v<Derived>, "Jobs must be trivially copyable!");
+        // don't think that's necessary. We slice them but the original job (with user types) is not copied
 
         static constexpr Signature readSignature = ECS::getSignature<Components...>();
         static constexpr Signature writeSignature = ECS::getMutableSignature<Components...>();

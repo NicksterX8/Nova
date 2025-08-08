@@ -6,10 +6,10 @@ namespace items {
 namespace Prototypes {
 
 bool Grenade::onUse(Game* g) {
-    auto& grenade = World::Entities::Grenade::make(
+    auto grenade = World::Entities::Grenade::make(
         g->state->ecs,
         g->state->player.get<World::EC::Position>()->vec2()); 
-    World::Entities::throwEntity(*g->state->ecs, grenade(), g->playerControls->mouseWorldPos, 1.5f);
+    World::Entities::throwEntity(*g->state->ecs, grenade, g->playerControls->mouseWorldPos, 1.5f);
     return true;
 }
 
