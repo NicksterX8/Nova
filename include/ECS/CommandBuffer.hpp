@@ -2,35 +2,53 @@
 #define ECS_COMMAND_BUFFER_INCLUDED
 
 #include "Entity.hpp"
+#include "My/Vec.hpp"
 
 namespace ECS {
 
+using PrototypeID = Sint32;
+
 struct EntityCommandBuffer {
     struct Command {
+        Entity entity;
+        struct Create {
+            PrototypeID prototype;
+        };
 
         struct Add {
-            Entity target;
+            ComponentID component;
+            ssize_t componentValueIndex;
+        };
+
+        struct AddSignature {
+            Signature signature;
+        };
+
+        struct Set {
             ComponentID component;
             ssize_t componentValueIndex;
         };
 
         struct Remove {
-            Entity target;
             ComponentID component;
         };
 
-        struct Delete {
-            Entity target;
-        };
+        struct Delete {};
 
         union {
+            Create create;
             Add add;
+            AddSignature addSignature;
+            Set set;
             Remove remove;
             Delete del;
-        } value;
+        };
 
         enum CommandType {
+            CommandCreate,
             CommandAdd,
+            CommandAddSignature,
+            CommandSet,
             CommandRemove,
             CommandDelete
         } type;
@@ -38,7 +56,9 @@ struct EntityCommandBuffer {
 
     My::Vec<Command> commands = My::Vec<Command>::Empty();
     My::Vec<char> valueBuffer = My::Vec<char>::Empty();
-    bool executeInSequence = true;
+
+    EntityID fakeEntityIDCounter = MAX_ENTITIES+1;
+    My::Vec<EntityID> fakeEntitiesCreated = My::Vec<EntityID>::Empty();
 
     bool empty() const {
         return commands.empty() && valueBuffer.empty();
@@ -48,12 +68,53 @@ struct EntityCommandBuffer {
         int indexDiff = this->valueBuffer.size;
         for (auto& command : added.commands) {
             if (command.type == Command::CommandAdd) {
-                command.value.add.componentValueIndex += indexDiff;
+                command.add.componentValueIndex += indexDiff;
             }
         }
         commands.push(added.commands.data, added.commands.size);
         valueBuffer.push(added.valueBuffer.data, added.valueBuffer.size);
         added.destroy();
+    }
+
+    Entity newEntity(PrototypeID prototype) {
+        EntityID fakeID = fakeEntityIDCounter++;
+        commands.push(Command{
+            .type = Command::CommandCreate,
+            .entity = {fakeID, 0},
+            .create = {
+                .prototype = prototype
+            }
+        });
+        return {fakeID, 0};
+    }
+
+    struct VoidComponentValue {
+        ECS::ComponentID id;
+        Uint16 bufferIndex;
+        Uint16 size;
+    };
+
+    void addSignature(Entity entity, Signature signature, ArrayRef<char> buffer, ArrayRef<VoidComponentValue> values) {
+        commands.reserve(1 + commands.size + values.size());
+        commands.push(Command{
+            .type = Command::CommandAddSignature,
+            .entity = entity,
+            .addSignature = {
+                .signature = signature
+            }
+        });
+        for (auto& value : values) {
+            commands.push(Command{
+                .type = Command::CommandSet,
+                .entity = entity,
+                .set = {
+                    .component = value.id,
+                    .componentValueIndex = valueBuffer.size + value.bufferIndex
+                }
+            });
+        }
+        
+        valueBuffer.push(buffer);
     }
 
     void addComponent(Entity entity, ComponentID component, const void* value, size_t componentSize) {
@@ -62,8 +123,8 @@ struct EntityCommandBuffer {
         memcpy(&valueBuffer[componentPos], value, componentSize);
         commands.push(Command{
             .type = Command::CommandAdd,
-            .value.add = {
-                .target = entity,
+            .entity = entity,
+            .add = {
                 .component = component,
                 .componentValueIndex = componentPos
             }
@@ -78,8 +139,8 @@ struct EntityCommandBuffer {
     void removeComponent(Entity entity, ComponentID component) {
         commands.push(Command{
             .type = Command::CommandRemove,
-            .value.remove = {
-                .target = entity,
+            .entity = entity,
+            .remove = {
                 .component = component
             }
         });
@@ -93,9 +154,8 @@ struct EntityCommandBuffer {
     void deleteEntity(Entity entity) {
         commands.push(Command{
             .type = Command::CommandDelete,
-            .value.del = {
-                .target = entity
-            }
+            .entity = entity,
+            .del = {}
         });
     }
 

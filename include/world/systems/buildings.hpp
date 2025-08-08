@@ -12,19 +12,35 @@ using namespace ECS::Systems;
 struct GunSystem : System {
     GroupID group = MakeGroup(ComponentGroup<
         ReadWrite<EC::Gun>,
-        ReadOnly<EC::Position>,
+        ReadOnly<EC::Position>
     >());
 
-    struct ShootJob : JobParallelFor<ShootJob, EC::Gun> {
-        void Execute(int N) {
-            auto gun = Get<EC::AngleMotion>(N);
-            Entity entity = GetEntity(N);
-            commandBuffer->addComponent(entity, EC::Dying{5});
+    Tick currentTick = NullTick;
+
+    struct ShootJob : JobParallelFor<ShootJob, EC::Gun, EC::Position> {
+        EntityWorld* ecs;
+
+        ShootJob(EntityWorld* ecs) : ecs(ecs) {}
+
+        void Execute(int N, Tick tick) {
+            auto gun = Get<EC::Gun>(N);
+            auto position = Get<EC::Position>(N);
+            if (tick - gun.lastFired > gun.cooldown) {
+                Entity projectile = gun.projectileFired(commandBuffer, position.vec2());
+                commandBuffer->addComponent(projectile, EC::Motion({100, 100}, 1.0f));
+
+                gun.lastFired = tick;
+            }
         }
     } shootJob;
 
-    GunSystem(SystemManager& manager) : System(manager) {
-        Schedule(group, shootJob);
+    GunSystem(SystemManager& manager, EntityWorld* ecs) : System(manager), shootJob(ecs) {
+        Schedule(group, shootJob, &currentTick);
+    }
+
+
+    void BeforeExecution() override {
+        currentTick = Metadata->getTick();
     }
 };
 

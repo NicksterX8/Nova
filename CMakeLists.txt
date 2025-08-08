@@ -16,6 +16,7 @@ add_compile_options(
     -Wno-gnu-zero-variadic-macro-arguments
     -fno-math-errno -fno-trapping-math -fassociative-math -freciprocal-math -fno-signed-zeros
     -fno-exceptions -fno-rtti
+    -fno-math-errno
     -DMACOS
     -DDEBUG -DDEBUG_LEVEL=2 -DMEMORY_DEBUG_LEVEL=0
 )
@@ -72,6 +73,7 @@ set(SRC_FILES
     ${SD}/rendering/TexturePacker.cpp
     ${SD}/world/components/components.cpp
     ${SD}/world/functions.cpp
+    ${SD}/world/entities/prototypes.cpp
     ${SD}/world/entities/entities.cpp
     ${SD}/world/entities/methods.cpp
     ${SD}/world/EntityWorld.cpp

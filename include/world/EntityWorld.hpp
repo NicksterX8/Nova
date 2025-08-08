@@ -8,9 +8,10 @@
 #include "global.hpp"
 #include "ECS/EntityManager.hpp"
 #include "utils/common-macros.hpp"
-#include "components/components.hpp"
+//#include "components/components.hpp"
 #include "entities/prototypes/def.hpp"
 #include "ECS/System.hpp"
+#include "llvm/PointerUnion.h"
 
 struct ChunkMap;
 
@@ -20,80 +21,24 @@ using ECS::EntityCommandBuffer;
 
 struct EntityWorld;
 
-struct EntityMaker {
-    EntityWorld* ecs = nullptr;
-    
-    Entity entity = NullEntity;
-    ECS::Signature components = {0};
-    ECS::PrototypeID prototype = -1;
+template<typename... Args>
+struct EntityConstructor {
+    ECS::PrototypeID prototype;
+    ECS::Signature signature;
 
-    Uint16 bufUsed = 0;
-    MutArrayRef<char> buf;
+    Entity make(Args... args) {
 
-    static constexpr size_t MaxComponentMemory = std::numeric_limits<Uint16>::max();
-    struct ComponentValue {
-        ECS::ComponentID id;
-        Uint16 valueBufPos;
-    };
-    SmallVector<ComponentValue> componentValues;
-
-    EntityMaker() {}
-
-    EntityMaker(EntityWorld* ecs);
-    
-    EntityMaker(const EntityMaker& other) = delete;
-
-    EntityMaker& operator=(const EntityMaker& other);
-
-    // if an entity was in progress or already made, that data will be replaced with a fresh start
-    void start(ECS::PrototypeID prototype) {
-        clear();
-        this->prototype = prototype;
     }
 
-    template<class C>
-    void Add(const C& value) {
-        components.setComponent<C>();
-        Uint16 offset = (Uint16)((uintptr_t)buf.data() % alignof(C));
-        if (bufUsed + offset + sizeof(C) > buf.size()) {
-            assert(0 && "Ran out of buffer space");
-        }
-        *((C*)(buf.data() + bufUsed + offset)) = value;
-        componentValues.push_back(ComponentValue{C::ID, (Uint16)(bufUsed + offset)});
-        bufUsed += sizeof(C) + offset;
+    void buffer(Args... args) {
+
     }
-
-    template<class... Cs>
-    void Add(const Cs&... components) {
-        FOR_EACH_VAR_TYPE(Add<Cs>(components));
-    }
-
-    void setPos(Vec2 pos) {
-        Add<EC::Position>(pos);
-    }
-
-    Entity make();
-
-    void make(Entity* pEntity) {
-        *pEntity = make();
-    }
-
-    Entity operator()() {
-        return make();
-    }
-
-    void clear();
 };
 
-struct EntityWorld {
-    ECS::EntityManager em;
+struct EntityWorld : ECS::EntityManager {
 protected:
-
-    char* entityMakerBuffer;
-    EntityMaker entityMaker;
-
+    using Base = ECS::EntityManager;
     ChunkMap* chunkmap;
-
 public:
     EntityWorld() {}
 
@@ -107,34 +52,18 @@ public:
      * Essentially a destructor.
      */
     void destroy() {
-        em.destroy();
-    }
-
-    void setComponentDestructor(ECS::ComponentID component, const ECS::ComponentDestructor& destructor) {
-        em.setComponentDestructor(component, destructor);
-    }
-
-    void useCommandBuffer(EntityCommandBuffer* buffer) {
-        em.useCommandBuffer(buffer);
-    }
-
-    void flushCurrentCommandBuffer() {
-        em.flushCurrentCommandBuffer();
-    }
-
-    void executeCommandBuffer(EntityCommandBuffer* buffer) {
-        em.executeCommandBuffer(buffer);
+        Base::destroy();
     }
 
     ssize_t getComponentSize(ECS::ComponentID id) const {
-        return em.getComponentInfo(id).size;
+        return getComponentInfo(id).size;
     }
 
     /* Create a new entity with just an entity type component using the type name given.
      * @return A newly created entity.
      */
     Entity New(ECS::PrototypeID prototype) {
-        Entity entity = em.newEntity(prototype);
+        Entity entity = Base::newEntity(prototype);
         
         return entity;
     }
@@ -149,14 +78,14 @@ public:
             return;
         }
 
-        em.deleteEntity(entity);
+        Base::deleteEntity(entity);
     }
 
     /* Check whether an entity exists, AKA whether the entity was properly created using New and not yet Destroyed.
      * @return True if the entity exists, false if the entity is null or was destroyed.
      */
     bool EntityExists(Entity entity) const {
-        return em.entityExists(entity);
+        return Base::entityExists(entity);
     }
 
     /* Get the entity component signature (AKA component flags) for an entity ID. 
@@ -166,8 +95,8 @@ public:
      * @return The component flags corresponding to the entity ID.
      */
     ECS::Signature EntitySignature(Entity entity) const {
-        if (LIKELY(em.entityExists(entity)))
-            return em.getEntitySignature(entity);
+        if (LIKELY(EntityExists(entity)))
+            return Base::getEntitySignature(entity);
         return ECS::Signature(0);
     }
 
@@ -175,9 +104,9 @@ public:
      * If you already know the entity exists, you can use EntitySignature to check yourself if speed is critical.
      * @return True when the entity exists and has the components, otherwise false.
      */
-    template<class... ECs>
+    template<class... Cs>
     bool EntityHas(Entity entity) const {
-        return EntityExists(entity) && em.entityHas<ECs...>(entity);
+        return EntityExists(entity) && Base::entityHas<Cs...>(entity);
     }
 
     /* Check if an entity exists and has all of the given components.
@@ -185,7 +114,7 @@ public:
      * @return True when the entity exists and has the components, otherwise false.
      */
     bool EntityHas(Entity entity, ECS::Signature components) const {
-        return (EntityExists(entity) && em.entityHas(entity, components));
+        return (EntityExists(entity) && Base::entityHas(entity, components));
     }
 
     /* Get the latest entity version in use for the given ID.
@@ -198,7 +127,7 @@ public:
      * This is equivalent to the size of the main entity list.
      */
     inline Uint32 EntityCount() const {
-        return em.components.entityData.getSize();
+        return Base::components.entityData.getSize();
     }
     
     /* Get a component from the entity of the type T.
@@ -209,7 +138,7 @@ public:
      */
     template<class T>
     T* Get(Entity entity) const {
-        return em.getComponent<T>(entity);
+        return Base::getComponent<T>(entity);
     }
 
     /* Get a component from the entity of the type T.
@@ -219,7 +148,7 @@ public:
      * @return A pointer to a component of the type or null on error.
      */
     void* Get(Entity entity, ECS::ComponentID component) const {
-        return em.getComponent(entity, component);
+        return Base::getComponent(entity, component);
     }
 
     template<class T>
@@ -227,7 +156,7 @@ public:
         static_assert(!std::is_const<T>(), "Component must not be const to set values!");
         if (sizeof(T) == 0) return NULL;
 
-        T* component = em.getComponent<T>(entity);
+        T* component = getComponent<T>(entity);
         // perhaps add a NULL check here and log an error instead of dereferencing immediately?
         // could hurt performance depending on where it's used
         // decided to add check as otherwise this method is useless, so only use it if a null check is intended.
@@ -245,20 +174,7 @@ public:
      */
     template<class T>
     bool Add(Entity entity, const T& startValue) {
-        if (em.addComponent<T>(entity, startValue)) {
-            
-            // auto& onAddT = callbacksOnAdd[ECS::getID<T>()];
-            // if (onAddT) {
-            //     if (deferringEvents) {
-            //         deferredEvents.push_back({entity, onAddT});
-            //     } else {
-            //         onAddT(this, entity);
-            //     }
-            // }
-            return true;
-            
-        }
-        return false;
+        return Base::addComponent<T>(entity, startValue);
     }
 
     // TODO: should this exist?
@@ -274,22 +190,11 @@ public:
      * @return 0 on success, any other value otherwise. A relevant error message should be logged.
      */
     bool Add(Entity entity, ECS::ComponentID id, void* value = nullptr) {
-        bool ret = em.addComponent(entity, id, value);
-        // if (ret) {
-        //     auto& onAddT = callbacksOnAdd[id];
-        //     if (onAddT) {
-        //         if (deferringEvents) {
-        //             deferredEvents.push_back({entity, onAddT});
-        //         } else {
-        //             onAddT(this, entity);
-        //         }
-        //     }
-        // }
-        return ret;
+        return Base::addComponent(entity, id, value);
     }
 
     bool AddSignature(Entity entity, ECS::Signature signature) {
-        return em.addSignature(entity, signature);
+        return Base::addSignature(entity, signature);
     }
 
     /* Add the template argument components to the entity.
@@ -303,7 +208,7 @@ public:
     bool Add(Entity entity, Components... components) {
         static constexpr ECS::Signature signature = ECS::getSignature<Components...>();
 
-        bool ret = em.addSignature(entity, signature);
+        bool ret = addSignature(entity, signature);
         if (ret) {
             void* ptrs[] = {(void*)Set<Components>(entity, components) ...};
         }
@@ -313,36 +218,36 @@ public:
 
     template<class T>
     void Remove(Entity entity) {
-        em.removeComponent<T>(entity);
+        Base::removeComponent<T>(entity);
     }
 
     const Prototype* getPrototype(ECS::PrototypeID prototype) {
-        return (Prototype*)em.getPrototype(prototype);
+        return (Prototype*)Base::getPrototype(prototype);
     }
 
     const Prototype* getPrototype(const char* prototypeName) {
-        return (Prototype*)em.getPrototype(prototypeName);
+        return (Prototype*)Base::getPrototype(prototypeName);
     }
 
     const Prototype* getPrototype(Entity entity) {
-        return (Prototype*)em.getPrototype(entity);
+        return (Prototype*)Base::getPrototype(entity);
     }
 
-    EntityMaker& startMakingEntity(ECS::PrototypeID prototype) {
-        entityMaker.start(prototype);
-        return entityMaker;
-    }
+    // EntityMaker& startMakingEntity(ECS::PrototypeID prototype) {
+    //     entityMaker.start(prototype);
+    //     return entityMaker;
+    // }
 
-    EntityMaker* getEntityMaker() {
-        return &entityMaker;
-    }
+    // EntityMaker* getEntityMaker() {
+    //     return &entityMaker;
+    // }
 
-    MutArrayRef<char> getEntityMakerBuffer() const {
-        return MutArrayRef<char>(entityMakerBuffer, 1024);
-    }
+    // MutArrayRef<char> getEntityMakerBuffer() const {
+    //     return MutArrayRef<char>(entityMakerBuffer, 1024);
+    // }
 
     void ForEachAll(std::function<bool(Entity entity)> callback) const {
-        em.forAllEntities(callback);
+        Base::forAllEntities(callback);
     } 
 
     /* Iterate entities filtered using an EntityQuery.
@@ -353,7 +258,7 @@ public:
      * As such, version comparisons may not work as expected.
      */
     inline void ForEach(std::function<bool(ECS::Signature)> query, std::function<void(Entity entity)> callback) const {
-        em.forEachEntity(query, callback);
+        Base::forEachEntity(query, callback);
     }
 
     /* Iterate entities filtered using an EntityQuery.
@@ -366,75 +271,11 @@ public:
      * Return true to break and stop iterating
      */
     inline void ForEach_EarlyReturn(std::function<bool(ECS::Signature)> query, std::function<bool(Entity entity)> callback) const {
-        em.forEachEntity_EarlyReturn(query, callback);
+        Base::forEachEntity_EarlyReturn(query, callback);
     }
 
     ECS::ComponentID GetComponentIdFromName(const char* name) const {
-        return em.getComponentIdFromName(name);
-    }
-
-    template<typename T>
-    void setValue(void* valuePtr, T value) const {
-        memcpy(valuePtr, &value, sizeof(T));
-    }
-
-    bool GetComponentValueFromStr(ECS::ComponentID component, std::string str, void* v) const {
-        if (component == ECS::NullComponentID) return false;
-        auto componentSize = getComponentSize(component);
-        bool empty = str.empty() || str == "{}";
-        
-
-        using namespace World;
-        #define CASE(component_name) case ECS::getID<EC::component_name>()
-        #define VALUE(component_name, ...) setValue<EC::component_name>(v, __VA_ARGS__); return true
-        std::stringstream ss(str);
-        // TODO: for objects automatically parse out properties and stuff. make it an array
-        // OR / AND REGEX? dont use std library one casue it sucks balllssss
-
-        switch (component) {
-
-        CASE(Position): {
-            if (empty) {
-                VALUE(Position, {{0.0f, 0.0f}});
-            }
-
-            float x,y;
-
-            ss.ignore(1, '{');
-            ss >> x;
-            ss.ignore(1, ',');
-            ss >> y;
-
-            VALUE(Position, {x, y});
-        }
-        /*
-        CASE(Size):
-            if (empty) {
-                VALUE(Size, {0.0f, 0.0f});
-            }
-
-            float width,height;
-
-            ss.ignore(1, '{');
-            ss >> width;
-            ss.ignore(1, ',');
-            ss >> height;
-
-            VALUE(Size, {width, height});
-        */
-        }
-
-        return false;
-    }
-};
-
-struct EntityBuilder {
-    EntityWorld* ecs;
-
-    EntityBuilder(EntityWorld* ecs) : ecs(ecs) {}
-
-    EntityMaker& New(ECS::PrototypeID prototype) {
-        return ecs->startMakingEntity(prototype);
+        return Base::getComponentIdFromName(name);
     }
 };
 

@@ -214,6 +214,7 @@ struct RenderEntitySystem : RenderSystem {
         for (int e = 0; e < realNumEntities; e++) {
             Entity entity = entityList[e];
             EC::Render* renderComponent = ecs.Get<EC::Render>(entity);
+            assert(renderComponent);
             for (int i = 1; i < renderComponent->numTextures; i++) {
                 entityList.push_back(entity);
                 textureIndexList.push(i);

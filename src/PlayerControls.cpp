@@ -245,7 +245,7 @@ void PlayerControls::handleKeydown(const SDL_KeyboardEvent& event) {
             if (heldItemStack && heldItemStack->get()) {
                 ItemStack dropStack = ItemStack(heldItemStack->get()->item, 1);
                 heldItemStack->get()->reduceQuantity(1);
-                World::Entities::ItemStack::make(game->state->ecs, mouseWorldPos, dropStack, game->state->itemManager)();
+                World::Entities::ItemStack::make(game->state->ecs, mouseWorldPos, dropStack, game->state->itemManager);
             }
         break;} 
         case 'h': {

@@ -18,7 +18,7 @@
 #define TICKS_PER_SECOND 60
 #define ENABLE_VSYNC 1
 
-#define USE_MULTITHREADING 0
+#define USE_MULTITHREADING 1
 
 #define GetTicks SDL_GetTicks
 #define GetPerformanceCounter SDL_GetPerformanceCounter
@@ -48,6 +48,7 @@ namespace RenderLayers {
         Particles,
         Player,
         Trees,
+        Text,
         Highest
     };
 }

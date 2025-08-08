@@ -186,20 +186,21 @@ void runSystemJobsSinglethreaded(SystemManager& sysManager, const TinyPtrVectorV
             job->commandBuffer = &sysManager.unexecutedCommands;
             void* componentArrays[8] = {nullptr};
             job->componentArrays = componentArrays;
+            int index = 0;
             for (const auto* pool : eligiblePools) {
                 for (int i = 0; job->componentIDs[i] != 255; i++) {
                     auto componentID = job->componentIDs[i];
                     char* poolComponentArray = pool->getComponentArray(componentID);
                     assert(poolComponentArray && "Archetype pool does not have this component!");
-                    componentArrays[i] = poolComponentArray;
+                    componentArrays[i] = poolComponentArray - index;
                 }
-                job->entities = pool->entities;
+                job->entities = pool->entities - index;
 
-                job->executeFunc(job, scheduledJob->args, 0, pool->size);
+                job->executeFunc(job, scheduledJob->args, index, index + pool->size);
                 for (int i = 0; i < job->nConditionalExecutions; i++) {
                     auto& conditionalExecutions = job->conditionalExecutions[i];
                     if (pool->signature().hasAll(conditionalExecutions.required)) {
-                        conditionalExecutions.execute(job, scheduledJob->args, 0, pool->size);
+                        conditionalExecutions.execute(job, scheduledJob->args, index, index + pool->size);
                     }
                 }
             }
@@ -358,6 +359,7 @@ void ECS::Systems::executeSystems(SystemManager& sysManager) {
             if (pool->size > 0) {
                 groupPools[id].push_back(pool);
             }
+            totalJobEntities = pool->size;
         }
 
         // make sure arrays are right size for group

@@ -19,11 +19,11 @@ void makeItemPrototypes(ItemManager& im) {
     using namespace items;
     auto& pm = im.prototypes;
 
-    auto* allocator = &im.prototypeAllocator;
+    auto& allocator = im.prototypeAllocator;
 
-    auto tile = allocator->New<Prototypes::Tile>(pm);
-    auto grenade = allocator->New<Prototypes::Grenade>(pm);
-    auto sandGun = allocator->New<Prototypes::SandGun>(pm);
+    auto tile = NEW(Prototypes::Tile(pm), allocator);
+    auto grenade = NEW(Prototypes::Grenade(pm), allocator);
+    auto sandGun = NEW(Prototypes::SandGun(pm), allocator);
 
     ItemPrototype* prototypes[] = {
         tile, grenade, sandGun
@@ -36,7 +36,7 @@ void makeItemPrototypes(ItemManager& im) {
 
 void makeEntityPrototypes(EntityWorld& ecs) {
     auto* allocator = &GlobalAllocators.gameScratchAllocator;
-    auto& pm = ecs.em.prototypes;
+    auto& pm = ecs.prototypes;
     using namespace World;
     #define MAKE_PROTOTYPE(constructor) allocator->New<Entities::constructor>(pm)
     auto player = MAKE_PROTOTYPE(Player);
@@ -57,15 +57,6 @@ void makeEntityPrototypes(EntityWorld& ecs) {
 void GameState::createWorld() {
     /* Init Player */
     player = Player(ecs, Vec2(0, 0), itemManager);
-
-    auto* pool = ecs->em.makeWatcher({
-        .required = ECS::getSignature<World::EC::ViewBox>(),
-        .rejected = ECS::getSignature<World::EC::Inserter>()
-    }, ECS::GroupWatcherTypes::EnteredGroup);
-
-    ecs->Add(player.entity, World::EC::Inserter{0, 0, 0, {0,0}, {0,0}});
-
-    ecs->Remove<World::EC::Inserter>(player.entity);
 
     ItemStack startInventory[] = {
         ItemStack(items::Prototypes::SandGun::make(itemManager)),

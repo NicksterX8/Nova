@@ -36,6 +36,9 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
         }),
         new FunctionKeyBinding('p', [&](){
             debug.settings["drawEntityCollisionBoxes"] = !debug.settings["drawEntityCollisionBoxes"];
+        }),
+        new FunctionKeyBinding('i', [&](){
+            World::Entities::Monster::make(&ecs, playerControls.mouseWorldPos);
         })
     };
 
@@ -48,7 +51,8 @@ void GameEntitySystems::init(GameState* state, RenderContext* renderContext, Cam
     auto& allocator = GlobalAllocators.gameScratchAllocator;
     this->renderEntitySys = NEW(World::RenderSystems::RenderEntitySystem(ecsRenderSystems, *renderContext, camera, *state->ecs, state->chunkmap), allocator);
     this->dynamicEntitySys = NEW(World::Systems::DynamicEntitySystem(ecsStateSystems, &state->chunkmap, state->ecs), allocator);
-
+    this->gunSys = NEW(World::Systems::GunSystem(ecsStateSystems, state->ecs));
+ 
     ECS::Systems::setupSystems(ecsRenderSystems);
     ECS::Systems::setupSystems(ecsStateSystems);
 }
@@ -178,25 +182,6 @@ static void updateSystems(GameState* state) {
 
         //entityPositionChanged(state, entity, oldPos);
     });
-
-    ecs.ForEach([](ECS::Signature components){
-        return components.hasComponents<EC::Fresh, EC::Position>();
-    }, [&](Entity entity){
-        auto fresh = ecs.Get<EC::Fresh>(entity); assert(fresh);
-        if (fresh->components.getComponent<EC::Position>()) {
-            // ec::position just added
-            fresh->components.setComponent<EC::Position>(0);
-        }
-    });
-
-    ECS::EntityCommandBuffer removeFreshes;
-    ecs.useCommandBuffer(&removeFreshes);
-    ecs.ForEach([](ECS::Signature components){
-        return components.hasComponents<EC::Fresh>();
-    }, [&](Entity entity){
-        ecs.Remove<EC::Fresh>(entity);
-    });
-    ecs.flushCurrentCommandBuffer();
 }
 
 int tick(GameState* state, PlayerControls* playerControls) {
@@ -438,8 +423,8 @@ int Game::init(SDLContext sdlContext) {
     this->state = NEW(GameState(), essentialAllocator);
     this->state->init(&renderContext->textures);
 
-    this->systems.ecsRenderSystems.entityManager = &this->state->ecs->em;
-    this->systems.ecsStateSystems.entityManager  = &this->state->ecs->em;
+    this->systems.ecsRenderSystems.entityManager = this->state->ecs;
+    this->systems.ecsStateSystems.entityManager  = this->state->ecs;
     renderContext->ecsRenderSystems = &this->systems.ecsRenderSystems;
     state->ecsSystems = &this->systems.ecsStateSystems;
 
@@ -457,7 +442,6 @@ int Game::init(SDLContext sdlContext) {
     // }
 
     // auto tree = World::Entities::Tree::make(state->ecs, {10.5, 10.5}, {40, 40})();
-    // state->ecs->Add<World::EC::Fresh, World::EC::Immortal>(tree, {}, {});
 
     World::Entities::TextBox::make(state->ecs, {10, -5}, World::EC::Text{
         .message = "This is an example of a text box!",

@@ -201,25 +201,6 @@ struct Group {
     }
 };
 
-// template <typename... Vars>
-// struct filter_vars;
-
-// template <>
-// struct filter_vars<> {
-//     using type = std::tuple<>;
-// };
-
-// template <typename Head, typename... Tail>
-// struct filter_vars<Head, Tail...> {
-// private:
-//     using tail_filtered = typename filter_vars<Tail...>::type;
-// public:
-//     using type = std::conditional_t<
-//         !IsComponentArray<std::remove_const_t<std::remove_pointer_t<Head>>> && !std::is_same_v<std::remove_const_t<std::remove_pointer_t<Head>>, EntityArray>, // remove pointer so it works pointers too
-//         decltype(std::tuple_cat(std::declval<std::tuple<Head>>(), std::declval<tail_filtered>())),
-//         tail_filtered
-//     >;
-// };
 
 template <typename T>
 struct ExecuteMethodTraits;
@@ -293,7 +274,8 @@ struct JobDecl : Job {
     }
     
     JobDecl() {
-        static_assert(std::is_trivially_copyable_v<Derived>, "Jobs must be trivially copyable!");
+        // static_assert(std::is_trivially_copyable_v<Derived>, "Jobs must be trivially copyable!");
+        // don't think that's necessary. We slice them but the original job (with user types) is not copied
 
         static constexpr Signature readSignature = ECS::getSignature<Components...>();
         static constexpr Signature writeSignature = ECS::getMutableSignature<Components...>();
