@@ -21,4 +21,4 @@ freetype2 for fonts
 This project is provided for demonstration and portfolio purposes only.
 All rights are reserved by the author.
 
-You may view and reference the code, but you may *not* copy, modify, distribute, or use it for any purpose without explicit written permission from the author.
+You may view and reference the code, but you may *not* copy, modify, distribute, or use it for any purpose without explicit written permission.
