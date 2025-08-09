@@ -81,6 +81,13 @@ struct ItemStack {
     bool empty() const {
         return item.type == ItemTypes::None || quantity == 0;
     }
+
+    bool operator==(const ItemStack& stack) const {
+        return item.type == stack.item.type 
+            && item.id == stack.item.id
+            && item.version == stack.item.version
+            && quantity == stack.quantity;
+    }
 };
 
 }
