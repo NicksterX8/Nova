@@ -2,12 +2,16 @@
 
 A 2D tile based game loosely inspired by factorio, trying to make something cool.
 
-Current technical features, almost everything made from near scratch:
-- homemade OpenGL rendering
-- an infinitely expanding chunk based tile map
-- text rendering with freetype2 and some GUI elements
-- A console usable to enter commands that do a variety of things and display messages
-- An ECS
-- Good code (just kidding)
+Components:
+- A high performance Entity Component System based on archetypes
+- Text rendering and formatting
+- A basic ECS based GUI
+    - A debug console with many commands allowing you to read and change game state while running
+- Infinitely expanding chunk based tile map
 
-## Time til completion: 12
+Dependencies:
+SDL3 for the window, input
+SDL3_image for loading textures
+OpenGL for all rendering
+glm for vector and matrix math
+freetype2 for fonts
