@@ -26,10 +26,6 @@
 #include "utils/system/signpost.hpp"
 #include "memory/FreelistAllocator.hpp"
 
-#ifdef DEBUG
-    //#include "Testing.hpp"
-#endif
-
 void initLogging(GUI::Console* console) {
     gLogger.gameConsoleOutput = console;
     SDL_SetLogOutputFunction(Logger::logOutputFunction, &gLogger);
@@ -64,7 +60,7 @@ void tests() {
     physics_test();
 }
 
-int main(int argc, char** argv) { 
+int Main(int argc, char** argv) { 
     std::string windowTitle = "Faketorio";
 
     gLogger.useEscapeCodes = true;
@@ -91,6 +87,12 @@ int main(int argc, char** argv) {
     initLogging(&game.gui.console);
     initPaths();
     gLogger.init(FileSystem.save.get("log.txt"));
+
+#ifndef NDEBUG
+    LogInfo("Debug build");
+#else
+    LogInfo("Non debug build");
+#endif
     
     SDL_Rect windowRect = {
         0,

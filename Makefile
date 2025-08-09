@@ -1,2 +1,2 @@
 build_it:
-	(cd build && make -j && cp faketorio last-faketorio)
+	(cd build && make -j && ctest --output-on-failure)

@@ -1,35 +1,38 @@
+
 cmake_minimum_required(VERSION 3.23.3)
 
 set(CMAKE_BUILD_TYPE Debug)
 project(faketorio VERSION 1.0)
-# -Wextra -pedantic
+
 # for extra optimization but slow:
 # enable -flto. link time optimization
 # or use unity builds for optimization
 # but can break things
 # -DCMAKE_UNITY_BUILD_ON
 
+set(CMAKE_CXX_STANDARD 17)
+
 add_compile_options(
-    -g -std=c++17 -O0
+    -g
     -Wall -Wextra -pedantic -Wliteral-conversion
     -Wno-macro-redefined -Wno-unused-variable -Wno-unused-parameter -Wno-char-subscripts -Wno-comment -Wno-sign-compare
     -Wno-gnu-zero-variadic-macro-arguments
     -fno-math-errno -fno-trapping-math -fassociative-math -freciprocal-math -fno-signed-zeros
     -fno-exceptions -fno-rtti
-    -fno-math-errno
     -DMACOS
-    -DDEBUG -DDEBUG_LEVEL=2 -DMEMORY_DEBUG_LEVEL=0
+    -DDEBUG_LEVEL=2 -DMEMORY_DEBUG_LEVEL=0
 )
 
-add_link_options(-framework OpenGL -fno-exceptions -fno-rtti)
+add_link_options(-framework OpenGL)
 
 # debug options
-# doesn't work with lldb. just freezes and stops without giving you any information
+# doesn't work with lldb on mac. just freezes and stops without giving you any information
 #add_compile_options(-fsanitize=undefined -fsanitize=address)
 #add_link_options(-fsanitize=undefined -fsanitize=address)
 
-
 set(SD src)
+set(HLB /opt/homebrew/Cellar)
+set(VLB /Users/nick/vcpkg/packages)
 
 set(SRC_FILES 
     ${SD}/llvm/SmallVector.cpp
@@ -84,24 +87,19 @@ set(SRC_FILES
     ${SD}/physics/physics.cpp
 )
 
-#find_package (glog 0.6.0 REQUIRED)
+add_library(faketorio_lib STATIC ${SRC_FILES})
 
-add_executable(${PROJECT_NAME} ${SRC_FILES})
-#target_link_libraries (${PROJECT_NAME} glog::glog)
+add_executable(${PROJECT_NAME} ${SD}/mainmain.cpp)
+target_link_libraries(${PROJECT_NAME} faketorio_lib)
 
-set(HLB /opt/homebrew/Cellar)
-set(VLB /Users/nick/vcpkg/packages)
-
-#find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3)
-
-target_link_directories(${PROJECT_NAME} PUBLIC 
+target_link_directories(faketorio_lib PUBLIC 
     ${HLB}/sdl3/3.2.16/lib
     ${HLB}/sdl3_image/3.2.4/lib
     ${HLB}/freetype/2.13.3/lib
 )
 
-target_link_libraries(${PROJECT_NAME} sdl3 freetype sdl3_image)
-target_include_directories(${PROJECT_NAME} PUBLIC
+target_link_libraries(faketorio_lib sdl3 freetype sdl3_image)
+target_include_directories(faketorio_lib PUBLIC
     ../faketorio/include
     ${HLB}/sdl3/3.2.16/include/SDL3 # have to do this because of sdl_image 
     ${HLB}/sdl3/3.2.16/include
@@ -115,3 +113,6 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Signing executable..."
 )
+
+enable_testing()
+add_subdirectory(tests)
