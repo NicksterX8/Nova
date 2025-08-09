@@ -96,13 +96,18 @@ class AllocatorBase : public AllocatorI, public AllocateMethods<Derived>, public
     // even if deallocation isn't actually needed, define it because of template allocator usage and preferably poison the memory
     // optional:
     // reallocate(void* ptr, size_t oldSize, size_t newSize, size_t alignment)
-    // static constexpr bool needDeallocate() if deallocate isn't necessary like a scratch allocator
+    // static constexpr bool NeedDeallocate() if deallocate isn't necessary like a scratch allocator
+    // static constexpr size_t MaxAlignment() if an allocator doesn't support every valid alignment
     // getAllocatorStats() recommended
     // deallocateAll() if possible (not possible for something like Mallocator)
 
 public:
     static constexpr bool NeedDeallocate() {
         return true; // default to yes. overrideable by derived if it's not
+    }
+
+    static constexpr size_t MaxAlignment() {
+        return (size_t)1 << ((sizeof(size_t) * 8) - 1); // set highest bit
     }
 
     void* reallocate(void* ptr, size_t oldSize, size_t newSize, size_t alignment) {
@@ -274,7 +279,7 @@ public:
         if (LIKELY(alignment <= alignof(std::max_align_t)))
             return malloc(size);
         else
-            return aligned_alloc(alignment, size);
+            return aligned_alloc(alignment, ((size + alignment - 1) & ~(alignment - 1))); // round size up to next multiple of alignment, as size is required to be by aligned_alloc
     }
 
     void deallocate(void* ptr, size_t size, size_t alignment) {
