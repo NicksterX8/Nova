@@ -49,6 +49,8 @@ public:
         __asan_poison_memory_region(ptr, size);
     }
 
+    using Base::deallocate;
+
     static constexpr bool NeedDeallocate() {
         return false;
     }

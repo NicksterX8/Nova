@@ -282,6 +282,9 @@ public:
     
         return ptr;
     }
+
+    using Base::allocate;
+
 private:
     char* allocateBlock() {
         if (UNLIKELY(stackFreeBlockCount == 0)) {
@@ -345,6 +348,8 @@ public:
 
         __asan_poison_memory_region(ptr, size);
     }
+
+    using Base::deallocate;
 private:
     void deallocateBlock(char* block) {
         if (stackFreeBlockCount < BlocksPerAlloc) {
