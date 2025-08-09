@@ -15,3 +15,10 @@ SDL3_image for loading textures
 OpenGL for all rendering
 glm for vector and matrix math
 freetype2 for fonts
+
+
+## License & Usage
+This project is provided for demonstration and portfolio purposes only.
+All rights are reserved by the author.
+
+You may view and reference the code, but you may *not* copy, modify, distribute, or use it for any purpose without explicit written permission from the author.
