@@ -90,15 +90,6 @@ struct Player {
         }
     }
 
-    const Inventory* inventory() const {
-        if (ecs->EntityExists(entity)) {
-            auto component = ecs->Get<World::EC::Inventory>(entity);
-            if (component) {
-                return &component->inventory;
-            }
-        }
-        return nullptr;        
-    }
     Inventory* inventory() {
         if (ecs->EntityExists(entity)) {
             auto component = ecs->Get<World::EC::Inventory>(entity);
@@ -107,6 +98,10 @@ struct Player {
             }
         }
         return nullptr;
+    }
+    
+    const Inventory* inventory() const {
+        return const_cast<Player*>(this)->inventory();        
     }
 
     float getSpeed() const {
