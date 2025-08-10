@@ -2,6 +2,17 @@
 
 namespace ECS {
 
+void EntityManager::init(ArrayRef<ComponentInfo> componentList, int numPrototypes) {
+    this->componentInfo = NEW_ARR(ComponentInfo, componentList.size());
+    nComponents = componentList.size();
+    std::copy(componentList.begin(), componentList.end(), this->componentInfo);
+    components.init(ArrayRef{componentInfo, (size_t)nComponents});
+    prototypes.init(ArrayRef{componentInfo, (size_t)nComponents}, numPrototypes);
+    stateLocked = new bool(false);
+    commandBuffer = nullptr;
+    componentDestructors = ComponentSet<ComponentDestructor>::Empty();
+}
+
 void EntityManager::executeCommandBuffer(EntityCommandBuffer* commandBuffer) {
     assert(commandBuffer);
     for (auto& command : commandBuffer->commands) {

@@ -34,7 +34,7 @@ protected:
 EntityManager* makeEntityManager() {
     EntityManager* m = new EntityManager();
     static constexpr auto info = getComponentInfoList<Position, Health>();
-    m->init(ArrayRef(info), 0);
+    m->init(info, 0);
     return m;
 }
 

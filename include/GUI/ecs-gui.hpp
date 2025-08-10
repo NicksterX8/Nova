@@ -63,7 +63,7 @@ struct GuiManager : ECS::EntityManager {
         Free(node->children);
     }
 
-    void init(ECS::ComponentInfoRef componentInfo, int numPrototypes) {
+    void init(ArrayRef<ECS::ComponentInfo> componentInfo, int numPrototypes) {
         screen = NullElement;
         hoveredElement = NullElement;
         treeMap = decltype(treeMap)(32);

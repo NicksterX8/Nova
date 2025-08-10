@@ -28,6 +28,8 @@ struct EntityManager {
     ComponentManager components;
     PrototypeManager prototypes;
 
+    ComponentInfo* componentInfo;
+    int nComponents;
 private:
     bool* stateLocked;
     EntityCommandBuffer* commandBuffer;
@@ -38,13 +40,8 @@ private:
     Signature componentsWithOnAdd = 0;
 public:
 
-    void init(ComponentInfoRef componentInfo, int numPrototypes) {
-        components.init(componentInfo);
-        prototypes.init(componentInfo, numPrototypes);
-        stateLocked = new bool(false);
-        commandBuffer = nullptr;
-        componentDestructors = ComponentSet<ComponentDestructor>::Empty();
-    }
+    // component info is copied
+    void init(ArrayRef<ComponentInfo> componentInfo, int numPrototypes);
 
     const ComponentInfo& getComponentInfo(ComponentID component) const {
         return components.getComponentInfo(component);
@@ -359,6 +356,7 @@ public:
     void destroy() {
         components.destroy();
         prototypes.destroy();
+        DELETE_ARR(componentInfo, nComponents);
     }
 
     ComponentID getComponentIdFromName(const char* name) const;

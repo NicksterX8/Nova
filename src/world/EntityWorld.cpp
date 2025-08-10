@@ -38,8 +38,8 @@ namespace World {
         this->chunkmap = chunkmap;
         using namespace EC;
         using namespace EC::Proto;
-        static constexpr auto infoList = ECS::getComponentInfoList<WORLD_COMPONENT_LIST>();
-        Base::init(ArrayRef(infoList), World::Entities::PrototypeIDs::Count);
+        static const auto infoList = ECS::getComponentInfoList<WORLD_COMPONENT_LIST>();
+        Base::init(infoList, World::Entities::PrototypeIDs::Count);
     }
 
     ECS::EntityVersion EntityWorld::GetEntityVersion(ECS::EntityID id) const {
