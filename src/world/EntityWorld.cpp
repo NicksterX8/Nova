@@ -34,8 +34,7 @@ namespace World {
     //     componentValues.clear();
     // }
 
-    void EntityWorld::init(ChunkMap* chunkmap, EntityWorld* pointerToThis) {
-        this->chunkmap = chunkmap;
+    void EntityWorld::init(EntityWorld* pointerToThis) {
         using namespace EC;
         using namespace EC::Proto;
         static const auto infoList = ECS::getComponentInfoList<WORLD_COMPONENT_LIST>();

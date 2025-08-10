@@ -8,12 +8,8 @@
 #include "global.hpp"
 #include "ECS/EntityManager.hpp"
 #include "utils/common-macros.hpp"
-//#include "components/components.hpp"
 #include "entities/prototypes/def.hpp"
 #include "ECS/System.hpp"
-#include "llvm/PointerUnion.h"
-
-struct ChunkMap;
 
 namespace World {
 
@@ -38,11 +34,10 @@ struct EntityConstructor {
 struct EntityWorld : ECS::EntityManager {
 protected:
     using Base = ECS::EntityManager;
-    ChunkMap* chunkmap;
 public:
     EntityWorld() {}
 
-    void init(ChunkMap* chunkmap, EntityWorld* pointerToThis);
+    void init(EntityWorld* pointerToThis);
 
     EntityWorld(const EntityWorld& copy) = delete;
 
