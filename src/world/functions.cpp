@@ -233,7 +233,6 @@ Entity findPlayerFocusedEntity(const EntityWorld& ecs, const ChunkMap& chunkmap,
         }
 
         auto render = ecs.Get<const EC::Render>(entity);
-        // TODO: enhance for multiple textures
         if (pointInEntity(target, entity, ecs)) {
             for (int i = 0; i < render->numTextures; i++) {
                 int entityLayer = render->textures[i].layer;
