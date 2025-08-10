@@ -1,6 +1,6 @@
 # Faketorio
 
-A 2D tile based game loosely inspired by factorio, trying to make something cool.
+An in progress game with a custom game engine
 
 Components:
 - A high performance Entity Component System based on archetypes
@@ -10,12 +10,11 @@ Components:
 - Infinitely expanding chunk based tile map
 
 Dependencies:
+OpenGL for low level rendering
+glm for vector and matrix math
 SDL3 for the window, input
 SDL3_image for loading textures
-OpenGL for all rendering
-glm for vector and matrix math
 freetype2 for fonts
-
 
 ## License & Usage
 This project is provided for demonstration and portfolio purposes only.

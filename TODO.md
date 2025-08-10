@@ -2,7 +2,7 @@
 
 1. Increase testing coverage
 2. Simplify creation of entities
-3. Support rendering of additional primitives 
+3. Implement rendering of additional primitives 
     - Circle
     - Nine slice sprite
 4. Flesh out the GUI system
@@ -10,3 +10,6 @@
     - Tables
 5. Develop more types of world entities
 6. Add audio and sound effects
+
+### Other:
+- Start using clang-format
