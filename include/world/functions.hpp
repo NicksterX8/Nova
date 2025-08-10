@@ -17,20 +17,7 @@ inline float getEntityHeight(ECS::EntityID id, int renderLayer) {
     return getLayerHeight(renderLayer) + id * 0.0000001f;
 }
 
-inline bool pointInEntity(Vec2 point, Entity entity, const EntityWorld& ecs) {
-    bool clickedOnEntity = false;
-
-    const auto* viewbox = ecs.Get<const EC::ViewBox>(entity);
-    const auto* position = ecs.Get<const EC::Position>(entity);
-    if (viewbox && position) {
-        FRect entityRect = viewbox->box.rect();
-        entityRect.x += position->x;
-        entityRect.y += position->y;
-        clickedOnEntity = pointInRect(point, entityRect); 
-    }
-    
-    return clickedOnEntity;
-}
+bool pointInEntity(Vec2 point, Entity entity, const EntityWorld& ecs);
 
 Entity findPlayerFocusedEntity(const EntityWorld& ecs, const ChunkMap& chunkmap, Vec2 playerMousePos);
 

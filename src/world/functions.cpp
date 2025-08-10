@@ -5,12 +5,31 @@
 namespace World {
 
 Box getEntityViewBoxBounds(const EntityWorld* ecs, Entity entity) {
-    Vec2 pos = ecs->Get<EC::Position>(entity)->vec2();
+    assert(ecs->entityExists(entity) && "Entity does not exist!");
+    EC::Position* positionEc = ecs->Get<EC::Position>(entity);
+    assert(positionEc && "Entity must have a position!");
+    Vec2 pos = positionEc->vec2();
     auto* viewbox = ecs->Get<EC::ViewBox>(entity);
+    assert(viewbox && "Entity must have viewbox!");
     return Box{
         pos + viewbox->box.min,
-        pos + viewbox->box.min + viewbox->box.size
+        viewbox->box.size
     };
+}
+
+bool pointInEntity(Vec2 point, Entity entity, const EntityWorld& ecs) {
+    bool clickedOnEntity = false;
+
+    const auto* viewbox = ecs.Get<const EC::ViewBox>(entity);
+    const auto* position = ecs.Get<const EC::Position>(entity);
+    if (viewbox && position) {
+        FRect entityRect = viewbox->box.rect();
+        entityRect.x += position->x;
+        entityRect.y += position->y;
+        clickedOnEntity = pointInRect(point, entityRect); 
+    }
+    
+    return clickedOnEntity;
 }
 
 void setEventCallbacks(EntityWorld& ecs, ChunkMap& chunkmap) {
