@@ -92,20 +92,17 @@ add_library(faketorio_lib STATIC ${SRC_FILES})
 add_executable(${PROJECT_NAME} ${SD}/mainmain.cpp)
 target_link_libraries(${PROJECT_NAME} faketorio_lib)
 
-target_link_directories(faketorio_lib PUBLIC 
-    ${HLB}/sdl3/3.2.16/lib
-    ${HLB}/sdl3_image/3.2.4/lib
-    ${HLB}/freetype/2.13.3/lib
-)
+find_package(SDL3 3.2.16 QUIET)
+find_package(SDL3_image 3.2.4 QUIET)
+find_package(Freetype 2.13.3 QUIET)
+# find_package(glm QUIET)
 
-target_link_libraries(faketorio_lib sdl3 freetype sdl3_image)
+target_link_libraries(faketorio_lib SDL3::SDL3 Freetype::Freetype SDL3_image::SDL3_image)
 target_include_directories(faketorio_lib PUBLIC
     ../faketorio/include
-    ${HLB}/sdl3/3.2.16/include/SDL3 # have to do this because of sdl_image 
-    ${HLB}/sdl3/3.2.16/include
-    ${HLB}/sdl3_image/3.2.4/include
-    ${HLB}/glm/0.9.9.8/include
-    ${HLB}/freetype/2.13.3/include/freetype2 # Freetype is weird so you have to include it like this
+    ${SDL3_INCLUDE_DIRS}
+    ${FREETYPE_INCLUDE_DIRS}
+    #${HLB}/glm/0.9.9.8/include
 )
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
