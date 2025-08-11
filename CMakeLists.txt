@@ -84,7 +84,6 @@ set(SRC_FILES
     ${SD}/ECS/EntityManager.cpp
     ${SD}/ECS/ArchetypePool.cpp
     ${SD}/ECS/ArchetypalComponentManager.cpp
-    ${SD}/physics/physics.cpp
 )
 
 add_library(faketorio_lib STATIC ${SRC_FILES})
