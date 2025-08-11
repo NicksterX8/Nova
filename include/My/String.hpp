@@ -13,6 +13,7 @@
 
 template<typename ... Args>
 std::string string_format(const std::string& format, Args... args) {
+    if (format.empty()) return "";
     int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'
     if (LLVM_UNLIKELY(size_s <= 0)) {
         LogError("Failed formatting.");
@@ -22,6 +23,11 @@ std::string string_format(const std::string& format, Args... args) {
     StackAllocate<char, 128> buf{(int)size};
     std::snprintf((char*)buf, size, format.c_str(), args...);
     return std::string((char*)buf, (char*)buf + size - 1); // We don't want the '\0' inside
+}
+
+// specialize for no args
+inline std::string string_format(const std::string& str) {
+    return str;
 }
 
 

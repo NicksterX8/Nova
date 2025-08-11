@@ -136,7 +136,7 @@ int executeJobTask(EntityCommandBuffer* commandBuffer, const JobChunk& task) {
 int jobThreadFunc(void* dataPtr) {
     ThreadData* threadData = (ThreadData*)dataPtr;
     auto& queue = threadData->shared->taskQueue;
-    ThreadData::PerThread personalData = threadData->personal;
+    ThreadData::PerThread& personalData = threadData->personal;
     JobChunk task;
     while (!threadData->shared->quit.load(std::memory_order_relaxed)) {
         if (queue->try_dequeue(task)) {
@@ -147,7 +147,7 @@ int jobThreadFunc(void* dataPtr) {
             }
         }
     }
-    threadData->personal = personalData;
+    //threadData->personal = personalData;
     return 0;
 }
 

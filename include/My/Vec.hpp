@@ -254,7 +254,7 @@ public:
     }
 
     void destroy() {
-        Free(data);
+        clear();
     }
 
     T& back() const {

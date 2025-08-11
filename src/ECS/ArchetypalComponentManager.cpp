@@ -14,12 +14,7 @@ void ArchetypalComponentManager::init(ComponentInfoRef componentInfo) {
     archetypes = decltype(archetypes)::Empty();
     entityData = My::DenseSparseSet<EntityID, EntityData, 
         Uint16, MaxEntityID>::WithCapacity(64);
-    unusedEntities = My::Vec<Entity>::WithCapacity(10000);
-    unusedEntities.require(10000);
-    for (int i = 0; i < 10000; i++) {
-        unusedEntities[i].id = 10000 - i - 1;
-        unusedEntities[i].version = 0;
-    }
+    unusedEntities = My::Vec<Entity>::WithCapacity(512);
 
     memset(watchedComponentAddGroupIndices, NullWatcherIndex, sizeof(watchedComponentAddGroupIndices));
     memset(watchedComponentRemoveGroupIndices, NullWatcherIndex, sizeof(watchedComponentRemoveGroupIndices));
@@ -92,7 +87,16 @@ void ArchetypalComponentManager::init(ComponentInfoRef componentInfo) {
 }
 
 Entity ArchetypalComponentManager::newEntity(Uint32 prototype) {
-    Entity entity = unusedEntities.popBack();
+    Entity entity;
+    if (!unusedEntities.empty()) {
+        entity = unusedEntities.popBack();
+    } else if (highestUsedEntity < MaxEntityID) {
+        entity.id = ++highestUsedEntity;
+        entity.version = 0;
+    } else {
+        LogCritical("All possible entity IDs used!!");
+        abort();
+    }
     EntityData* data = entityData.insert(entity.id);
     data->version = ++entity.version;
     data->archetype = 0;

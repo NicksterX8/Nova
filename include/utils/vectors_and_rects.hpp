@@ -131,6 +131,7 @@ inline FRect* boxAsRect(Box* rect) {
 
 // returns the cos(angle) in x, sin(angle) in y. uses builtin sincos if available
 // single precision floating point
+// param angle: angle in radians
 inline Vec2 get_sincosf(float angle) {
     #ifdef HAVE_SINCOSF
         Vec2 vec;
@@ -145,6 +146,7 @@ inline Vec2 get_sincosf(float angle) {
 
 // returns the cos(angle) in x, sin(angle) in y. uses builtin sincos if available
 // double precision floating point
+// param angle: angle in radians
 inline DVec2 get_sincosd(double angle) {
     #ifdef HAVE_SINCOSF
         DVec2 vec;

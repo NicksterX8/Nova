@@ -88,11 +88,7 @@ namespace World {
 
         PrototypeDecl(PrototypeManager& manager) : Prototype(manager.New(ID)) {}
     public:
-        // static ECS::EntityMaker& startMake() {
-        //     threadEntityMaker.reset();
-        //     threadEntityMaker.prototype = ID;
-        //     return threadEntityMaker;
-        // }
+
     };
 }
 

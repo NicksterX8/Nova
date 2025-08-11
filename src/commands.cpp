@@ -11,8 +11,8 @@ namespace Commands {
     #define DEF_COMMAND(name, ...) Result name(const char* args, __VA_ARGS__)
     #define DESCRIBE(name, _description) getCommand(TOSTRING(name))->description = _description
 
-    #define RES_ERROR(message) Result{Result::Error, message}
-    #define RES_SUCCESS(message) Result{Result::Success, message}
+    #define RES_ERROR(message, ...) Result{Result::Error, string_format(message, ##__VA_ARGS__)}
+    #define RES_SUCCESS(message, ...) Result{Result::Success, string_format(message, ##__VA_ARGS__)}
 
     class ArgsList {
         char* buffer;
@@ -148,7 +148,7 @@ namespace Commands {
         }
         
         snprintf(message, 512, "Couldn't find texture with name \"%s\"", textureName.c_str());
-        return RES_ERROR(std::string(message));
+        return RES_ERROR(message);
     }
 
     bool inputIsNumeric(std::string input) {
@@ -513,6 +513,14 @@ namespace Commands {
         return RES_SUCCESS("");
     }
 
+    Result getPos(Args args, const Player& player) {
+        auto* pos = player.get<World::EC::Position>();
+        if (!pos) {
+            return RES_ERROR("Player has no position!");
+        }
+        return RES_SUCCESS("Player position: (%.2f, %.2f)", pos->x, pos->y);
+    }
+
     Result getTick(Args args, int nothing) {
         REQUIRE(0);
         (void)nothing;
@@ -585,6 +593,7 @@ void setCommands(Game* game) {
     REG_COMMAND(resume, game);
     REG_COMMAND(toggleWireframeMode, 0);
     REG_COMMAND(logAllocatorStats, game);
+    REG_COMMAND(getPos, state->player);
 }
 
 CommandInput processMessage(std::string message, ArrayRef<Command> possibleCommands) {

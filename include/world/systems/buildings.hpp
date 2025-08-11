@@ -17,17 +17,21 @@ struct GunSystem : System {
 
     Tick currentTick = NullTick;
 
-    struct ShootJob : JobParallelFor<ShootJob, EC::Gun, EC::Position> {
+    struct ShootJob : JobParallelFor<ShootJob, EC::Gun, const EC::Position, const EC::Rotation> {
         EntityWorld* ecs;
 
         ShootJob(EntityWorld* ecs) : ecs(ecs) {}
 
         void Execute(int N, Tick tick) {
-            auto gun = Get<EC::Gun>(N);
+            auto& gun = Get<EC::Gun>(N);
             auto position = Get<EC::Position>(N);
+            auto rotation = Get<EC::Rotation>(N);
+            Vec2 dir = get_sincosf(rotation.degrees * M_PI / 180.0f);
+            Vec2 delta = dir * gun.projectileSpeed;
             if (tick - gun.lastFired > gun.cooldown) {
                 Entity projectile = gun.projectileFired(commandBuffer, position.vec2());
-                commandBuffer->addComponent(projectile, EC::Motion({100, 100}, 1.0f));
+                commandBuffer->addComponent(projectile, EC::Velocity{delta});
+                commandBuffer->addComponent(projectile, EC::Rotation(rotation));
 
                 gun.lastFired = tick;
             }

@@ -308,6 +308,10 @@ using EntityOut = ECS::EntityCommandOutput;
             auto m = START_ENTITY();
             m.Add(EC::Health(100.0f));
             m.Add(EC::Position{position});
+            m.Add(EC::Dynamic{position});
+            m.Add(EC::ViewBox::Centered(Vec2{0.5}));
+            m.Add(EC::Render(TextureIDs::Grenade, RenderLayers::Particles));
+            m.Add(EC::Rotation(0.0f));
             return m.output(output);
         }
 
@@ -328,18 +332,19 @@ using EntityOut = ECS::EntityCommandOutput;
         }
 
         static Entity make(EntityOut out, Vec2 position) {
-            //auto e = START_ENTITY();
             auto e = ECS::EntityMaker(ID);
             e.Add(EC::Position{position});
             e.Add(EC::ViewBox::BottomLeft({1, 1}));
             e.Add(EC::Render{TextureIDs::Buildings::TransportBelt, RenderLayers::Buildings});
-            e.Add(EC::Gun(60, &Laser::make));
+            e.Add(EC::Gun(120, &Laser::make, 0.2f));
+            e.Add(EC::Rotatable(0.0f, 90.0f));
+            e.Add(EC::Rotation(0.0f));
             return e.output(out);
         }
     };
 //}
 
-
+void makePrototypes(EntityWorld& ecs);
 
 }
 

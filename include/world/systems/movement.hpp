@@ -63,6 +63,11 @@ struct DynamicEntitySystem : System {
         ReadOnly<EC::ViewBox>
     >());
 
+    GroupID velGroup = MakeGroup(ComponentGroup<
+        ReadOnly<EC::Velocity>,
+        ReadWrite<EC::Dynamic>
+    >());
+
     GroupID treeGroup = MakeGroup(ComponentGroup<
         ReadWrite<EC::Position>
     >());
@@ -81,12 +86,25 @@ struct DynamicEntitySystem : System {
 
     SetChunkMapPosJob setChunkMapPos;
 
+    struct VelocityJob : JobParallelFor<VelocityJob, const EC::Velocity, EC::Dynamic> {
+        void Execute(int N) {
+            auto vel = Get<EC::Velocity>(N).vel;
+            auto& pos = Get<EC::Dynamic>(N).pos;
+            pos += vel;
+        }
+    } velocityJob;
+
     DynamicEntitySystem(SystemManager& manager, ChunkMap* chunkmap, EntityWorld* ecs)
     : System(manager), chunkmap(chunkmap), setChunkMapPos(chunkmap, ecs) {
-        auto first = Schedule(dynamicGroup, changeEntityPos, entityPosChanged.refConst(), 
-            Schedule(dynamicGroup, findChangedEntities, &entityPosChanged));
-
-        Schedule(newEntities, setChunkMapPos, first);        
+        Do(
+            Schedule(velGroup, velocityJob)
+        ).Then(
+            Schedule(dynamicGroup, findChangedEntities, &entityPosChanged)
+        ).Then(
+            Schedule(dynamicGroup, changeEntityPos, entityPosChanged.refConst())
+        ).Then(
+            Schedule(newEntities, setChunkMapPos)
+        );
     }
 };
 

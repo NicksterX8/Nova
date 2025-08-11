@@ -42,6 +42,7 @@ struct ArchetypalComponentManager {
 
     SmallVector<ArchetypePool, 0> pools;
     My::Vec<Entity> unusedEntities;
+    EntityID highestUsedEntity = 0;
     My::HashMap<Signature, ArchetypeID, SignatureHash> archetypes;
     ComponentInfoRef componentInfo;
     Signature validComponents = {0};

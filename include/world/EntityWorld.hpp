@@ -228,19 +228,6 @@ public:
         return (Prototype*)Base::getPrototype(entity);
     }
 
-    // EntityMaker& startMakingEntity(ECS::PrototypeID prototype) {
-    //     entityMaker.start(prototype);
-    //     return entityMaker;
-    // }
-
-    // EntityMaker* getEntityMaker() {
-    //     return &entityMaker;
-    // }
-
-    // MutArrayRef<char> getEntityMakerBuffer() const {
-    //     return MutArrayRef<char>(entityMakerBuffer, 1024);
-    // }
-
     void ForEachAll(std::function<bool(Entity entity)> callback) const {
         Base::forAllEntities(callback);
     } 

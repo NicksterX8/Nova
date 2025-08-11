@@ -34,26 +34,6 @@ void makeItemPrototypes(ItemManager& im) {
     }
 }
 
-void makeEntityPrototypes(EntityWorld& ecs) {
-    auto* allocator = &GlobalAllocators.gameScratchAllocator;
-    auto& pm = ecs.prototypes;
-    using namespace World;
-    #define MAKE_PROTOTYPE(constructor) allocator->New<Entities::constructor>(pm)
-    auto player = MAKE_PROTOTYPE(Player);
-    auto itemStack = MAKE_PROTOTYPE(ItemStack);
-    auto monster = MAKE_PROTOTYPE(Monster);
-    auto spider = MAKE_PROTOTYPE(Spider);
-    auto grenade = MAKE_PROTOTYPE(Grenade);
-
-    ItemPrototype* prototypes[] = {
-        player, itemStack, monster, spider, grenade
-    };
-
-    for (int i = 0; i < sizeof(prototypes) / sizeof(prototypes[0]); i++) {
-        pm.add(prototypes[i]);
-    }
-}
-
 void GameState::createWorld() {
     /* Init Player */
     player = Player(ecs, Vec2(0, 0), itemManager);
@@ -71,6 +51,8 @@ void GameState::createWorld() {
     for (int i = 0; i < (int)(sizeof(startInventory) / sizeof(ItemStack)); i++) {
         playerInventory->addItemStack(startInventory[i]);
     }
+
+    World::Entities::Cannon::make(ecs, {-5, -5});
 }
 
 void GameState::init(const TextureManager* textureManager) {
@@ -97,7 +79,7 @@ void GameState::init(const TextureManager* textureManager) {
     ecs->init(ecs);
 
 
-    makeEntityPrototypes(*ecs);
+    World::Entities::makePrototypes(*ecs);
     World::setEventCallbacks(*ecs, chunkmap);
 
     /* Init Items */

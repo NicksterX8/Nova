@@ -39,6 +39,16 @@ void setDefaultKeyBindings(Game& ctx, PlayerControls* controls) {
         }),
         new FunctionKeyBinding('i', [&](){
             World::Entities::Monster::make(&ecs, playerControls.mouseWorldPos);
+        }),
+        new FunctionKeyBinding('r', [&](){
+            Entity focusedEntity = World::findPlayerFocusedEntity(ecs, chunkmap, mouseWorldPos);
+            if (focusedEntity.NotNull()) {
+                if (ecs.EntityHas<World::EC::Rotatable>(focusedEntity)) {
+                    float increment = ecs.Get<World::EC::Rotatable>(focusedEntity)->increment;
+                    float& rotation = ecs.Get<World::EC::Rotation>(focusedEntity)->degrees;
+                    rotation = fmod(rotation - increment, 360.0f);
+                }
+            }
         })
     };
 

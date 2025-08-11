@@ -43,7 +43,7 @@ namespace ComponentIDs {
         Render, Inserter, Dynamic, Immortal, Selected, Follow, \
         Special, TransportLineEC, Transporter, Dying, \
         ItemStack, Rotation, Rotatable, Explosion, \
-        Explosive, Growth, Point, Text, Gun
+        Explosive, Growth, Point, Text, Gun, Velocity
     #define WORLD_PROTOTYPE_COMPONENT_LIST \
         Hostile, Nature, EntityRenderLayer, Living, GunProto
     #define WORLD_COMPONENT_LIST WORLD_REGULAR_COMPONENT_LIST COMMA WORLD_PROTOTYPE_COMPONENT_LIST
@@ -317,6 +317,10 @@ BEGIN_COMPONENT(Dynamic)
     Vec2 pos;
 END_COMPONENT(Dynamic)
 
+BEGIN_COMPONENT(Velocity)
+    Vec2 vel;
+END_COMPONENT(Velocity)
+
 BEGIN_COMPONENT(Selected)
 END_COMPONENT(Selected)
 
@@ -325,8 +329,10 @@ BEGIN_COMPONENT(Gun)
     Uint16 cooldown;
     using CreateProjectileFunc = Entity(*)(ECS::EntityCommandOutput, Vec2 position);
     CreateProjectileFunc projectileFired;
+    float projectileSpeed;
 
-    Gun(Uint16 cooldown, CreateProjectileFunc projectileFired) : cooldown(cooldown), projectileFired(projectileFired) {}
+    Gun(Uint16 cooldown, CreateProjectileFunc projectileFired, float projectileSpeed)
+    : cooldown(cooldown), projectileFired(projectileFired), projectileSpeed(projectileSpeed) {}
 END_COMPONENT(Gun)
 
 namespace Proto {

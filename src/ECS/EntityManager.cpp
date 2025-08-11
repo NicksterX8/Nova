@@ -15,11 +15,48 @@ void EntityManager::init(ArrayRef<ComponentInfo> componentList, int numPrototype
 
 void EntityManager::executeCommandBuffer(EntityCommandBuffer* commandBuffer) {
     assert(commandBuffer);
+    struct FakeEntity {
+        EntityID fakeID;
+        Entity real;
+    };
+    SmallVector<FakeEntity> fakeEntities;
     for (auto& command : commandBuffer->commands) {
+        // check if the command is on a 'fake entity' 
+        // one that is used only to represent an entity that will be made
+        // sometime in the future
+        
+        // there can't be a real entity yet for an entity just being created
+        if (command.type != EntityCommandBuffer::Command::CommandCreate 
+            && command.entity.id > NullEntity.id) {
+            // is fake entity
+            for (auto& entity : fakeEntities) {
+                if (command.entity.id == entity.fakeID) {
+                    // substitute for real one
+                    command.entity = entity.real;
+                    goto realFound;
+                }
+            }
+            // no real found
+            LogError("no real?");
+        }
+    realFound:
         switch (command.type) {
+        case EntityCommandBuffer::Command::CommandCreate: {
+            Entity realEntity = newEntity(command.create.prototype);
+            // made fake entity - register it so we can detect it in future commands
+            fakeEntities.push_back({command.entity.id, realEntity});
+            break; }
         case EntityCommandBuffer::Command::CommandAdd:
             doAddComponent(command.entity, command.add.component, command.add.componentValueIndex + commandBuffer->valueBuffer.data);
             break;
+        case EntityCommandBuffer::Command::CommandAddSignature:
+            addSignature(command.entity, command.addSignature.signature);
+            break;
+        case EntityCommandBuffer::Command::CommandSet: {
+            void* component = getComponent(command.entity, command.set.component);
+            void* value = &commandBuffer->valueBuffer[command.set.componentValueIndex];
+            memcpy(component, value, getComponentSize(command.set.component));
+            break; }
         case EntityCommandBuffer::Command::CommandRemove:
             doRemoveComponent(command.entity, command.remove.component);
             break;
@@ -107,6 +144,7 @@ void EntityManager::removeComponent(Entity entity, ComponentID component) {
 void EntityManager::deleteEntity(Entity entity) {
     if (entity.Null()) {
         LogError("Cannot delete null entity!");
+        SDL_TriggerBreakpoint();
         return;
     }
 
