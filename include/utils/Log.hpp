@@ -1,7 +1,6 @@
 #ifndef LOG_INCLUDED
 #define LOG_INCLUDED
 
-#include <SDL3/SDL_log.h>
 #include <string>
 #include <stdio.h>
 #include "common-macros.hpp"
@@ -12,7 +11,7 @@ namespace GUI {
 
 namespace LogCategories {
 enum LogCategory {
-    Main = SDL_LOG_CATEGORY_CUSTOM,
+    Main,
     Render,
     Audio,
     Test,
@@ -24,13 +23,13 @@ using LogCategory = LogCategories::LogCategory;
 
 namespace LogPriorities {
 enum LogPriority {
-    Verbose = SDL_LOG_PRIORITY_VERBOSE,
+    Verbose,
     Debug,
     Info,
     Warn,
     Error,
     Critical,
-    Crash = SDL_LOG_PRIORITY_COUNT,
+    Crash,
     NumPriorities
 };
 }
@@ -38,30 +37,21 @@ enum LogPriority {
 using LogPriority = LogPriorities::LogPriority;
 
 struct Logger {
-    void logOutputFunction(LogCategory category, LogPriority priority, const char *message) const;
+    // thread safe
+    void log(LogCategory category, LogPriority priority, const char* message) const;
+    // log with message to be formatted with va_list
+    void logV(LogCategory category, LogPriority priority, const char* fmt, va_list) const;
 public:
     bool initialized = false;
     LogCategory category = LogCategory::Main; // The log category to use when logging, default is main
-    bool useEscapeCodes = false; // Use ansi escape codes for colors and bolding when logging to console
-    char logOutputFilepath[512] = {'\0', };
     FILE* outputFile = NULL;
+    bool useEscapeCodes = false; // Use ansi escape codes for colors and bolding when logging to console
     bool logToConsole = true;
     // different than terminal
     GUI::Console* gameConsoleOutput;
 
-    static void logOutputFunction(void* logger, int category, SDL_LogPriority priority, const char *message);
-
-    int init(const char* outputFilepath) {
-        SDL_SetLogPriorities(SDL_LOG_PRIORITY_DEBUG);
-        initialized = true;
-        if (!outputFilepath)
-            return -1;
-        strncpy(logOutputFilepath, outputFilepath, 512);
-        outputFile = fopen(logOutputFilepath, "w+");
-        if (!outputFile)
-            return -1;
-        return 0;
-    }
+    // returns true on success, returns false if we were unable to open the file
+    bool setOutputFile(const char* filename);
 
     void destroy() {
         if (outputFile) {
@@ -92,10 +82,25 @@ void logOnceInternal(LogCategory category, LogPriority priority, char* lastMessa
 #define LogWarn(...) logInternal(gLogger.category, LogPriority::Warn, __VA_ARGS__)
 #define LogInfo(...) logInternal(gLogger.category, LogPriority::Info, __VA_ARGS__)
 #define LogDebug(...) logInternal(gLogger.category, LogPriority::Debug, __VA_ARGS__)
+#define LogVerbose(...) logInternal(gLogger.category, LogPriority::Verbose, __VA_ARGS__)
 
 #define LOG_ONCE_LAST_MESSAGE_BUF_SIZE 256
 #define LogOnce(priority, ...) { thread_local char COMBINE(_lastMessage, __LINE__)[LOG_ONCE_LAST_MESSAGE_BUF_SIZE]; logOnceInternal(gLogger.category, LogPriority::priority, COMBINE(_lastMessage, __LINE__), __FILE__ ":" TOSTRING(__LINE__) " - " __VA_ARGS__); }
 
-#undef LOG_PRIORITY
+
+enum class CrashReason {
+    SDL_Initialization,
+    MemoryFail,
+    GameInitialization,
+    UnrecoverableError
+};
+
+void crash(CrashReason reason, const char* message);
+
+#define CRASH(reason, message) crash(reason, message)
+
+void logCrash(CrashReason reason, const char* fmt, ...);
+
+#define LogCrash(reason, ...) logCrash(reason, __VA_ARGS__)
 
 #endif

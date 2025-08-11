@@ -142,7 +142,7 @@ SDLContext initSDL(const char* windowTitle, SDL_Rect windowRect) {
 
     SDL::pixelScale = SDL::getPixelScale(context.primary.window);
 
-    SDL_Log("SDL Window Context initialized.");
+    LogVerbose("SDL Window Context initialized.");
 
     return context;
 }

@@ -3,6 +3,17 @@
 #include "GUI/Gui.hpp"
 #include "memory/StackAllocate.hpp"
 
+bool Logger::setOutputFile(const char* filename) {
+    if (outputFile) {
+        fclose(outputFile);
+    }
+    outputFile = fopen(filename, "w+");
+    if (!outputFile) {
+        return false;
+    }
+    return true;
+}
+
 std::string str_trim(std::string string, const char* substr) {
     size_t substrLen = strlen(substr);
     size_t pos = string.find(substr);
@@ -16,12 +27,9 @@ std::string conciseSourceFilename(const char* file) {
     return str_trim(str_trim(file, PATH_TO_SOURCE "/"), PATH_TO_INCLUDE "/");
 }
 
-void Logger::logOutputFunction(LogCategory category, LogPriority priority, const char *message) const {
-    if (priority == LogPriority::Debug) {
-        if (!Debug->debugging) {
-            return;
-        }
-    }
+// may be run from any thread
+void Logger::log(LogCategory category, LogPriority priority, const char *message) const {
+    if (priority == LogPriority::Debug && !Debug->debugging) return;
 
     const char* fg = "";
     const char* prefix = "";
@@ -53,7 +61,6 @@ void Logger::logOutputFunction(LogCategory category, LogPriority priority, const
     }
 
     int messageLength = strlen(message);
-
     StackAllocate<char, 256> text{messageLength + 64};
     snprintf(text, messageLength+64, "%s%s", prefix, message);
 
@@ -65,37 +72,67 @@ void Logger::logOutputFunction(LogCategory category, LogPriority priority, const
 
     switch (category) {
     using namespace LogCategories;
-    case Main:
-        printf("%s", consoleMessage.data());
-        break;
-    case Test:
-        printf("test message\n");
-        break;
     default:
-        printf("%s", consoleMessage.data());
+        fputs(consoleMessage.data(), stdout);
         break;
     }
 
-    if (outputFile) {
-        StackAllocate<char, 128> fileMessage{messageLength+1};
-        strncpy(fileMessage, message, messageLength);
-        fileMessage[messageLength] = '\n';
-        fwrite(fileMessage, messageLength+1, 1, outputFile);
-    }
+    static std::mutex mutex;
+    if (gameConsoleOutput || outputFile) {
+        // mutating non thread safe stuff, need mutex
+        std::lock_guard lock{mutex};
+        if (outputFile) {
+            StackAllocate<char, 128> fileMessage{messageLength+1};
+            strncpy(fileMessage, message, messageLength);
+            fileMessage[messageLength] = '\n';
+            fwrite(fileMessage, messageLength+1, 1, outputFile);
+        }
 
-    if (gameConsoleOutput) {
-        GUI::Console::MessageType messageType = GUI::Console::MessageType::Default;
-        if (priority == LogPriorities::Error)
-            messageType = GUI::Console::MessageType::Error;
-        // remove full file paths from console output cause its ugly and unnecessary
-        auto conciseMessage = conciseSourceFilename(message);
-        gameConsoleOutput->newMessage(conciseMessage.c_str(), messageType);
+        if (gameConsoleOutput) {
+            GUI::Console::MessageType messageType = GUI::Console::MessageType::Default;
+            if (priority == LogPriorities::Error)
+                messageType = GUI::Console::MessageType::Error;
+            // remove full file paths from console output cause its ugly and unnecessary
+            auto conciseMessage = conciseSourceFilename(message);
+            gameConsoleOutput->newMessage(conciseMessage.c_str(), messageType);
+        }
     }
 }
 
-void Logger::logOutputFunction(void* arg, int category, SDL_LogPriority priority, const char *message) {
-    Logger* logger = static_cast<Logger*>(arg);
-    logger->logOutputFunction((LogCategory)category, (LogPriority)priority, message);
+// does vsnprintf attempting to use a buffer but falls back to malloc if the buffer was not big enough
+// returns an allocated ptr to be freed with free, or null if the buffer was used
+[[nodiscard]]
+char* vsprintf_alloc(char* buffer, size_t size, const char* fmt, va_list ap) {
+    int messageLength = vsnprintf(buffer, size, fmt, ap);
+    if (messageLength >= size) {
+        // couldn't fit entire message onto stack
+        char* buffer = (char*)malloc(messageLength + 1);
+        messageLength = vsnprintf(buffer, messageLength + 1, fmt, ap);
+        return buffer;
+    }
+    return nullptr;
+}
+
+// does snprintf attempting to use a buffer but falls back to malloc if the buffer was not big enough
+// returns an allocated ptr to be freed with free, or null if the buffer was used
+[[nodiscard]]
+char* snprintf_alloc(char* buffer, size_t size, const char* fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    char* formatted = vsprintf_alloc(buffer, size, fmt, ap);
+    va_end(ap);
+    return formatted;
+}
+
+void Logger::logV(LogCategory category, LogPriority priority, const char* fmt, va_list ap) const {
+    char stackBuf[256];
+    
+    if (char* message = vsprintf_alloc(stackBuf, sizeof(stackBuf), fmt, ap)) {
+        this->log(category, priority, message);
+        free(message);
+    } else {
+        this->log(category, priority, stackBuf);
+    }
 }
 
 Logger gLogger;
@@ -103,35 +140,81 @@ Logger gLogger;
 void logInternal(LogCategory category, LogPriority priority, const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    SDL_LogMessageV((int)category, (SDL_LogPriority)priority, fmt, ap);
+    gLogger.logV(category, priority, fmt, ap);
     va_end(ap);
 }
 
 void logInternalWithPrefix(LogCategory category, LogPriority priority, const char* prefix, const char* fmt, ...) {
     va_list ap;
-    char message[MAX_LOG_MESSAGE_LENGTH];
-
     va_start(ap, fmt);
-    vsnprintf(message, MAX_LOG_MESSAGE_LENGTH, fmt, ap);
-    // Format: FILE:LINE:FUNCTION - MESSAGE
-    // The FILE:LINE format is useful because in VSCode you can command click on it to bring you to the file.
-    SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s%s", prefix, message);
+
+    char buffer[128];
+    char* allocedMessage = vsprintf_alloc(buffer, sizeof(buffer), fmt, ap);
     va_end(ap);
+
+    char* message = allocedMessage ? allocedMessage : buffer;
+
+    char withPrefixBuffer[128];
+    char* allocedMsgWithPrefix = snprintf_alloc(withPrefixBuffer, sizeof(withPrefixBuffer), "%s%s", prefix, message);
+    char* messageWithPrefix = allocedMsgWithPrefix ? allocedMsgWithPrefix : withPrefixBuffer;
+        
+    gLogger.log(category, priority, messageWithPrefix);
+
+    if (allocedMsgWithPrefix)
+        free(allocedMsgWithPrefix);
+
+    if (allocedMessage)
+        free(allocedMessage);
 }
 
 void logOnceInternal(LogCategory category, LogPriority priority, char* lastMessage, const char* fmt, ...) {
     va_list ap;
-    char message[MAX_LOG_MESSAGE_LENGTH];
+    char messageBuf[128];
 
     va_start(ap, fmt);
-    vsnprintf(message, MAX_LOG_MESSAGE_LENGTH, fmt, ap);
+    char* allocedMessage = vsprintf_alloc(messageBuf, sizeof(messageBuf), fmt, ap);
+    va_end(ap);
+
+    char* message = allocedMessage ? allocedMessage : messageBuf;
 
     if (strcmp(message, lastMessage) == 0) {
         // same as last, don't print
     } else {
-        SDL_LogMessage((int)category, (SDL_LogPriority)priority, "%s", message);
+        gLogger.log(category, priority, message);
         strlcpy(lastMessage, message, LOG_ONCE_LAST_MESSAGE_BUF_SIZE);
     }
+
+    if (allocedMessage)
+        free(allocedMessage);
+}
+
+void crash(CrashReason reason, const char* message) {
+    switch (reason) {
+    case CrashReason::MemoryFail:
+        LogCritical("Memory Error - %s", message);
+        break;
+    case CrashReason::GameInitialization:
+        LogCritical("Failed to initialize game - %s", message);
+        break;
+    case CrashReason::SDL_Initialization:
+        LogCritical("Failed to initalize SDL - %s", message);
+        break;
+    case CrashReason::UnrecoverableError:
+        LogCritical("Unrecoverable Error - %s", message);
+        break;
+    }
+    exit(EXIT_FAILURE);
+}
+
+void logCrash(CrashReason reason, const char* fmt, ...) {
+    char buf[512];
+    
+
+    va_list ap;
+    va_start(ap, fmt);
+    snprintf(buf, sizeof(buf), fmt, ap);
+    gLogger.log(LogCategories::Main, LogPriorities::Crash, buf);
     va_end(ap);
+    crash(reason, buf);
 }
 

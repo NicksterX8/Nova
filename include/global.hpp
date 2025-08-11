@@ -64,44 +64,6 @@ inline Mode modeID(const char* mode) {
 }
 
 
-enum class CrashReason {
-    SDL_Initialization,
-    MemoryFail,
-    GameInitialization,
-    UnrecoverableError
-};
-
-inline void crash(CrashReason reason, const char* message) {
-    switch (reason) {
-    case CrashReason::MemoryFail:
-        LogCritical("Memory Error - %s", message);
-        break;
-    case CrashReason::GameInitialization:
-        LogCritical("Failed to initialize game - %s", message);
-        break;
-    case CrashReason::SDL_Initialization:
-        LogCritical("Failed to initalize SDL - %s", message);
-        break;
-    case CrashReason::UnrecoverableError:
-        LogCritical("Unrecoverable Error - %s", message);
-        break;
-    }
-    exit(EXIT_FAILURE);
-}
-
-#define CRASH(reason, message) crash(reason, message)
-
-inline void logCrash(CrashReason reason, const char* fmt, ...) {
-    va_list ap; 
-    va_start(ap, fmt);
-    char message[MAX_LOG_MESSAGE_LENGTH];
-    vsnprintf(message, MAX_LOG_MESSAGE_LENGTH, fmt, ap);
-    SDL_LogMessage((int)LogCategory::Main, (SDL_LogPriority)LogPriority::Crash, "%s%s", "CRASH: ", message);
-    crash(reason, message);
-}
-
-#define LogCrash(reason, ...) logCrash(reason, __VA_ARGS__)
-
 #define UNFINISHED_CRASH() assert(0 && "Unfinished code, should not be run!")
 
 #endif

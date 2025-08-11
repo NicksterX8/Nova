@@ -27,16 +27,15 @@
 #include "memory/FreelistAllocator.hpp"
 
 void initLogging(GUI::Console* console) {
+    gLogger.setOutputFile(FileSystem.save.get("log.txt"));
     gLogger.gameConsoleOutput = console;
-    SDL_SetLogOutputFunction(Logger::logOutputFunction, &gLogger);
-    SDL_SetLogPriorities(SDL_LOG_PRIORITY_ERROR);
-    SDL_SetLogPriority(LogCategory::Main, SDL_LOG_PRIORITY_INFO);
 }
 
 void initPaths() {
     char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
 
-    const char* basePath = SDL_GetBasePath();
+    // not sure if i should use this instead but everything seems to work fine so far so if it aint broke dont fix it
+    // const char* basePath = SDL_GetBasePath();
 
     pid_t pid = getpid();
     int ret = proc_pidpath(pid, pathbuf, sizeof(pathbuf));
@@ -49,15 +48,10 @@ void initPaths() {
         upperPath[std::string(pathbuf).find_last_of('/')+1] = '\0';
 
         FileSystem = FileSystemT(upperPath);
-        LogInfo("resources path: %s", FileSystem.resources.get());
+        printf("resources path: %s", FileSystem.resources.get());
     }
 
-    LogInfo("Path to executable: %s\n", pathbuf);
-    LogInfo("Base path: %s\n", basePath);
-}
-
-void tests() {
-    physics_test();
+    printf("Path to executable: %s\n", pathbuf);
 }
 
 int Main(int argc, char** argv) { 
@@ -75,7 +69,13 @@ int Main(int argc, char** argv) {
         }
     }
 
+    initPaths();
+
     Game game;
+
+    initLogging(&game.gui.console);
+
+
     game.essentialAllocator.init(1ULL << 13);
     trackAllocator("Essential Allocator", &game.essentialAllocator);
     trackAllocator("Medium allocator", &game.blockAllocator);
@@ -83,10 +83,6 @@ int Main(int argc, char** argv) {
     game.metadata = MetadataTracker(TARGET_FPS, TICKS_PER_SECOND, ENABLE_VSYNC);
     Metadata = &game.metadata;
     game.metadata.start(); // have to call this so logging knows what time it is
-
-    initLogging(&game.gui.console);
-    initPaths();
-    gLogger.init(FileSystem.save.get("log.txt"));
 
 #ifndef NDEBUG
     LogInfo("Debug build");
@@ -108,8 +104,6 @@ int Main(int argc, char** argv) {
         int numThreadsToPool = MIN(numCores - 1, 3);
         Global.threadManager = ThreadManager(numThreadsToPool);
     }
-
-    tests();
 
     int code = 0;
     code = game.init(sdlCtx);
