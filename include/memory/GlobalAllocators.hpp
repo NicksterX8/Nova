@@ -3,7 +3,7 @@
 
 #include "BlockAllocator.hpp"
 #include "ScratchAllocator.hpp"
-#include "llvm/Allocator.h"
+#include "ArenaAllocator.hpp"
 #include <vector>
 
 template<typename Allocator>
@@ -19,7 +19,7 @@ struct GlobalAllocatorsType {
     GameBlockAllocator gameBlockAllocator{};
     FullVirtualAllocator* virtualGameBlockAllocator;
     ScratchAllocator<GameBlockAllocator&> gameScratchAllocator{16 * 1024, gameBlockAllocator};
-    llvm::BumpPtrAllocatorImpl<> frame;
+    LargeArenaAllocator frame; // all memory allocated will be freed at the end of the current frame
     FullVirtualAllocator* virtualGameScratchAllocator;
 
     // pointers must be stable
@@ -29,7 +29,6 @@ struct GlobalAllocatorsType {
         virtualGameBlockAllocator = trackAllocator("Game block allocator", &gameBlockAllocator);
         virtualGameScratchAllocator = trackAllocator("Game scratch allocator", &gameScratchAllocator);
         trackAllocator("Main frame allocator", &frame);
-        //trackAllocator("Global BumpPtr", &bumpPtr);
     }
 };
 
