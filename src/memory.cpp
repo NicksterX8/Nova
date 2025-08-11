@@ -53,7 +53,10 @@ struct TrackedAllocData {
 // live allocations
 std::unordered_map<void*, TrackedAllocData> trackedAllocs;
 
+static std::mutex trackedAllocsMutex;
+
 void trackAlloc(AllocatorI* allocator, void* pointer, size_t bytes, const char* file, int line) {
+    std::lock_guard lock{trackedAllocsMutex};
     trackedAllocs.insert({
         pointer, 
         {allocator, pointer, bytes, file, line}
@@ -69,6 +72,7 @@ void trackDealloc(AllocatorI* allocator, void* pointer, size_t bytes, const char
     auto alloc = TrackedAllocData{
         allocator, pointer, bytes, file, line
     };
+    std::lock_guard lock{trackedAllocsMutex};
     auto trackedAllocIt = trackedAllocs.find(pointer);
     if (UNLIKELY(trackedAllocIt == trackedAllocs.end())) {
         LogError("%s:%d - Deallocation without matching allocation! Ptr: %p. Size: %zu. Check for double delete or mismatching regular new with DELETE", file, line, pointer, bytes);
@@ -102,12 +106,10 @@ void debugNewed(void* pointer, size_t bytes, const char* file, int line, Allocat
 #if TRACK_ALL_ALLOCS
     trackAlloc(allocator, pointer, bytes, file, line);
 #endif
-    // LogDebug("%s:%d - Allocated %zu bytes at %p", file, line, bytes, pointer);
 }
 
 void debugDeleted(void* pointer, size_t bytes, const char* file, int line, AllocatorI* allocator) {
 #if TRACK_ALL_ALLOCS
     trackDealloc(allocator, pointer, bytes, file, line);
 #endif
-    // LogDebug("%s:%d - Deallocated %zu bytes at %p", file, line, bytes, pointer);
 }
