@@ -1,3 +1,7 @@
+// DISCLAIMER: this code originally derived from LLVM has been modified for specific usage to this project
+
+// in order to reduce unnecessary code, I've commented out everything not being used by other llvm files used in this project
+
 //===- llvm/ADT/STLExtras.h - Useful STL related functions ------*- C++ -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.

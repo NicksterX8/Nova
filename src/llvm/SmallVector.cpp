@@ -1,3 +1,5 @@
+// DISCLAIMER: This code originally derived from LLVM has been modified for specific usage to this project
+
 //===- llvm/ADT/SmallVector.cpp - 'Normally small' vectors ----------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.

@@ -1,4 +1,4 @@
-// Modified part of the LLVM project by Nick Wilson for personal use
+// DISCLAIMER: this code originally derived from LLVM has been modified for specific usage to this project
 
 //===- Allocator.h - Simple memory allocation abstraction -------*- C++ -*-===//
 //

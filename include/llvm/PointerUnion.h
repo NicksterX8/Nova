@@ -1,3 +1,5 @@
+// DISCLAIMER: this code originally derived from LLVM has been modified for specific usage to this project
+
 //===- llvm/ADT/PointerUnion.h - Discriminated Union of 2 Ptrs --*- C++ -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
