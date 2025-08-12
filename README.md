@@ -1,6 +1,6 @@
-# Faketorio
+# Nova
 
-An in progress game with a custom game engine
+An experimental game with a custom game engine written in C++
 
 Components:
 - A high performance Entity Component System based on archetypes
