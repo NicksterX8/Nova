@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.23.3)
 
 set(CMAKE_BUILD_TYPE Debug)
-project(faketorio VERSION 1.0)
+project(nova VERSION 1.0)
 
 # for extra optimization but slow:
 # enable -flto. link time optimization
@@ -86,19 +86,19 @@ set(SRC_FILES
     ${SD}/ECS/ArchetypalComponentManager.cpp
 )
 
-add_library(faketorio_lib STATIC ${SRC_FILES})
+add_library(nova_lib STATIC ${SRC_FILES})
 
 add_executable(${PROJECT_NAME} ${SD}/mainmain.cpp)
-target_link_libraries(${PROJECT_NAME} faketorio_lib)
+target_link_libraries(${PROJECT_NAME} nova_lib)
 
 find_package(SDL3 3.2.16 QUIET)
 find_package(SDL3_image 3.2.4 QUIET)
 find_package(Freetype 2.13.3 QUIET)
 # find_package(glm QUIET)
 
-target_link_libraries(faketorio_lib SDL3::SDL3 Freetype::Freetype SDL3_image::SDL3_image)
-target_include_directories(faketorio_lib PUBLIC
-    ../faketorio/include
+target_link_libraries(nova_lib SDL3::SDL3 Freetype::Freetype SDL3_image::SDL3_image)
+target_include_directories(nova_lib PUBLIC
+    include
     ${SDL3_INCLUDE_DIRS}
     ${FREETYPE_INCLUDE_DIRS}
     #${HLB}/glm/0.9.9.8/include

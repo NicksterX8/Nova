@@ -4,10 +4,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <SDL3/SDL_log.h>
-#include <SDL3/SDL_rect.h>
 
-#define GAME_TITLE "Faketorio"
-#define WINDOW_TITLE "Faketorio"
+#define GAME_TITLE "Nova"
+#define WINDOW_TITLE "Nova"
 
 #define PATH_TO_SOURCE "/Users/nick/Faketorio/src"
 #define PATH_TO_INCLUDE "/Users/nick/Faketorio/../faketorio/include"

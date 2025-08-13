@@ -55,7 +55,7 @@ void initPaths() {
 }
 
 int Main(int argc, char** argv) { 
-    std::string windowTitle = "Faketorio";
+    std::string windowTitle = WINDOW_TITLE;
 
     gLogger.useEscapeCodes = true;
     

@@ -30,7 +30,7 @@ add_executable(tests
     ${SRC_FILES})
 
 target_link_libraries(tests PRIVATE
-    faketorio_lib
+    nova_lib
     GTest::GTest
     GTest::gtest_main
 )
