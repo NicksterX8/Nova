@@ -9,14 +9,14 @@ struct StackAllocate {
     constexpr static int NumStackElements = StackElements;
     static_assert(NumStackElements > 0, "Max struct size too small to hold any elements!");
 private:
-    std::array<T, NumStackElements> stackElements;
+    T stackElements[NumStackElements];
     T* _data;
 
     using Me = StackAllocate<T, StackElements>;
 public:
     StackAllocate(int size) {
         if (size <= NumStackElements) {
-            _data = stackElements.data();
+            _data = stackElements;
         } else {
             _data = new T[size];
         }
@@ -24,7 +24,7 @@ public:
 
     StackAllocate(int size, const T& initValue) {
         if (size <= NumStackElements) {
-            _data = stackElements.data();
+            _data = stackElements;
         } else {
             _data = new T[size];
         }
@@ -49,7 +49,7 @@ public:
     }
 
     ~StackAllocate() {
-        if (_data != stackElements.data()) {
+        if (_data != stackElements) {
             delete[] _data;
         }
     }
