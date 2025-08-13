@@ -5,7 +5,7 @@
 #include "MyInternals.hpp"
 #include <initializer_list>
 
-MY_CLASS_START
+namespace My {
 
 template<typename T>
 struct DynArray {
@@ -18,7 +18,7 @@ public:
 
     static Self WithSize(int size) {
         return Self{
-            .data = (T*)MY_malloc(size * sizeof(T)),
+            .data = (T*)malloc(size * sizeof(T)),
             .size = size
         };
     }
@@ -38,7 +38,7 @@ public:
     }
 
     inline void free() {
-        MY_free(data);
+        free(data);
     }
 
     T& front() const {
@@ -62,6 +62,6 @@ public:
     inline T* end() const { return data + size; }
 };
 
-MY_CLASS_END
+}
 
 #endif

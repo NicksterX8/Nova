@@ -2,14 +2,13 @@
 #define MY_HASH_MAP_INCLUDED
 
 #include "MyInternals.hpp"
-#include "BucketArray.hpp"
-#include "Vec.hpp"
+#include "My/BucketArray.hpp"
+#include "My/Vec.hpp"
 #include "std.hpp"
-#include "utils/Metadata.hpp"
 
 #define BITMASK_BOTTOM_62 0x3fffffffffffffffULL
 
-MY_CLASS_START
+namespace My {
 
 namespace Map {
 
@@ -85,7 +84,7 @@ public:
     HashMap() = default;
 
     HashMap(int startBuckets) : size(0), bucketCount(startBuckets) {
-        memory = MY_malloc(startBuckets * (sizeof(Bucket) + sizeof(K) + sizeof(V)));
+        memory = malloc(startBuckets * (sizeof(Bucket) + sizeof(K) + sizeof(V)));
         // buckets states need to be set to Bucket_Empty which is 0, so set all buckets to 0
         My::memsetT(buckets(), 0, startBuckets);
     }
@@ -294,7 +293,7 @@ public:
         }
 
         // Build a new set of buckets, keys, and values
-        void* newMemory = MY_malloc(newBucketCount * (sizeof(Bucket) + sizeof(K) + sizeof(V)));
+        void* newMemory = malloc(newBucketCount * (sizeof(Bucket) + sizeof(K) + sizeof(V)));
         if (!newMemory) { return false; }
         Bucket* newBuckets = getBuckets(newMemory, newBucketCount);
         K* newKeys         =    getKeys(newMemory, newBucketCount);
@@ -338,7 +337,7 @@ public:
         }
 
         // Swap the new buckets, keys, and values into place
-        MY_free(memory);
+        free(memory);
         memory = newMemory;
 
         bucketCount = newBucketCount;
@@ -434,7 +433,7 @@ public:
     }
 
     void destroy() {
-        MY_free(memory);
+        free(memory);
         size = 0;
         bucketCount = 0;
     }
@@ -446,6 +445,6 @@ static_assert(sizeof(HashMap<int,int>) == sizeof(Generic::HashMap), "generic has
 
 using Map::HashMap;
 
-MY_CLASS_END
+}
 
 #endif

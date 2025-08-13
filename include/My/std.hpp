@@ -3,7 +3,7 @@
 
 #include "MyInternals.hpp"
 
-MY_CLASS_START
+namespace My {
 
 template<typename T>
 void* memcpyT(T* dst, const T* src, size_t count) {
@@ -23,6 +23,6 @@ void copyRange(const T* srcBegin, const T* srcEnd, T* dstBegin, T* dstEnd) {
     memcpy(dstBegin, srcBegin, (srcEnd - srcBegin) * sizeof(T));
 }
 
-MY_CLASS_END
+}
 
 #endif

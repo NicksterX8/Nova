@@ -3,16 +3,15 @@
 
 #include <assert.h>
 #include "MyInternals.hpp"
-#include "Array.hpp"
 #include <initializer_list>
-#include "std.hpp"
-#include "../constants.hpp"
-#include "Allocation.hpp"
+#include "memory/memory.hpp"
 #include "ADT/ArrayRef.hpp"
 
+#ifndef NDEBUG
 #define BOUNDS_CHECKS 1
+#endif
 
-MY_CLASS_START
+namespace My {
 
 namespace Vector {
 
@@ -31,8 +30,8 @@ namespace Generic {
 
         GenericVec() = default;
 
-        GenericVec(int typeSize, int capacity) : size(0), capacity(capacity), typeSize(typeSize) {
-            // TODO: kdajflsdj 
+        GenericVec(int typeSize, int capacity) : data(nullptr), size(0), capacity(capacity), typeSize(typeSize) {
+
         }
 
         template<typename T>
@@ -137,11 +136,11 @@ public:
     }
 
     inline T& operator[](int index) const {
-#ifdef BOUNDS_CHECKS
+#ifndef BOUNDS_CHECKS
         assert(index < size    && "vector index out of bounds");
         assert(index > -1      && "vector index out of bounds");
-#endif
         assert(data != nullptr && "access of null vector");
+#endif
         return data[index];
     }
 
@@ -375,6 +374,6 @@ static_assert(sizeof(Generic::Vec) == sizeof(Vec<int>), "GenericVec must have sa
 using Vector::Vec;
 using Vector::Generic::GenericVec;
 
-MY_CLASS_END
+}
 
 #endif

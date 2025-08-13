@@ -10,6 +10,7 @@
 #include "My/SparseSets.hpp"
 #include "gl.hpp"
 #include "My/String.hpp"
+#include "utils/Metadata.hpp"
 
 namespace TextureUnits {
     enum TextureUnit : GLubyte {

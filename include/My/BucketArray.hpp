@@ -1,12 +1,11 @@
 #ifndef MY_BUCKET_ARRAY_INCLUDED
 #define MY_BUCKET_ARRAY_INCLUDED
 
-#include "MyInternals.hpp"
 #include <stddef.h>
-#include "Allocation.hpp"
+#include "memory/memory.hpp"
 #include "ADT/SmallVector.hpp"
 
-MY_CLASS_START
+namespace My {
 
 #define MY_BUCKET_ARRAY_START_BUCKET_COUNT 4
 
@@ -160,6 +159,6 @@ struct BucketArray {
     }
 };
 
-MY_CLASS_END
+}
 
 #endif

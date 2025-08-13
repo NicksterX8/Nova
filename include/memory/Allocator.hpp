@@ -7,6 +7,7 @@
 #include <cassert>
 #include "utils/compiler.hpp"
 #include "My/String.hpp"
+#include "memory/memory.hpp"
 
 #ifdef MACOS
 #include <malloc/malloc.h> // for malloc_good_size

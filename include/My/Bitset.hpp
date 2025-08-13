@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "MyInternals.hpp"
 
 // result is undefined if x is 0
 inline int highestBit(unsigned int x){
@@ -55,7 +54,7 @@ void forEachUnsetBit(IntegerT bits, const F& functor) {
     return forEachSetBit(~bits, functor);
 }
 
-MY_CLASS_START
+namespace My {
 
 template<size_t N, typename IntegerT = size_t>
 struct Bitset {
@@ -254,6 +253,6 @@ public:
     }
 };
 
-MY_CLASS_END
+}
 
 #endif

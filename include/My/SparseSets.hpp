@@ -2,14 +2,14 @@
 #define MY_SPARSE_SETS_INCLUDED
 
 #include "MyInternals.hpp"
-#include "Allocation.hpp"
+#include "memory/memory.hpp"
 #include "ADT/ArrayRef.hpp"
 
 #include <stdint.h>
 #include <stddef.h>
 #include <limits.h>
 
-MY_CLASS_START
+namespace My {
 
 template<size_t MinNumBits>
 using SmallestUintT =
@@ -439,6 +439,6 @@ public:
     }
 };
 
-MY_CLASS_END
+}
 
 #endif

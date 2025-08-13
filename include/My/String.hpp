@@ -1,22 +1,20 @@
 #ifndef MY_STRING_H
 #define MY_STRING_H
 
-#include <string.h>
 #include <string>
-#include "MyInternals.hpp"
-#include "../utils/Log.hpp"
-#include "Iteration.hpp"
 #include "memory/StackAllocate.hpp"
+#include "utils/compiler.hpp"
 
 #include <memory>
 #include <stdexcept>
+#include <assert.h>
 
 template<typename ... Args>
 std::string string_format(const std::string& format, Args... args) {
     if (format.empty()) return "";
     int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'
-    if (LLVM_UNLIKELY(size_s <= 0)) {
-        LogError("Failed formatting.");
+    if (UNLIKELY(size_s <= 0)) {
+        assert(0 && "Failed formatting.");
         return {};
     }
     auto size = (size_t)size_s;
@@ -30,13 +28,12 @@ inline std::string string_format(const std::string& str) {
     return str;
 }
 
-
-MY_CLASS_START
+namespace My {
 
 inline char* strdup(const char* str) {
     if (!str) return nullptr;
     int strSize = strlen(str)+1;
-    char* copy = (char*)MY_malloc(strSize);
+    char* copy = (char*)malloc(strSize);
     memcpy(copy, str, strSize);
     return copy;
 }
@@ -85,7 +82,7 @@ struct CString {
     CString() : str(nullptr) {}
 
     explicit CString(size_t size) {
-        str = (char*)MY_malloc(size * sizeof(char));
+        str = (char*)malloc(size * sizeof(char));
     }
 
     CString(const char* _str) {
@@ -105,7 +102,7 @@ struct CString {
     CString& operator=(const CString& other) {
         if (&other != this) {
             // first free this
-            MY_free(str);
+            free(str);
             // then copy
             str = strdup(other.str);
         }
@@ -127,7 +124,7 @@ struct CString {
     }
 
     ~CString() {
-        MY_free(str);
+        free(str);
     }
 
     operator char*() {
@@ -148,7 +145,7 @@ struct CString {
     void operator+=(const char* other) {
         int currentLength = (int)strlen(str)+1;
         int addedLength = (int)strlen(other);
-        char* newStr = (char*)MY_realloc(str, currentLength + addedLength + 1); // add 1 for null byte
+        char* newStr = (char*)realloc(str, currentLength + addedLength + 1); // add 1 for null byte
         if (newStr) {
             str = newStr;
             char* lastChar = str + currentLength;
@@ -161,7 +158,7 @@ inline CString str_add(const char* str_a, const char* str_b) {
     int lenA = strlen(str_a);
     int lenB = strlen(str_b);
 
-    char* result = (char*)MY_malloc((lenA + lenB + 1) * sizeof(char));
+    char* result = (char*)malloc((lenA + lenB + 1) * sizeof(char));
     memcpy(result, str_a, lenA);
     memcpy(result + lenA, str_b, lenB+1);
     return My::CString::MakeUsing(result);
@@ -171,12 +168,12 @@ inline char* str_add_alloc(const char* str_a, const char* str_b) {
     int lenA = strlen(str_a);
     int lenB = strlen(str_b);
 
-    char* result = (char*)MY_malloc((lenA + lenB + 1) * sizeof(char));
+    char* result = (char*)malloc((lenA + lenB + 1) * sizeof(char));
     memcpy(result, str_a, lenA);
     memcpy(result + lenA, str_b, lenB+1);
     return result;
 }
 
-MY_CLASS_END
+}
 
 #endif
