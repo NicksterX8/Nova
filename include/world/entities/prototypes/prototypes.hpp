@@ -337,7 +337,7 @@ using EntityOut = ECS::EntityCommandOutput;
             e.Add(EC::ViewBox::BottomLeft({1, 1}));
             e.Add(EC::Render{TextureIDs::Buildings::TransportBelt, RenderLayers::Buildings});
             e.Add(EC::Gun(120, &Laser::make, 0.2f));
-            e.Add(EC::Rotatable(0.0f, 90.0f));
+            e.Add(EC::Rotatable(90.0f));
             e.Add(EC::Rotation(0.0f));
             return e.output(out);
         }

@@ -262,14 +262,11 @@ BEGIN_COMPONENT(Rotation)
 END_COMPONENT(Rotation)
 
 BEGIN_COMPONENT(Rotatable)
-    float start;
     float increment;
-    // entity was rotated in the last update
-    bool rotated;
 
-    Rotatable(float start, float increment)
-    : start(start), increment(increment) {
-        rotated = false;
+    Rotatable(float increment)
+    : increment(increment) {
+
     }
 END_COMPONENT(Rotatable)
 

@@ -259,7 +259,6 @@ void rotateEntity(const EntityWorld& ecs, Entity entity, bool clockwise) {
     } else {
         *rotation -= rotatable->increment;
     }
-    rotatable->rotated = true;
 }
 
 void entityViewChanged(ChunkMap* chunkmap, Entity entity, Vec2 newPos, Vec2 oldPos, Box newViewbox, Box oldViewbox, bool justMade) {
