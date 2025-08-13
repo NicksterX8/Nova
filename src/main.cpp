@@ -23,7 +23,6 @@
 #include "ADT/SmallVector.hpp"
 #include "memory/allocators.hpp"
 
-#include "utils/system/signpost.hpp"
 #include "memory/FreelistAllocator.hpp"
 
 void initLogging(GUI::Console* console) {
