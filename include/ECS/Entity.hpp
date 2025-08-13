@@ -22,40 +22,6 @@ constexpr EntityID NULL_ENTITY_ID = (MAX_ENTITIES-1);
 constexpr EntityVersion NULL_ENTITY_VERSION = 0;
 constexpr EntityVersion WILDCARD_ENTITY_VERSION = UINT32_MAX;
 
-// template<class... Components>
-// constexpr ComponentFlags componentSignature() {
-//     constexpr ComponentID ids[] = {getID<Components>() ...};
-//     // sum component signatures
-//     ComponentFlags result(0);
-//     for (size_t i = 0; i < sizeof...(Components); i++) {
-//         if (!ECS_BAD_COMPONENT_ID(ids[i]))
-//             result.set((Uint32)ids[i]);
-//     }
-//     return result;
-// }
-
-// template<class... Components>
-// constexpr ComponentFlags componentMutSignature() {
-//     constexpr ComponentID   ids[] = {getID<Components>() ...};
-//     constexpr bool         muts[] = {!std::is_const<Components>() ...};
-
-//     ComponentFlags result(0);
-//     for (size_t i = 0; i < sizeof...(Components); i++) {
-//         if (muts[i])
-//             result.set(ids[i]);
-//     }
-//     return result;
-// }
-
-// template<class T, class... Components>
-// constexpr inline bool componentInComponents() {
-//     constexpr ComponentFlags signature = componentSignature<Components...>();
-//     //constexpr bool result = signature.getComponent<T>();
-//     constexpr bool result = signature[getID<T>()];
-//     return result;
-// }
-
-
 struct Entity {
     EntityID id;
     EntityVersion version;
