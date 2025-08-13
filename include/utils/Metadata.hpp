@@ -1,13 +1,11 @@
 #ifndef METADATA_INCLUDED
 #define METADATA_INCLUDED
 
-#include "../constants.hpp"
-#include <SDL3/SDL.h>
 #include "My/Vec.hpp"
+#include "utils/ints.hpp"
 
-using Tick = int64_t;
+using Tick = Uint64;
 constexpr Tick NullTick = 0;
-constexpr Tick InfinityTicks = INT64_MAX;
 
 struct UpdateMetadata {
     double deltaTime;
@@ -26,57 +24,19 @@ struct UpdateMetadata {
         memset(this, 0, sizeof(*this));
     }
 
-    UpdateMetadata(Uint32 targetUpdatesPerSecond)
-    : deltaTime(NAN), currentPerfCount(GetPerformanceCounter()), lastPerfCount(GetPerformanceCounter()),
-    targetUpdatesPerSecond(targetUpdatesPerSecond), updateCount(0) {}
+    UpdateMetadata(Uint32 targetUpdatesPerSecond);
 
-    Uint32 update() {
-        lastPerfCount = currentPerfCount;
-        currentPerfCount = GetPerformanceCounter();
-        if (updateCount == 0) {
-            deltaTime = 0.0;
-        } else {
-            deltaTime = (double)((currentPerfCount - lastPerfCount) * 
-                1000.0/(double)GetPerformanceFrequency());
-            if (updateTimeHistory.size < updateTimeHistory.capacity) {
-                updateTimeHistory.push(deltaTime);
-            } else {
-                updateTimeHistory[oldestTrackedUpdate] = deltaTime;
-                oldestTrackedUpdate = (oldestTrackedUpdate + 1) % updateTimeHistory.size;
-            }
-        }
-
-        /* Calculate updates per second */
-        double totalTime = 0.0;
-        for (auto dt : updateTimeHistory) {
-            totalTime += dt;
-        }
-        double averageDeltaTime = totalTime / updateTimeHistory.size;
-        ups = 1000.0 / averageDeltaTime;
-
-        timestamp = GetTicks();
-
-        return ++updateCount;
-    }
+    // track an update
+    // return: new update count
+    Uint32 update();
 };
-
 
 
 /*
 * Useful metadata information and utilities
 */
 struct MetadataTracker {
-    /*
-    double _fps; // actual fps
-    double targetFps; // Desired fps, currently unused
-    double frameDeltaTime; // the change in milliseconds from the last frame to the current frame
-    double tickDeltaTime; // the change in milliseconds from the last tick to the current tick
-    Uint64 currentFramePerfCount; // performance count of the current frame
-    Uint64 lastFramePerfCount; // performance count of the last finished frame
-    */
-    
     Uint64 startTicks; // The start time of the game in ticks (miliseconds since sdl_init)
-    //Uint32 targetTps;
 
     UpdateMetadata frame;
     UpdateMetadata tick;
@@ -125,14 +85,10 @@ public:
     }
 
     // get the time since initialization in miliseconds
-    Uint64 miliseconds() const {
-        return GetTicks() - startTicks;
-    }
+    Uint64 miliseconds() const;
 
     // get the time since initialization in seconds
-    double seconds() const {
-        return (GetTicks() - startTicks) / 1000.0f;
-    }
+    double seconds() const;
 
     // Get the start time (when start() was called) of the game in ticks.
     Uint64 getStartTicks() const;

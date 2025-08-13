@@ -1,4 +1,5 @@
 #include "ECS/EntityManager.hpp"
+#include <SDL3/SDL_assert.h>
 
 namespace ECS {
 

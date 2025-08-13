@@ -1,7 +1,7 @@
 #ifndef ENTITY_INCLUDED
 #define ENTITY_INCLUDED
 
-#include <stdint.h>
+#include "utils/ints.hpp"
 #include <string.h>
 #include <array>
 #include "constants.hpp"

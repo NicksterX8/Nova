@@ -1,10 +1,6 @@
 #ifndef CONSTANTS_INCLUDED
 #define CONSTANTS_INCLUDED
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <SDL3/SDL_log.h>
-
 #define GAME_TITLE "Nova"
 #define WINDOW_TITLE "Nova"
 
@@ -18,10 +14,6 @@
 #define ENABLE_VSYNC 1
 
 #define USE_MULTITHREADING 1
-
-#define GetTicks SDL_GetTicks
-#define GetPerformanceCounter SDL_GetPerformanceCounter
-#define GetPerformanceFrequency SDL_GetPerformanceFrequency
 
 #define PLAYER_INVENTORY_SIZE 32
 

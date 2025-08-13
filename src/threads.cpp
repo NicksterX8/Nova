@@ -1,4 +1,5 @@
 #include "threads.hpp"
+#include <SDL3/SDL_timer.h>
 
 namespace Threads {
 
@@ -16,7 +17,7 @@ int threadEntry(void* threadDataPtr) {
             data.functionReturn = ret;
             threadData->data.store(data);
         } else {
-            SDL_Delay(0);
+            SDL_DelayNS(0);
         }
     }
     return 0;

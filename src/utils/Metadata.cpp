@@ -1,5 +1,39 @@
 #include "utils/Metadata.hpp"
-#include "constants.hpp"
+#include <SDL3/SDL_timer.h>
+
+UpdateMetadata::UpdateMetadata(Uint32 targetUpdatesPerSecond) : deltaTime(NAN), currentPerfCount(SDL_GetPerformanceCounter()), lastPerfCount(SDL_GetPerformanceCounter()),
+targetUpdatesPerSecond(targetUpdatesPerSecond), updateCount(0) {
+    
+}
+
+Uint32 UpdateMetadata::update() {
+    lastPerfCount = currentPerfCount;
+    currentPerfCount = SDL_GetPerformanceCounter();
+    if (updateCount == 0) {
+        deltaTime = 0.0;
+    } else {
+        deltaTime = (double)((currentPerfCount - lastPerfCount) * 
+            1000.0/(double)SDL_GetPerformanceFrequency());
+        if (updateTimeHistory.size < updateTimeHistory.capacity) {
+            updateTimeHistory.push(deltaTime);
+        } else {
+            updateTimeHistory[oldestTrackedUpdate] = deltaTime;
+            oldestTrackedUpdate = (oldestTrackedUpdate + 1) % updateTimeHistory.size;
+        }
+    }
+
+    /* Calculate updates per second */
+    double totalTime = 0.0;
+    for (auto dt : updateTimeHistory) {
+        totalTime += dt;
+    }
+    double averageDeltaTime = totalTime / updateTimeHistory.size;
+    ups = 1000.0 / averageDeltaTime;
+
+    timestamp = SDL_GetTicks();
+
+    return ++updateCount;
+}
 
 MetadataTracker::MetadataTracker(Uint32 targetFps, Uint32 targetTps, bool vsync)
 : frame(targetFps), tick(targetTps) {
@@ -8,7 +42,7 @@ MetadataTracker::MetadataTracker(Uint32 targetFps, Uint32 targetTps, bool vsync)
 }
 
 Uint64 MetadataTracker::start() {
-    startTicks = GetTicks();
+    startTicks = SDL_GetTicks();
     return startTicks;
 }
 
@@ -30,6 +64,14 @@ double MetadataTracker::fps() const {
 
 double MetadataTracker::tps() const {
     return tick.ups;
+}
+
+Uint64 MetadataTracker::miliseconds() const {
+    return SDL_GetTicks() - startTicks;
+}
+
+double MetadataTracker::seconds() const {
+    return (SDL_GetTicks() - startTicks) / 1000.0f;
 }
 
 // Get the start time (when start() was called) of the game in ticks.
