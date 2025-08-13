@@ -47,7 +47,6 @@ set(SRC_FILES
     ${SD}/utils/Debug.cpp
     ${SD}/utils/FileSystem.cpp
     ${SD}/utils/GlobalAllocators.cpp
-    ${SD}/utils/system/signpost.cpp
     ${SD}/My/Vec.cpp
     ${SD}/My/HashMap.cpp
     ${SD}/GUI/Gui.cpp
