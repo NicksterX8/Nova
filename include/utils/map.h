@@ -1,3 +1,5 @@
+// Modified to include additional functionality by Nick Wilson
+
 /*
  * map-macro by William R Swanson is marked with CC0 1.0 Universal.
  *
