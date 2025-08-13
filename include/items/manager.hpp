@@ -39,7 +39,7 @@ struct ItemManager : ECS::EntityManager {
     }
 
     Item newItem(ItemType type) {
-        Entity entity = this->newEntity(type);
+        Entity entity = this->createEntity(type);
         return Item(type, entity);
     }
 };

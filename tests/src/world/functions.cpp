@@ -11,7 +11,7 @@ struct EntityWorldTest : testing::Test {
 
     EntityWorldTest() {
         ecs.init(&ecs);
-        aEntity = ecs.newEntity(-1);
+        aEntity = ecs.createEntity(-1);
     }
 
     void initEntity(Vec2 position, Vec2 size) {
@@ -33,7 +33,7 @@ TEST_F(EntityWorldTest, PointInEntity) {
 }
 
 TEST_F(EntityWorldTest, GetEntityViewBoxBounds) {
-    Entity e = this->ecs.newEntity(-1);
+    Entity e = this->ecs.createEntity(-1);
     this->ecs.Add<EC::Position>(e, {10, 10});
     this->ecs.Add<EC::ViewBox>(e, {{1, 1}, {3, 3}});
 

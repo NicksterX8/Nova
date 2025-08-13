@@ -20,11 +20,11 @@ struct EntityCommandOutput : private llvm::PointerUnion<EntityManager*, EntityCo
         return is<EntityManager*>();
     }
 
-    Entity newEntity(PrototypeID prototype) {
+    Entity createEntity(PrototypeID prototype) {
         if (isEntityManager()) {
-            return get<EntityManager*>()->newEntity(prototype);
+            return get<EntityManager*>()->createEntity(prototype);
         } else {
-            return get<EntityCommandBuffer*>()->newEntity(prototype);
+            return get<EntityCommandBuffer*>()->createEntity(prototype);
         }
     }
 

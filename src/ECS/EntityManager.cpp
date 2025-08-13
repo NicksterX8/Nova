@@ -42,7 +42,7 @@ void EntityManager::executeCommandBuffer(EntityCommandBuffer* commandBuffer) {
     realFound:
         switch (command.type) {
         case EntityCommandBuffer::Command::CommandCreate: {
-            Entity realEntity = newEntity(command.create.prototype);
+            Entity realEntity = createEntity(command.create.prototype);
             // made fake entity - register it so we can detect it in future commands
             fakeEntities.push_back({command.entity.id, realEntity});
             break; }

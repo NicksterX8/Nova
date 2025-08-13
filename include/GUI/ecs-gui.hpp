@@ -68,7 +68,7 @@ struct GuiManager : ECS::EntityManager {
         hoveredElement = NullElement;
         treeMap = decltype(treeMap)(32);
         ECS::EntityManager::init(componentInfo, numPrototypes);
-        screen = ECS::EntityManager::newEntity(ElementTypes::Normal);
+        screen = ECS::EntityManager::createEntity(ElementTypes::Normal);
         treeMap.insert(screen.id, GuiTreeNode(screen, NullElement.id));
 
         addComponent(screen, EC::ViewBox{Box{Vec2(0), Vec2(INFINITY)}, .visible = false});
@@ -149,7 +149,7 @@ struct GuiManager : ECS::EntityManager {
     }
 
     Element newElement(ECS::PrototypeID prototype, Element parent = NullElement) {
-        Element element = ECS::EntityManager::newEntity(prototype);
+        Element element = ECS::EntityManager::createEntity(prototype);
         if (parent != NullElement) {
             adopt(parent, element);
         }

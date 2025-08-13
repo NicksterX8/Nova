@@ -75,7 +75,7 @@ struct EntityCommandBuffer {
         added.destroy();
     }
 
-    Entity newEntity(PrototypeID prototype) {
+    Entity createEntity(PrototypeID prototype) {
         EntityID fakeID = fakeEntityIDCounter++;
         commands.push(Command{
             .type = Command::CommandCreate,

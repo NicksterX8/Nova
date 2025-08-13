@@ -82,7 +82,7 @@ struct ArchetypalComponentManager {
 
     void init(ComponentInfoRef componentInfo);
 
-    Entity newEntity(Uint32 prototype);
+    Entity createEntity(Uint32 prototype);
 
     void deleteEntity(Entity entity);
 

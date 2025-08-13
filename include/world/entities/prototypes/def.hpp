@@ -36,7 +36,7 @@ public:
     }
 
     Entity output(ECS::EntityCommandOutput out) {
-        Entity entity = out.newEntity(prototype);
+        Entity entity = out.createEntity(prototype);
         out.addSignature(entity, components, buffer, componentValues);
         return entity;
     }

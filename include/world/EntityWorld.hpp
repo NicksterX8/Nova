@@ -58,7 +58,7 @@ public:
      * @return A newly created entity.
      */
     Entity New(ECS::PrototypeID prototype) {
-        Entity entity = Base::newEntity(prototype);
+        Entity entity = Base::createEntity(prototype);
         
         return entity;
     }

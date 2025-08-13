@@ -39,7 +39,7 @@ EntityManager* makeEntityManager() {
 }
 
 TEST_F(EntityManagerTest, AddComponent) {
-    Entity entity = this->manager.newEntity(-1);
+    Entity entity = this->manager.createEntity(-1);
     EXPECT_TRUE(this->manager.entityExists(entity)) << "Failed to create an entity!";
 
     EXPECT_FALSE(this->manager.entityHas<Position>(entity));
@@ -63,7 +63,7 @@ TEST_F(EntityManagerTest, AddComponent) {
 }
 
 TEST_F(EntityManagerTest, UsingDeletedEntity) {
-    Entity entity = this->manager.newEntity(-1);
+    Entity entity = this->manager.createEntity(-1);
     this->manager.addComponent<Position>(entity, {1, 2});
     this->manager.deleteEntity(entity);
     EXPECT_FALSE(this->manager.getComponent<Position>(entity));

@@ -169,8 +169,8 @@ public:
         }
     }
 
-    Entity newEntity(PrototypeID prototype) {
-        Entity entity = components.newEntity(prototype);
+    Entity createEntity(PrototypeID prototype) {
+        Entity entity = components.createEntity(prototype);
         return entity;
     }
 

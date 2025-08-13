@@ -86,7 +86,7 @@ void ArchetypalComponentManager::init(ComponentInfoRef componentInfo) {
     return pool;
 }
 
-Entity ArchetypalComponentManager::newEntity(Uint32 prototype) {
+Entity ArchetypalComponentManager::createEntity(Uint32 prototype) {
     Entity entity;
     if (!unusedEntities.empty()) {
         entity = unusedEntities.popBack();
