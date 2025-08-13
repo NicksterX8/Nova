@@ -1,12 +1,12 @@
 #include "utils/Metadata.hpp"
 #include <SDL3/SDL_timer.h>
 
-UpdateMetadata::UpdateMetadata(Uint32 targetUpdatesPerSecond) : deltaTime(NAN), currentPerfCount(SDL_GetPerformanceCounter()), lastPerfCount(SDL_GetPerformanceCounter()),
+UpdateMetadata::UpdateMetadata(Uint64 targetUpdatesPerSecond) : deltaTime(NAN), currentPerfCount(SDL_GetPerformanceCounter()), lastPerfCount(SDL_GetPerformanceCounter()),
 targetUpdatesPerSecond(targetUpdatesPerSecond), updateCount(0) {
     
 }
 
-Uint32 UpdateMetadata::update() {
+Tick UpdateMetadata::update() {
     lastPerfCount = currentPerfCount;
     currentPerfCount = SDL_GetPerformanceCounter();
     if (updateCount == 0) {
@@ -50,7 +50,7 @@ double MetadataTracker::end() {
     return seconds();
 }
 
-Uint32 MetadataTracker::newFrame() {
+Tick MetadataTracker::newFrame() {
     return frame.update();
 }
 

@@ -11,24 +11,24 @@ struct UpdateMetadata {
     double deltaTime;
     Uint64 currentPerfCount;
     Uint64 lastPerfCount;
-    Uint32 targetUpdatesPerSecond;
-    Uint32 updateCount;
+    Uint64 targetUpdatesPerSecond;
+    Tick updateCount;
     Uint64 timestamp; // time in miliseconds
 
     static constexpr int storedUpdateTimes = 60;
     My::Vec<double> updateTimeHistory = My::Vec<double>::WithCapacity(storedUpdateTimes); // in miliseconds
     double ups = 0.0; // updates per second
-    int oldestTrackedUpdate = 0;
+    Tick oldestTrackedUpdate = 0;
 
     UpdateMetadata() {
         memset(this, 0, sizeof(*this));
     }
 
-    UpdateMetadata(Uint32 targetUpdatesPerSecond);
+    UpdateMetadata(Uint64 targetUpdatesPerSecond);
 
     // track an update
     // return: new update count
-    Uint32 update();
+    Tick update();
 };
 
 
@@ -60,7 +60,7 @@ public:
     */
     double end();
 
-    Uint32 newFrame();
+    Tick newFrame();
     Tick newTick();
 
     /*
@@ -75,11 +75,12 @@ public:
     */
     double tps() const;
 
-    // Get the current tick / the number of ticks (incremented each time Metadata::tick() is called) since the start of the application
-    Uint32 getFrame() const {
+    // get the current frame number
+    Tick getFrame() const {
         return frame.updateCount;
     }
 
+    // Get the current tick number / the number of ticks (incremented each time Metadata::tick() is called) since the start of the application
     Tick getTick() const {
         return tick.updateCount;
     }
