@@ -4,9 +4,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <array>
-#include "My/String.hpp"
-#include "Signature.hpp"
-#include "utils/Log.hpp"
 #include "constants.hpp"
 
 typedef uint32_t Uint32;
@@ -17,8 +14,6 @@ typedef Uint32 EntityID;
 typedef Uint32 EntityVersion;
 typedef Sint16 ComponentID;
 constexpr ComponentID NullComponentID = -1;
-
-using ComponentFlags = Signature;
 
 #define MAX_ENTITIES 64000
 #define ECS_BAD_COMPONENT_ID(id) (id < 0)
