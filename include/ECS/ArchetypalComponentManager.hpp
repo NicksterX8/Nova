@@ -1,6 +1,8 @@
 #pragma once
 
 #include "ArchetypePool.hpp"
+#include "My/HashMap.hpp"
+#include "My/Vec.hpp"
 
 namespace ECS {
 
