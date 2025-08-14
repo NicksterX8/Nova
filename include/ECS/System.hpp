@@ -242,7 +242,8 @@ struct System {
             if (job.args) {
                 free(job.args);
             }
-            DELETE(job.job, job.job->size, systemManager->jobAllocator);
+            job.job->~Job();
+            DEALLOC((void*)job.job, job.job->size, alignof(Job), systemManager->jobAllocator);
         }
     }
 

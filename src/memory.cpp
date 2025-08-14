@@ -4,44 +4,6 @@
 #include "constants.hpp"
 #include "memory/GlobalAllocators.hpp"
 
-namespace Mem {
-
-// dont accidentally use macros in implementation
-#undef malloc
-#undef free
-#undef realloc
-
-/* wrappers */
-
-void* _malloc(size_t size) {
-    return malloc(size);
-}
-
-void _free(void* mem) {
-    free(mem);
-}
-
-void* _realloc(void* ptr, size_t size) {
-    return realloc(ptr, size);
-}
-
-
-/* debug */
-
-void* debug_malloc(size_t size, const char* file, int line) {
-    printf("Allocated %lu bytes at %s:%d\n", size, file, line);
-    return malloc(size);
-}
-
-void debug_free(void* ptr, const char* file, int line) noexcept {
-    printf("Freed %p at %s:%d\n", ptr, file, line);
-    free(ptr);
-}
-
-}
-
-#define TRACK_ALL_ALLOCS MEMORY_DEBUG_LEVEL >= 2
-
 struct TrackedAllocData {
     AllocatorI* allocator;
     void* pointer;
@@ -64,8 +26,8 @@ void trackAlloc(AllocatorI* allocator, void* pointer, size_t bytes, const char* 
 }
 
 void logAllocError(const TrackedAllocData& dealloc, const TrackedAllocData& alloc) {
-    LogDebug("%s:%d - Error deallocating pointer %p of size %zu. Allocated at: ", dealloc.file, dealloc.line, dealloc.pointer, dealloc.bytes);
-    LogDebug("%s:%d", alloc.file, alloc.line);
+    LogError("%s:%d - Error deallocating pointer %p of size %zu. Allocated at: ", dealloc.file, dealloc.line, dealloc.pointer, dealloc.bytes);
+    LogError("%s:%d", alloc.file, alloc.line);
 }
 
 void trackDealloc(AllocatorI* allocator, void* pointer, size_t bytes, const char* file, int line) {
@@ -92,9 +54,15 @@ void trackDealloc(AllocatorI* allocator, void* pointer, size_t bytes, const char
             }
         }
         if (UNLIKELY(trackedAlloc.bytes != alloc.bytes)) {
-            logAllocError(alloc, trackedAlloc);
             // deallocated different number of bytes than allocated
-            LogError("Allocated pointer of %zu bytes and deallocated as %zu bytes", trackedAlloc.bytes, alloc.bytes);
+            LogError(
+                "Allocated pointer (%p) as %zu bytes and deallocated as %zu bytes.\n"
+                "Allocated at: %s:%d\n"
+                "Deallocated at: %s:%d",
+                 alloc.pointer, trackedAlloc.bytes, alloc.bytes,
+                 trackedAlloc.file, trackedAlloc.line,
+                 alloc.file, alloc.line
+            );
         }
 
         // remove it from live allocs
@@ -102,14 +70,10 @@ void trackDealloc(AllocatorI* allocator, void* pointer, size_t bytes, const char
     }
 }
 
-void debugNewed(void* pointer, size_t bytes, const char* file, int line, AllocatorI* allocator) {
-#if TRACK_ALL_ALLOCS
+void debugAllocated(void* pointer, size_t bytes, const char* file, int line, AllocatorI* allocator) {
     trackAlloc(allocator, pointer, bytes, file, line);
-#endif
 }
 
-void debugDeleted(void* pointer, size_t bytes, const char* file, int line, AllocatorI* allocator) {
-#if TRACK_ALL_ALLOCS
+void debugDeallocated(void* pointer, size_t bytes, const char* file, int line, AllocatorI* allocator) {
     trackDealloc(allocator, pointer, bytes, file, line);
-#endif
 }

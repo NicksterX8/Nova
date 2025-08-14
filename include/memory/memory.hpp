@@ -15,21 +15,9 @@ void destruct(T* elements, size_t count) {
     }
 }
 
+class AllocatorI;
+
 namespace Mem {
-
-/* Wrappers */
-
-void* _malloc(size_t size);
-void  _free(void* ptr);
-void* _realloc(void* ptr, size_t size);
-
-
-/* Debug versions */
-
-void* debug_malloc(size_t size, const char* file, int line);
-void debug_free(void* ptr, const char* file, int line) noexcept;
-
-/* Interface */
 
 template<typename T>
 T* Alloc(size_t count = 1) {
@@ -63,174 +51,208 @@ inline void* Alloc(size_t sizeBytes, size_t alignment) {
 
 } // namespace Mem
 
-namespace My { 
-
-// CRTP based allocator
-template<typename Derived>
-struct IAllocator {
-    //A base;
-    using size_type = size_t;
-
-    Derived& derived() {
-        return *static_cast<Derived*>(this);
-    }
-
-    const Derived& derived() const {
-        return *static_cast<Derived*>(this);
-    }
-
-    void* Alloc(size_t size) {
-        return derived().allocate(size);
-    }
-
-    template<typename T>
-    T* Alloc(size_t count) {
-        return (T*)derived().allocate(count * sizeof(T));
-    }
-
-    void Free(void* ptr) {
-        derived().deallocate(ptr);
-    }
-
-    template<typename T>
-    T* Realloc(T* ptr, size_t count) {
-        return (T*)Realloc<void>((void*)ptr, count * sizeof(T));
-    }
-
-    template<>
-    void* Realloc<void>(void* ptr, size_t size) {
-        return derived().reallocate(ptr, size);
-    }
-};
-
-}
-
-namespace Mem {
-
-struct DefaultAllocator : My::IAllocator<DefaultAllocator> {
-    using size_type = size_t;
-
-    void* allocate(size_t size) const {
-        return Mem::Alloc(size);
-    }
-
-    void deallocate(void* ptr) const {
-        Mem::Free(ptr);
-    }
-
-    void* reallocate(void* ptr, size_t size) const {
-        return Mem::Realloc(ptr, size);
-    }
-};
-
-} // namespace Mem
-
 using Mem::Alloc;
 using Mem::Realloc;
 using Mem::Free;
 
+#if MEMORY_DEBUG_LEVEL >= 2
+#define TRACK_ALLOCS 1
+#endif
+
+void debugAllocated(void* pointer, size_t bytes, const char* file, int line, AllocatorI* allocator = nullptr);
+void debugDeallocated(void* pointer, size_t bytes, const char* file, int line, AllocatorI* allocator = nullptr);
+
+#ifdef TRACK_ALLOCS
+#define DEBUG_ALLOCATED(pointer, bytes, file, line, allocator) debugAllocated(pointer, bytes, file, line, allocator)
+#define DEBUG_DEALLOCATED(pointer, bytes, file, line, allocator) debugDeallocated(pointer, bytes, file, line, allocator)
+#else
+#define DEBUG_ALLOCATED(pointer, bytes, file, line, allocator)
+#define DEBUG_DEALLOCATED(pointer, bytes, file, line, allocator)
+#endif
+
 struct AlignWrapper {
     size_t align;
 };
-      
-class AllocatorI;
 
-void debugNewed(void* pointer, size_t bytes, const char* file, int line, AllocatorI* allocator = nullptr);
-
-void debugDeleted(void* pointer, size_t bytes, const char* file, int line, AllocatorI* allocator = nullptr);
-
-[[nodiscard]] inline void* operator new(size_t size, AlignWrapper align) {
-    return malloc(size);
-}
-
-template<typename Allocator>
-[[nodiscard]] void* operator new(size_t size, AlignWrapper align, Allocator& allocator) {
-    return allocator.allocate(size, align.align);
-}
-
-[[nodiscard]] inline void* operator new(size_t size, AlignWrapper align, const char* file, int line) {
+[[nodiscard]] inline void* operator new(size_t size, AlignWrapper align
+#ifdef TRACK_ALLOCS
+    , const char* file, int line
+#endif
+) {
     void* ptr = malloc(size);
-    debugNewed(ptr, size, file, line);
+    DEBUG_ALLOCATED(ptr, size, file, line, nullptr);
     return ptr;
 }
 
 template<typename Allocator>
-[[nodiscard]] void* operator new(size_t size, AlignWrapper align, const char* file, int line, Allocator& allocator) {
+[[nodiscard]] void* operator new(size_t size, AlignWrapper align, 
+#ifdef TRACK_ALLOCS
+    const char* file, int line,
+#endif 
+    Allocator& allocator) {
     void* ptr = allocator.allocate(size, align.align);
-    debugNewed(ptr, size, file, line, (AllocatorI*)(void*)&allocator);
+    if (allocator.NeedDeallocate())
+        DEBUG_ALLOCATED(ptr, size, file, line, &allocator);
     return ptr; 
 }
 
+template<typename T, typename Allocator>
+void deleteArray(T* pointer, 
+#ifdef TRACK_ALLOCS
+    const char* file, int line, 
+#endif 
+    Allocator& allocator, size_t count) {
+    static_assert(!std::is_void_v<T>, "Cannot delete void pointer, use dealloc instead");
+    if (allocator.NeedDeallocate())
+        DEBUG_DEALLOCATED(pointer, sizeof(T) * count, file, line, &allocator);
+    allocator.Delete(pointer, count);
+}
+
 template<typename T>
-void deleteArray(T* pointer, size_t count) {
+void deleteArray(T* pointer, 
+#ifdef TRACK_ALLOCS
+    const char* file, int line,
+#endif
+    size_t count) {
+    static_assert(!std::is_void_v<T>, "Cannot delete void pointer, use dealloc instead");
+    DEBUG_DEALLOCATED(pointer, sizeof(T) * count, file, line, nullptr);
     destruct(pointer, count);
-    delete pointer;
-}
-
-template<typename T, typename Allocator>
-void deleteArray(T* pointer, Allocator& allocator, size_t count) {
-    allocator.Delete(pointer, count);
-}
-
-template<typename T, typename Allocator>
-void deleteArray(T* pointer, const char* file, int line, Allocator& allocator, size_t count) {
-    debugDeleted(pointer, sizeof(T) * count, file, line, &allocator);
-    allocator.Delete(pointer, count);
-}
-
-// needed for deleting class from its base class pointer
-template<typename T, typename Allocator>
-void deleteArray(T* pointer, size_t objectSize, Allocator& allocator, size_t count) {
-    assert(count == 1);
-    allocator.DeleteWithSize(pointer, objectSize);
-}
-
-// needed for deleting class from its base class pointer
-template<typename T, typename Allocator>
-void deleteArray(T* pointer, const char* file, int line, size_t objectSize, Allocator& allocator, size_t count) {
-    debugDeleted(pointer, objectSize * count, file, line, &allocator);
-    allocator.DeleteWithSize(pointer, objectSize, count);
+    free(pointer);
 }
 
 template<typename T>
-[[nodiscard]] T* newArray(size_t count) {
-    return new T[count];
-}
-
-template<typename T>
-[[nodiscard]] T* newArray(size_t count, const char* file, int line) {
-    T* ptr = new T[count];
-    debugNewed(ptr, count * sizeof(T), file, line);
+[[nodiscard]] T* newArray(size_t count
+#ifdef TRACK_ALLOCS
+    , const char* file, int line
+#endif
+) {
+    T* ptr = new (malloc(count * sizeof(T))) T[count];
+    DEBUG_ALLOCATED(ptr, count * sizeof(T), file, line, nullptr);
     return ptr;
-}
-
-template<typename T, typename Allocator>
-[[nodiscard]] T* newArray(size_t count, Allocator& allocator) {
-    return allocator.template New<T>(count);
 }
 
 template<typename T, typename Allocator>
 [[nodiscard]] T* newArray(size_t count, const char* file, int line, Allocator& allocator) {
     T* ptr = allocator.template New<T>(count);
-    debugNewed(ptr, count * sizeof(T), file, line, &allocator);
+    if (allocator.NeedDeallocate())
+        DEBUG_ALLOCATED(ptr, count * sizeof(T), file, line, &allocator);
     return ptr;
 }
 
-#if MEMORY_DEBUG_LEVEL >= 1
-#define ALLOCATION_DEBUG_LOCATION 1
+template<typename T, typename Allocator>
+void deallocArray(T* pointer, 
+#ifdef TRACK_ALLOCS
+    const char* file, int line,
 #endif
+    Allocator& allocator, size_t count = 1) {
+    if (allocator.NeedDeallocate())
+        DEBUG_DEALLOCATED(pointer, sizeof(T) * count, file, line, &allocator);
+    allocator.deallocate(pointer, count);
+}
 
-#ifndef ALLOCATION_DEBUG_LOCATION
+template<typename T, typename Allocator>
+void deallocArray(T* pointer, 
+#ifdef TRACK_ALLOCS
+    const char* file, int line,
+#endif
+    size_t count, Allocator& allocator) {
+    if (allocator.NeedDeallocate())
+        DEBUG_DEALLOCATED(pointer, sizeof(T) * count, file, line, &allocator);
+    allocator.deallocate(pointer, count);
+}
+
+template<typename Allocator>
+inline void deallocArray(void* pointer, 
+#ifdef TRACK_ALLOCS
+    const char* file, int line,
+#endif
+    size_t size, size_t alignment, Allocator& allocator) {
+    if (allocator.NeedDeallocate())
+        DEBUG_DEALLOCATED(pointer, size, file, line, &allocator);
+    allocator.deallocate(pointer, size, alignment);
+}
+
+inline void deallocArray(void* pointer, 
+#ifdef TRACK_ALLOCS
+    const char* file, int line, 
+#endif
+    size_t size) {
+    DEBUG_DEALLOCATED(pointer, size, file, line, nullptr);
+    free(pointer);
+}
+
+template<typename T>
+void deallocArray(T* pointer, 
+#ifdef TRACK_ALLOCS
+    const char* file, int line, 
+#endif
+    size_t count = 1) {
+    DEBUG_DEALLOCATED(pointer, sizeof(T) * count, file, line, nullptr);
+    free(pointer);
+}
+
+template<typename T>
+[[nodiscard]] T* allocArray(
+#ifdef TRACK_ALLOCS
+    const char* file, int line,
+#endif
+    size_t count = 1) {
+    T* ptr = (T*)malloc(count * sizeof(T));
+    DEBUG_ALLOCATED(ptr, count * sizeof(T), file, line, nullptr);
+    return ptr;
+}
+
+template<>
+[[nodiscard]] inline void* allocArray<void>(
+#ifdef TRACK_ALLOCS
+    const char* file, int line,
+#endif
+    size_t count) {
+    void* ptr = malloc(count);
+    DEBUG_ALLOCATED(ptr, count, file, line, nullptr);
+    return ptr;
+}
+
+template<typename T, typename Allocator>
+[[nodiscard]] T* allocArray(
+#ifdef TRACK_ALLOCS
+    const char* file, int line, 
+#endif
+    Allocator& allocator, size_t count = 1) {
+    T* ptr = allocator.template allocate<T>(count);
+    if (allocator.NeedDeallocate())
+        DEBUG_ALLOCATED(ptr, count * sizeof(T), file, line, &allocator);
+    return ptr;
+}
+
+template<typename T, typename Allocator>
+[[nodiscard]] T* allocArray(
+#ifdef TRACK_ALLOCS
+    const char* file, int line, 
+#endif
+    size_t count, Allocator& allocator) {
+    T* ptr = allocator.template allocate<T>(count);
+    if (allocator.NeedDeallocate())
+        DEBUG_ALLOCATED(ptr, count * sizeof(T), file, line, &allocator);
+    return ptr;
+}
+
+
+#ifndef TRACK_ALLOCS
     #define NEW(constructor, ...) new (AlignWrapper{alignof(decltype(constructor))}, ##__VA_ARGS__) constructor
     #define NEW_ARR(type, count, ...) newArray<type>(count)
     #define DELETE(pointer, ...) deleteArray(pointer, ##__VA_ARGS__, 1)
     #define DELETE_ARR(pointer, count, ...) deleteArray(pointer, ##__VA_ARGS__, count)
+    #define DELETE_SIZED_OBJECT(pointer, size, ...) deleteSizedObject(pointer, size, ##__VA_ARGS__)
+    #define ALLOC(type, ...) allocArray<type>(__VA_ARGS__)
+    #define DEALLOC(pointer, ...) deallocArray(pointer, ##__VA_ARGS__)
 #else
     #define NEW(constructor, ...) new (AlignWrapper{alignof(decltype(constructor))}, __FILE__, __LINE__, ##__VA_ARGS__) constructor
-    // #define NEW_ARR(constructor, ...) new (AlignWrapper{alignof(constructor)}, ##__VA_ARGS__) constructor
     #define NEW_ARR(type, count, ...) newArray<type>(count, __FILE__, __LINE__, ##__VA_ARGS__)
     #define DELETE(pointer, ...) deleteArray(pointer, __FILE__, __LINE__, ##__VA_ARGS__, 1)
     #define DELETE_ARR(pointer, count, ...) deleteArray(pointer, __FILE__, __LINE__, ##__VA_ARGS__, count)
+    #define ALLOC(type, ...) allocArray<type>(__FILE__, __LINE__, ##__VA_ARGS__)
+    #define DEALLOC(pointer, ...) deallocArray(pointer, __FILE__, __LINE__, ##__VA_ARGS__)
 #endif
 
 #endif
