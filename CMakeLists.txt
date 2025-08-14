@@ -12,11 +12,13 @@ project(nova VERSION 1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
+
 add_compile_options(
     -g
     -Wall -Wextra -pedantic -Wliteral-conversion
     -Wno-macro-redefined -Wno-unused-variable -Wno-unused-parameter -Wno-char-subscripts -Wno-comment -Wno-sign-compare
     -Wno-gnu-zero-variadic-macro-arguments
+    -Werror=format
     -fno-math-errno -fno-trapping-math -fassociative-math -freciprocal-math -fno-signed-zeros
     -fno-exceptions -fno-rtti
     -DMACOS

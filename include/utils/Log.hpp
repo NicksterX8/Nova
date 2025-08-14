@@ -65,8 +65,13 @@ extern Logger gLogger;
 
 #define MAX_LOG_MESSAGE_LENGTH 512
 
+__attribute((format(printf, 3, 4)))
 void logInternal(LogCategory category, LogPriority priority, const char* fmt, ...);
+
+__attribute((format(printf, 4, 5)))
 void logInternalWithPrefix(LogCategory category, LogPriority priority, const char* prefix, const char* fmt, ...);
+
+__attribute((format(printf, 4, 5)))
 void logOnceInternal(LogCategory category, LogPriority priority, char* lastMessage, const char* fmt, ...);
 
 #define LOG_LOCATION __FILE__ ":" TOSTRING(__LINE__)
@@ -99,6 +104,7 @@ void crash(CrashReason reason, const char* message);
 
 #define CRASH(reason, message) crash(reason, message)
 
+__attribute((format(printf, 2, 3)))
 void logCrash(CrashReason reason, const char* fmt, ...);
 
 #define LogCrash(reason, ...) logCrash(reason, __VA_ARGS__)

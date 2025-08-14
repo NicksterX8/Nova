@@ -18,7 +18,8 @@ std::string str_trim(std::string string, const char* substr) {
     size_t substrLen = strlen(substr);
     size_t pos = string.find(substr);
     if (pos != std::string::npos) {
-        return string.substr(0, pos) + string.substr(pos + substrLen);
+        // trim recursively until none found
+        return str_trim(string.substr(0, pos) + string.substr(pos + substrLen), substr);
     }
     return string; // just do nothing if it's not found
 }
@@ -29,7 +30,7 @@ std::string conciseSourceFilename(const char* file) {
 
 // may be run from any thread
 void Logger::log(LogCategory category, LogPriority priority, const char *message) const {
-    if (priority == LogPriority::Debug && !Debug->debugging) return;
+    if (priority == LogPriority::Debug && (!Debug || !Debug->debugging)) return;
 
     const char* fg = "";
     const char* prefix = "";
@@ -209,7 +210,6 @@ void crash(CrashReason reason, const char* message) {
 void logCrash(CrashReason reason, const char* fmt, ...) {
     char buf[512];
     
-
     va_list ap;
     va_start(ap, fmt);
     snprintf(buf, sizeof(buf), fmt, ap);
