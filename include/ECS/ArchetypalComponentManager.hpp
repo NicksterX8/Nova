@@ -37,7 +37,7 @@ namespace GroupWatcherTypes {
 }
 
 struct ArchetypalComponentManager {
-    static constexpr size_t MaxEntityID = (1 << 14) - 1;
+    static constexpr size_t MaxEntityID = (1 << 15) - 1;
 
     using ArchetypeID = Sint16;
     static constexpr ArchetypeID NullArchetypeID = -1;
