@@ -3,6 +3,7 @@
 
 #include "Entity.hpp"
 #include "My/Vec.hpp"
+#include "Signature.hpp"
 
 namespace ECS {
 
