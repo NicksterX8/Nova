@@ -34,7 +34,7 @@ namespace World {
     //     componentValues.clear();
     // }
 
-    void EntityWorld::init(EntityWorld* pointerToThis) {
+    void EntityWorld::init() {
         using namespace EC;
         using namespace EC::Proto;
         static const auto infoList = ECS::getComponentInfoList<WORLD_COMPONENT_LIST>();

@@ -35,11 +35,14 @@ struct EntityWorld : ECS::EntityManager {
 protected:
     using Base = ECS::EntityManager;
 public:
-    EntityWorld() {}
+    EntityWorld() = default;
 
-    void init(EntityWorld* pointerToThis);
+    void init();
 
+    // delete these (even though they should never happen anyways) because
+    // we have a self referential pointer that would break
     EntityWorld(const EntityWorld& copy) = delete;
+    EntityWorld(EntityWorld&& moved) = delete;
 
     /* Destroy the entity world.
      * Frees memory and destroys members without doing any other work (such as calling event callbacks).

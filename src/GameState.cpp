@@ -76,7 +76,7 @@ void GameState::init(const TextureManager* textureManager) {
 
     /* Init ECS */
     ecs = NEW(EntityWorld(), scratch);
-    ecs->init(ecs);
+    ecs->init();
 
 
     World::Entities::makePrototypes(*ecs);

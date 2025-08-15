@@ -10,7 +10,7 @@ struct EntityWorldTest : testing::Test {
     Entity aEntity;
 
     EntityWorldTest() {
-        ecs.init(&ecs);
+        ecs.init();
         aEntity = ecs.createEntity(-1);
     }
 
