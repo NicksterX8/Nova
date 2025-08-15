@@ -70,11 +70,8 @@ struct ArchetypalComponentManager {
     SmallVector<SmallVector<ComponentWatcher>, 0> componentAddWatchers;
     SmallVector<SmallVector<ComponentWatcher>, 0> componentRemoveWatchers;
     static constexpr Uint8 NullWatcherIndex = 255;
-    /*alignas(64)*/ Uint8 watchedComponentAddGroupIndices[MaxComponentIDs]; 
-                Uint8 watchedComponentRemoveGroupIndices[MaxComponentIDs];
-
-    
-    // My::HashMap<ComponentGroup, ArchetypePool*, ComponentGroup::Hash> watcherPools;
+    Uint8 watchedComponentAddGroupIndices[MaxComponentIDs]; 
+    Uint8 watchedComponentRemoveGroupIndices[MaxComponentIDs];
 
     /* Methods */
 
@@ -125,8 +122,6 @@ struct ArchetypalComponentManager {
     bool addSignature(Entity entity, Signature components);
 
     void addComponent(Entity entity, ComponentID component, const void* initializationValue = nullptr);
-
-    void addComponentWithGroups(Entity entity, ComponentID component, const void* initializationValue = nullptr);
 
     void removeComponent(Entity entity, ComponentID component);
 
