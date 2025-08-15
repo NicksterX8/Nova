@@ -71,11 +71,13 @@ void Logger::log(LogCategory category, LogPriority priority, const char *message
     else
         snprintf(consoleMessage, messageLength + 64, "%s%c", text.data(), end);
 
-    switch (category) {
-    using namespace LogCategories;
-    default:
-        fputs(consoleMessage.data(), stdout);
-        break;
+    if (logToStdout) {
+        switch (category) {
+        using namespace LogCategories;
+        default:
+            fputs(consoleMessage.data(), stdout);
+            break;
+        }
     }
 
     static std::mutex mutex;

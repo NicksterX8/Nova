@@ -55,6 +55,7 @@ void initPaths() {
 int Main(int argc, char** argv) { 
     std::string windowTitle = WINDOW_TITLE;
 
+    gLogger.logToStdout = true;
     gLogger.useEscapeCodes = true;
     
     for (int i = 1; i < argc; i++) {

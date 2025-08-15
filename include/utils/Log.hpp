@@ -46,7 +46,7 @@ public:
     LogCategory category = LogCategory::Main; // The log category to use when logging, default is main
     FILE* outputFile = NULL;
     bool useEscapeCodes = false; // Use ansi escape codes for colors and bolding when logging to console
-    bool logToConsole = true;
+    bool logToStdout = false;
     // different than terminal
     GUI::Console* gameConsoleOutput;
 
