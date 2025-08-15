@@ -170,6 +170,8 @@ void ECS::Systems::setupSystems(SystemManager& sysManager) {
             calculateJobStages(system, &system->stageJobs);
         }
     }
+
+    sysManager.wasSetup = true;
 }
 
 void ECS::Systems::cleanupSystems(SystemManager& sysManager) {
@@ -337,6 +339,11 @@ void ECS::Systems::executeSystemSingleThreaded(SystemManager& sysManager, System
 }
 
 void ECS::Systems::executeSystems(SystemManager& sysManager) {
+    if (!sysManager.wasSetup) {
+        LogOnce(Error, "Did not set up system manager before executing!");
+        return;
+    }
+
     int systemCount = sysManager.systems.size();
 
     std::vector<std::vector<const ArchetypePool*>> groupPools;

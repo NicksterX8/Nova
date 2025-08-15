@@ -52,6 +52,8 @@ struct SystemManager {
     bool allowParallelization = USE_MULTITHREADING;
 
     BlockAllocator<128, 16> jobAllocator;
+
+    bool wasSetup = false;
 public:
     SystemManager() {}
 
