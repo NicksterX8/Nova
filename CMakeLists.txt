@@ -25,12 +25,20 @@ add_compile_options(
     -DDEBUG_LEVEL=2 -DMEMORY_DEBUG_LEVEL=0
 )
 
+if (OPTIMIZE)
+add_compile_options(
+    -O2
+)
+endif()
+
 add_link_options(-framework OpenGL)
 
 # debug options
 # doesn't work with lldb on mac. just freezes and stops without giving you any information
-#add_compile_options(-fsanitize=undefined -fsanitize=address)
-#add_link_options(-fsanitize=undefined -fsanitize=address)
+if (USE_ADDRESS_SANITIZER)
+    add_compile_options(-fsanitize=undefined -fsanitize=address)
+    add_link_options(-fsanitize=undefined -fsanitize=address)
+endif()
 
 set(SD src)
 set(HLB /opt/homebrew/Cellar)
@@ -113,3 +121,10 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 
 enable_testing()
 add_subdirectory(tests)
+
+option(ENABLE_BENCHMARKS "Build benchmarks" ON)
+if(ENABLE_BENCHMARKS)
+    add_subdirectory(benchmarks)
+endif()
+
+add_subdirectory(benchmarks)
