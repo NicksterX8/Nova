@@ -21,8 +21,8 @@ constexpr EntityID NULL_ENTITY_ID = (MAX_ENTITIES-1);
 constexpr EntityVersion NULL_ENTITY_VERSION = 0;
 
 struct Entity {
-    EntityID id;
-    EntityVersion version;
+    Uint64 id : 32;
+    Uint64 version : 32;
 
     Entity() {};
     

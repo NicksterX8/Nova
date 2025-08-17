@@ -45,7 +45,7 @@ void EntityManager::executeCommandBuffer(EntityCommandBuffer* commandBuffer) {
         case EntityCommandBuffer::Command::CommandCreate: {
             Entity realEntity = createEntity(command.create.prototype);
             // made fake entity - register it so we can detect it in future commands
-            fakeEntities.push_back({command.entity.id, realEntity});
+            fakeEntities.push_back({(EntityID)command.entity.id, realEntity});
             break; }
         case EntityCommandBuffer::Command::CommandAdd:
             doAddComponent(command.entity, command.add.component, command.add.componentValueIndex + commandBuffer->valueBuffer.data);

@@ -438,13 +438,13 @@ int Game::init(SDLContext sdlContext) {
 
     this->state->createWorld();
 
-    // for (int e = 0; e < 8000; e++) {
-    //     Vec2 pos = {(float)randomInt(-100, 100), (float)randomInt(-100, 100)};
-    //     // do placing collision checks
-    //     auto tree = World::Entities::Tree::make(state->ecs, pos, {4, 4}).make();
-    //     // World::entityCreated(state, tree);
-    //     (void)tree;
-    // }
+    for (int e = 0; e < 8000; e++) {
+        Vec2 pos = {(float)randomInt(-100, 100), (float)randomInt(-100, 100)};
+        // do placing collision checks
+        auto tree = World::Entities::Tree::make(state->ecs, pos, {4, 4});
+        // World::entityCreated(state, tree);
+        (void)tree;
+    }
 
     // auto tree = World::Entities::Tree::make(state->ecs, {10.5, 10.5}, {40, 40})();
 
