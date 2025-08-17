@@ -1,4 +1,4 @@
-#include "bench.hpp"
+#include "utils/bench.hpp"
 
 #include "world/EntityWorld.hpp"
 #include "world/components/components.hpp"

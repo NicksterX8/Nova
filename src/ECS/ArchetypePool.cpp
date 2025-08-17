@@ -73,6 +73,44 @@ int ArchetypePool::addNew(Entity entity) {
     return size++;
 }
 
+int ArchetypePool::addNew(ArrayRef<Entity> newEntities) {
+    int nNewEntities = newEntities.size();
+    if (size + nNewEntities > capacity) {
+        int newCapacity = (capacity * 2 >= size + nNewEntities) ? capacity * 2 : size + nNewEntities;
+        // TODO: URGENT: this is horrible
+        char* newBuffer = Alloc<char>(newCapacity * archetype.sumSize + 100);
+        if (newBuffer) {
+            int offset = 0;
+            for (int i = 0; i < archetype.numComponents; i++) {
+                auto oldComponentBufferSize = archetype.sizes[i] * capacity;
+                auto newComponentBufferSize = archetype.sizes[i] * newCapacity;
+
+                size_t alignmentOffset = getAlignmentOffset(offset, archetype.alignments[i]);
+                if (buffer)
+                    memcpy(newBuffer + offset + alignmentOffset, buffer + bufferOffsets[i], oldComponentBufferSize);
+
+                bufferOffsets[i] = offset + alignmentOffset;
+                offset += newComponentBufferSize + alignmentOffset;
+            }
+
+            buffer = newBuffer;
+        }
+        
+        Entity* reallocedEntities = Realloc(entities, newCapacity);
+        if (reallocedEntities) {
+            entities = reallocedEntities;
+        }
+        capacity = newCapacity;
+    }
+
+    int startIndex = size;
+    
+    memcpy(entities + size, newEntities.data(), nNewEntities * sizeof(Entity));
+
+    size += nNewEntities;
+    return startIndex;
+}
+
 void ArchetypePool::doubleCopyIndex(int dstIndex, int middleIndex, int srcIndex) {
     for (int i = 0; i < archetype.numComponents; i++) {
         auto componentSize = archetype.sizes[i];

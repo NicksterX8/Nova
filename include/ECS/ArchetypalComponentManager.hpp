@@ -36,8 +36,15 @@ namespace GroupWatcherTypes {
     };
 }
 
+struct EntityCreationError {
+    enum {
+        InvalidEntity,
+        EntityLimitReached
+    } type;
+};
+
 struct ArchetypalComponentManager {
-    static constexpr size_t MaxEntityID = (1 << 15) - 1;
+    static constexpr EntityID MaxEntityID = (1 << 15) - 1;
 
     using ArchetypeID = Sint16;
     static constexpr ArchetypeID NullArchetypeID = -1;
@@ -79,9 +86,17 @@ struct ArchetypalComponentManager {
 
     void init(ComponentInfoRef componentInfo);
 
+protected:
+    Entity getUnusedEntity();
+public:
     Entity createEntity(Uint32 prototype);
 
+    // true on success, false on error
+    // error will be set to InvalidEntity if entity is null or not in existence
+    bool clone(Entity entity, int count, Entity* clonesOut, EntityCreationError* error);
+
     void deleteEntity(Entity entity);
+    void deleteEntities(ArrayRef<Entity> entities);
 
     const EntityData* getEntityData(EntityID entityID) const {
         if (entityID == NullEntity.id) {
@@ -117,6 +132,10 @@ struct ArchetypalComponentManager {
     void* getComponent(Entity entity, ComponentID component) const;
 
     void removeEntityIndexFromPool(int index, ArchetypePool* pool);
+
+protected:
+    void signatureAdded(Entity, Signature added, Signature oldSignature);
+public:
 
     // returns true on success, false on failure
     bool addSignature(Entity entity, Signature components);

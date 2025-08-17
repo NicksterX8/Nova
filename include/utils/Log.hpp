@@ -97,16 +97,21 @@ enum class CrashReason {
     SDL_Initialization,
     MemoryFail,
     GameInitialization,
-    UnrecoverableError
+    UnrecoverableError,
+    AssertionFail
 };
 
+[[noreturn]]
 void crash(CrashReason reason, const char* message);
 
 #define CRASH(reason, message) crash(reason, message)
 
+[[noreturn]]
 __attribute((format(printf, 2, 3)))
 void logCrash(CrashReason reason, const char* fmt, ...);
 
 #define LogCrash(reason, ...) logCrash(reason, __VA_ARGS__)
+
+#define RASSERT(truthy, message) do { if (UNLIKELY(!(truthy))) { crash(CrashReason::AssertionFail, message); } } while (false)
 
 #endif

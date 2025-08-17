@@ -460,9 +460,11 @@ namespace Commands {
         auto entityIdStr = args.get();
         Entity entity = getEntity(entityIdStr, ecs);
         if (entity.Null()) return RES_ERROR("No entity found");
-        Entity clone  = World::Entities::clone(ecs, entity);
-        if (ecs->EntityExists(clone)) {
-            return RES_SUCCESS(string_format("Entity successfully cloned! ID: %d", clone.id));
+        ECS::EntityCreationError error;
+        Entity clonedEntity = NullEntity;
+        ecs->clone(entity, {clonedEntity}, &error);
+        if (ecs->EntityExists(clonedEntity)) {
+            return RES_SUCCESS(string_format("Entity successfully cloned! ID: %d", clonedEntity.id));
         }
         return RES_ERROR("Failed to clone entity!");
     }

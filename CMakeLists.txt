@@ -27,7 +27,7 @@ add_compile_options(
 
 if (OPTIMIZE)
 add_compile_options(
-    -O2
+    -O0
 )
 endif()
 

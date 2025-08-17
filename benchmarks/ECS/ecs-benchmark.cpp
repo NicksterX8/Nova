@@ -2,7 +2,7 @@
 #include "world/components/components.hpp"
 #include "ECS/System.hpp"
 #include "global.hpp"
-#include "bench.hpp"
+#include "utils/bench.hpp"
 
 using namespace ECS::Systems;
 
@@ -33,7 +33,7 @@ struct TestSystem : System {
 };
 
 int main() {
-    const int ITERATIONS = 6000;
+    const int ITERATIONS = 100;
     const int ENTITIES = 30000;
 
     // Global.threadManager.initThreads(5);
@@ -41,21 +41,14 @@ int main() {
     EntityWorld ecs;
     ecs.init();
 
-    auto freq = SDL_GetPerformanceFrequency();
-
-    auto startCreate = SDL_GetPerformanceCounter();
-
+    START_TIME(create);
     for (int i = 0; i < ENTITIES; i++) {
         Entity e = ecs.createEntity(-1);
         ecs.Add<EC::Position>(e, Vec2{i, i});
         ecs.Add<EC::Dynamic>(e, {Vec2{-i, -i}});
     }
-
-    auto endCreate = SDL_GetPerformanceCounter();
-
-    auto diffCreate = endCreate - startCreate;
-    auto msCreate = (double)diffCreate / (double)freq * 1000.0;
-    printf("create ms: %f\n", msCreate);
+    END_TIME(create);
+    PRINT_TIME(create);
 
     SystemManager systems{&ecs};
     TestSystem testSystem{systems};
@@ -63,22 +56,12 @@ int main() {
     setupSystems(systems);
 
     
-    auto start = SDL_GetPerformanceCounter();
-
+    START_TIME(executeSystem);
     for (int i = 0; i < ITERATIONS; i++) {
         executeSystems(systems);
     }
-
-    auto end = SDL_GetPerformanceCounter();
-
-    auto diff = end - start;
-    auto ms = (double)diff / (double)freq * 1000.0;
-
-    printf("ms: %f", ms);
-
-
-
-
+    END_TIME(executeSystem);
+    PRINT_TIME(executeSystem, ITERATIONS);
 
     return 0;
 }

@@ -124,6 +124,8 @@ struct ArchetypePool {
     // returns index where entity is stored
     int addNew(Entity entity);
 
+    int addNew(ArrayRef<Entity> entities);
+
     void copyIndex(int dstIndex, int srcIndex) {
         for (int i = 0; i < archetype.numComponents; i++) {
             auto componentSize = archetype.sizes[i];

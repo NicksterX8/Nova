@@ -205,6 +205,9 @@ void crash(CrashReason reason, const char* message) {
     case CrashReason::UnrecoverableError:
         LogCritical("Unrecoverable Error - %s", message);
         break;
+    case CrashReason::AssertionFail:
+        LogCritical("Assertion fail - %s", message);
+        break;
     }
     exit(EXIT_FAILURE);
 }

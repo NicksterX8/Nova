@@ -348,7 +348,11 @@ namespace Proto {
         Uint16 cooldown; // ticks
         ECS::PrototypeID projectile; //
     END_PROTO_COMPONENT(GunProto)
+
+    constexpr std::array<ECS::ComponentInfo, ComponentIDs::Count> ComponentInfoList = ECS::getComponentInfoList<WORLD_COMPONENT_LIST>();
 }
+
+using Proto::ComponentInfoList;
 
 };
 

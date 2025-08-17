@@ -11,14 +11,14 @@
 
 inline void printTime(const char* timerName, Uint64 startTime, Uint64 endTime, int iterations = 1) {
     Uint64 diff = endTime - startTime;
-    double ms = diff / (double)SDL_GetPerformanceFrequency();
+    double ms = diff / (double)(SDL_GetPerformanceFrequency() / 1000);
 
-    if (iterations > 0) {
+    if (iterations > 1) {
         // average iterations
         double avg = ms / iterations;
-        printf("%s - took %f µs on average\n", timerName, avg * 1000.0);
+        printf("%s - took %f ms on average\n", timerName, avg);
     } else {
-        printf("%s - took %f µs\n", timerName, ms * 1000.0);
+        printf("%s - took %f ms\n", timerName, ms);
     }
 }
 

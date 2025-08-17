@@ -12,6 +12,5 @@ foreach(src ${BENCHMARK_FILES})
     target_link_libraries(${exe} nova_lib)
     target_include_directories(${exe} PRIVATE
         ../include
-        include
     )
 endforeach()

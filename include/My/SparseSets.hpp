@@ -368,11 +368,11 @@ public:
         }
 
         const auto startIndex = (Index)size;
-        memcpy(keys + startIndex, keys, count * sizeof(Key));
         Value* newValues = &values[size];
         for (SizeT i = 0; i < count; i++) {
             assert(set[keyBegin + i] == NullIndex && "Attempted to insert key already present in sparse set");
             set[keyBegin + i] = startIndex + i;
+            keys[size + i] = keyBegin + i;
             if constexpr (!std::is_trivially_default_constructible_v<Value>) {
                 ::new (newValues + i) Value;
             }

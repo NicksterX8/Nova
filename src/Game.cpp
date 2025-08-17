@@ -196,10 +196,6 @@ static void updateSystems(GameState* state) {
 int tick(GameState* state, PlayerControls* playerControls) {
     state->player.grenadeThrowCooldown--;
 
-    Entity test = World::Entities::Player::make(state->ecs, {5, 5}, state->itemManager);
-
-    state->ecs->Destroy(test);
-
 
 
     updateSystems(state);

@@ -697,8 +697,6 @@ void render(RenderContext& ren, RenderOptions options, Gui* gui, GameState* stat
     if (Debug->settings["drawChunkBorders"]) {
         Draw::chunkBorders(ren.worldQuadRenderer, camera, SDL_Color{255, 0, 255, 155}, 8.0f, 5);
     }
-
-    auto holyTree = World::Entities::findNamedEntity("Holy tree", state->ecs);
  
     //ren.worldGuiRenderer.text->render("HI", {5, 5});
     float offset = 50.0f;
