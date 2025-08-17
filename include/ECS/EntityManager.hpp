@@ -158,7 +158,7 @@ public:
                 for (int e = pool.size-1; e >= 0; e--) {
                     Entity entity = pool.entities[e];
                     if (func(entity)) {
-                        return;
+                        break;
                     }
                 }
             }
@@ -351,6 +351,15 @@ public:
 
     int getEntityCount() const {
         return components.entityData.getSize();
+    }
+
+    struct EntityGroup {
+        EntityID id;
+
+    };
+
+    bool clone(Entity entity, MutArrayRef<Entity> clones, EntityCreationError* error) {
+        return components.clone(entity, clones.size(), clones.data(), error);
     }
 
     void destroy() {
