@@ -31,16 +31,6 @@ SmallVector<IVec2> raytraceDDA(Vec2 start, Vec2 end);
 
 void worldLineAlgorithm(Vec2 start, Vec2 end, const std::function<int(IVec2)>& callback);
 
-inline void updateEntityViewBox(const GameState* state, Entity entity, World::EC::ViewBox viewbox) {
-    assert(state->ecs->EntityExists(entity));
-
-    llvm::BitVector entityViewBoxModifiedFlags(MAX_ENTITIES);
-
-    auto& flags = entityViewBoxModifiedFlags;
-
-    flags[entity.id] = 1;
-}
-
 void forEachChunkContainingBounds(const ChunkMap* chunkmap, Boxf bounds, const std::function<void(ChunkData*)>& callback);
 
 constexpr Vec2 EntityMaxPos = {(float)INT_MAX, (float)INT_MAX};
