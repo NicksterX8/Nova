@@ -43,6 +43,13 @@ struct EntityCreationError {
     } type;
 };
 
+struct MultiEntity {
+    Entity entity;
+    Sint32 count;
+};
+
+constexpr MultiEntity NullMultiEntity = {NullEntity, 0};
+
 struct ArchetypalComponentManager {
     static constexpr EntityID MaxEntityID = (1 << 15) - 1;
 
@@ -63,6 +70,18 @@ struct ArchetypalComponentManager {
         Sint16 poolIndex;
         ArchetypeID archetype;
     };
+
+    struct EntityLoc {
+        ArchetypeID archetype;
+        Sint16 index;
+    };
+
+    struct EntityData2 {
+        Signature* signature;
+        Sint32* prototype;
+        Uint32* version;
+        EntityLoc* location;
+    } entityData2;
 
     My::DenseSparseSet<EntityID, EntityData, Uint16, MaxEntityID> entityData;
 
@@ -86,10 +105,14 @@ struct ArchetypalComponentManager {
 
     void init(ComponentInfoRef componentInfo);
 
-protected:
-    Entity getUnusedEntity();
-public:
     Entity createEntity(Uint32 prototype);
+
+    void createEntities(int count, Entity* entitiesOut, Signature signature);
+
+    MultiEntity createMultiEntity(Sint32 count);
+
+    // @return: pointer to contigious array of component storage for the new entities' component values
+    void* multiAddComponent(MultiEntity entities, ComponentID component);
 
     // true on success, false on error
     // error will be set to InvalidEntity if entity is null or not in existence
@@ -141,6 +164,13 @@ public:
     bool addSignature(Entity entity, Signature components);
 
     void addComponent(Entity entity, ComponentID component, const void* initializationValue = nullptr);
+
+    struct GroupedEntities {
+        ArrayRef<Entity> entities;
+
+    };
+
+    void* addComponent(ArrayRef<Entity> groupedEntities, ComponentID component);
 
     void removeComponent(Entity entity, ComponentID component);
 

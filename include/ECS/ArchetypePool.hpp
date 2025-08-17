@@ -72,6 +72,8 @@ struct Archetype {
 Archetype makeArchetype(Signature signature, ComponentInfoRef componentTypeInfo);
 
 struct ArchetypePool {
+    using EntityIndex = Sint16;
+
     int size;
     int capacity;
     Entity* entities; // contained entities
@@ -124,7 +126,7 @@ struct ArchetypePool {
     // returns index where entity is stored
     int addNew(Entity entity);
 
-    int addNew(ArrayRef<Entity> entities);
+    int addNew(int count, Entity* newEntities = nullptr);
 
     void copyIndex(int dstIndex, int srcIndex) {
         for (int i = 0; i < archetype.numComponents; i++) {

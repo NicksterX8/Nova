@@ -16,11 +16,9 @@ typedef Sint16 ComponentID;
 constexpr ComponentID NullComponentID = -1;
 
 #define MAX_ENTITIES 64000
-#define ECS_BAD_COMPONENT_ID(id) (id < 0)
 
 constexpr EntityID NULL_ENTITY_ID = (MAX_ENTITIES-1);
 constexpr EntityVersion NULL_ENTITY_VERSION = 0;
-constexpr EntityVersion WILDCARD_ENTITY_VERSION = UINT32_MAX;
 
 struct Entity {
     EntityID id;

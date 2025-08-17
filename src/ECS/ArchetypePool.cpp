@@ -73,8 +73,8 @@ int ArchetypePool::addNew(Entity entity) {
     return size++;
 }
 
-int ArchetypePool::addNew(ArrayRef<Entity> newEntities) {
-    int nNewEntities = newEntities.size();
+int ArchetypePool::addNew(int count, Entity* newEntities) {
+    int nNewEntities = count;
     if (size + nNewEntities > capacity) {
         int newCapacity = (capacity * 2 >= size + nNewEntities) ? capacity * 2 : size + nNewEntities;
         // TODO: URGENT: this is horrible
@@ -105,7 +105,8 @@ int ArchetypePool::addNew(ArrayRef<Entity> newEntities) {
 
     int startIndex = size;
     
-    memcpy(entities + size, newEntities.data(), nNewEntities * sizeof(Entity));
+    if (newEntities)
+        memcpy(entities + size, newEntities, nNewEntities * sizeof(Entity));
 
     size += nNewEntities;
     return startIndex;
