@@ -275,6 +275,7 @@ public:
 
     using Base::allocate;
     using Base::deallocate;
+    using Base::reallocate;
 
     void* allocate(size_t size, size_t alignment) {
         if (LIKELY(alignment <= alignof(std::max_align_t)))
@@ -334,9 +335,13 @@ public:
         return allocatefn(allocator, size, alignment);
     }
 
+    using AllocatorBase<VirtualAllocator>::allocate;
+
     void deallocate(void* ptr, size_t size, size_t alignment) {
         deallocatefn(allocator, ptr, size, alignment);
     }
+
+    using AllocatorBase<VirtualAllocator>::deallocate;
 };
 
 #endif

@@ -1,6 +1,7 @@
 #ifndef ECS_GENERIC_SIGNATURE_INCLUDED
 #define ECS_GENERIC_SIGNATURE_INCLUDED
 
+#include <array>
 #include "utils/ints.hpp"
 #include "My/Bitset.hpp"
 
@@ -130,6 +131,12 @@ struct Signature : My::Bitset<MaxComponentIDs> {
     constexpr Signature(typename Base::IntegerType startValue) : Base(startValue) {}
 
     constexpr Signature(const My::Bitset<MaxComponentIDs>& base) : Base(base) {}
+
+    static Signature OneComponent(ComponentID component) {
+        Signature signature{0};
+        signature.set(component);
+        return signature;
+    } 
 
     template<class C>
     constexpr bool getComponent() const {

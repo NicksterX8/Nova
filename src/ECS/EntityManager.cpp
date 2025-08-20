@@ -7,9 +7,9 @@ void EntityManager::init(ArrayRef<ComponentInfo> componentList, int numPrototype
     this->componentInfo = NEW_ARR(ComponentInfo, componentList.size());
     nComponents = componentList.size();
     std::copy(componentList.begin(), componentList.end(), this->componentInfo);
-    components.init(ArrayRef{componentInfo, (size_t)nComponents});
+    components.init(ArrayRef{componentInfo, (size_t)nComponents}, &arena);
     prototypes.init(ArrayRef{componentInfo, (size_t)nComponents}, numPrototypes);
-    stateLocked = new bool(false);
+    stateLocked = NEW(bool(false), arena);
     commandBuffer = nullptr;
     componentDestructors = ComponentSet<ComponentDestructor>::Empty();
 }
@@ -47,9 +47,12 @@ void EntityManager::executeCommandBuffer(EntityCommandBuffer* commandBuffer) {
             // made fake entity - register it so we can detect it in future commands
             fakeEntities.push_back({(EntityID)command.entity.id, realEntity});
             break; }
-        case EntityCommandBuffer::Command::CommandAdd:
-            doAddComponent(command.entity, command.add.component, command.add.componentValueIndex + commandBuffer->valueBuffer.data);
-            break;
+        case EntityCommandBuffer::Command::CommandAdd: {
+            void* componentPtr = doAddComponent(command.entity, command.add.component);
+            if (componentPtr) {
+                memcpy(componentPtr, command.add.componentValueIndex + commandBuffer->valueBuffer.data, getComponentSize(command.add.component));
+            }
+            break; }
         case EntityCommandBuffer::Command::CommandAddSignature:
             addSignature(command.entity, command.addSignature.signature);
             break;
@@ -85,28 +88,22 @@ bool EntityManager::entityHas(Entity entity, Signature needComponents) const {
 }
 
 bool EntityManager::addComponent(Entity entity, ComponentID component, const void* value) {
-    if (!entityExists(entity)) {
-        LogError("Entity does not exist!");
-        return false;
-    }
-
     if (commandsLocked()) {
         assert(commandBuffer && "Locking without valid command buffer!");
-        commandBuffer->addComponent(entity, component, value, getComponentInfo(component).size);
+        commandBuffer->addComponent(entity, component, value, getComponentSize(component));
         return false;
     }
 
-    doAddComponent(entity, component, value);
-    return true;
+    void* componentPtr = doAddComponent(entity, component);
+    if (componentPtr && value) {
+        memcpy(componentPtr, value, getComponentSize(component));
+        return true;
+    }
+    return false;
 }
 
 bool EntityManager::addSignature(Entity entity, Signature signature) {
-    if (!entityExists(entity)) {
-        LogError("Entity does not exist!");
-        return false;
-    }
-
-    return components.addSignature(entity, signature);
+    return components.addSignature(entity, signature).archetype != 0;
 }
 
  void EntityManager::destructComponents(Entity entity, Signature signature) {
@@ -127,8 +124,6 @@ void EntityManager::destructComponent(Entity entity, ComponentID component) {
 }
 
 void EntityManager::removeComponent(Entity entity, ComponentID component) {
-    assert(validRegComponent(component));
-
     if (!entityExists(entity)) {
         LogError("Entity does not exist!");
     }
@@ -159,8 +154,8 @@ void EntityManager::deleteEntity(Entity entity) {
 }
 
 ComponentID EntityManager::getComponentIdFromName(const char* name) const {
-    for (ComponentID id = 0; id < components.componentInfo.size(); id++) {
-        if (My::streq(components.getComponentInfo(id).name, name)) {
+    for (ComponentID id = 0; id < components.numComponentTypes; id++) {
+        if (My::streq(getComponentName(id), name)) {
             return id;
         }
     }

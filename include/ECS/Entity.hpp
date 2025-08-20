@@ -15,9 +15,7 @@ typedef Uint32 EntityVersion;
 typedef Sint16 ComponentID;
 constexpr ComponentID NullComponentID = -1;
 
-#define MAX_ENTITIES 64000
-
-constexpr EntityID NULL_ENTITY_ID = (MAX_ENTITIES-1);
+constexpr EntityID NULL_ENTITY_ID = 0;
 constexpr EntityVersion NULL_ENTITY_VERSION = 0;
 
 struct Entity {
@@ -38,7 +36,7 @@ struct Entity {
     }
 
     inline bool Null() const {
-        return id >= NULL_ENTITY_ID || version == NULL_ENTITY_VERSION;
+        return id == NULL_ENTITY_ID || version == NULL_ENTITY_VERSION;
     }
 
     inline bool NotNull() const {
@@ -61,11 +59,10 @@ struct Entity {
             if (version != NULL_ENTITY_VERSION) {
                 snprintf(buffer, 128, "ID: null | Version: %u", version);
             } else {
-                return "ID: null | Version: null";
+                return "NullEntity";
             }
         }
-        static_assert(std::is_unsigned<EntityID>::value == true, "change snprintf format specifier!");
-        static_assert(std::is_unsigned<EntityVersion>::value == true, "change snprintf format specifier!");
+
         return buffer;
     }
 };

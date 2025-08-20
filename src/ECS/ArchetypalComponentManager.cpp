@@ -2,25 +2,64 @@
 
 namespace ECS {
 
-void ArchetypalComponentManager::init(ComponentInfoRef componentInfo) {
-    this->componentInfo = componentInfo;
+void ArchetypalComponentManager::init(ArrayRef<ComponentInfo> componentInfo, ArenaAllocator* arena) {
+    numComponentTypes = componentInfo.size();
+    componentSizes = ALLOC(Sint32, numComponentTypes, *arena);
+    componentNames = ALLOC(const char*, numComponentTypes, *arena);
     for (int i = 0; i < componentInfo.size(); i++) {
-        if (!componentInfo.get(i).prototype)
-            validComponents.set(i);
+        componentSizes[i] = componentInfo[i].size;
+        componentNames[i] = componentInfo[i].name;
     }
 
-    auto nullPool = ArchetypePool(Archetype::Null());
+    // make a pool for empty entities to have so they can still be used to check signature and information about entities,
+    // although entities are not actually added to this pool (as it would be wasteful)
+    auto nullPool = ArchetypePool(Signature{0}, &poolAllocator);
     pools.push_back(nullPool);
     archetypes = decltype(archetypes)::Empty();
-    entityData = My::DenseSparseSet<EntityID, EntityData, 
-        Uint16, MaxEntityID>::WithCapacity(64);
     unusedEntities = My::Vec<Entity>::WithCapacity(512);
 
     memset(watchedComponentAddGroupIndices, NullWatcherIndex, sizeof(watchedComponentAddGroupIndices));
     memset(watchedComponentRemoveGroupIndices, NullWatcherIndex, sizeof(watchedComponentRemoveGroupIndices));
+
+    // calloc setting all to 0 means by default all entity data references nullentity,
+    // meaning any uninitialized entity automatically behaves as null without any extra effort
+    entityIndices = (EntityIndex*)calloc(MaxEntityID, sizeof(EntityIndex));
+
+    reserveEntities(64);
+
+    // add null entity to entityData
+    static_assert(NULL_ENTITY_ID == 0, "wrong null entity index");
+    entityData.location[0] = {0, 0};
+    entityData.prototype[0] = -1;
+    entityData.version[0] = (-1); // so that entity.version == entityData.version is always false for null entity
+    entityCount++;
+    highestUsedEntity++;
 }
 
- ArchetypePool* ArchetypalComponentManager::addWatcher(ComponentGroup group, GroupWatcherType type) {
+bool ArchetypalComponentManager::reserveEntities(Sint32 count) {
+    if (UNLIKELY(entityCount + count > MaxEntityID)) {
+        LogError("Failed to reserve entities!");
+        return false;
+    }
+    if (entityCapacity < entityCount + count) {
+        int newCapacity = MAX(entityCapacity * 2, entityCount + count);
+        entityData.prototype = Realloc<Sint32>(entityData.prototype, newCapacity);
+        entityData.location = Realloc<EntityLoc>(entityData.location, newCapacity);
+        entityData.version = Realloc<EntityVersion>(entityData.version, newCapacity);
+        entityCapacity = newCapacity;
+    }
+    return true;
+}
+
+void ArchetypalComponentManager::debugCheckComponent(ComponentID component) const {
+    assert(component < this->numComponentTypes && component >= 0 && "Component not known by component manager!");
+}
+
+void ArchetypalComponentManager::debugCheckSignature(Signature signature) const {
+    assert(signature.highestSet() < this->numComponentTypes && "Component not known by component manager!");
+}
+
+ArchetypePool* ArchetypalComponentManager::addWatcher(ComponentGroup group, GroupWatcherType type) {
     // having more than one of the same group is just inefficient and pointless
     // actually removing for now because it's not really pointless, since 
     // there could be issues if we share pools between systems/groups.
@@ -39,7 +78,7 @@ void ArchetypalComponentManager::init(ComponentInfoRef componentInfo) {
         watchedComponentAdds |= group.rejected;
     }
 
-    auto* pool = NEW(ArchetypePool(makeArchetype(0, componentInfo)));
+    auto* pool = NEW(ArchetypePool({0}, &poolAllocator), poolAllocator);
     ComponentWatcher watcher = {
         group,
         pool,
@@ -95,17 +134,23 @@ Entity ArchetypalComponentManager::createEntity(Uint32 prototype) {
     if (!unusedEntities.empty()) {
         entity = unusedEntities.popBack();
     } else if (highestUsedEntity < MaxEntityID) {
-        entity.id = ++highestUsedEntity;
+        entity.id = highestUsedEntity++;
         entity.version = 1;
     } else {
         LogCrash(CrashReason::UnrecoverableError, "All possible entity IDs used!");
     }
-    EntityData* data = entityData.insert(entity.id);
-    data->version = entity.version;
-    data->archetype = 0;
-    data->poolIndex = -1;
-    data->signature = {0};
-    data->prototype = prototype;
+
+    reserveEntities(1);
+
+    auto entityIndex = EntityIndex(entityCount++);
+    entityIndices[entity.id] = entityIndex;
+    entityData.version[(Uint16)entityIndex] = entity.version;
+    entityData.prototype[(Uint16)entityIndex] = prototype;
+    entityData.location[(Uint16)entityIndex] = {
+        .archetype = 0,
+        .index = 0
+    };
+
     return entity;
 }
 
@@ -114,71 +159,66 @@ MultiEntity ArchetypalComponentManager::createMultiEntity(Sint32 count) {
     return {createEntity(-1), count};
 }
 
-bool ArchetypalComponentManager::clone(Entity entity, int count, Entity* clonesOut, EntityCreationError* error) {
-    if (count <= 0) return 0;
+EntityCreationError ArchetypalComponentManager::clone(Entity entity, int count, Entity* clonesOut) {
+    if (count <= 0) return {};
     assert(clonesOut && "null pointer provided for clone output");
 
-    if (entity.id == NULL_ENTITY_ID) {
-        *error = {.type = EntityCreationError::InvalidEntity};
-        return 0;
-    }
+    EntityIndex entityIndex = lookupEntity(entity);
+    if (!entityIndex) return {EntityCreationError::InvalidEntity};
 
-    EntityData* dataPtr = entityData.lookup(entity.id);
-    if (!dataPtr) {
-        *error = {.type = EntityCreationError::InvalidEntity};
-        return 0;
-    }
-    EntityData data = *dataPtr;
+    auto location = entityData.location[(Uint16)entityIndex];
+    auto archetype = location.archetype;
+    auto* pool = &pools[archetype];
+
+    Signature entitySignature = pool->signature();
+
+    reserveEntities(count);
 
     EntityID unusedIDs = (MaxEntityID - 1) - highestUsedEntity;
-    EntityData* clonesData = nullptr;
+    EntityIndex clonesFirstIndex;
     Entity* clones = nullptr;
     if (unusedIDs >= count) {
-        EntityID first = highestUsedEntity + 1;
-        EntityID last = first + count;
-        clonesData = entityData.insertRange(first, last);
+        EntityID firstID = highestUsedEntity + 1;
+        clonesFirstIndex = EntityIndex(entityCount);
         for (int i = 0; i < count; i++) {
-            clonesOut[i] = {first + i, 1};
+            entityIndices[firstID + i] = EntityIndex(clonesFirstIndex + i);
+            clonesOut[i] = {firstID + i, 1};
         }
         clones = clonesOut;
 
-        highestUsedEntity = last;
+        highestUsedEntity = firstID + count - 1;
     } else if (unusedEntities.size >= count) {
         clones = unusedEntities.end() - count;
         memcpy(clonesOut, clones, count * sizeof(Entity));
         unusedEntities.size -= count;
 
-        SmallVector<EntityID> idList;
-        idList.resize_for_overwrite(count);
+        Sint32 clonesFirstIndex = entityCount;
         for (int i = 0; i < count; i++) {
-            idList[i] = clones[i].id;
+            entityIndices[clones[i].id] = EntityIndex(clonesFirstIndex + i);
         }
-        clonesData = entityData.insertList(idList);
+
     } else {
-        *error = {.type = EntityCreationError::EntityLimitReached};
-        return 0;
+        return {EntityCreationError::EntityLimitReached};
     }
 
     for (int i = 0; i < count; i++) {
-        clonesData[i].archetype = data.archetype;
-        clonesData[i].prototype = data.prototype;
-        clonesData[i].signature = data.signature;
-        clonesData[i].version   = clones[i].version;
+        entityData.location[clonesFirstIndex  + i] = entityData.location[(Uint16)entityIndex];
+        entityData.prototype[clonesFirstIndex + i] = entityData.prototype[(Uint16)entityIndex];
+        entityData.version[clonesFirstIndex   + i] = clones[i].version;
     }
 
-    ArchetypePool* pool = getArchetypePool(data.archetype);
-    if (pool) {
-        int startPoolIndex = pool->addNew(count, clones);
+    if (!pool->null()) {
+        int startPoolIndex = pool->addNew(count, clones, &archetypeAllocator, componentSizes);
         for (int i = 0; i < count; i++) {
-            clonesData[i].poolIndex = startPoolIndex + i;
+            entityData.location[clonesFirstIndex+i].index = startPoolIndex + i;
 
-            signatureAdded(clones[i], data.signature, {0});
+            signatureAdded(clones[i], entitySignature, {0});
         }
 
-        data.signature.forEachSet([this, count, pool, &data](ComponentID componentID){
-            void* component = pool->getComponent(componentID, data.poolIndex);
-            auto size = this->getComponentInfo(componentID).size;
-            void* clonesStart = pool->getComponent(componentID, pool->size - count);
+        entitySignature.forEachSet([this, count, pool, entityIndex](ComponentID componentID){
+            auto size = this->componentSizes[componentID];
+            void* component = pool->getComponent(componentID, entityData.location[(Uint16)entityIndex].index, size);
+            void* clonesStart = pool->getComponent(componentID, pool->size - count, size);
             for (int i = 0; i < count; i++) {
                 void* cloneComponent = (char*)clonesStart + i * size;
                 memcpy(cloneComponent, component, size);
@@ -187,494 +227,250 @@ bool ArchetypalComponentManager::clone(Entity entity, int count, Entity* clonesO
     } else {
         // maybe unnecessary, since we shouldn't be accessing this anyway if there isn't an archetype/pool for the entity?
         for (int i = 0; i < count; i++) {
-            clonesData[i].poolIndex = -1;
+            entityData.location[clonesFirstIndex + i].index = 0;
         }
     }
 
-    
-
-    return count;
+    return {};
 }
 
+#define GOOD_ENTITY(entity, index) auto trueVersion = getVersion(index); (LIKELY(entity.version == getVersion(index)))
+
 void* ArchetypalComponentManager::getComponent(Entity entity, ComponentID component) const {
-    if (entity.id == NullEntity.id) {
-        return nullptr;
-    }
-    const EntityData* data = entityData.lookup(entity.id);
-    if (!data) {
-        // the entity was deleted and isn't being reused currently
-        LogError("Entity no longer exists!");
-        return nullptr;
-    } else if (entity.version != data->version) {
-        // the entity was deleted and is being used currently
-        LogError("Entity no longer exists!");
-        return nullptr;
-    }
+    auto index = lookupEntity(entity);
 
-    if (!data->signature[component]) {
-        // entity does not have component
-        return nullptr;
-    }
-
-    const auto& pool = pools[data->archetype];
-    return pool.getComponent(component, data->poolIndex);
+    const auto& pool = pools[getArchetype(index)];
+    auto poolIndex = getPoolIndex(index);
+    char* array = pool.getComponentArray(component);
+    if (!array) return nullptr; // doesnt have it
+    return array + poolIndex * getComponentSize(component);
 }
 
 void ArchetypalComponentManager::removeEntityIndexFromPool(int index, ArchetypePool* pool) {
-    Entity movedEntity;
-    pool->remove(index, &movedEntity);
-    if (movedEntity.NotNull()) {
-        EntityData* data = entityData.lookup(movedEntity.id);
-        data->poolIndex = index;
-    }
-}
-
-void ArchetypalComponentManager::addComponent(Entity entity, ComponentID component, const void* initializationValue) {
-    assert(entity.id != NullEntity.id && "Tried to add component to null entity!");
-    EntityData* data = entityData.lookup(entity.id);
-
-    assert(data && "Entity not in entity map!");
-    assert(entity.version == data->version && "Entity with incorrect version!");
-
-    Signature oldSignature = data->signature;
-    data->signature.set(component);
-
-    auto newArchetypeID = getArchetypeID(data->signature);
-    if (newArchetypeID == NullArchetypeID) {
-        newArchetypeID = initArchetype(data->signature);
-    }
-
-    ArchetypePool* newArchetype = getArchetypePool(newArchetypeID);
-
-    auto oldArchetypeID = data->archetype;
-    if (newArchetypeID == oldArchetypeID) {
-        // tried to add component that the entity already has
-        // just set the value
-        void* componentPtr = getComponent(entity, component);
-        memcpy(componentPtr, initializationValue, componentInfo.get(component).size);
-        return;
-    }
-
-    // don't waste time for components that have no groups associated with them
-    if (watchedComponentAdds[component]) {
-        Signature signature = newArchetype->signature();
-        Uint8 addGroupsIndex = watchedComponentAddGroupIndices[component];
-        auto& groupList = componentAddWatchers[addGroupsIndex];
-        for (auto& watcher : groupList) {
-            if (watcher.type & GroupWatcherTypes::EnteredGroup) {
-                if (watcher.group.contains(signature)) {
-                    watcher.pool->addNew(entity);
-                    continue; // can't enter and exit a group at the same time
-                }
-            }
-            if (watcher.type & GroupWatcherTypes::ExitedGroup) {
-                if (watcher.group.contains(oldSignature)) {
-                    watcher.pool->addNew(entity);
-                }
-            }
-        }
-    }
-
-    int poolIndex = newArchetype->addNew(entity);
-
-    if (oldArchetypeID > 0) {
-        int oldEntityIndex = data->poolIndex;
-        ArchetypePool* oldArchetype = getArchetypePool(oldArchetypeID);
-        Signature sharedComponents = newArchetype->signature() & oldArchetype->signature();
-        for (int i = 0; i < oldArchetype->numBuffers(); i++) {
-            ComponentID transferComponent = oldArchetype->archetype.componentIDs[i];
-            auto componentSize = getComponentInfo(transferComponent).size;
-
-            int newComponentIndex = newArchetype->archetype.getIndex(transferComponent);
-            int oldComponentIndex = oldArchetype->archetype.getIndex(transferComponent);
-            assert(newComponentIndex != -1);
-            assert(oldComponentIndex != -1);
-
-            char* oldComponentAddress = oldArchetype->getBuffer(oldComponentIndex) + componentSize * oldEntityIndex;
-            char* newComponentAddress = newArchetype->getBuffer(newComponentIndex) + componentSize * poolIndex;
-            memcpy(newComponentAddress, oldComponentAddress, componentSize);
-        };
-
-        removeEntityIndexFromPool(oldEntityIndex, oldArchetype);
-    }
-
-    if (initializationValue) {
-        auto componentSize = getComponentInfo(component).size;
-        void* newComponentValue = newArchetype->getComponent(component, poolIndex);
-        assert(newComponentValue && "We just added, it should exist!");
-        memcpy(newComponentValue, initializationValue, componentSize);
-    }
-
-    data->archetype = newArchetypeID;
-    data->poolIndex = poolIndex; // new archetype pushed back last
-}
-
-
-
-
-// void* ArchetypalComponentManager::addComponent(ArrayRef<int> poolIndices, ComponentID component) {
-//     assert(entity.id != NullEntity.id && "Tried to add component to null entity!");
-//     EntityData* data = entityData.lookup(entity.id);
-
-//     assert(data && "Entity not in entity map!");
-//     assert(entity.version == data->version && "Entity with incorrect version!");
-
-//     Signature oldSignature = data->signature;
-//     data->signature.set(component);
-
-//     auto newArchetypeID = getArchetypeID(data->signature);
-//     if (newArchetypeID == NullArchetypeID) {
-//         newArchetypeID = initArchetype(data->signature);
-//     }
-
-//     ArchetypePool* newArchetype = getArchetypePool(newArchetypeID);
-
-//     auto oldArchetypeID = data->archetype;
-//     if (newArchetypeID == oldArchetypeID) {
-//         // tried to add component that the entity already has
-//         // just set the value
-//         void* componentPtr = getComponent(entity, component);
-//         memcpy(componentPtr, initializationValue, componentInfo.get(component).size);
-//         return;
-//     }
-
-//     // don't waste time for components that have no groups associated with them
-//     if (watchedComponentAdds[component]) {
-//         Signature signature = newArchetype->signature();
-//         Uint8 addGroupsIndex = watchedComponentAddGroupIndices[component];
-//         auto& groupList = componentAddWatchers[addGroupsIndex];
-//         for (auto& watcher : groupList) {
-//             if (watcher.type & GroupWatcherTypes::EnteredGroup) {
-//                 if (watcher.group.contains(signature)) {
-//                     watcher.pool->addNew(entity);
-//                     continue; // can't enter and exit a group at the same time
-//                 }
-//             }
-//             if (watcher.type & GroupWatcherTypes::ExitedGroup) {
-//                 if (watcher.group.contains(oldSignature)) {
-//                     watcher.pool->addNew(entity);
-//                 }
-//             }
-//         }
-//     }
-
-//     int poolIndex = newArchetype->addNew(entity);
-
-//     if (oldArchetypeID > 0) {
-//         int oldEntityIndex = data->poolIndex;
-//         ArchetypePool* oldArchetype = getArchetypePool(oldArchetypeID);
-//         Signature sharedComponents = newArchetype->signature() & oldArchetype->signature();
-//         for (int i = 0; i < oldArchetype->numBuffers(); i++) {
-//             ComponentID transferComponent = oldArchetype->archetype.componentIDs[i];
-//             auto componentSize = getComponentInfo(transferComponent).size;
-
-//             int newComponentIndex = newArchetype->archetype.getIndex(transferComponent);
-//             int oldComponentIndex = oldArchetype->archetype.getIndex(transferComponent);
-//             assert(newComponentIndex != -1);
-//             assert(oldComponentIndex != -1);
-
-//             char* oldComponentAddress = oldArchetype->getBuffer(oldComponentIndex) + componentSize * oldEntityIndex;
-//             char* newComponentAddress = newArchetype->getBuffer(newComponentIndex) + componentSize * poolIndex;
-//             memcpy(newComponentAddress, oldComponentAddress, componentSize);
-//         };
-
-//         removeEntityIndexFromPool(oldEntityIndex, oldArchetype);
-//     }
-
-//     if (initializationValue) {
-//         auto componentSize = getComponentInfo(component).size;
-//         void* newComponentValue = newArchetype->getComponent(component, poolIndex);
-//         assert(newComponentValue && "We just added, it should exist!");
-//         memcpy(newComponentValue, initializationValue, componentSize);
-//     }
-
-//     data->archetype = newArchetypeID;
-//     data->poolIndex = poolIndex; // new archetype pushed back last
-// }
-
-int addMultiEntityToPool(ArchetypePool* pool, MultiEntity multiEntity) {
     assert(pool);
-    int poolIndex = pool->addNew(multiEntity.count);
-    for (int i = 0; i < multiEntity.count; i++) {
-        pool->entities[poolIndex + i] = multiEntity.entity;
+    Entity movedEntity;
+    pool->remove(index, &movedEntity, componentSizes);
+    if (movedEntity.NotNull()) {
+        auto movedEntityIndex = entityIndices[movedEntity.id];
+        entityData.location[(Uint16)movedEntityIndex].index = index;
     }
-    return poolIndex;
 }
 
-void* ArchetypalComponentManager::multiAddComponent(MultiEntity entities, ComponentID component) {
-    assert(entities.entity.id != NullEntity.id && "Tried to add component to null multi entity!");
-    EntityData* data = entityData.lookup(entities.entity.id);
+void ArchetypalComponentManager::removeEntityIndicesFromPool(ArrayRef<int> indices, ArchetypePool* pool) {
+    for (auto index : indices) {
+        removeEntityIndexFromPool(index, pool);
+    }
+}
 
-    assert(data && "Multi entity not in entity map!");
-    assert(entities.entity.version == data->version && "Multi entity with incorrect version!");
+int ArchetypalComponentManager::moveEntityToSuperArchetype(Entity entity, ArchetypePool* oldArchetype, ArchetypePool* newArchetype, int oldPoolIndex) {
+    assert(oldArchetype && newArchetype);
+    int newPoolIndex = addToPool(newArchetype, entity);
 
-    auto entityCount = entities.count;
-
-    Signature oldSignature = data->signature;
-    data->signature.set(component);
-
-    auto newArchetypeID = getArchetypeID(data->signature);
-    if (newArchetypeID == NullArchetypeID) {
-        newArchetypeID = initArchetype(data->signature);
+    if (oldArchetype->null()) {
+        // nothing to move
+        return newPoolIndex;
     }
 
-    ArchetypePool* newArchetype = getArchetypePool(newArchetypeID);
+    Signature sharedComponents = newArchetype->signature() & oldArchetype->signature();
 
-    auto oldArchetypeID = data->archetype;
-    if (newArchetypeID == oldArchetypeID) {
-        // tried to add component that the entity already has
-        LogError("Multi entity with id %u already has component %s!", entities.entity.id, getComponentInfo(component).name);
-        return nullptr;
+    for (int i = 0; i < oldArchetype->numComponents(); i++) {
+        ComponentID transferComponent = oldArchetype->componentIDs[i];
+        auto componentSize = componentSizes[transferComponent];
+        const void* oldComponent = oldArchetype->getComponentByIndex(i, oldPoolIndex, componentSize);
+        void* newComponent = newArchetype->getComponent(transferComponent, newPoolIndex, componentSize);
+        assert(oldComponent && newComponent);
+        memcpy(newComponent, oldComponent, componentSize);
+    };
+
+    removeEntityIndexFromPool(oldPoolIndex, oldArchetype);
+    return newPoolIndex;
+}
+
+
+int ArchetypalComponentManager::moveEntitiesToSuperArchetype(ArrayRef<Entity> entities, ArchetypePool* oldArchetype, ArchetypePool* newArchetype, const int* oldPoolIndices) {
+    assert(oldArchetype && newArchetype);
+    int newPoolStartIndex = addToPool(newArchetype, entities);
+
+    if (oldArchetype->null()) {
+        // no components to move, we are done
+        return newPoolStartIndex;
     }
+
+    Signature sharedComponents = newArchetype->signature() & oldArchetype->signature();
+
+    for (int i = 0; i < oldArchetype->numComponents(); i++) {
+        ComponentID transferComponent = oldArchetype->componentIDs[i];
+        auto componentSize = componentSizes[transferComponent];
+        char* newComponents = newArchetype->getComponent(transferComponent, newPoolStartIndex, componentSize);
+        assert(newComponents);
+        for (int i = 0; i < entities.size(); i++) {
+            const char* oldComponent = oldArchetype->getComponentByIndex(i, oldPoolIndices[i], componentSize);
+            memcpy(newComponents + i * componentSize, oldComponent, componentSize);
+        }
+    };
+
+    removeEntityIndicesFromPool({oldPoolIndices, entities.size()}, oldArchetype);
+    return newPoolStartIndex;
+}
+
+int ArchetypalComponentManager::moveEntityToSubArchetype(Entity entity, ArchetypePool* oldArchetype, ArchetypePool* newArchetype, int oldPoolIndex) {
+    if (newArchetype->null()) {
+        // nothing to move
+        return 0;
+    }
+    
+    int newPoolIndex = addToPool(newArchetype, entity);
+    Signature sharedComponents = newArchetype->signature() & oldArchetype->signature();
+    for (int i = 0; i < newArchetype->numComponents(); i++) {
+        ComponentID transferComponent = newArchetype->componentIDs[i];
+        auto componentSize = componentSizes[transferComponent];
+        void* newComponent = newArchetype->getComponentByIndex(i, newPoolIndex, componentSize);
+        const void* oldComponent = oldArchetype->getComponent(transferComponent, oldPoolIndex, componentSize);
+        assert(oldComponent && newComponent);
+        memcpy(newComponent, oldComponent, componentSize);
+    };
+
+    removeEntityIndexFromPool(oldPoolIndex, oldArchetype);
+    return newPoolIndex;
+}
+
+void* ArchetypalComponentManager::addComponent(Entity entity, ComponentID component) {
+    debugCheckComponent(component);
+
+    assert(entity.id != NullEntity.id && "Tried to add component to null entity!");
+    auto entityIndex = lookupEntity(entity);
+    if (entityIndex == 0) return nullptr;
+
+    ArchetypeID oldArchetypeID = getArchetype(entityIndex);
+    auto oldPoolIndex = getPoolIndex(entityIndex);
+    Signature oldSignature = getPool(oldArchetypeID)->signature();
+    if (oldSignature[component]) {
+        // already have this component
+        // act as get instead
+        return getPool(oldArchetypeID)->getComponent(component, oldPoolIndex, getComponentSize(component));
+    }
+
+    Signature newSignature = oldSignature; newSignature.set(component);
+
+    ArchetypeID newArchetypeID;
+    // all archetype pool pointers are invalidated by this call
+    ArchetypePool* newArchetype = getOrMakePool(newSignature, &newArchetypeID);
 
     // don't waste time for components that have no groups associated with them
-    if (watchedComponentAdds[component]) {
-        Signature signature = newArchetype->signature();
-        Uint8 addGroupsIndex = watchedComponentAddGroupIndices[component];
-        auto& groupList = componentAddWatchers[addGroupsIndex];
-        for (auto& watcher : groupList) {
-            if (watcher.type & GroupWatcherTypes::EnteredGroup) {
-                if (watcher.group.contains(signature)) {
-                    addMultiEntityToPool(watcher.pool, entities);
-                    continue; // can't enter and exit a group at the same time
-                }
-            }
-            if (watcher.type & GroupWatcherTypes::ExitedGroup) {
-                if (watcher.group.contains(oldSignature)) {
-                    addMultiEntityToPool(watcher.pool, entities);
-                }
-            }
-        }
-    }
+    signatureAdded(entity, Signature::OneComponent(component), oldSignature);
 
-    int poolIndex = addMultiEntityToPool(newArchetype, entities);
+    int newPoolIndex = moveEntityToSuperArchetype(entity, getPool(oldArchetypeID), newArchetype, oldPoolIndex);
 
-    if (oldArchetypeID > 0) {
-        int oldEntityIndex = data->poolIndex;
-        ArchetypePool* oldArchetype = getArchetypePool(oldArchetypeID);
-        Signature sharedComponents = newArchetype->signature() & oldArchetype->signature();
-        for (int i = 0; i < oldArchetype->numBuffers(); i++) {
-            ComponentID transferComponent = oldArchetype->archetype.componentIDs[i];
-            auto componentSize = getComponentInfo(transferComponent).size;
+    setEntityLocation(entityIndex, {newArchetypeID, (Sint16)newPoolIndex}); // new archetype pushed back last
 
-            int newComponentIndex = newArchetype->archetype.getIndex(transferComponent);
-            int oldComponentIndex = oldArchetype->archetype.getIndex(transferComponent);
-            assert(newComponentIndex != -1);
-            assert(oldComponentIndex != -1);
-
-            char* oldComponentAddress = oldArchetype->getBuffer(oldComponentIndex) + componentSize * oldEntityIndex;
-            char* newComponentAddress = newArchetype->getBuffer(newComponentIndex) + componentSize * poolIndex;
-            memcpy(newComponentAddress, oldComponentAddress, componentSize);
-        };
-
-        removeEntityIndexFromPool(oldEntityIndex, oldArchetype);
-    }
-
-    data->archetype = newArchetypeID;
-    data->poolIndex = poolIndex; // new archetype pushed back last
-    void* newComponentValues = newArchetype->getComponent(component, poolIndex);
-    return newComponentValues;
+    return newArchetype->getComponent(component, newPoolIndex, componentSizes[component]);
 }
 
 void ArchetypalComponentManager::signatureAdded(Entity entity, Signature addedSignature, Signature oldSignature) {
     Signature newSignature = oldSignature | addedSignature;
     Signature watchedAdds = addedSignature & watchedComponentAdds;
     if (watchedAdds.any()) {
-        SmallVector<ArchetypePool*> triggeredPools;
-        watchedAdds.forEachSet([this, entity, oldSignature, newSignature, &triggeredPools](ComponentID component){
-            auto index = watchedComponentAddGroupIndices[component];
-            for (auto& watcher : componentAddWatchers[index]) {
-                if (watcher.type & GroupWatcherTypes::EnteredGroup && watcher.group.contains(newSignature)) {
-                    if (std::find(triggeredPools.begin(), triggeredPools.end(), watcher.pool) == triggeredPools.end()) {
-                        triggeredPools.push_back(watcher.pool);
-                        watcher.pool->addNew(entity);
-                        continue;
-                    }
+        for (auto& watcher : componentAddWatchers[0]) {
+            bool inGroupNow = watcher.group.contains(newSignature);
+            bool wasInGroup = watcher.group.contains(oldSignature);
+            if (inGroupNow && !wasInGroup) {
+                if (watcher.type & GroupWatcherTypes::EnteredGroup) {
+                    addToPool(watcher.pool, entity);
                 }
-                if (watcher.type & GroupWatcherTypes::ExitedGroup && watcher.group.contains(oldSignature) && !watcher.group.contains(newSignature)) {
-                    if (std::find(triggeredPools.begin(), triggeredPools.end(), watcher.pool) == triggeredPools.end()) {
-                        triggeredPools.push_back(watcher.pool);
-                        watcher.pool->addNew(entity);
-                    }
+            } else if (!inGroupNow && wasInGroup) {
+                if (watcher.type & GroupWatcherTypes::ExitedGroup) {
+                    addToPool(watcher.pool, entity);
                 }
             }
-        });
-    } 
+        }
+    }
 }
 
-bool ArchetypalComponentManager::addSignature(Entity entity, Signature components) {
-    if (entity.id == NullEntity.id) {
-        return false;
-    }
-    EntityData* data = entityData.lookup(entity.id);
-    if (!data || (entity.version != data->version)) {
-        return false;
-    }
-
-    Signature oldSignature = data->signature;
-    Signature newSignature = oldSignature | components;
-
-    auto newArchetypeID = getArchetypeID(newSignature);
-    if (newArchetypeID == NullArchetypeID) {
-        newArchetypeID = initArchetype(newSignature);
-    }
-
-    ArchetypePool* newArchetype = getArchetypePool(newArchetypeID);
-    auto oldArchetypeID = data->archetype;
-    if (newArchetypeID == oldArchetypeID) {
-        // no new components in signature
-        return true;
-    }
-
-    int newEntityIndex = newArchetype->addNew(entity);
-
-    Signature watchedAdds = components & watchedComponentAdds;
-    if (watchedAdds.any()) {
-        SmallVector<ArchetypePool*> triggeredPools;
-        watchedAdds.forEachSet([this, entity, oldSignature, newSignature, &triggeredPools](ComponentID component){
-            auto index = watchedComponentAddGroupIndices[component];
-            for (auto& watcher : componentAddWatchers[index]) {
-                if (watcher.type & GroupWatcherTypes::EnteredGroup && watcher.group.contains(newSignature)) {
-                    if (std::find(triggeredPools.begin(), triggeredPools.end(), watcher.pool) == triggeredPools.end()) {
-                        triggeredPools.push_back(watcher.pool);
-                        watcher.pool->addNew(entity);
-                        continue;
-                    }
+void ArchetypalComponentManager::signatureRemoved(Entity entity, Signature removedSignature, Signature oldSignature) {
+    Signature newSignature = oldSignature ^ removedSignature;
+    Signature watchedRemoves = removedSignature & watchedComponentRemoves;
+    if (watchedRemoves.any()) {
+        for (auto& watcher : componentAddWatchers[0]) {
+            bool inGroupNow = watcher.group.contains(newSignature);
+            bool wasInGroup = watcher.group.contains(oldSignature);
+            if (inGroupNow && !wasInGroup) {
+                if (watcher.type & GroupWatcherTypes::EnteredGroup) {
+                    addToPool(watcher.pool, entity);
                 }
-                if (watcher.type & GroupWatcherTypes::ExitedGroup && watcher.group.contains(oldSignature) && !watcher.group.contains(newSignature)) {
-                    if (std::find(triggeredPools.begin(), triggeredPools.end(), watcher.pool) == triggeredPools.end()) {
-                        triggeredPools.push_back(watcher.pool);
-                        watcher.pool->addNew(entity);
-                    }
+            } else if (!inGroupNow && wasInGroup) {
+                if (watcher.type & GroupWatcherTypes::ExitedGroup) {
+                    addToPool(watcher.pool, entity);
                 }
             }
-        });
-    } 
-    
-    if (oldArchetypeID > 0) {
-        int oldEntityIndex = data->poolIndex;
-        ArchetypePool* oldArchetype = getArchetypePool(oldArchetypeID);
-        for (int i = 0; i < oldArchetype->numBuffers(); i++) {
-            auto componentSize = oldArchetype->archetype.sizes[i];
-            ComponentID transferComponent = oldArchetype->archetype.componentIDs[i];
-            int newArchetypeIndex = newArchetype->archetype.getIndex(transferComponent);
-            assert(newArchetypeIndex != -1);
-            char* newComponentAddress = newArchetype->getBuffer(newArchetypeIndex) + componentSize * newEntityIndex;
-            char* oldComponentAddress = oldArchetype->getBuffer(i) + componentSize * oldEntityIndex;
-            memcpy(newComponentAddress, oldComponentAddress, componentSize);
         }
+    }
+}
 
-        removeEntityIndexFromPool(oldEntityIndex, oldArchetype);
+ArchetypalComponentManager::EntityLoc ArchetypalComponentManager::addSignature(Entity entity, Signature components) {
+    debugCheckSignature(components);
+
+    assert(entity.id != NullEntity.id && "Tried to add component to null entity!");
+    auto entityIndex = lookupEntity(entity);
+    if (entityIndex == NullEntityIndex) return NullEntityLoc;
+
+    auto oldArchetypeID = getArchetype(entityIndex);
+    auto oldPoolIndex = getPoolIndex(entityIndex);
+    Signature oldSignature = getPool(oldArchetypeID)->signature();
+    if (oldSignature.hasAll(components)) {
+        // already have all these components
+        // act as get instead
+        return {oldArchetypeID, oldPoolIndex};
     }
 
-    data->signature = newSignature;
-    data->archetype = newArchetypeID;
-    data->poolIndex = newEntityIndex;
+    Signature newSignature = oldSignature | components;
+    ArchetypeID newArchetypeID;
+    ArchetypePool* newArchetype = getOrMakePool(newSignature, &newArchetypeID);
 
-    return true;
+    // don't waste time for components that have no groups associated with them
+    signatureAdded(entity, components, oldSignature);
+
+    int newPoolIndex = moveEntityToSuperArchetype(entity, getPool(oldArchetypeID), newArchetype, oldPoolIndex);
+
+    auto location = EntityLoc{newArchetypeID, (Sint16)newPoolIndex};
+    setEntityLocation(entityIndex, location);
+
+    return location;
 }
 
 void ArchetypalComponentManager::removeComponent(Entity entity, ComponentID component) {
-    if (entity.id == NullEntity.id) {
-        return;
-    }
-    EntityData* data = entityData.lookup(entity.id);
-    if (!data || (entity.version != data->version)) {
-        return;
-    }
+    assert(entity.id != NullEntity.id && "Can't remove component from null entity!");
+    auto entityIndex = lookupEntity(entity);
 
-    Signature oldSignature = data->signature;
-    if (!oldSignature[component]) {
-        // entity didn't have the component. just do nothing
-        return;
-    }
+    auto oldArchetypeID = getArchetype(entityIndex);
+    auto oldPoolIndex = getPoolIndex(entityIndex);
 
-    data->signature.set(component, 0);
+    Signature oldSignature = getPool(oldArchetypeID)->signature();
+    DASSERT(oldSignature[component]);
+    Signature newSignature = oldSignature; newSignature.flipBit(component);
+    ArchetypeID newArchetypeID;
+    ArchetypePool* newArchetype = getOrMakePool(newSignature, &newArchetypeID);
+    
+    signatureRemoved(entity, Signature::OneComponent(component), oldSignature);
 
-    auto oldArchetypeID = data->archetype;
-
-    if (watchedComponentRemoves[component]) {
-        SmallVector<ArchetypePool*> triggeredPools;
-
-        Signature newSignature = data->signature;
-        Uint8 removeGroupsIndex = watchedComponentRemoveGroupIndices[component];
-        auto& groupList = componentRemoveWatchers[removeGroupsIndex];
-        for (auto& watcher : groupList) {
-            if (watcher.type & GroupWatcherTypes::EnteredGroup) {
-                if (watcher.group.contains(newSignature)) {
-                    watcher.pool->addNew(entity);
-                    triggeredPools.push_back(watcher.pool);
-                    continue; // can't enter and exit a group at the same time
-                }
-            }
-            if (watcher.type & GroupWatcherTypes::ExitedGroup) {
-                if (watcher.group.contains(oldSignature)) {
-                    watcher.pool->addNew(entity);
-                    triggeredPools.push_back(watcher.pool);
-                }
-            }
-        }
-    }
-
-    auto newArchetypeID = getArchetypeID(data->signature);
-    if (newArchetypeID == NullArchetypeID) {
-        newArchetypeID = initArchetype(data->signature);
-    }
-
-    ArchetypePool* newArchetype = getArchetypePool(newArchetypeID);
-    int newEntityIndex = newArchetype->addNew(entity);
-
-    if (oldArchetypeID > 0) {
-        int oldEntityIndex = data->poolIndex;
-        ArchetypePool* oldArchetype = getArchetypePool(oldArchetypeID);
-        for (int i = 0; i < newArchetype->numBuffers(); i++) {
-            auto componentSize = newArchetype->archetype.sizes[i];
-            ComponentID transferComponent = newArchetype->archetype.componentIDs[i];
-            int oldArchetypeIndex = oldArchetype->archetype.getIndex(transferComponent);
-            assert(oldArchetypeIndex != -1);
-            char* oldComponentAddress = oldArchetype->getBuffer(oldArchetypeIndex) + componentSize * oldEntityIndex;
-            char* newComponentAddress = newArchetype->getBuffer(i) + componentSize * newEntityIndex;
-            memcpy(newComponentAddress, oldComponentAddress, componentSize);
-        }
-
-        removeEntityIndexFromPool(oldEntityIndex, oldArchetype);
-    }
-
-    data->archetype = newArchetypeID;
-    data->poolIndex = newEntityIndex;
+    int newPoolIndex = moveEntityToSubArchetype(entity, getPool(oldArchetypeID), newArchetype, oldPoolIndex);
+    auto location = EntityLoc{newArchetypeID, (Sint16)newPoolIndex};
+    setEntityLocation(entityIndex, location);
 } 
 
 void ArchetypalComponentManager::deleteEntity(Entity entity) {
-    if (entity.Null()) return;
+    auto entityIndex = lookupEntity(entity);
+    if (!entityIndex) return;
 
-    const EntityData* data = entityData.lookup(entity.id);
-    if (!data || (entity.version != data->version)) {
-        // entity isn't around anyway
-        return;
+    ArchetypePool* pool = &pools[getArchetype(entityIndex)];
+    if (pool && pool->numComponents() > 0) {
+        auto poolIndex = getPoolIndex(entityIndex);
+        auto signature = getSignature(entityIndex);
+
+        signatureRemoved(entity, signature, signature);
+
+        removeEntityIndexFromPool(poolIndex, pool);
     }
-
-    ArchetypePool* pool = &pools[data->archetype];
-    if (pool) {
-        Signature watchedRemoves = pool->signature() & watchedComponentRemoves;
-        if (watchedRemoves.any()) {
-            SmallVector<ArchetypePool*> triggeredPools;
-            watchedRemoves.forEachSet([this, entity, pool, &triggeredPools](ComponentID component){
-                auto index = watchedComponentRemoveGroupIndices[component];
-                for (auto& watcher : componentRemoveWatchers[index]) {
-                    if (watcher.type & GroupWatcherTypes::ExitedGroup && watcher.group.contains(pool->signature())) {
-                        if (std::find(triggeredPools.begin(), triggeredPools.end(), watcher.pool) == triggeredPools.end()) {
-                            watcher.pool->addNew(entity);
-                            triggeredPools.push_back(watcher.pool);
-                        }
-                    }
-                }
-            });
-            int oldIndex = data->poolIndex;
-        } 
-
-        removeEntityIndexFromPool(data->poolIndex, pool);
-    }
-    entityData.remove(entity.id);
+    entityIndices[entity.id] = NullEntityIndex;
     unusedEntities.push({entity.id, entity.version + 1});
 }
 
@@ -686,18 +482,20 @@ void ArchetypalComponentManager::deleteEntities(ArrayRef<Entity> entities) {
 }
 
 ArchetypalComponentManager::ArchetypeID ArchetypalComponentManager::initArchetype(Signature signature) {
-    assert(!archetypes.contains(signature));
-    Archetype archetype = makeArchetype(signature, componentInfo);
+    DASSERT(!archetypes.contains(signature));
 
-    pools.push_back(archetype);
+    pools.emplace_back(signature, &poolAllocator);
     archetypes.insert(signature, pools.size()-1);
     return pools.size()-1;
 }
 
 void ArchetypalComponentManager::destroy() {
     unusedEntities.destroy();
+    for (auto& pool : pools) {
+        pool.destroy(&poolAllocator, &archetypeAllocator, componentSizes);
+    }
     archetypes.destroy();
-    entityData.destroy();
+    free(entityIndices);
 }
 
 }

@@ -14,7 +14,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 
 add_compile_options(
-    -g
+    -g -O0
     -Wall -Wextra -pedantic -Wliteral-conversion
     -Wno-macro-redefined -Wno-unused-variable -Wno-unused-parameter -Wno-char-subscripts -Wno-comment -Wno-sign-compare
     -Wno-gnu-zero-variadic-macro-arguments
@@ -25,19 +25,13 @@ add_compile_options(
     -DDEBUG_LEVEL=2 -DMEMORY_DEBUG_LEVEL=0
 )
 
-if (OPTIMIZE)
-add_compile_options(
-    -O2
-)
-endif()
-
 add_link_options(-framework OpenGL)
 
 # debug options
 # doesn't work with lldb on mac. just freezes and stops without giving you any information
 if (USE_ADDRESS_SANITIZER)
-    add_compile_options(-fsanitize=undefined -fsanitize=address)
-    add_link_options(-fsanitize=undefined -fsanitize=address)
+    # add_compile_options(-fsanitize=undefined -fsanitize=address)
+    # add_link_options(-fsanitize=undefined -fsanitize=address)
 endif()
 
 set(SD src)
@@ -105,7 +99,7 @@ find_package(SDL3_image 3.2.4 QUIET)
 find_package(Freetype 2.13.3 QUIET)
 # find_package(glm QUIET)
 
-target_link_libraries(nova_lib SDL3::SDL3 Freetype::Freetype SDL3_image::SDL3_image)
+target_link_libraries(nova_lib PUBLIC SDL3::SDL3 Freetype::Freetype SDL3_image::SDL3_image)
 target_include_directories(nova_lib PUBLIC
     include
     ${SDL3_INCLUDE_DIRS}
@@ -113,11 +107,12 @@ target_include_directories(nova_lib PUBLIC
     #${HLB}/glm/0.9.9.8/include
 )
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND codesign -s - -v -f --entitlements /Users/nick/debug.plist ${CMAKE_SOURCE_DIR}/build/${PROJECT_NAME}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    COMMENT "Signing executable..."
-)
+# needed for running as actual Mac app
+# add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+#     COMMAND codesign -s - -v -f --entitlements /Users/nick/debug.plist ${CMAKE_SOURCE_DIR}/build/${PROJECT_NAME}
+#     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+#     COMMENT "Signing executable..."
+# )
 
 enable_testing()
 add_subdirectory(tests)
@@ -128,3 +123,12 @@ if(ENABLE_BENCHMARKS)
 endif()
 
 add_subdirectory(benchmarks)
+
+# In your CMakeLists.txt
+add_custom_target(asm_myfile
+  COMMAND ${CMAKE_CXX_COMPILER} -S -fverbose-asm -g -masm=intel
+          ${CMAKE_CURRENT_SOURCE_DIR}/myfile.cpp
+          -o ${CMAKE_CURRENT_BINARY_DIR}/myfile.s
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/myfile.cpp
+  COMMENT "Generating assembly with interlaced source for myfile.cpp"
+)

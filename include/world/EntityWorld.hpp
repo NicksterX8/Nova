@@ -53,10 +53,6 @@ public:
         Base::destroy();
     }
 
-    ssize_t getComponentSize(ECS::ComponentID id) const {
-        return getComponentInfo(id).size;
-    }
-
     /* Create a new entity with just an entity type component using the type name given.
      * @return A newly created entity.
      */
@@ -122,10 +118,9 @@ public:
     ECS::EntityVersion GetEntityVersion(ECS::EntityID id) const;
 
     /* Get the number of entities currently in existence.
-     * This is equivalent to the size of the main entity list.
      */
     inline Uint32 EntityCount() const {
-        return Base::components.entityData.getSize();
+        return Base::components.entityCount;
     }
     
     /* Get a component from the entity of the type T.
@@ -230,10 +225,6 @@ public:
     const Prototype* getPrototype(Entity entity) {
         return (Prototype*)Base::getPrototype(entity);
     }
-
-    void ForEachAll(std::function<bool(Entity entity)> callback) const {
-        Base::forAllEntities(callback);
-    } 
 
     /* Iterate entities filtered using an EntityQuery.
      * It is safe to destroy entities while iterating.

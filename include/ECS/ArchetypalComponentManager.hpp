@@ -37,10 +37,62 @@ namespace GroupWatcherTypes {
 }
 
 struct EntityCreationError {
-    enum {
+    enum Type {
+        None,
         InvalidEntity,
         EntityLimitReached
     } type;
+
+    EntityCreationError() : type(None) {}
+
+    EntityCreationError(Type type) : type(type) {}
+
+    constexpr static const char* errorNames[3] = {
+        "None",
+        "Invalid entity",
+        "Entity limit reached"
+    };
+
+    const char* name() const {
+        return errorNames[type];
+    }
+
+    operator bool() const {
+        return type != None;
+    }
+};
+
+// Helper for making strong types.
+template <typename T> 
+class StrongType {
+    T val;
+public:
+    // template <typename... Args>
+    // explicit constexpr StrongType(Args... A) : val(std::forward<Args>(A)...) {}
+
+    StrongType() = default;
+
+    explicit constexpr StrongType(T val) : val(val) {}
+
+    explicit operator T() const {
+        return val;
+    }
+
+    explicit operator bool() const {
+        return (bool)val;
+    }
+
+    T operator+(T rhs) const {
+        return val + rhs;
+    }
+
+    bool operator==(T rhs) const {
+        return val == rhs;
+    }
+
+    bool operator==(StrongType<T> rhs) const {
+        return val == rhs.val;
+    }
 };
 
 struct MultiEntity {
@@ -50,40 +102,46 @@ struct MultiEntity {
 
 constexpr MultiEntity NullMultiEntity = {NullEntity, 0};
 
-struct ArchetypalComponentManager {
-    static constexpr EntityID MaxEntityID = (1 << 15) - 1;
+using EntityIndex = StrongType<Uint16>;
 
+static constexpr EntityID MaxEntityID = (1 << 15) - 1;
+
+struct ArchetypalComponentManager {
     using ArchetypeID = Sint16;
     static constexpr ArchetypeID NullArchetypeID = -1;
 
-    SmallVector<ArchetypePool, 0> pools;
+    PoolAllocator poolAllocator;
+    ArchetypeAllocator archetypeAllocator;
+
+    SmallVectorA<ArchetypePool, PoolAllocator, 0> pools;
     My::Vec<Entity> unusedEntities;
     EntityID highestUsedEntity = 0;
     My::HashMap<Signature, ArchetypeID, SignatureHash> archetypes;
-    ComponentInfoRef componentInfo;
-    Signature validComponents = {0};
 
-    struct EntityData {
-        Signature signature;
-        Sint32 prototype;
-        Uint32 version;
-        Sint16 poolIndex;
-        ArchetypeID archetype;
-    };
+    Sint32* componentSizes = nullptr;
+    const char** componentNames = nullptr;
+    int numComponentTypes = 0;
+
+    Signature validComponents = {0};
 
     struct EntityLoc {
         ArchetypeID archetype;
         Sint16 index;
     };
+    static constexpr EntityLoc NullEntityLoc = {0, 0};
 
-    struct EntityData2 {
-        Signature* signature;
-        Sint32* prototype;
-        Uint32* version;
-        EntityLoc* location;
-    } entityData2;
+    struct EntityData {
+        Sint32* prototype = nullptr;
+        Uint32* version = nullptr;
+        EntityLoc* location = nullptr;
+    } entityData;
 
-    My::DenseSparseSet<EntityID, EntityData, Uint16, MaxEntityID> entityData;
+    int entityCount = 0;
+    int entityCapacity = 0;
+
+    EntityIndex* entityIndices = nullptr;
+    static constexpr EntityIndex NullEntityIndex = EntityIndex(0);
+    static const int EntityIndicesLength = MaxEntityID;
 
     struct ComponentWatcher {
         ComponentGroup group;
@@ -101,9 +159,72 @@ struct ArchetypalComponentManager {
 
     /* Methods */
 
+    EntityIndex getEntityIndex(EntityID id) const {
+        assert(id < EntityIndicesLength);
+        return entityIndices[id];
+    }
+
+    EntityIndex lookupEntity(Entity entity) const {
+        assert(entity.id < EntityIndicesLength);
+        EntityIndex index = entityIndices[entity.id];
+        auto version = entityData.version[(Uint16)index];
+        if (UNLIKELY(version != entity.version)) {
+            assert(entity.id == NullEntity.id && "Use of destroyed entity!");
+            return NullEntityIndex;
+        }
+        return index;
+    }
+
+    ArchetypePool* getPool(EntityIndex index) {
+        auto archetype = entityData.location[(Uint16)index].archetype;
+        return &pools[archetype];
+    }
+
+    ArchetypePool* getOrMakePool(Signature signature, ArchetypeID* newArchetypeIDOut) {
+        auto newArchetypeID = getArchetypeID(signature);
+        if (newArchetypeID == NullArchetypeID) {
+            newArchetypeID = initArchetype(signature);
+        }
+        if (newArchetypeIDOut)
+            *newArchetypeIDOut = newArchetypeID;
+        return getPool(newArchetypeID);
+    }
+
+    __attribute__((pure)) Signature getSignature(EntityIndex index) const {
+        auto archetype = entityData.location[(Uint16)index].archetype;
+        const auto* pool = getPool(archetype);
+        return pool->signature();
+    }
+
+    EntityVersion getVersion(EntityIndex index) const {
+        return entityData.version[(Uint16)index];
+    }
+
+    Sint32 getPrototype(EntityIndex index) const {
+        return entityData.prototype[(Uint16)index];
+    }
+
+    ArchetypeID getArchetype(EntityIndex index) const {
+        return entityData.location[(Uint16)index].archetype;
+    }
+
+    ArchetypePool::EntityIndex getPoolIndex(EntityIndex index) const {
+        return entityData.location[(Uint16)index].index;
+    }
+
+    void setEntityLocation(EntityIndex index, EntityLoc entityLocation) {
+        entityData.location[(Uint16)index] = entityLocation;
+    }
+
+    int addToPool(ArchetypePool* pool, ArrayRef<Entity> entities) {
+        return pool->addNew(entities.size(), entities.data(), &archetypeAllocator, componentSizes);
+    }
+
+    bool reserveEntities(Sint32 count);
+
     ArchetypePool* addWatcher(ComponentGroup group, GroupWatcherType type);
 
-    void init(ComponentInfoRef componentInfo);
+    void init(ArrayRef<ComponentInfo> componentInfo, ArenaAllocator* arena);
 
     Entity createEntity(Uint32 prototype);
 
@@ -111,59 +232,43 @@ struct ArchetypalComponentManager {
 
     MultiEntity createMultiEntity(Sint32 count);
 
-    // @return: pointer to contigious array of component storage for the new entities' component values
-    void* multiAddComponent(MultiEntity entities, ComponentID component);
-
     // true on success, false on error
-    // error will be set to InvalidEntity if entity is null or not in existence
-    bool clone(Entity entity, int count, Entity* clonesOut, EntityCreationError* error);
+    // will return EntityCreationError::InvalidEntity if entity is null or not in existence
+    EntityCreationError clone(Entity entity, int count, Entity* clonesOut);
 
     void deleteEntity(Entity entity);
     void deleteEntities(ArrayRef<Entity> entities);
 
-    const EntityData* getEntityData(EntityID entityID) const {
-        if (entityID == NullEntity.id) {
-            return nullptr;
-        }
-        return entityData.lookup(entityID);
+    __attribute__((pure)) Signature getEntitySignature(Entity entity) const {
+        auto entityIndex = lookupEntity(entity);
+        auto* pool = &pools[getArchetype(entityIndex)];
+        return pool->signature();
     }
 
-    Signature getEntitySignature(Entity entity) const {
-        if (entity.id == NullEntity.id) {
-            return {0};
-        }
-        const EntityData* data = entityData.lookup(entity.id);
-        if (!data || (entity.version != data->version)) {
-            return {0};
-        }
-
-        return data->signature;
+    __attribute__((pure)) bool hasComponent(Entity entity, ComponentID component) const {
+        return getEntitySignature(entity)[component];
     }
 
-    bool hasComponent(Entity entity, ComponentID component) const {
-       if (entity.id == NullEntity.id) {
-            return 0;
-        }
-        const EntityData* data = entityData.lookup(entity.id);
-        if (!data || (entity.version != data->version)) {
-            return false;
-        }
+    __attribute__((pure)) void* getComponent(Entity entity, ComponentID component) const;
 
-        return data->signature[component];
-    }
-
-    void* getComponent(Entity entity, ComponentID component) const;
+    // @return new pool index of entity
+    int moveEntityToSuperArchetype(Entity entity, ArchetypePool* oldArchetype, ArchetypePool* newArchetype, int oldPoolIndex);
+    int moveEntitiesToSuperArchetype(ArrayRef<Entity> entities, ArchetypePool* oldArchetype, ArchetypePool* newArchetype, const int* oldPoolIndices);
+    // @return new pool index of entity
+    int moveEntityToSubArchetype(Entity entity, ArchetypePool* oldArchetype, ArchetypePool* newArchetype, int oldPoolIndex);
 
     void removeEntityIndexFromPool(int index, ArchetypePool* pool);
+    void removeEntityIndicesFromPool(ArrayRef<int> indices, ArchetypePool* pool);
 
 protected:
     void signatureAdded(Entity, Signature added, Signature oldSignature);
+    void signatureRemoved(Entity, Signature removed, Signature oldSignature);
 public:
 
     // returns true on success, false on failure
-    bool addSignature(Entity entity, Signature components);
+    EntityLoc addSignature(Entity entity, Signature components);
 
-    void addComponent(Entity entity, ComponentID component, const void* initializationValue = nullptr);
+    void* addComponent(Entity entity, ComponentID component);
 
     struct GroupedEntities {
         ArrayRef<Entity> entities;
@@ -184,22 +289,25 @@ private:
         return NullArchetypeID;
     }
 
-    const ArchetypePool* getArchetypePool(ArchetypeID id) const {
-        if (id >= pools.size()) return nullptr;
+    const ArchetypePool* getPool(ArchetypeID id) const {
         return &pools[id];
     }
 
-    ArchetypePool* getArchetypePool(ArchetypeID id) {
-        if (id >= pools.size()) return nullptr;
+    ArchetypePool* getPool(ArchetypeID id) {
         return &pools[id];
     }
 public:
 
     ArchetypeID initArchetype(Signature signature);
 
-    const ComponentInfo& getComponentInfo(ComponentID component) const {
-        return componentInfo.get(component);
+    __attribute__((pure)) Sint32 getComponentSize(ComponentID component) const {
+        assert(component < numComponentTypes && "Invalid component!");
+        return componentSizes[component];
     }
+
+    void debugCheckComponent(ComponentID component) const;
+
+    void debugCheckSignature(Signature signature) const;
 
     void destroy();
 };

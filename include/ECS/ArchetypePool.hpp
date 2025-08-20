@@ -11,149 +11,117 @@
 #include "Signature.hpp"
 #include "ComponentInfo.hpp"
 #include "memory/Allocator.hpp"
-
-template <size_t I, typename Tuple>
-constexpr size_t element_offset() {
-    using element_t = std::tuple_element_t<I, Tuple>;
-    static_assert(!std::is_reference<element_t>::value, "no references");
-    union {
-        char a[sizeof(Tuple)];
-        Tuple t{};
-    };
-    auto* p = std::addressof(std::get<I>(t));
-    t.~Tuple();
-    std::size_t off = 0;
-    for (std::size_t i = 0;; ++i) {
-        if (static_cast<void*>(a + i) == p) return i;
-    }
-}
-
-template <typename T, typename Tuple>
-constexpr size_t element_offset() {
-    union {
-        char a[sizeof(Tuple)];
-        Tuple t{};
-    };
-    using element_t = decltype(std::get<T>());
-    static_assert(!std::is_reference<element_t>::value, "no references");
-    auto* p = std::addressof(std::get<T>(t));
-    t.~Tuple();
-    std::size_t off = 0;
-    for (std::size_t i = 0;; ++i) {
-        if (static_cast<void*>(a + i) == p) return i;
-    }
-}
+#include "memory/ArenaAllocator.hpp"
 
 namespace ECS {
 
-struct Archetype {
-    Sint8 componentIndices[MaxComponentIDs];
-    int32_t numComponents;
-    Signature signature;
-    uint16_t* sizes;
-    uint16_t* alignments;
-    ComponentID* componentIDs;
-    int32_t sumSize; // size of all components added
-
-    static Archetype Null() {
-        return {{-1}, 0, 0, nullptr, nullptr, nullptr, 0};
-    }
-
-    Sint8 getIndex(ComponentID component) const {
-        if (component < 0 || component >= MaxComponentIDs) return -1;
-        return componentIndices[component];
-    }
-
-    Uint16 getSize(ComponentID component) const {
-        return sizes[componentIndices[component]];
-    }
-};
-
-Archetype makeArchetype(Signature signature, ComponentInfoRef componentTypeInfo);
+using ArchetypeAllocator = Mallocator;
+using PoolAllocator = Mallocator;
 
 struct ArchetypePool {
     using EntityIndex = Sint16;
 
+    Signature _signature; // maybe make this SoA to make queries faster
+    uint8_t numComponentsInOrBeforeWord[Signature::nInts];
+
+    int _numComponents;
     int size;
     int capacity;
     Entity* entities; // contained entities
-    char* buffer;
-    My::Vec<int> bufferOffsets; // make SmallVector? there could be like 15 components and then its just a waste of space
-    Archetype archetype;
+    char** arrays; // arrays for components
+    ComponentID* componentIDs;
+    
+    ArchetypePool(Signature signature, PoolAllocator* metaAllocator);
 
-    ArchetypePool(const Archetype& archetype);
+    bool null() const {
+        return _numComponents == 0;
+    }
 
     bool empty() const {
         return size == 0;
     }
 
     Signature signature() const {
-        return archetype.signature;
+        return _signature;
     }
 
-    int numBuffers() const {
-        return bufferOffsets.size;
+    int getArrayNumberFromSignature(ComponentID component) const;
+
+    int getArrayNumberLinear(ComponentID component) const {
+        for (int i = 0; i < _numComponents; i++) {
+            if (componentIDs[i] == component) return i;
+        }
+        return -1;
+    }
+
+    // component must be in archetype!
+    int getArrayNumber(ComponentID component) const {
+        if (_numComponents < 4 * Signature::nInts) {
+            return getArrayNumberLinear(component);
+        } else {
+            return getArrayNumberFromSignature(component);
+        }
+    }
+
+    int numComponents() const {
+        return _numComponents;
     }
 
     char* getComponentArray(ComponentID componentType) const {
-        auto bufferIndex = archetype.getIndex(componentType);
-        if (bufferIndex == -1) return nullptr; // component array not in pool
-        return getBuffer(bufferIndex);
+        int arrayNum = getArrayNumber(componentType);
+        if (arrayNum == -1) return nullptr;
+        else return arrays[arrayNum];
     }
 
-    char* getBuffer(int bufferIndex) const {
-        assert(buffer && "Null archetype pool!");
-        assert(bufferIndex >= 0 && bufferIndex < numBuffers() && "Buffer index out of range!");
-        return buffer + bufferOffsets[bufferIndex];
+    char* getArray(int arrayIndex) const {
+        DASSERT(arrayIndex < _numComponents);
+        return arrays[arrayIndex];
     }
 
-    char* getComponentByIndex(int bufferIndex, int componentIndex) const {
-        char* buf = getBuffer(bufferIndex);
-        if (buf) {
-            return buf + archetype.sizes[bufferIndex] * componentIndex;
-        }
-        return nullptr;
+    char* getComponentByIndex(int arrayIndex, int componentIndex, int componentSize) const {
+        char* array = arrays[arrayIndex];
+        return array + componentIndex * componentSize;
     }
 
     // index must be in bounds
-    void* getComponent(ComponentID component, int index) const {
-        assert(index < size && index >= 0);
-        auto bufferIndex = archetype.getIndex(component);
-        if (bufferIndex < 0) return nullptr;
-        return getComponentByIndex(bufferIndex, index);
+    char* getComponent(ComponentID component, int index, int componentSize) const {
+        DASSERT(index < size && index >= 0);
+        int arrayNum = getArrayNumber(component);
+        if (arrayNum == -1) return nullptr;
+        char* array = arrays[arrayNum];
+        return array + index * componentSize;
     }
 
     // returns index where entity is stored
-    int addNew(Entity entity);
+    // @param newEntities may be null and entities will be left uninitialized, they must be initialized after calling this!
+    int addNew(int count, const Entity* newEntities, ArchetypeAllocator* allocator, const Sint32* componentSizes);
 
-    int addNew(int count, Entity* newEntities = nullptr);
-
-    void copyIndex(int dstIndex, int srcIndex) {
-        for (int i = 0; i < archetype.numComponents; i++) {
-            auto componentSize = archetype.sizes[i];
-            char* componentBuffer = buffer + bufferOffsets[i];
+    void copyIndex(int dstIndex, int srcIndex, const Sint32* componentSizes) {
+        for (int i = 0; i < _numComponents; i++) {
+            int componentID = componentIDs[i];
+            char* componentBuffer = arrays[i];
+            auto componentSize = componentSizes[componentID];
             memcpy(componentBuffer + dstIndex * componentSize, componentBuffer + srcIndex * componentSize, componentSize);
         }
         entities[dstIndex] = entities[srcIndex];
     }
 
-    // equivalent to 
-    // copyIndex(dstIndex, middleIndex)
-    // copyIndex(middleIndex, srcIndex)
-    void doubleCopyIndex(int dstIndex, int middleIndex, int srcIndex);
+    void remove(int index, Entity* movedEntity, const Sint32* componentSizes);
 
-    // returns entities moved in movedEntity0 and movedEntity1. If less than 2 entities were moved, they will be set to NullEntity and newIndex will be undefined
-    // if movedEntity0 is NullEntity, movedEntity1 will also be
-    void remove(int index, Entity* movedEntity);
+    void remove(ArrayRef<int> indices, SmallVectorImpl<EntityID>* movedEntities, const Sint32* componentSizes);
 
     void clear() {
         size = 0;
     }
 
-    void destroy() {
-        Free(buffer);
-        bufferOffsets.destroy();
-        Free(entities);
+    void destroy(PoolAllocator* poolAllocator, ArchetypeAllocator* archetypeAllocator, const Sint32* componentSizes) {
+        archetypeAllocator->deallocate(entities, capacity);
+        for (int i = 0; i < _numComponents; i++) {
+            ComponentID component = componentIDs[i];
+            archetypeAllocator->deallocate(arrays[i], capacity * componentSizes[component], alignof(std::max_align_t));
+        }
+        poolAllocator->deallocate(arrays, _numComponents);
+        poolAllocator->deallocate(componentIDs, _numComponents);
     }
 };
 

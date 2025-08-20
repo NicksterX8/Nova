@@ -50,7 +50,7 @@ TEST_F(EntityManagerTest, AddComponent) {
     Position posValue = {5, 10};
     EXPECT_TRUE(this->manager.addComponent<Position>(entity, posValue));
     Position* pos = this->manager.getComponent<Position>(entity);
-    EXPECT_NE(pos, nullptr);
+    ASSERT_NE(pos, nullptr);
 
     EXPECT_EQ(*pos, posValue);
 
@@ -62,10 +62,30 @@ TEST_F(EntityManagerTest, AddComponent) {
     this->manager.deleteEntity(entity);
 }
 
-TEST_F(EntityManagerTest, UsingDeletedEntity) {
+using EntityManagerDeathTest = EntityManagerTest;
+
+volatile void* donotread;
+
+TEST_F(EntityManagerDeathTest, UsingDeletedEntity) {
     Entity entity = this->manager.createEntity(-1);
     this->manager.addComponent<Position>(entity, {1, 2});
     this->manager.deleteEntity(entity);
-    EXPECT_FALSE(this->manager.getComponent<Position>(entity));
+    // in debug we assert, in release we return nullptr
+#ifndef NDEBUG
+    EXPECT_DEBUG_DEATH({
+        void* component = this->manager.getComponent<Position>(entity);
+        EXPECT_EQ(component, nullptr);
+        exit(0);
+    }, "destroyed");
+#else
+    EXPECT_EQ(this->manager.getComponent<Position>(entity), nullptr);
+#endif
+}
+
+TEST_F(EntityManagerDeathTest, EntityExistsOnDestroyedEntity) {
+    Entity entity = this->manager.createEntity(-1);
+    this->manager.addComponent<Position>(entity, {1, 2});
+    EXPECT_TRUE(this->manager.entityExists(entity));
+    this->manager.deleteEntity(entity);
     EXPECT_FALSE(this->manager.entityExists(entity));
 }

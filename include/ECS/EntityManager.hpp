@@ -25,6 +25,8 @@ struct ComponentOnAdds {
 };
 
 struct EntityManager {
+    ArenaAllocator arena;
+
     ComponentManager components;
     PrototypeManager prototypes;
 
@@ -43,12 +45,12 @@ public:
     // component info is copied
     void init(ArrayRef<ComponentInfo> componentInfo, int numPrototypes);
 
-    const ComponentInfo& getComponentInfo(ComponentID component) const {
-        return components.getComponentInfo(component);
+    Sint32 getComponentSize(ComponentID component) const {
+        return components.componentSizes[component];
     }
 
-    Sint32 getComponentSize(ComponentID component) const {
-        return components.getComponentInfo(component).size;
+    const char* getComponentName(ComponentID component) const {
+        return components.componentNames[component];
     }
 
     void useCommandBuffer(EntityCommandBuffer* buffer) {
@@ -93,7 +95,7 @@ public:
 
         for (Uint32 i = 0; i < components.pools.size(); i++) {
             auto& pool = components.pools[i];
-            auto signature = pool.archetype.signature;
+            auto signature = pool.signature();
             if ((signature & reqSignature) == reqSignature) {
                 for (Uint32 e = 0; e < (Uint32)pool.size; e++) {
                     Entity entity = pool.entities[e];
@@ -107,25 +109,6 @@ public:
         }
     }
 
-    template<class Func>
-    void forAllEntities(Func func) const {
-        bool locked = lock();
-
-        int entityCount = getEntityCount();
-        auto entityDataArray = components.entityData.getValueArray();
-        auto entityIDArray = components.entityData.getKeyArray();
-        for (int e = 0; e < entityCount; e++) {
-            auto& data = entityDataArray[e];
-            EntityID id = entityIDArray[e];
-            if (func(Entity{id, data.version})) {
-                break;
-            }
-        }
-
-        if (locked) {
-            unlock();
-        }
-    }
 
     template<class Query, class Func>
     void forEachEntity(Query query, Func func) const {
@@ -133,7 +116,7 @@ public:
 
         for (Uint32 i = 0; i < components.pools.size(); i++) {
             auto& pool = components.pools[i];
-            auto signature = pool.archetype.signature;
+            auto signature = pool.signature();
             if (query(signature)) {
                 for (int e = pool.size-1; e >= 0; e--) {
                     Entity entity = pool.entities[e];
@@ -153,7 +136,7 @@ public:
         
         for (Uint32 i = 0; i < components.pools.size(); i++) {
             auto& pool = components.pools[i];
-            auto signature = pool.archetype.signature;
+            auto signature = pool.signature();
             if (query(signature)) {
                 for (int e = pool.size-1; e >= 0; e--) {
                     Entity entity = pool.entities[e];
@@ -183,29 +166,27 @@ public:
 
     void deleteEntity(Entity entity);
 
+    __attribute__((pure))
     bool entityExists(Entity entity) const {
-        auto* entityData = components.getEntityData(entity.id);
-        return entityData && (entityData->version == entity.version);
+        auto index = components.getEntityIndex(entity.id);
+        auto version = components.getVersion(index);
+        return version == entity.version;
     }
 
+    __attribute__((pure))
     const Prototype* getPrototype(PrototypeID type) const {
         return prototypes.get(type);
     }
 
+    __attribute__((pure))
     const Prototype* getPrototype(Entity entity) const {
-        auto* entityData = components.getEntityData(entity.id);
-        if (!entityData || (entityData->version != entity.version)) {
-            return nullptr;
-        }
-        return getPrototype(entityData->prototype);
+        return getPrototype(getPrototypeID(entity));
     }
 
     PrototypeID getPrototypeID(Entity entity) const {
-        auto* entityData = components.getEntityData(entity.id);
-        if (!entityData || (entityData->version != entity.version)) {
-            return -1;
-        }
-        return entityData->prototype;
+        auto index = components.getEntityIndex(entity.id);
+        auto version = components.getVersion(index);
+        return components.getPrototype(index);
     }
 
     const Prototype* getPrototype(const char* prototypeName) const {
@@ -228,6 +209,7 @@ protected:
 public:
 
     template<class C>
+    __attribute__((pure))
     std::conditional_t<C::PROTOTYPE, const C*, C*> getComponent(Entity entity) const {
         if constexpr (C::PROTOTYPE) {
             return getProtoComponent<C>(entity);
@@ -238,6 +220,7 @@ public:
 
     // get the component and assert that it exists. use this if you're not going to check if a component is null
     template<class C>
+    __attribute__((pure))
     std::conditional_t<C::PROTOTYPE, const C*, C*> getComponent_(Entity entity) const {
         std::conditional_t<C::PROTOTYPE, const C*, C*> component;
         if constexpr (C::PROTOTYPE) {
@@ -250,7 +233,7 @@ public:
     }
 
     // does not work for prototype components maybe TODO?
-    void* getComponent(Entity entity, ComponentID component) const {
+    __attribute__((pure)) void* getComponent(Entity entity, ComponentID component) const {
         return components.getComponent(entity, component);
     }
 
@@ -261,14 +244,14 @@ public:
         if (component) {
             *component = value;
         } else {
-            LogErrorLoc("Component %s does not exist for entity!", getComponentInfo(C::ID).name);
+            LogErrorLoc("Component %s does not exist for entity!", getComponentName(C::ID));
         }
     }
 
     ComponentSet<ComponentOnAdds> onAdds;
 
-    void doAddComponent(Entity entity, ComponentID component, const void* value) {
-        components.addComponent(entity, component, value);
+    void* doAddComponent(Entity entity, ComponentID component) {
+        return components.addComponent(entity, component);
     }
 
     ArchetypePool* makeWatcher(ECS::ComponentGroup group, ECS::GroupWatcherType type) {
@@ -298,14 +281,6 @@ public:
         assert(!componentDestructors.contains(component) && "Component already has destructor set!");
         componentDestructors.insert(component, destructor);
         componentsWithDestructors.set(component);
-    }
-
-    bool validRegComponent(ComponentID component) {
-        return components.validComponents[component];
-    }
-
-    bool validPrototypeComponent(ComponentID component) {
-        return prototypes.validComponents[component];
     }
 
     template<class C>
@@ -340,17 +315,9 @@ public:
 
     bool entityHas(Entity entity, Signature needComponents) const;
 
+    __attribute__((pure))
     Signature getEntitySignature(Entity entity) const {
-        if (!entityExists(entity)) {
-            LogError("Entity does not exist!");
-            return {0};
-        }
-
         return components.getEntitySignature(entity);
-    }
-
-    int getEntityCount() const {
-        return components.entityData.getSize();
     }
 
     struct EntityGroup {
@@ -358,8 +325,8 @@ public:
 
     };
 
-    bool clone(Entity entity, MutArrayRef<Entity> clones, EntityCreationError* error) {
-        return components.clone(entity, clones.size(), clones.data(), error);
+    EntityCreationError clone(Entity entity, MutArrayRef<Entity> clones) {
+        return components.clone(entity, clones.size(), clones.data());
     }
 
     void destroy() {

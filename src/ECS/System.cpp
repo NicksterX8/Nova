@@ -16,7 +16,7 @@ int ECS::Systems::findEligiblePools(Signature required, Signature rejected, cons
     for (int p = 0; p < entityManager.components.pools.size(); p++) {
         auto& pool = entityManager.components.pools[p];
         if (pool.size == 0) continue;
-        auto poolSignature = pool.archetype.signature;
+        auto poolSignature = pool.signature();
         if (poolSignature.hasAll(required)
          && poolSignature.hasNone(rejected)) {
             if (eligiblePools)
@@ -74,7 +74,7 @@ int calculateSystemStages(System* source, int stage) {
 }
 
 // adds commands to commandBuffer
-void executeJobChunk(const JobChunk& chunk, EntityCommandBuffer* commandBuffer) {
+void executeJobChunk(const JobChunk& chunk, EntityCommandBuffer* commandBuffer, const EntityManager* entityManager) {
     alignas(Job) StackAllocate<char, 256> jobBuf{(int)chunk.job->size};
     Job* job = (Job*)jobBuf.data();
     memcpy((void*)job, (void*)chunk.job, chunk.job->size);
@@ -88,7 +88,7 @@ void executeJobChunk(const JobChunk& chunk, EntityCommandBuffer* commandBuffer) 
         // need to adjust to make the pointer point 'componentIndex' number of components behind itself,
         // so when indexBegin is added to the base index in the for loop,
         // the range is actually 0...chunkSize
-        poolComponentArray -= (chunk.indexBegin * chunk.pool->archetype.sizes[chunk.pool->archetype.getIndex(componentID)]);
+        poolComponentArray -= chunk.indexBegin * entityManager->getComponentSize(componentID);
         componentArrays[i] = poolComponentArray;
     }
     job->componentArrays = componentArrays;
@@ -114,6 +114,7 @@ struct ThreadData {
         EntityCommandBuffer commandBuffer;
     };
     PerThread personal;
+    const EntityManager* entityManager;
     struct SharedData {
         TaskQueue* taskQueue;
         std::atomic<bool> quit;
@@ -127,8 +128,8 @@ struct Thread {
     Threads::ThreadID id;
 };
 
-int executeJobTask(EntityCommandBuffer* commandBuffer, const JobChunk& task) {
-    executeJobChunk(task, commandBuffer);
+int executeJobTask(EntityCommandBuffer* commandBuffer, const JobChunk& task, const EntityManager* entityManager) {
+    executeJobChunk(task, commandBuffer, entityManager);
 
     return 0;
 }
@@ -138,16 +139,16 @@ int jobThreadFunc(void* dataPtr) {
     auto& queue = threadData->shared->taskQueue;
     ThreadData::PerThread& personalData = threadData->personal;
     JobChunk task;
+    auto* entityManager = threadData->entityManager;
     while (!threadData->shared->quit.load(std::memory_order_relaxed)) {
         if (queue->try_dequeue(task)) {
-            int taskSuccess = executeJobTask(&personalData.commandBuffer, task);
+            int taskSuccess = executeJobTask(&personalData.commandBuffer, task, entityManager);
             int counter = threadData->shared->tasksToComplete.decrement();
             if (counter == 1) {
                 // we could tell the main thread we are done
             }
         }
     }
-    //threadData->personal = personalData;
     return 0;
 }
 
@@ -283,7 +284,7 @@ void runSystemJobsParallel(SystemManager& sysManager,
         for (int i = 0; i < mainThreadChunks.size(); i++) {
             auto& chunk = mainThreadChunks[i];
             // put commands straight into unexecuted command list
-            executeJobChunk(chunk, &sysManager.unexecutedCommands);
+            executeJobChunk(chunk, &sysManager.unexecutedCommands, sysManager.entityManager);
         }
 
         // wait for tasks to finish
@@ -297,7 +298,7 @@ void runSystemJobsParallel(SystemManager& sysManager,
         for (int i = 0; i < blockingChunks.size(); i++) {
             auto& chunk = blockingChunks[i];
             // put commands straight into unexecuted command list
-            executeJobChunk(chunk, &sysManager.unexecutedCommands);
+            executeJobChunk(chunk, &sysManager.unexecutedCommands, sysManager.entityManager);
         }
     }
 }
@@ -416,6 +417,7 @@ void ECS::Systems::executeSystems(SystemManager& sysManager) {
                     .threadNumber = i,
                     .commandBuffer = {},
                 },
+                .entityManager = sysManager.entityManager,
                 .shared = sharedThreadData
             };
             Threads::ThreadID thread = Global.threadManager.openThread(jobThreadFunc, threadData);

@@ -245,19 +245,21 @@ namespace Commands {
             ECS::PrototypeID prototypeID = prototype->id;
             World::EntityCommandBuffer commandBuffer;
             ecs.useCommandBuffer(&commandBuffer);
-            ecs.ForEachAll([&](Entity entity){
-                if (target == "ALL" || ecs.getPrototypeID(entity) == prototypeID) {
-                    if (ecs.EntityExists(entity)) {
-                        if (!ecs.EntityHas<World::EC::Immortal>(entity)) {
-                            ecs.Destroy(entity);
-                            numDestroyed += 1;
-                        }
-                    } else {
-                        LogError("Entity didn't exist in for each?");
-                    }
-                }
-                return false;
-            });
+            // TODO: does not do anything
+            assert(0);
+            // ecs.ForEachAll([&](Entity entity){
+            //     if (target == "ALL" || ecs.getPrototypeID(entity) == prototypeID) {
+            //         if (ecs.EntityExists(entity)) {
+            //             if (!ecs.EntityHas<World::EC::Immortal>(entity)) {
+            //                 ecs.Destroy(entity);
+            //                 numDestroyed += 1;
+            //             }
+            //         } else {
+            //             LogError("Entity didn't exist in for each?");
+            //         }
+            //     }
+            //     return false;
+            // });
             ecs.executeCommandBuffer(&commandBuffer);
             char message[512];
             snprintf(message, 512, "Killed %d %ss", numDestroyed, target.c_str());
@@ -462,11 +464,10 @@ namespace Commands {
         if (entity.Null()) return RES_ERROR("No entity found");
         ECS::EntityCreationError error;
         Entity clonedEntity = NullEntity;
-        ecs->clone(entity, {clonedEntity}, &error);
-        if (ecs->EntityExists(clonedEntity)) {
-            return RES_SUCCESS(string_format("Entity successfully cloned! ID: %d", clonedEntity.id));
+        if (auto error = ecs->clone(entity, {clonedEntity})) {
+            return RES_ERROR("Error cloning entity: %s", error.name());
         }
-        return RES_ERROR("Failed to clone entity!");
+        return RES_SUCCESS(string_format("Entity successfully cloned! ID: %d", clonedEntity.id));
     }
 
     Result setCameraFocus(Args args, CameraFocus* cameraFocus, const EntityWorld* ecs) {

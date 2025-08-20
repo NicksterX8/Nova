@@ -42,11 +42,9 @@ namespace World {
     }
 
     ECS::EntityVersion EntityWorld::GetEntityVersion(ECS::EntityID id) const {
-        assert(id <= NullEntity.id);
-        auto* data = Base::components.getEntityData(id);
-        if (data)
-            return data->version;
-        return NullEntity.version;
+        assert(id <= ECS::MaxEntityID);
+        auto index = Base::components.entityIndices[id];
+        return Base::components.entityData.version[(Uint16)index];
     }
 
     void EntityWorld::Set(Entity entity, ECS::ComponentID componentID, void* value) {

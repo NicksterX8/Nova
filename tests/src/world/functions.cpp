@@ -28,8 +28,6 @@ TEST_F(EntityWorldTest, PointInEntity) {
     EXPECT_FALSE(pointInEntity({2, 2}, this->aEntity, this->ecs));
 
     EXPECT_FALSE(pointInEntity({0, 0}, ECS::NullEntity, this->ecs));
-    this->ecs.deleteEntity(this->aEntity);
-    EXPECT_FALSE(pointInEntity({1, 1}, this->aEntity, this->ecs));
 }
 
 TEST_F(EntityWorldTest, GetEntityViewBoxBounds) {

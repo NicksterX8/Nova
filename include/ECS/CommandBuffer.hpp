@@ -58,7 +58,7 @@ struct EntityCommandBuffer {
     My::Vec<Command> commands = My::Vec<Command>::Empty();
     My::Vec<char> valueBuffer = My::Vec<char>::Empty();
 
-    EntityID fakeEntityIDCounter = MAX_ENTITIES+1;
+    EntityID fakeEntityIDCounter = MaxEntityID+1;
 
     bool empty() const {
         return commands.empty() && valueBuffer.empty();

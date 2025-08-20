@@ -3,55 +3,37 @@
 
 #include <stdint.h>
 #include <stddef.h>
-
-// result is undefined if x is 0
-inline int highestBit(unsigned int x){
-    return 31 - __builtin_clz(x);
-}
-
-// result is undefined if x is 0
-inline int highestBit(unsigned long long x) {
-    return 63 - __builtin_clzll(x);
-}
-
-template<class F>
-void forEachSetBitUint(unsigned int bits, const F& functor) {
-    while (bits != 0) {
-        auto bitIndex = (unsigned int)highestBit(bits);
-        functor(bitIndex);
-        bits ^= (1U << bitIndex);
-    }
-}
-
-template<class F>
-void forEachSetBitULL(unsigned long long bits, const F& functor) {
-    while (bits != 0) {
-        auto bitIndex = (unsigned long long)highestBit(bits);
-        functor(bitIndex);
-        bits ^= (1ULL << bitIndex);
-    }
-}
+#include "llvm/MathExtras.h"
+#include <array>
 
 template<typename IntegerT, class F>
 void forEachSetBit(IntegerT bits, const F& functor) {
-    static_assert(std::is_unsigned<IntegerT>::value, "Invalid type");
-    if constexpr (sizeof(IntegerT) == sizeof(unsigned long long)) {
-        forEachSetBitULL(bits, functor);
-    } else if constexpr (sizeof(IntegerT) == sizeof(unsigned int)) {
-        forEachSetBitUint(bits, functor);
-    } else {
-        for (IntegerT j = 0; bits != 0 && j < sizeof(IntegerT) * 8; j++) {
-            if (bits & ((IntegerT)1 << j)) {
-                functor(j);
-                bits ^= ((IntegerT)1 << j);
-            }
-        }
+    static_assert(std::is_unsigned<IntegerT>::value, "Type must be unsigned!");
+    while (bits) {
+        int bitIndex = llvm::countTrailingZeros(bits, llvm::ZB_Undefined);
+        functor(bitIndex);
+        bits &= bits - 1;
     }
 }
 
 template<typename IntegerT, class F>
 void forEachUnsetBit(IntegerT bits, const F& functor) {
     return forEachSetBit(~bits, functor);
+}
+
+template<typename IntegerT, class F>
+void forEachSetBitmask(IntegerT bits, const F& functor) {
+    static_assert(std::is_unsigned<IntegerT>::value, "Type must be unsigned!");
+    while (bits) {
+        IntegerT bitmask = bits & -bits;
+        functor(bitmask);
+        bits ^= bitmask;
+    }
+}
+
+template<typename IntegerT, class F>
+void forEachUnsetBitmask(IntegerT bits, const F& functor) {
+    forEachSetBitmask(~bits, functor);
 }
 
 namespace My {
@@ -141,15 +123,21 @@ public:
     }
 
     constexpr size_t count() const {
+        // size_t c = 0;
+        // for (size_t i = 0; i < nInts; i++) {
+        //     IntegerT n = bits[i];
+        //     while (n != 0) {
+        //         n = n & (n - 1);
+        //         c++;
+        //     }
+        // }
+        
+        // return c;
+
         size_t c = 0;
         for (size_t i = 0; i < nInts; i++) {
-            IntegerT n = bits[i];
-            while (n != 0) {
-                n = n & (n - 1);
-                c++;
-            }
+            c += llvm::countPopulation(bits[i]);
         }
-        
         return c;
     }
 
@@ -240,6 +228,48 @@ public:
         return result;
     }
 
+    // if the bitset is all zeros, returns uintmax
+    // @return the index of the highest set bit.
+    unsigned int highestSet() const {
+        for (int i = (int)nInts - 1; i >= 0; i--) {
+            unsigned int distFromEnd = llvm::countLeadingZeros(bits[i]);
+            if (distFromEnd != IntegerBits) 
+                return N - 1 - distFromEnd + i * IntegerBits;
+        }
+        return (unsigned int)-1;
+    }
+
+     // if the bitset is all zeros, returns uintmax
+    // @return the index of the lowest set bit.
+    unsigned int lowestSet() const {
+        for (int i = 0; i < (int)nInts; i++) {
+            unsigned int distFromStart = llvm::countTrailingZeros(bits[i]);
+            if (distFromStart != IntegerBits) 
+                return distFromStart + i * IntegerBits;
+        }
+        return (unsigned int)-1;
+    }
+
+    // returns the lowest ([0]) and highest ([1]) set bit indices, or {uintmax, uintmax} if none are set
+    std::array<unsigned int, 2> rangeSet() const {
+        for (int i = (int)nInts - 1; i >= 0; i--) {
+            IntegerT word = bits[i];
+            unsigned int distFromEnd = llvm::countLeadingZeros(word);
+            if (distFromEnd != IntegerBits) {
+                for (int j = 0; j < i; j++) {
+                    unsigned int distFromStart = llvm::countTrailingZeros(bits[j]);
+                    if (distFromStart != IntegerBits) {
+                        return {
+                            distFromStart + i * IntegerBits,
+                            N - 1 - distFromEnd + i * IntegerBits
+                        };
+                    }
+                }
+            }
+        }
+        return {(unsigned int)-1, (unsigned int)-1};
+    }
+
     template<class F>
     void forEachSet(const F& functor) const {
         for (size_t i = 0; i < nInts; i++)
@@ -247,9 +277,21 @@ public:
     }
 
     template<class F>
-    void forEachUnset(const F& functor) const {
+    void forEachUnsetBit(const F& functor) const {
         for (size_t i = 0; i < nInts; i++)
             forEachUnsetBit<IntegerT, F>(bits[i], functor);
+    }
+
+    template<class F>
+    void forEachSetBitmask(const F& functor) const {
+        for (size_t i = 0; i < nInts; i++)
+            forEachSetBitmask<IntegerT, F>(bits[i], functor);
+    }
+
+    template<class F>
+    void forEachUnsetBitmask(const F& functor) const {
+        for (size_t i = 0; i < nInts; i++)
+            forEachUnsetBitmask<IntegerT, F>(bits[i], functor);
     }
 };
 
