@@ -134,6 +134,7 @@ struct ArchetypalComponentManager {
         Sint32* prototype = nullptr;
         Uint32* version = nullptr;
         EntityLoc* location = nullptr;
+        EntityID* id = nullptr;
     } entityData;
 
     int entityCount = 0;

@@ -32,9 +32,9 @@ struct ChunkData {
 
     bool removeCloseEntity(Entity entity) {
         for (int e = 0; e < closeEntities.size; e++) {
-            // TODO: try implementing binary search with sorting for faster removal
             if (closeEntities[e].id == entity.id) {
-                closeEntities.remove((int)e);
+                closeEntities[e] = closeEntities.back();
+                closeEntities.pop();
                 return true;
             }
         }

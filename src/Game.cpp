@@ -200,9 +200,18 @@ int tick(GameState* state, PlayerControls* playerControls) {
 
     updateSystems(state);
 
+    Vec2 oldPos = state->player.get<World::EC::Position>()->vec2();
     playerControls->doPlayerMovementTick();
-
-    //updateDynamicEntityChunkPositions(*state->ecs, state);
+    // Vec2 newPos = state->player.get<World::EC::Position>()->vec2();
+    // auto dyn = state->player.get<World::EC::Dynamic>()->pos;
+    // LogInfo("pos: %.1f,%.1f", newPos.x, newPos.y);
+    // LogInfo("dyn: %.1f,%.1f", dyn.x, dyn.y);
+    // IVec2 chunkPos = toChunkPosition(newPos);
+    // auto* chunk = state->chunkmap.get(chunkPos);
+    // auto* player = std::find(chunk->closeEntities.begin(), chunk->closeEntities.end(), state->player.entity);
+    // if (player == chunk->closeEntities.end()) {
+    //     LogError("player not found!");
+    // }
 
     return 0;
 }

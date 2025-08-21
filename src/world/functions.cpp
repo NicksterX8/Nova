@@ -158,7 +158,8 @@ SmallVectorA<Entity, VirtualAllocator, 4> getAllEntitiesInBounds(const EntityWor
             auto closeEntity = chunkdata->closeEntities[i];
             /* TEMPORARY!  TODO: replace this */
             if (!ecs.EntityExists(closeEntity)) {
-                chunkdata->removeCloseEntity(closeEntity);
+                chunkdata->closeEntities[i] = chunkdata->closeEntities.back();
+                chunkdata->closeEntities.pop();
                 continue;
             }
 

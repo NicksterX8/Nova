@@ -19,7 +19,7 @@ void generateChunk(ChunkData* chunkdata) {
             if (r < 0.2f) {
                 tileType = TileTypes::Water;
             } else if (r < 0.4f) {
-                tileType = TileTypes::GreyFloor;
+                tileType = TileTypes::Space;
             } else {
                 tileType = TileTypes::Grass;
             }

@@ -32,6 +32,7 @@ void ArchetypalComponentManager::init(ArrayRef<ComponentInfo> componentInfo, Are
     entityData.location[0] = {0, 0};
     entityData.prototype[0] = -1;
     entityData.version[0] = (-1); // so that entity.version == entityData.version is always false for null entity
+    entityData.id[0] = NullEntity.id;
     entityCount++;
     highestUsedEntity++;
 }
@@ -46,6 +47,7 @@ bool ArchetypalComponentManager::reserveEntities(Sint32 count) {
         entityData.prototype = Realloc<Sint32>(entityData.prototype, newCapacity);
         entityData.location = Realloc<EntityLoc>(entityData.location, newCapacity);
         entityData.version = Realloc<EntityVersion>(entityData.version, newCapacity);
+        entityData.id = Realloc<EntityID>(entityData.id, newCapacity);
         entityCapacity = newCapacity;
     }
     return true;
@@ -150,6 +152,7 @@ Entity ArchetypalComponentManager::createEntity(Uint32 prototype) {
         .archetype = 0,
         .index = 0
     };
+    entityData.id[(Uint16)entityIndex] = entity.id;
 
     return entity;
 }
@@ -470,8 +473,18 @@ void ArchetypalComponentManager::deleteEntity(Entity entity) {
 
         removeEntityIndexFromPool(poolIndex, pool);
     }
+
+    // reuse the entity index
+    // move the top most entity to this entities position
+    auto topEntity = EntityIndex(entityCount-1);
+    entityData.location[(Uint16)entityIndex] = entityData.location[(Uint16)topEntity];
+    entityData.version[(Uint16)entityIndex] = entityData.version[(Uint16)topEntity];
+    entityData.prototype[(Uint16)entityIndex] = entityData.prototype[(Uint16)topEntity];
+    auto topEntityID = entityData.id[(Uint16)topEntity];
+    entityIndices[topEntityID] = entityIndex;
     entityIndices[entity.id] = NullEntityIndex;
     unusedEntities.push({entity.id, entity.version + 1});
+    entityCount--;
 }
 
 void ArchetypalComponentManager::deleteEntities(ArrayRef<Entity> entities) {
