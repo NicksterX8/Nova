@@ -7,13 +7,16 @@ void ArchetypalComponentManager::init(ArrayRef<ComponentInfo> componentInfo, Are
     componentSizes = ALLOC(Sint32, numComponentTypes, *arena);
     componentNames = ALLOC(const char*, numComponentTypes, *arena);
     for (int i = 0; i < componentInfo.size(); i++) {
-        componentSizes[i] = componentInfo[i].size;
+        if (componentInfo[i].empty)
+            componentSizes[i] = 0;
+        else
+            componentSizes[i] = componentInfo[i].size;
         componentNames[i] = componentInfo[i].name;
     }
 
     // make a pool for empty entities to have so they can still be used to check signature and information about entities,
     // although entities are not actually added to this pool (as it would be wasteful)
-    auto nullPool = ArchetypePool(Signature{0}, &poolAllocator);
+    auto nullPool = ArchetypePool(Signature{0}, componentSizes, &poolAllocator);
     pools.push_back(nullPool);
     archetypes = decltype(archetypes)::Empty();
     unusedEntities = My::Vec<Entity>::WithCapacity(512);
@@ -80,7 +83,7 @@ ArchetypePool* ArchetypalComponentManager::addWatcher(ComponentGroup group, Grou
         watchedComponentAdds |= group.rejected;
     }
 
-    auto* pool = NEW(ArchetypePool({0}, &poolAllocator), poolAllocator);
+    auto* pool = NEW(ArchetypePool({0}, componentSizes, &poolAllocator), poolAllocator);
     ComponentWatcher watcher = {
         group,
         pool,
@@ -274,10 +277,8 @@ int ArchetypalComponentManager::moveEntityToSuperArchetype(Entity entity, Archet
         return newPoolIndex;
     }
 
-    Signature sharedComponents = newArchetype->signature() & oldArchetype->signature();
-
-    for (int i = 0; i < oldArchetype->numComponents(); i++) {
-        ComponentID transferComponent = oldArchetype->componentIDs[i];
+    for (int i = 0; i < oldArchetype->numComponentArrays(); i++) {
+        ComponentID transferComponent = oldArchetype->arrays[i].componentType;
         auto componentSize = componentSizes[transferComponent];
         const void* oldComponent = oldArchetype->getComponentByIndex(i, oldPoolIndex, componentSize);
         void* newComponent = newArchetype->getComponent(transferComponent, newPoolIndex, componentSize);
@@ -299,10 +300,8 @@ int ArchetypalComponentManager::moveEntitiesToSuperArchetype(ArrayRef<Entity> en
         return newPoolStartIndex;
     }
 
-    Signature sharedComponents = newArchetype->signature() & oldArchetype->signature();
-
-    for (int i = 0; i < oldArchetype->numComponents(); i++) {
-        ComponentID transferComponent = oldArchetype->componentIDs[i];
+    for (int i = 0; i < oldArchetype->numComponentArrays(); i++) {
+        ComponentID transferComponent = oldArchetype->arrays[i].componentType;
         auto componentSize = componentSizes[transferComponent];
         char* newComponents = newArchetype->getComponent(transferComponent, newPoolStartIndex, componentSize);
         assert(newComponents);
@@ -323,9 +322,8 @@ int ArchetypalComponentManager::moveEntityToSubArchetype(Entity entity, Archetyp
     }
     
     int newPoolIndex = addToPool(newArchetype, entity);
-    Signature sharedComponents = newArchetype->signature() & oldArchetype->signature();
-    for (int i = 0; i < newArchetype->numComponents(); i++) {
-        ComponentID transferComponent = newArchetype->componentIDs[i];
+    for (int i = 0; i < newArchetype->numComponentArrays(); i++) {
+        ComponentID transferComponent = newArchetype->arrays[i].componentType;
         auto componentSize = componentSizes[transferComponent];
         void* newComponent = newArchetype->getComponentByIndex(i, newPoolIndex, componentSize);
         const void* oldComponent = oldArchetype->getComponent(transferComponent, oldPoolIndex, componentSize);
@@ -465,7 +463,7 @@ void ArchetypalComponentManager::deleteEntity(Entity entity) {
     if (!entityIndex) return;
 
     ArchetypePool* pool = &pools[getArchetype(entityIndex)];
-    if (pool && pool->numComponents() > 0) {
+    if (pool && !pool->null()) {
         auto poolIndex = getPoolIndex(entityIndex);
         auto signature = getSignature(entityIndex);
 
@@ -497,7 +495,7 @@ void ArchetypalComponentManager::deleteEntities(ArrayRef<Entity> entities) {
 ArchetypalComponentManager::ArchetypeID ArchetypalComponentManager::initArchetype(Signature signature) {
     DASSERT(!archetypes.contains(signature));
 
-    pools.emplace_back(signature, &poolAllocator);
+    pools.emplace_back(signature, componentSizes, &poolAllocator);
     archetypes.insert(signature, pools.size()-1);
     return pools.size()-1;
 }

@@ -20,18 +20,19 @@ using PoolAllocator = Mallocator;
 
 struct ArchetypePool {
     using EntityIndex = Sint16;
-
+    struct ComponentArray {
+        ComponentID componentType;
+        char* data;
+    };
+    ComponentArray* arrays; // arrays for components
+    Sint32 _numComponents; // any component in the signature (signature.count())
+    EntityIndex size;
+    EntityIndex capacity;
+    Entity* entities; // contained entities
     Signature _signature; // maybe make this SoA to make queries faster
     uint8_t numComponentsInOrBeforeWord[Signature::nInts];
-
-    int _numComponents;
-    int size;
-    int capacity;
-    Entity* entities; // contained entities
-    char** arrays; // arrays for components
-    ComponentID* componentIDs;
     
-    ArchetypePool(Signature signature, PoolAllocator* metaAllocator);
+    ArchetypePool(Signature signature, const Sint32* componentSizes, PoolAllocator* metaAllocator);
 
     bool null() const {
         return _numComponents == 0;
@@ -49,7 +50,7 @@ struct ArchetypePool {
 
     int getArrayNumberLinear(ComponentID component) const {
         for (int i = 0; i < _numComponents; i++) {
-            if (componentIDs[i] == component) return i;
+            if (arrays[i].componentType == component) return i;
         }
         return -1;
     }
@@ -63,23 +64,23 @@ struct ArchetypePool {
         }
     }
 
-    int numComponents() const {
-        return _numComponents;
+    int numComponentArrays() const {
+        return this->_numComponents;
     }
 
     char* getComponentArray(ComponentID componentType) const {
         int arrayNum = getArrayNumber(componentType);
         if (arrayNum == -1) return nullptr;
-        else return arrays[arrayNum];
+        else return arrays[arrayNum].data;
     }
 
     char* getArray(int arrayIndex) const {
         DASSERT(arrayIndex < _numComponents);
-        return arrays[arrayIndex];
+        return arrays[arrayIndex].data;
     }
 
     char* getComponentByIndex(int arrayIndex, int componentIndex, int componentSize) const {
-        char* array = arrays[arrayIndex];
+        char* array = arrays[arrayIndex].data;
         return array + componentIndex * componentSize;
     }
 
@@ -88,7 +89,7 @@ struct ArchetypePool {
         DASSERT(index < size && index >= 0);
         int arrayNum = getArrayNumber(component);
         if (arrayNum == -1) return nullptr;
-        char* array = arrays[arrayNum];
+        char* array = arrays[arrayNum].data;
         return array + index * componentSize;
     }
 
@@ -98,8 +99,8 @@ struct ArchetypePool {
 
     void copyIndex(int dstIndex, int srcIndex, const Sint32* componentSizes) {
         for (int i = 0; i < _numComponents; i++) {
-            int componentID = componentIDs[i];
-            char* componentBuffer = arrays[i];
+            int componentID = arrays[i].componentType;
+            char* componentBuffer = arrays[i].data;
             auto componentSize = componentSizes[componentID];
             memcpy(componentBuffer + dstIndex * componentSize, componentBuffer + srcIndex * componentSize, componentSize);
         }
@@ -108,7 +109,7 @@ struct ArchetypePool {
 
     void remove(int index, Entity* movedEntity, const Sint32* componentSizes);
 
-    void remove(ArrayRef<int> indices, SmallVectorImpl<EntityID>* movedEntities, const Sint32* componentSizes);
+    // void remove(ArrayRef<int> indices, SmallVectorImpl<EntityID>* movedEntities, const Sint32* componentSizes);
 
     void clear() {
         size = 0;
@@ -117,11 +118,10 @@ struct ArchetypePool {
     void destroy(PoolAllocator* poolAllocator, ArchetypeAllocator* archetypeAllocator, const Sint32* componentSizes) {
         archetypeAllocator->deallocate(entities, capacity);
         for (int i = 0; i < _numComponents; i++) {
-            ComponentID component = componentIDs[i];
-            archetypeAllocator->deallocate(arrays[i], capacity * componentSizes[component], alignof(std::max_align_t));
+            ComponentID component = arrays[i].componentType;
+            archetypeAllocator->deallocate(arrays[i].data, capacity * componentSizes[component], alignof(std::max_align_t));
         }
         poolAllocator->deallocate(arrays, _numComponents);
-        poolAllocator->deallocate(componentIDs, _numComponents);
     }
 };
 

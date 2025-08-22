@@ -30,8 +30,8 @@ add_link_options(-framework OpenGL)
 # debug options
 # doesn't work with lldb on mac. just freezes and stops without giving you any information
 if (USE_ADDRESS_SANITIZER)
-    # add_compile_options(-fsanitize=undefined -fsanitize=address)
-    # add_link_options(-fsanitize=undefined -fsanitize=address)
+    add_compile_options(-fsanitize=undefined -fsanitize=address)
+    add_link_options(-fsanitize=undefined -fsanitize=address)
 endif()
 
 set(SD src)

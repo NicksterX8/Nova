@@ -24,6 +24,7 @@ public:
     template<class C>
     void Add(const C& value) {
         components.setComponent<C>();
+        if (std::is_empty_v<C>) return; // don't need a value
         size_t offset = getAlignmentOffset((size_t)buffer.data(), alignof(C));
         buffer.resize(buffer.size() + sizeof(C) + offset);
         *((C*)(buffer.end() - sizeof(C))) = value;

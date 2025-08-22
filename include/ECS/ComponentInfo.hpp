@@ -13,11 +13,12 @@ struct ComponentInfo {
     Sint32 alignment = 0;
     const char* name = "null";
     bool prototype = false;
+    bool empty = false; // the component has no members -> std::is_empty
 };
 
 template<class Component>
 static constexpr ComponentInfo getComponentInfo() {
-    return {sizeof(Component), alignof(Component), Component::NAME, Component::PROTOTYPE};
+    return {sizeof(Component), alignof(Component), Component::NAME, Component::PROTOTYPE, std::is_empty_v<Component>};
 }
 
 template<class... Components>

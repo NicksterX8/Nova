@@ -5,9 +5,8 @@
 using namespace ECS;
 
 struct ArchetypePoolTest : testing::Test {
-    ArchetypePool pool;
     Mallocator mallocator{};
-    ArchetypePoolTest() : pool({0}, &mallocator) {
+    ArchetypePoolTest() {
 
     }
 };

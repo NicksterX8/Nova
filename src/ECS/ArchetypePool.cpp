@@ -2,28 +2,28 @@
 
 namespace ECS {
 
-ArchetypePool::ArchetypePool(Signature signature, PoolAllocator* metaAllocator) {
+ArchetypePool::ArchetypePool(Signature signature, const Sint32* componentSizes, PoolAllocator* metaAllocator) {
     _signature = signature;
-    int componentCount = signature.count();
-    _numComponents = componentCount;
+    _numComponents = signature.count();
     entities = nullptr;
-    arrays = metaAllocator->allocate<char*>(componentCount);
-    memset(arrays, 0, componentCount * sizeof(char*));
-    componentIDs = metaAllocator->allocate<ComponentID>(componentCount);
+    arrays = metaAllocator->allocate<ComponentArray>(_numComponents);
+    int i = 0;
+    _signature.forEachSet([&](ComponentID component){
+        arrays[i++] = {
+            .componentType = component,
+            .data = nullptr
+        };
+    });
 
-    auto bits = signature.bits[0];
+    auto bits = _signature.bits[0];
     auto numComponentsInWord = llvm::countPopulation(bits);
     numComponentsInOrBeforeWord[0] = numComponentsInWord;
     for (int i = 1; i < Signature::nInts; i++) {
-        auto bits = signature.bits[i];
+        auto bits = _signature.bits[i];
         auto numComponentsInWord = llvm::countPopulation(bits);
         numComponentsInOrBeforeWord[i] = numComponentsInWord + numComponentsInOrBeforeWord[i - 1];
     }
 
-    int i = 0;
-    signature.forEachSet([&](ComponentID component){
-        componentIDs[i++] = component;
-    });
     size = 0;
     capacity = 0;
 }
@@ -53,9 +53,9 @@ int ArchetypePool::addNew(int count, const Entity* newEntities, ArchetypeAllocat
         int newCapacity = (capacity * 2 >= size + nNewEntities) ? capacity * 2 : size + nNewEntities;
         entities = allocator->reallocate(entities, (size_t)capacity, (size_t)newCapacity);
         for (int i = 0; i < _numComponents; i++) {
-            ComponentID componentID = componentIDs[i];
+            ComponentID componentID = arrays[i].componentType;
             auto componentSize = componentSizes[componentID];
-            arrays[i] = (char*)allocator->reallocate(arrays[i], capacity * componentSize, newCapacity * componentSize, alignof(max_align_t));
+            arrays[i].data = (char*)allocator->reallocate(arrays[i].data, capacity * componentSize, newCapacity * componentSize, alignof(max_align_t));
         }
         capacity = newCapacity;
     }
@@ -107,7 +107,7 @@ void ArchetypePool::remove(int index, Entity* movedEntity, const Sint32* compone
 //     const int lastIndex = size - 1;
 
 //     for (int i = 0; i < _numComponents; i++) {
-//         int componentID = componentIDs[i];
+//         int componentID = arrayComponentIDs[i];
 //         char* componentBuffer = arrays[i];
 //         auto componentSize = componentSizes[componentID];
 //         for (int j = 0; j < indices.size(); j++) {
