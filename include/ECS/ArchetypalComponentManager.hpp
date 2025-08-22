@@ -22,7 +22,7 @@ namespace ECS {
 
     struct Hash {
         My::Map::Hash operator()(ComponentGroup group) const {
-            return group.required.bits[0] ^ group.rejected.bits[0];
+            return group.required.words[0] ^ group.rejected.words[0];
         }
     };
 };

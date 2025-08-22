@@ -18,5 +18,5 @@
 #ifndef NDEBUG
 #define DASSERT(truthy) assert(truthy)
 #else
-#define DASSERT(truthy) do { if (!truthy) { __builtin_unreachable(); } } while (0)
+#define DASSERT(truthy) switch (0) { case 0: if (!(truthy)) { __builtin_unreachable(); } }
 #endif 

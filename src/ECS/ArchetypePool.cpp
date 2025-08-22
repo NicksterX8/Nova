@@ -15,12 +15,12 @@ ArchetypePool::ArchetypePool(Signature signature, const Sint32* componentSizes, 
         };
     });
 
-    auto bits = _signature.bits[0];
-    auto numComponentsInWord = llvm::countPopulation(bits);
+    auto word = _signature.words[0];
+    auto numComponentsInWord = llvm::countPopulation(word);
     numComponentsInOrBeforeWord[0] = numComponentsInWord;
-    for (int i = 1; i < Signature::nInts; i++) {
-        auto bits = _signature.bits[i];
-        auto numComponentsInWord = llvm::countPopulation(bits);
+    for (int i = 1; i < Signature::WordCount; i++) {
+        auto word = _signature.words[i];
+        auto numComponentsInWord = llvm::countPopulation(word);
         numComponentsInOrBeforeWord[i] = numComponentsInWord + numComponentsInOrBeforeWord[i - 1];
     }
 
@@ -29,10 +29,10 @@ ArchetypePool::ArchetypePool(Signature signature, const Sint32* componentSizes, 
 }
 
 int ArchetypePool::getArrayNumberFromSignature(ComponentID component) const {
-    static_assert(sizeof(Signature::IntegerType) == sizeof(uint64_t), "");
-    auto word = component / Signature::IntegerBits;
-    auto wordIndex = component % Signature::IntegerBits;
-    uint64_t bits = _signature.bits[word];
+    static_assert(sizeof(Signature::Word) == sizeof(uint64_t), "");
+    auto word = component / Signature::WordBits;
+    auto wordIndex = component % Signature::WordBits;
+    uint64_t bits = _signature.words[word];
     uint64_t componentBit = ((uint64_t)1 << wordIndex);
     if (!(bits & componentBit)) {
         // archetype does not have component
@@ -41,7 +41,7 @@ int ArchetypePool::getArrayNumberFromSignature(ComponentID component) const {
     uint64_t lowerMask = componentBit - 1;
     int index = llvm::countPopulation(bits & lowerMask);
     // now to get index for signature in its entirety add number of components before this word
-    if constexpr (Signature::nInts > 1) {
+    if constexpr (Signature::WordCount > 1) {
         if (word > 1) index += numComponentsInOrBeforeWord[word - 1];
     }
     return index;

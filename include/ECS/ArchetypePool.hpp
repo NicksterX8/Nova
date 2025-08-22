@@ -30,7 +30,7 @@ struct ArchetypePool {
     EntityIndex capacity;
     Entity* entities; // contained entities
     Signature _signature; // maybe make this SoA to make queries faster
-    uint8_t numComponentsInOrBeforeWord[Signature::nInts];
+    uint8_t numComponentsInOrBeforeWord[Signature::WordCount];
     
     ArchetypePool(Signature signature, const Sint32* componentSizes, PoolAllocator* metaAllocator);
 
@@ -57,7 +57,7 @@ struct ArchetypePool {
 
     // component must be in archetype!
     int getArrayNumber(ComponentID component) const {
-        if (_numComponents < 4 * Signature::nInts) {
+        if (_numComponents < 4 * Signature::WordCount) {
             return getArrayNumberLinear(component);
         } else {
             return getArrayNumberFromSignature(component);

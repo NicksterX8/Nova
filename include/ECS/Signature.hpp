@@ -128,7 +128,7 @@ struct Signature : My::Bitset<MaxComponentIDs> {
 
     constexpr Signature() {}
 
-    constexpr Signature(typename Base::IntegerType startValue) : Base(startValue) {}
+    constexpr Signature(typename Base::Word startValue) : Base(startValue) {}
 
     constexpr Signature(const My::Bitset<MaxComponentIDs>& base) : Base(base) {}
 
@@ -158,11 +158,11 @@ struct SignatureHash {
     size_t operator()(Signature self) const {
         //TODO: OMPTIMIZE improve hash
         // intsPerHash will always be 1 or greater as IntegerT cannot be larger than size_t
-        constexpr size_t intsPerHash = sizeof(size_t) / Signature::IntegerSize;
+        constexpr size_t intsPerHash = sizeof(size_t) / sizeof(Signature::Word);
         size_t hash = 0;
-        for (unsigned i = 0; i < self.nInts; i++) {
+        for (unsigned i = 0; i < Signature::WordCount; i++) {
             for (unsigned j = 0; j < intsPerHash; j++) {
-                hash ^= (size_t)self.bits[i] << j * Signature::IntegerSize * CHAR_BIT;
+                hash ^= (size_t)self.words[i] << j * sizeof(Signature::Word) * CHAR_BIT;
             }
         }
         return hash;
