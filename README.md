@@ -12,18 +12,18 @@ Components:
 - Infinitely expanding procedurally generated chunk based tilemap
 
 Dependencies:
-OpenGL for low level rendering
-glm for vector and matrix math
-SDL3 for the window, input
-SDL3_image for loading textures
-freetype2 for fonts
+- OpenGL for low level rendering
+- glm for vector and matrix math
+- SDL3 for the window, input
+- SDL3_image for loading textures
+- freetype2 for fonts
 
 Uses GoogleTest for unit testing.
 
 ## Next tasks
-Create more unique types of entities and mechanics, such as enemies and natural formations
-Improve the GUI, adding more features such as scrolling text boxes, text highlighting, copying, pasting, and more.
-Create more benchmarks of core engine features
+- Create more unique types of entities and mechanics, such as enemies and natural formations
+- Improve the GUI, adding more features such as scrolling text boxes, text highlighting, copying, pasting, and more.
+- Create more benchmarks of core engine features
 
 ## License & Usage
 This project is provided for demonstration and portfolio purposes only.
